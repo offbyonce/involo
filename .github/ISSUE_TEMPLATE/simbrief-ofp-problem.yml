@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+
 name: SimBrief or OFP file import problem
 description: A value from your SimBrief plan or OFP file came in wrong, missing or in the wrong place.
 title: "SimBrief import: "

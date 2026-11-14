@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+
 name: SayIntentions data (Beta) feedback
 description: Tell us how the SayIntentions ATC data worked in Involo.
 title: "SayIntentions (Beta): "
