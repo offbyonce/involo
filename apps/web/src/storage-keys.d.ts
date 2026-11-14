@@ -4,6 +4,6 @@
 export const OLD_PREFIX: string;
 export const NEW_PREFIX: string;
 export const MARKER: string;
-export function migrateStorage(storage: Storage): string;
+export function migrateStorage(storage: Storage, now?: () => string): string;
 export function prepareStorage(storage: Storage): string;
 export function storageKey(name: string): string;

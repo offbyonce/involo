@@ -29,6 +29,7 @@ complete brand and design-system handoff (`docs/brand/BRAND.md`, `docs/brand/DES
 - **Saved data survives the rename.** The web app stays on the same origin; on start it copies
   every saved key from the old name to the new one, checks each copy, and only then removes the
   old keys. If any step fails it keeps using the old data and tries again on the next start.
+  A save under the old name after the move (an old version still open) is kept, never dropped.
   The service worker removes the old name's caches.
 
 ## Consequences
@@ -38,4 +39,7 @@ complete brand and design-system handoff (`docs/brand/BRAND.md`, `docs/brand/DES
 - The project Pages address changes with the repository name and GitHub does not redirect it, so
   a small page published under the old name forwards visitors, keeping the path and query.
 - Two tokens were added for the header wordmark: `font.size.wordmark` and
-  `font.tracking.wordmark`.
+  `font.tracking.wordmark`. The `border-strong` token, which held border colors that had drifted
+  into five boards, was removed when those boards were corrected; its uses take `border`.
+- Environment variables are renamed with the app (`INVOLO_OVERLAP_REFS`, `INVOLO_BASELINE`,
+  `INVOLO_PLAN`); a shell that still sets the old names skips those checks.
