@@ -16,7 +16,7 @@ import { toYaml } from "./yaml.js";
 
 const SPDX = [
   // REUSE-IgnoreStart
-  "# SPDX-FileCopyrightText: 2026 offbyonce and Chock to Chock contributors",
+  "# SPDX-FileCopyrightText: 2026 offbyonce and Involo contributors",
   "# SPDX-License-Identifier: CC-BY-NC-SA-4.0",
   // REUSE-IgnoreEnd
   "#",

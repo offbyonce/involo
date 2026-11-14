@@ -10,7 +10,7 @@ from the seat, the side and seat views, the legend, and the whole flight deck be
 deck" until the Flight deck page exists (batch 6). All from the pack, in the panel palette.
 -->
 <script lang="ts">
-  import type { Zone } from "@chocktochock/bindings";
+  import type { Zone } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import Icon from "./Icon.svelte";
   import ViewDrawing from "./ViewDrawing.svelte";
@@ -158,7 +158,7 @@ deck" until the Flight deck page exists (batch 6). All from the pack, in the pan
     gap: var(--space-2);
     margin-left: auto;
     padding: 0 var(--space-3);
-    border: var(--border-thin) solid var(--color-border-strong);
+    border: var(--border-thin) solid var(--color-border);
     border-radius: var(--radius-pill);
     font-size: var(--font-size-secondary);
     font-weight: var(--weight-semibold);

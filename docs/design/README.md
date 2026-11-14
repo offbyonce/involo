@@ -1,6 +1,6 @@
 # Interface design handoff, round 5
 
-This folder is the agreed interface design for Chock to Chock. The owner reviewed and approved it over five rounds of mockups plus an independent design review. Build the interface from it.
+This folder is the agreed interface design for Involo. The owner reviewed and approved it over five rounds of mockups plus an independent design review. Build the interface from it.
 
 ## Hard rules
 
@@ -27,7 +27,8 @@ wins.
 - In `Checklist`, `Wide`, `Tablet`, `Mobile` and `Views` (Flow, Settings): the map figure in the
   side pane, the side pane's controls drawing, the "New panel" tag, "See the whole panel larger",
   the inline drawing in an expanded step, Flow's side pane drawing and Settings › Map in steps.
-  The rest of those boards stands.
+  The rest of those boards stands, except the header logo: the rename to Involo (decision 0025)
+  updated it only in the round 6 copies and Menu, so those copies' header is the specification.
 
 **Round 6 update (approved 2026-11-13).** `Tablet`, `Locator`, `Checklist`, `R6Pane` and
 `R6PaneLight` now show the label-free preview card in every side pane (desktop, wide, tablet

@@ -211,10 +211,10 @@ importers:
 
   apps/web:
     dependencies:
-      '@chocktochock/bindings':
+      '@involo/bindings':
         specifier: workspace:*
         version: link:../../packages/bindings
-      '@chocktochock/ui':
+      '@involo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
     devDependencies:
@@ -238,7 +238,7 @@ importers:
 
   packages/ui:
     dependencies:
-      '@chocktochock/bindings':
+      '@involo/bindings':
         specifier: workspace:*
         version: link:../bindings
     devDependencies:

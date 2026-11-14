@@ -16,7 +16,7 @@ row in place. A step that depends on the answer links back to it.
 -->
 <script lang="ts">
   import { blankLinks } from "../flight/sections";
-  import type { Detail, Step, StepRow } from "@chocktochock/bindings";
+  import type { Detail, Step, StepRow } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import BlankFields from "./BlankFields.svelte";
   import ContextPane from "./ContextPane.svelte";

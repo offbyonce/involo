@@ -10,7 +10,7 @@ En route winds come from the plan's navigation log. Decoding is Rust's code tabl
 not cover shows as printed, "Not decoded". Descriptions are the boards' stand-ins (batch 7).
 -->
 <script lang="ts">
-  import type { Decoded, DecodedRow, Element, FillField, Flight, SavedPlan } from "@chocktochock/bindings";
+  import type { Decoded, DecodedRow, Element, FillField, Flight, SavedPlan } from "@involo/bindings";
   import { getHost } from "../host";
   import Icon from "../lib/Icon.svelte";
   import { flightHref } from "../route.svelte";

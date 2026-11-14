@@ -29,7 +29,7 @@ body:has([data-app-ready]) .sim-only {
   max-width: var(--size-side-pane);
   margin: 0 auto;
   padding: var(--space-3) var(--space-4);
-  border: var(--border-thin) solid var(--color-border-strong);
+  border: var(--border-thin) solid var(--color-border);
   border-radius: var(--radius-panel);
   background: var(--color-sheet);
   color: var(--color-text);

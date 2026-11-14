@@ -9,9 +9,10 @@
 // only when the pilot presses Reload (the page sends "reload-to-update"), or on the next launch
 // once every window of the old version is closed.
 
-const VERSION = "__CHOCK_VERSION__";
-const FILES = ["__CHOCK_FILES__"];
-const PREFIX = "chocktochock-";
+const VERSION = "__INVOLO_VERSION__";
+const FILES = ["__INVOLO_FILES__"];
+const PREFIX = "involo-";
+const OLD_PREFIX = "chocktochock-";
 const CACHE = PREFIX + VERSION;
 
 self.addEventListener("install", (event) => {
@@ -24,7 +25,8 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
       for (const key of await caches.keys()) {
-        if (key.startsWith(PREFIX) && key !== CACHE) await caches.delete(key);
+        // Also the caches from before the rename (decision 0025), which held the same files.
+        if ((key.startsWith(PREFIX) && key !== CACHE) || key.startsWith(OLD_PREFIX)) await caches.delete(key);
       }
       await self.clients.claim();
     })(),

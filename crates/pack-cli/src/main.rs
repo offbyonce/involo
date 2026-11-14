@@ -6,7 +6,7 @@
 //! `pack build <dir> <out-dir>`  check each pack, then write it as one flattened `<id>.json`,
 //!                        plus `index.json` listing the packs written.
 //! `pack overlap <dir> [--refs <folder>] [--allow <file>]`  compare pack text with private
-//! reference files. The folder can also come from `CHOCKTOCHOCK_OVERLAP_REFS`.
+//! reference files. The folder can also come from `INVOLO_OVERLAP_REFS`.
 //! `pack suggest-targets <pack-dir>`  draft each step's targets from its wording, as JSON, with
 //! every place the reading was not certain (decision 0018). An author checks and keeps them.
 //! `pack terms <pack-dir>`  list steps whose name, value, Check, If not or Why use a glossary term

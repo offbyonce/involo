@@ -37,6 +37,7 @@ for (const [k, v] of entries(tokens.space)) add(`space-${k}`, rem(v), `${v}`);
 for (const [k, v] of entries(tokens.font.family)) add(`font-${k}`, v);
 for (const [k, v] of entries(tokens.font.size)) add(`font-size-${k}`, rem(v), `${v}`);
 for (const [k, v] of entries(tokens.font.weight)) add(`weight-${k}`, v);
+for (const [k, v] of entries(tokens.font.tracking)) add(`tracking-${k}`, v);
 for (const [k, v] of entries(tokens["line-height"])) add(`leading-${k}`, v);
 for (const [k, v] of entries(tokens.radius)) add(`radius-${k}`, k === "pill" ? `${v}px` : rem(v), `${v}`);
 for (const [k, v] of entries(tokens.border)) add(`border-${k}`, `${v}px`);

@@ -6,7 +6,7 @@
 // 3.0's size, the one size all drawings use. Reads
 // the flattened packs that `just web-packs` writes (`just test` runs it first).
 
-import type { Panel, PanelItem, PanelSection } from "@chocktochock/bindings";
+import type { Panel, PanelItem, PanelSection } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import { half, halfWidth, LAMP, layoutSection, PX } from "./panel-layout";
 import { em } from "./text-width";

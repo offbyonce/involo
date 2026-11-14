@@ -17,7 +17,7 @@ use pack::Pack;
 pub const MIN_RUN: usize = 8;
 
 /// The environment variable that names the reference folder.
-pub const REFS_VARIABLE: &str = "CHOCKTOCHOCK_OVERLAP_REFS";
+pub const REFS_VARIABLE: &str = "INVOLO_OVERLAP_REFS";
 
 /// Keys whose values are ids or fixed vocabulary, never prose.
 const NOT_PROSE: &[&str] = &[

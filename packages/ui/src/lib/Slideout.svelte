@@ -14,7 +14,7 @@ W), or a control's card. A panel taller than the room keeps its height and the b
 surface, opening with the step's controls in view; nothing inside scrolls up and down on its own.
 -->
 <script lang="ts">
-  import type { ItemTarget, Step } from "@chocktochock/bindings";
+  import type { ItemTarget, Step } from "@involo/bindings";
   import { labelOf, lowerFirst, type Decisions } from "./decision";
   import type { PackIndex } from "../pack-index";
   import Icon from "./Icon.svelte";

@@ -22,7 +22,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     type OpenStep,
     type SavedPlan,
     type Settings,
-  } from "@chocktochock/bindings";
+  } from "@involo/bindings";
   import { getHost, type SavedItem } from "./host";
   import type { Opening } from "./lib/opening";
   import Slideout from "./lib/Slideout.svelte";
@@ -162,6 +162,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       applyPalette(document.documentElement, dark, dimming);
     };
     apply();
+    host.themeChanged?.(theme);
     query?.addEventListener("change", apply);
     return () => query?.removeEventListener("change", apply);
   });

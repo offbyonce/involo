@@ -9,7 +9,7 @@ card, beside the full labeled panel at its 11 px size. Each takes a real step's 
 pack (its `at` locators read here, for review only). `?view=gate&theme=dark|light`.
 -->
 <script lang="ts">
-  import type { FlatPack, ItemTarget, Panel } from "@chocktochock/bindings";
+  import type { FlatPack, ItemTarget, Panel } from "@involo/bindings";
   import { MIN_SCALE, positionsOf } from "../lib/panel-layout";
   import PanelPreview from "../lib/PanelPreview.svelte";
   import PanelSchematic from "../lib/PanelSchematic.svelte";

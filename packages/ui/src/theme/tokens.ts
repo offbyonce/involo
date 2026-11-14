@@ -28,7 +28,6 @@ const SURFACES = new Set<string>([
   "paper",
   "paper-block",
   "border",
-  "border-strong",
   "line",
   "chip",
   "accent-soft",

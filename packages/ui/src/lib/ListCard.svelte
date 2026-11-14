@@ -8,7 +8,7 @@ with Show; and at the end the completion call (3.0). A challenge-and-response ch
 folded to one line with its count until the phase's procedure is done.
 -->
 <script lang="ts">
-  import type { Checklist, Detail, Flight, PhaseList } from "@chocktochock/bindings";
+  import type { Checklist, Detail, Flight, PhaseList } from "@involo/bindings";
   import { marksStep } from "./marked-step";
   import type { PackIndex } from "../pack-index";
   import Icon from "./Icon.svelte";

@@ -20,7 +20,8 @@ import type {
   Rail,
   SavedPlan,
   Settings,
-} from "@chocktochock/bindings";
+  Theme,
+} from "@involo/bindings";
 import { getContext } from "svelte";
 
 export interface Host {
@@ -65,6 +66,9 @@ export interface Host {
   /** A METAR or TAF decoded from the code table. */
   decodeMetar(text: string): Promise<Decoded>;
   decodeTaf(text: string): Promise<Decoded>;
+  /** The pilot's theme changed (or the app started): a host with a browser tab sets the favicon
+   * and theme-color to match (BRAND.md). Optional: a host without one leaves it out. */
+  themeChanged?(theme: Theme): void;
 }
 
 export type SavedItem<T> = { loaded: Loaded<T>; text: string } | null;

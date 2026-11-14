@@ -7,7 +7,7 @@ never brought in, the offline drop zone with Choose file (the file is read once 
 only the compact plan is kept, decision 0019), the last import, and Reset flight plan.
 -->
 <script lang="ts">
-  import type { SavedPlan } from "@chocktochock/bindings";
+  import type { SavedPlan } from "@involo/bindings";
   import Icon from "../lib/Icon.svelte";
 
   let {

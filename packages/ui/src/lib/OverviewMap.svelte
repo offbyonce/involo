@@ -9,7 +9,7 @@ palette, labels at 11 px or more (decision 0021): an area whose name cannot fit 
 unlabeled; the marked area is always named.
 -->
 <script lang="ts">
-  import type { Zone } from "@chocktochock/bindings";
+  import type { Zone } from "@involo/bindings";
   import { type PackIndex, splitArea } from "../pack-index";
   import { fitSize, labelLines } from "./map-labels";
   import { LABEL_MIN } from "./panel-layout";

@@ -1,7 +1,7 @@
 {
-  "name": "chocktochock",
+  "name": "involo",
   "private": true,
-  "description": "Chock to Chock: interactive cockpit checklists for flight simulators.",
+  "description": "Involo: interactive cockpit checklists for flight simulators.",
   "license": "MIT",
   "packageManager": "pnpm@12.18.0",
   "engines": {

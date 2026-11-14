@@ -11,7 +11,7 @@ Notes from ATC, and a footer with Import latest from SimBrief, where the values 
 flight plan (Undo after, in the shared toast) and All flight data, the Flight pages.
 -->
 <script lang="ts">
-  import type { FillField } from "@chocktochock/bindings";
+  import type { FillField } from "@involo/bindings";
   import Icon from "./Icon.svelte";
   import { rangeMessage } from "../flight/sections";
 

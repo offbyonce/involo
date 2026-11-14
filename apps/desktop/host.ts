@@ -5,8 +5,8 @@
 // later desktop build. One function per command, so command names are written once; these were
 // the wrappers in packages/bindings before decision 0010.
 
-import type { AppInfo, Checklist } from "@chocktochock/bindings";
-import type { Host } from "@chocktochock/ui";
+import type { AppInfo, Checklist } from "@involo/bindings";
+import type { Host } from "@involo/ui";
 import { invoke } from "@tauri-apps/api/core";
 
 export const tauriHost: Host = {

@@ -10,7 +10,7 @@ Labels sit where the pack puts them, at the board's sizes and never under 11 px.
 both themes, sized by width.
 -->
 <script lang="ts">
-  import type { ViewFrame } from "@chocktochock/bindings";
+  import type { ViewFrame } from "@involo/bindings";
   import { LABEL_MIN } from "./panel-layout";
 
   let {

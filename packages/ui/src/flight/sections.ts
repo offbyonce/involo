@@ -6,7 +6,7 @@
 // destination chip and where the OFP prints it. Labels, descriptions, chips and OFP close-ups
 // are the boards' stand-ins, on batch 7's validation list.
 
-import type { FillField, Flight, SavedPlan } from "@chocktochock/bindings";
+import type { FillField, Flight, SavedPlan } from "@involo/bindings";
 import type { FlightSection } from "../route.svelte";
 
 /** What a row's OFP panel reads. */
@@ -808,7 +808,7 @@ export const SECTIONS: Section[] = [
             max: 3,
             mode: "numeric",
             show: (x) => `${x}°`,
-            desc: "Set on the MCP heading before takeoff.",
+            desc: "The heading of your takeoff runway.",
             loc: "Set on the MCP › HEADING",
             ofp: takeoffOfp,
           },
@@ -987,7 +987,7 @@ export const SECTIONS: Section[] = [
             field: "landing_altitude",
             max: 5,
             mode: "numeric",
-            desc: "The destination field elevation, from the plan. Set on the pressurization panel.",
+            desc: "The destination field elevation, from the plan.",
             loc: "Set on the pressurization panel › LAND ALT",
             ofp: {
               ...approachRoute,

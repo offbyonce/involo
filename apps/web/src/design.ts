@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import { DecisionGallery, DrawingGallery, GateGallery } from "@chocktochock/ui";
-import "@chocktochock/ui/app.css";
+import { DecisionGallery, DrawingGallery, GateGallery } from "@involo/ui";
+import "@involo/ui/app.css";
 import "./fonts/fonts.css";
 import { mount } from "svelte";
 

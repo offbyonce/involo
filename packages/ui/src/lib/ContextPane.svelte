@@ -10,7 +10,7 @@ or Flow view, never repeated here. Shown beside
 the list on wide screens and inside the step on narrow ones.
 -->
 <script lang="ts">
-  import type { ItemTarget, Step, StepState } from "@chocktochock/bindings";
+  import type { ItemTarget, Step, StepState } from "@involo/bindings";
   import { type PackIndex, splitArea } from "../pack-index";
   import Locator from "./Locator.svelte";
   import OverviewMap from "./OverviewMap.svelte";

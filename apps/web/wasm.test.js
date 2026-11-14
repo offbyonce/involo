@@ -22,7 +22,7 @@ const ok = (answer) => {
 };
 
 test("the module answers with app facts and the example checklist", () => {
-  assert.equal(ok(wasm.app_info()).name, "Chock to Chock");
+  assert.equal(ok(wasm.app_info()).name, "Involo");
   assert.equal(ok(wasm.example_checklist()).steps.length, 3);
 });
 

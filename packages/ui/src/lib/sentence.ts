@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import type { Step } from "@chocktochock/bindings";
+import type { Step } from "@involo/bindings";
 import type { PackIndex } from "../pack-index";
 
 const literal = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

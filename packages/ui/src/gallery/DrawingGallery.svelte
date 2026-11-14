@@ -8,7 +8,7 @@ invented one-control panels made here (not pack content), and the pack's side an
 each region. `?theme=dark|light` picks the theme.
 -->
 <script lang="ts">
-  import type { FlatPack, ItemTarget, Panel, PanelItem } from "@chocktochock/bindings";
+  import type { FlatPack, ItemTarget, Panel, PanelItem } from "@involo/bindings";
   import PanelSchematic from "../lib/PanelSchematic.svelte";
   import ViewDrawing from "../lib/ViewDrawing.svelte";
   import { applyPalette } from "../theme/tokens";

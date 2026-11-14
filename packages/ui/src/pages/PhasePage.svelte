@@ -8,7 +8,7 @@ the procedure is done), and buttons to the phases either side. Flow view shows t
 step at a time (lib/FlowView.svelte).
 -->
 <script lang="ts">
-  import type { Checklist, Detail, FillField, Flight, OpenStep, PhaseView } from "@chocktochock/bindings";
+  import type { Checklist, Detail, FillField, Flight, OpenStep, PhaseView } from "@involo/bindings";
   import OpenStepsPop from "../lib/OpenStepsPop.svelte";
   import Icon from "../lib/Icon.svelte";
   import ListCard from "../lib/ListCard.svelte";

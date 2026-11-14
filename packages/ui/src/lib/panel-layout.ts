@@ -6,7 +6,7 @@
 // Drawing units are the pack's own; text keeps fixed pixel sizes, so its size in units depends
 // on `k`, the screen pixels per unit.
 
-import type { PanelItem, PanelSection } from "@chocktochock/bindings";
+import type { PanelItem, PanelSection } from "@involo/bindings";
 import { em, widest } from "./text-width";
 
 /**

@@ -7,7 +7,7 @@ phase and list, each with its setting and Go to step, and the footer saying skip
 open. Pop-over tokens; it closes on its X, Esc or a press outside.
 -->
 <script lang="ts">
-  import type { OpenStep } from "@chocktochock/bindings";
+  import type { OpenStep } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import Icon from "./Icon.svelte";
   import { stepTitle } from "./sentence";
