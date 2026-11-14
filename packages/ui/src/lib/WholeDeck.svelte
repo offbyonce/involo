@@ -7,7 +7,7 @@ behind the slide-out's "Whole flight deck" disclosure until the Flight deck page
 Panel palette; map units are about one to a pixel here, so labels stay at 11 px or more.
 -->
 <script lang="ts">
-  import type { Zone } from "@chocktochock/bindings";
+  import type { Zone } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
 
   let { index, zone }: { index: PackIndex; zone: Zone } = $props();

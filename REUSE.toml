@@ -25,7 +25,7 @@ SPDX-License-Identifier = "MIT"
 [[annotations]]
 path = ["packs/**", "crates/pack-cli/tests/snapshots/**"]
 precedence = "override"
-SPDX-FileCopyrightText = "2026 offbyonce and Chock to Chock contributors"
+SPDX-FileCopyrightText = "2026 offbyonce and Involo contributors"
 SPDX-License-Identifier = "CC-BY-NC-SA-4.0"
 
 [[annotations]]
@@ -68,6 +68,36 @@ path = [
     "docs/design/review/**",
     "docs/design/round6/**",
 ]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 offbyonce"
+SPDX-License-Identifier = "MIT"
+
+# The Involo brand (decision 0025): the logo masters, every platform icon made from them and the
+# header mark. All rights reserved, with permission to use them unmodified to refer to Involo
+# (LICENSES/LicenseRef-Involo-Brand.txt), a deliberate exception to decision 0003's open licenses.
+[[annotations]]
+path = [
+    "assets/brand/*.svg",
+    "assets/brand/icons/**",
+    "apps/web/public/app/icons/**",
+    "apps/web/public/og-image-1200x630.png",
+    "apps/desktop/src-tauri/icons/**",
+    "packages/ui/src/icons/brand/*.svg",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 offbyonce"
+SPDX-License-Identifier = "LicenseRef-Involo-Brand"
+
+# The license of the font the outlined wordmark comes from, kept beside the artwork.
+[[annotations]]
+path = ["assets/brand/GEIST-OFL.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "2023 Vercel, in collaboration with basement.studio"
+SPDX-License-Identifier = "OFL-1.1"
+
+# The brand and design-system handoff (docs/brand), kept as delivered, without comment headers.
+[[annotations]]
+path = ["docs/brand/BRAND.md", "docs/brand/DESIGN-SYSTEM.md"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 offbyonce"
 SPDX-License-Identifier = "MIT"

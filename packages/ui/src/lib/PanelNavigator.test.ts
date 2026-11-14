@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import type { Panel } from "@chocktochock/bindings";
+import type { Panel } from "@involo/bindings";
 import { cleanup, fireEvent, render, screen } from "@testing-library/svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import PanelNavigator from "./PanelNavigator.svelte";

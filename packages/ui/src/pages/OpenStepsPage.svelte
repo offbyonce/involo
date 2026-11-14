@@ -7,7 +7,7 @@ marked Skipped or Missed (decision 0012). Each can be ticked here, a skipped one
 or found in its phase.
 -->
 <script lang="ts">
-  import type { OpenStep } from "@chocktochock/bindings";
+  import type { OpenStep } from "@involo/bindings";
   import Icon from "../lib/Icon.svelte";
   import type { PackIndex } from "../pack-index";
   import { phaseHref } from "../route.svelte";

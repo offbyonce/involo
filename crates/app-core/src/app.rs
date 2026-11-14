@@ -23,7 +23,7 @@ pub struct AppInfo {
 
 pub fn app_info() -> AppInfo {
     AppInfo {
-        name: "Chock to Chock".to_owned(),
+        name: "Involo".to_owned(),
         version: env!("CARGO_PKG_VERSION").to_owned(),
         pack_schema_version: pack::SCHEMA_VERSION,
     }

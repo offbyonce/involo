@@ -7,7 +7,7 @@ with its rows; Fuel's card header carries "Weights in lb / kg"; Approach has its
 above the cards. The selected row drives the OFP panel beside it.
 -->
 <script lang="ts">
-  import type { FillField, UserOption } from "@chocktochock/bindings";
+  import type { FillField, UserOption } from "@involo/bindings";
   import FieldRow from "./FieldRow.svelte";
   import { SECTIONS, toEnter, type Ctx, type Section } from "./sections";
 

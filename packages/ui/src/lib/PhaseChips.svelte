@@ -9,7 +9,7 @@ the saved time. The bars' empty track uses the to-do ring color, 3:1 against the
 batch 3).
 -->
 <script lang="ts">
-  import type { Detail, Progress, RailPhase } from "@chocktochock/bindings";
+  import type { Detail, Progress, RailPhase } from "@involo/bindings";
   import { phaseHref } from "../route.svelte";
   import Icon from "./Icon.svelte";
 

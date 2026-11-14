@@ -197,7 +197,7 @@ mod tests {
 
     #[test]
     fn answers_are_ok_or_a_tagged_error() {
-        assert_eq!(json(&app_info())["ok"]["name"], "Chock to Chock");
+        assert_eq!(json(&app_info())["ok"]["name"], "Involo");
         assert_eq!(json(&example_checklist())["ok"]["id"], "before-start");
         assert_eq!(
             json(&plan_url(" ")),

@@ -5,7 +5,7 @@
 // WebAssembly. The username goes from this browser straight to SimBrief; it is not stored, and
 // nothing is sent anywhere else. Kept as a test page; the app's own plan loading comes in step 7.
 
-import { type AppError, isAppError, type Plan } from "@chocktochock/bindings";
+import { type AppError, isAppError, type Plan } from "@involo/bindings";
 import { parsePlan, planUrl } from "../core";
 
 function element<T extends HTMLElement>(id: string): T {

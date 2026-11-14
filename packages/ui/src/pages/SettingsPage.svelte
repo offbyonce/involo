@@ -8,7 +8,7 @@ saves them on the device, and batch 7 adds the rest.
 -->
 <script lang="ts">
   import Toggle from "../lib/Toggle.svelte";
-  import type { Settings } from "@chocktochock/bindings";
+  import type { Settings } from "@involo/bindings";
 
   let { settings, onChange }: { settings: Settings; onChange: (s: Settings) => void } = $props();
 

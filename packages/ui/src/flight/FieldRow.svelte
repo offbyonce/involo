@@ -10,7 +10,7 @@ text, with a "Section ›" link under the description. Selecting the row (a clic
 the "Find it in your OFP" panel at it. Descriptions Off keeps the label, the value and the location line.
 -->
 <script lang="ts">
-  import type { FillField } from "@chocktochock/bindings";
+  import type { FillField } from "@involo/bindings";
   import { flightHref, phaseHref } from "../route.svelte";
   import Icon from "../lib/Icon.svelte";
   import { type Ctx, type Row, rangeMessage } from "./sections";

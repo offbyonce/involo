@@ -17,7 +17,7 @@ import type {
   Step,
   UserOption,
   Zone,
-} from "@chocktochock/bindings";
+} from "@involo/bindings";
 
 export type PackIndex = {
   name: string;

@@ -21,7 +21,7 @@ edition = "2024"
 rust-version = "1.90"
 license = "MIT"
 authors = ["offbyonce"]
-repository = "https://github.com/offbyonce/ChockToChock"
+repository = "https://github.com/offbyonce/involo"
 publish = false
 
 # Every dependency version lives here, once. Member crates write `name.workspace = true`.

@@ -7,7 +7,7 @@ Exterior phase until batch 6's inspection view), Power source (also asked at Pow
 panel state, and Turnaround. The descriptions are the board's, on batch 7's validation list.
 -->
 <script lang="ts">
-  import type { Flight, StartState, UserOption } from "@chocktochock/bindings";
+  import type { Flight, StartState, UserOption } from "@involo/bindings";
   import { phaseHref } from "../route.svelte";
   import Toggle from "../lib/Toggle.svelte";
   import Icon from "../lib/Icon.svelte";

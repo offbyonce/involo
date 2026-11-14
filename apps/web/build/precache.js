@@ -45,9 +45,9 @@ export function writeServiceWorker(root, outDir) {
   const urls = files.map((file) => path.posix.relative(workerDir, file));
   const template = fs.readFileSync(path.resolve(root, "src/sw/sw.js"), "utf8");
   const worker = template
-    .replace('"__CHOCK_VERSION__"', JSON.stringify(version))
-    .replace('["__CHOCK_FILES__"]', JSON.stringify(urls));
-  if (worker.includes("__CHOCK_")) throw new Error("service worker template placeholders not found");
+    .replace('"__INVOLO_VERSION__"', JSON.stringify(version))
+    .replace('["__INVOLO_FILES__"]', JSON.stringify(urls));
+  if (worker.includes("__INVOLO_")) throw new Error("service worker template placeholders not found");
   fs.writeFileSync(path.join(dist, WORKER), worker);
   return { version, files: urls };
 }

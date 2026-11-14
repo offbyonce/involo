@@ -39,7 +39,7 @@ test("the worker precaches the app's files, relative to its own folder", () => {
   const worker = fs.readFileSync(path.join(root, "dist", WORKER), "utf8");
   assert.ok(worker.includes(`const VERSION = "${version}";`));
   assert.ok(worker.includes(`const FILES = ${JSON.stringify(files)};`));
-  assert.ok(!worker.includes("__CHOCK_"));
+  assert.ok(!worker.includes("__INVOLO_"));
   fs.rmSync(root, { recursive: true });
 });
 

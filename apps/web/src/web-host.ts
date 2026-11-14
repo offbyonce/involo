@@ -5,8 +5,9 @@
 // APIs (decisions 0010 and 0012). Packs and their index are files beside the app, written by
 // `pack build`; this page is app/index.html, so they are one folder up.
 
-import type { PackSummary, SavedPlan } from "@chocktochock/bindings";
-import type { Host } from "@chocktochock/ui";
+import type { PackSummary, SavedPlan } from "@involo/bindings";
+import type { Host } from "@involo/ui";
+import { applyBrandTheme } from "./brand-theme";
 import {
   appInfo,
   apply,
@@ -25,8 +26,9 @@ import {
   rail,
 } from "./core";
 import { loadSaved, save, setAside } from "./saved";
+import { storageKey } from "./storage-keys.js";
 
-const planKey = (pack: string) => `chocktochock.plan.${pack}`;
+const planKey = (pack: string) => storageKey(`plan.${pack}`);
 
 /** The compact plan from a SimBrief reply or a saved file (decision 0019): the raw text is dropped. */
 async function compact(text: string): Promise<SavedPlan> {
@@ -52,6 +54,7 @@ export const webHost: Host = {
   save,
   setAside,
   defaultSettings,
+  themeChanged: (theme) => applyBrandTheme(theme),
   fetchPlan: async (user) => {
     // Straight from the pilot's browser to SimBrief: only the username or Pilot ID goes with it.
     const response = await fetch(await planUrl(user), { credentials: "omit", referrerPolicy: "no-referrer" });

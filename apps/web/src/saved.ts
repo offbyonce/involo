@@ -7,12 +7,13 @@
 // it stays until the pilot starts fresh, and then it is moved aside under its own key.
 // Browser storage can be missing or blocked (private windows); every access is guarded.
 
-import type { Flight, Settings } from "@chocktochock/bindings";
-import type { Saved } from "@chocktochock/ui";
+import type { Flight, Settings } from "@involo/bindings";
+import type { Saved } from "@involo/ui";
 import { loadFlight, loadSettings } from "./core";
+import { storageKey } from "./storage-keys.js";
 
 const key = (pack: string, what: "flight" | "settings") =>
-  what === "settings" ? "chocktochock.settings" : `chocktochock.flight.${pack}`;
+  storageKey(what === "settings" ? "settings" : `flight.${pack}`);
 
 function read(k: string): string | null {
   try {

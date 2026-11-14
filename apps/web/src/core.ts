@@ -21,7 +21,7 @@ import type {
   Reply,
   SavedPlan,
   Settings,
-} from "@chocktochock/bindings";
+} from "@involo/bindings";
 import init, * as wasm from "./wasm/web_host.js";
 
 let ready: Promise<unknown> | undefined;

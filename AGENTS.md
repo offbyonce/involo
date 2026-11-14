@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 -->
-# Working on Chock to Chock (for AI agents and contributors)
+# Working on Involo (for AI agents and contributors)
 
 Read this first, then `docs/plan.md` (what we are building and why) and the brief for the
 current phase in `docs/briefs/`. Decision records in `docs/decisions/` explain past choices;
@@ -117,9 +117,9 @@ just packs     # validate every pack
 just site      # build the web site into apps/web/dist (WebAssembly, packs, app)
 just update-test  # service worker update test in headless Firefox (local; needs Firefox)
 just screenshots <dir>  # review screenshots (five sizes, dark and light) into <dir>;
-                        # with CHOCKTOCHOCK_BASELINE=<local 3.0 HTML file>, also 3.0 side by side in <dir>/compare
+                        # with INVOLO_BASELINE=<local 3.0 HTML file>, also 3.0 side by side in <dir>/compare
 just ci        # everything; must pass before a push
-just overlap   # compare packs with private references (CHOCKTOCHOCK_OVERLAP_REFS)
+just overlap   # compare packs with private references (INVOLO_OVERLAP_REFS)
 ```
 
 Rust is pinned in `rust-toolchain.toml` (1.99). Newer clippy versions add lints, so always run

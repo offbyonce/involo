@@ -8,7 +8,7 @@ state=unanswered|suggested|answered|changing|changed|phone`. Each state is a sta
 choices, Confirm, Change, Keep this answer and Undo all work, as in the app.
 -->
 <script lang="ts">
-  import type { Flight } from "@chocktochock/bindings";
+  import type { Flight } from "@involo/bindings";
   import { changedText, decisionKey, dependsOn, type DecisionSource, type Decisions } from "../lib/decision";
   import ListCard from "../lib/ListCard.svelte";
   import Toast from "../lib/Toast.svelte";

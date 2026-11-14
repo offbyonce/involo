@@ -6,7 +6,7 @@
 // preference, so the app needs no test hook. Writes PNG files to <out-dir>, which should be
 // outside the repo. Needs Firefox on the PATH (or FIREFOX=/path/to/firefox).
 //
-// With CHOCKTOCHOCK_BASELINE set to a local copy of the 3.0 checklist's HTML file, it also shoots
+// With INVOLO_BASELINE set to a local copy of the 3.0 checklist's HTML file, it also shoots
 // the same screens of 3.0 into <out-dir>/baseline and writes side-by-side images (3.0 left, new
 // right, same size and theme) into <out-dir>/compare. The 3.0 copy is never part of the repo.
 // SCREENSHOTS_ONLY=phase-desktop-dark,flow limits the run to keys that start with one of those.
@@ -570,8 +570,8 @@ async function main() {
   const out = path.resolve(process.argv[2] ?? "");
   if (!process.argv[2]) throw new Error("usage: screenshots.mjs <out-dir>");
   if (!fs.existsSync(path.join(dist, "app/index.html"))) throw new Error("build the site first: just site");
-  const baseline = process.env.CHOCKTOCHOCK_BASELINE ? path.resolve(process.env.CHOCKTOCHOCK_BASELINE) : null;
-  if (baseline && !fs.existsSync(baseline)) throw new Error(`CHOCKTOCHOCK_BASELINE: no such file ${baseline}`);
+  const baseline = process.env.INVOLO_BASELINE ? path.resolve(process.env.INVOLO_BASELINE) : null;
+  if (baseline && !fs.existsSync(baseline)) throw new Error(`INVOLO_BASELINE: no such file ${baseline}`);
   fs.mkdirSync(out, { recursive: true });
 
   const targets = [

@@ -26,7 +26,7 @@ pub fn run() {
         .run(tauri::generate_context!());
 
     if let Err(e) = result {
-        tracing::error!("Chock to Chock stopped with an error: {e}");
+        tracing::error!("Involo stopped with an error: {e}");
         std::process::exit(1);
     }
 }

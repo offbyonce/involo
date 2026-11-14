@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import type { PanelItem, PanelSection } from "@chocktochock/bindings";
+import type { PanelItem, PanelSection } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import {
   drawingScale,

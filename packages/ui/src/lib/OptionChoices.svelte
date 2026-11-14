@@ -7,7 +7,7 @@ An option the pack asks for on this phase, as in 3.0: cards when its choices hav
 applies the option in Rust, which decides what shows.
 -->
 <script lang="ts">
-  import type { UserOption } from "@chocktochock/bindings";
+  import type { UserOption } from "@involo/bindings";
 
   let {
     option,

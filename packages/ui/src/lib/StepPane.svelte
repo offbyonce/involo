@@ -11,7 +11,7 @@ and a caution note under If not. A step with no control shows the steps coming u
 -->
 <script lang="ts">
   import { sentence as toSentence, stepTitle } from "./sentence";
-  import type { ItemTarget, Step, StepState } from "@chocktochock/bindings";
+  import type { ItemTarget, Step, StepState } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import Icon from "./Icon.svelte";
   import PanelPreview from "./PanelPreview.svelte";

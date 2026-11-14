@@ -19,7 +19,7 @@ panel palette (decision 0021). Each control is in one state:
 What the step asks for, never the simulator's state (decision 0006).
 -->
 <script lang="ts">
-  import type { ItemTarget, PanelItem, PanelSection } from "@chocktochock/bindings";
+  import type { ItemTarget, PanelItem, PanelSection } from "@involo/bindings";
   import { em } from "./text-width";
   import { angleOf, BUTTON, COVER_RAISE, DIAL, half, halfWidth, withinAcross, knobY, LAMP, TOGGLE, labelled, lampText, layoutSection, leverY, PX, positionsOf, slotY } from "./panel-layout";
 

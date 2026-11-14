@@ -17,7 +17,7 @@ setup:
 
 # Run the web app's dev server (the app is at /app/).
 dev: wasm web-packs
-    pnpm --filter @chocktochock/web dev
+    pnpm --filter @involo/web dev
 
 # Format everything in place.
 fmt:
@@ -33,14 +33,14 @@ fmt-check:
 lint: wasm
     cargo clippy --workspace --all-targets -- -D warnings
     pnpm exec biome check .
-    pnpm --filter @chocktochock/ui check
-    pnpm --filter @chocktochock/web check
+    pnpm --filter @involo/ui check
+    pnpm --filter @involo/web check
 
 # All tests: Rust (nextest + doctests), the interface (Vitest), the 3.0 converter and the web site.
 test: wasm web-packs
     cargo nextest run --workspace
     cargo test --doc --workspace
-    pnpm --filter @chocktochock/ui test
+    pnpm --filter @involo/ui test
     node --test "tools/import-3x/*.test.js" "apps/web/*.test.js" "apps/web/src/*.test.js" "apps/web/build/*.test.js"
 
 # Build the web host as WebAssembly into apps/web/src/wasm. Needs the wasm-bindgen CLI at the
@@ -58,7 +58,7 @@ web-packs:
 # front page, the work-in-progress app at app/ and the SimBrief probe page, with the WebAssembly
 # module and the flattened packs.
 site: wasm web-packs
-    pnpm --filter @chocktochock/web build
+    pnpm --filter @involo/web build
 
 # The service worker's version-to-version update test in headless Firefox (needs Firefox; not
 # part of `just ci`). See apps/web/build/update-test.mjs.
@@ -96,7 +96,7 @@ packs:
     cargo run -q -p pack-cli -- check packs
     cargo run -q -p pack-cli -- terms packs/ifly-737-max8
 
-# Compare pack text with private reference files named by CHOCKTOCHOCK_OVERLAP_REFS.
+# Compare pack text with private reference files named by INVOLO_OVERLAP_REFS.
 overlap:
     cargo run -q -p pack-cli -- overlap packs --allow crates/pack-overlap/allow.txt
 

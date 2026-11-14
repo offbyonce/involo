@@ -29,7 +29,7 @@ this device instead of deleting it. Nothing is saved over it until then.
     rather than deleting it.
   </p>
   <div class="acts">
-    <a class="btn" {href} download="chocktochock-{what}.json">Save a copy</a>
+    <a class="btn" {href} download="involo-{what}.json">Save a copy</a>
     <button class="btn primary" type="button" onclick={onFresh}>Start fresh</button>
   </div>
 </div>

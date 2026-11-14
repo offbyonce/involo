@@ -219,11 +219,11 @@ mod tests {
     }
 
     /// Reads a real plan the maintainer keeps outside the repository and reports the compact
-    /// plan's size: `CHOCKTOCHOCK_PLAN=<file> cargo test -p simbrief -- --ignored --nocapture`.
+    /// plan's size: `INVOLO_PLAN=<file> cargo test -p simbrief -- --ignored --nocapture`.
     #[test]
     #[ignore = "needs a real SimBrief plan file outside the repository"]
     fn measures_a_real_plan() {
-        let path = std::env::var("CHOCKTOCHOCK_PLAN").expect("CHOCKTOCHOCK_PLAN");
+        let path = std::env::var("INVOLO_PLAN").expect("INVOLO_PLAN");
         let raw = std::fs::read_to_string(path).unwrap();
         let plan = parse_ofp(&raw).unwrap();
         let saved = serde_json::to_string(&plan).unwrap();
@@ -242,7 +242,7 @@ mod tests {
             fix_bytes / fixes.max(1)
         );
         assert_eq!(serde_json::from_str::<Plan>(&saved).unwrap(), plan);
-        if let Ok(out) = std::env::var("CHOCKTOCHOCK_PLAN_OUT") {
+        if let Ok(out) = std::env::var("INVOLO_PLAN_OUT") {
             std::fs::write(out, &saved).unwrap();
         }
     }

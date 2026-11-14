@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import type { FlatPack } from "@chocktochock/bindings";
+import type { FlatPack } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
 import { stepTitle } from "./sentence";

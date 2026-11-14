@@ -1,7 +1,7 @@
 {
-  "name": "@chocktochock/web",
+  "name": "@involo/web",
   "private": true,
-  "description": "The Chock to Chock web app, built into apps/web/dist for GitHub Pages.",
+  "description": "The Involo web app, built into apps/web/dist for GitHub Pages.",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -10,8 +10,8 @@
     "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
-    "@chocktochock/bindings": "workspace:*",
-    "@chocktochock/ui": "workspace:*"
+    "@involo/bindings": "workspace:*",
+    "@involo/ui": "workspace:*"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "catalog:",

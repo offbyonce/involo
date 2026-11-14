@@ -8,9 +8,10 @@ Flow switch and Emergency. Find is hidden until it is built (batch 6, owner). St
 narrow windows; the menu has them there.
 -->
 <script lang="ts">
-  import type { ListView, Rail } from "@chocktochock/bindings";
+  import type { ListView, Rail } from "@involo/bindings";
   import { phaseHref } from "../route.svelte";
   import Icon from "./Icon.svelte";
+  import headerMark from "../icons/brand/header-mark.svg?raw";
 
   let {
     aircraft,
@@ -43,7 +44,10 @@ narrow windows; the menu has them there.
   <button class="menu" type="button" aria-label="Menu" aria-expanded={menuOpen} aria-controls="drawer" onclick={onMenu}>
     <Icon name="menu" />
   </button>
-  <div class="brand">Chock to Chock<small>{aircraft}</small></div>
+  <div class="brand">
+    <span class="name"><span class="mark" aria-hidden="true">{@html headerMark}</span>involo</span>
+    <small>{aircraft}</small>
+  </div>
   {#if rail}
     <nav class="stages" aria-label="Stages">
       {#each rail.stages as s (s.title)}
@@ -93,10 +97,23 @@ narrow windows; the menu has them there.
   .brand {
     display: flex;
     flex-direction: column;
-    font-size: var(--font-size-body);
-    font-weight: var(--weight-semibold);
     line-height: var(--leading-tight);
     white-space: nowrap;
+  }
+  /* The header logo (docs/brand/DESIGN-SYSTEM.md §11): the small mark, sized from the wordmark in
+     its own file (18 × 15 at 17 px), a 4 px gap, then the live wordmark. */
+  .name {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    color: var(--color-text-strong);
+    font-size: var(--font-size-wordmark);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-wordmark);
+  }
+  .mark {
+    display: flex;
+    flex: none;
   }
   .brand small {
     color: var(--color-text-muted);

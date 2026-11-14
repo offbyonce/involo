@@ -9,7 +9,7 @@ import type {
   Settings,
   StartState,
   UserOption,
-} from "@chocktochock/bindings";
+} from "@involo/bindings";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { type Host, hostContext } from "../host";
@@ -156,6 +156,13 @@ describe("Flight sections data", () => {
       // Read-only on Fuel and weights: typed in the step.
       null,
     ]);
+  });
+
+  it("words descriptions as the FlightSection board, leaving where to set it to the location line", () => {
+    const rows = SECTIONS.flatMap((s) => s.groups.flatMap((g) => g.rows));
+    const desc = (id: string) => rows.find((r) => r.id === id)?.desc;
+    expect(desc("heading")).toBe("The heading of your takeoff runway.");
+    expect(desc("landing_altitude")).toBe("The destination field elevation, from the plan.");
   });
 });
 

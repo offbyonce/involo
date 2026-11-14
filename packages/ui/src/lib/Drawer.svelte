@@ -6,7 +6,7 @@ The menu, as in 3.0: where to continue, the stages, the reference screens and se
 batches add flight setup, the flight log, practice and the rest here.
 -->
 <script lang="ts">
-  import type { Detail, Progress, Rail } from "@chocktochock/bindings";
+  import type { Detail, Progress, Rail } from "@involo/bindings";
   import { phaseHref } from "../route.svelte";
 
   let {

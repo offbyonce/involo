@@ -1,6 +1,6 @@
 # Interface design handoff, round 5
 
-This folder is the agreed interface design for Chock to Chock. The owner reviewed and approved it over five rounds of mockups plus an independent design review. Build the interface from it.
+This folder is the agreed interface design for Involo. The owner reviewed and approved it over five rounds of mockups plus an independent design review. Build the interface from it.
 
 ## Hard rules
 

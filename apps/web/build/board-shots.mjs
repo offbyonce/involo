@@ -134,6 +134,9 @@ const SHOTS = [
   ["R6Control", { layout: "desktop", state: "control" }, 1440, 900, "Locator", round6],
   ["R6TabL", { layout: "tabletL", state: "panel" }, 1180, 820, "Locator", round6],
   ["R6TabLPane", { orient: "landscape", overlay: "none", r6: true }, 1180, 820, "Tablet", round6],
+  // The menu drawer's header logo on tablet portrait and phone (the rename to Involo).
+  ["R6MenuTabP", { orient: "portrait", overlay: "menu", r6: true }, 820, 1180, "Tablet", round6],
+  ["R6MenuPhone", { screen: "menu", r6: true }, 390, 844, "Mobile", round6],
   ["R6Flow", { view: "flow", r6: true }, 1440, 900, "Views", round6],
   ["R6Settings", { view: "settings", r6: true }, 1440, 900, "Views", round6],
   // Round 6's Checklist at 1600 by 900, for the 2560 by 1440 side-by-side (scaled 1.6, as Wide).

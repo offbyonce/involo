@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MIT
 
 [package]
-name = "chocktochock"
-description = "Chock to Chock desktop app: the thin Tauri shell around the checklist crates."
+name = "involo"
+description = "Involo desktop app: the thin Tauri shell around the checklist crates."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -14,7 +14,7 @@ publish.workspace = true
 
 [lib]
 # The `_lib` suffix avoids a name clash with the binary on Windows.
-name = "chocktochock_lib"
+name = "involo_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

@@ -8,7 +8,7 @@ On / Off), the section list (232) with "N to enter", the section, and "Find it i
 it. Every field of the old Flight setup lives in one section.
 -->
 <script lang="ts">
-  import type { FillField, Flight, SavedPlan, Settings, StartState, UserOption } from "@chocktochock/bindings";
+  import type { FillField, Flight, SavedPlan, Settings, StartState, UserOption } from "@involo/bindings";
   import Icon from "../lib/Icon.svelte";
   import { FLIGHT_SECTIONS, flightHref, type FlightSection } from "../route.svelte";
   import OfpPanel from "./OfpPanel.svelte";

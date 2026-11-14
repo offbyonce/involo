@@ -8,7 +8,7 @@ the start for tests and completion steps, as in 3.0), then a note. Used in an op
 Flow view and in the side panel. Each item shows once.
 -->
 <script lang="ts">
-  import type { Step } from "@chocktochock/bindings";
+  import type { Step } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import Icon from "./Icon.svelte";
 

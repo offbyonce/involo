@@ -25,10 +25,12 @@
   --font-size-value-mono: 0.9375rem; /* 15 */
   --font-size-flow-title: 3rem; /* 48 */
   --font-size-flow-value: 2rem; /* 32 */
+  --font-size-wordmark: 1.0625rem; /* 17 */
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
+  --tracking-wordmark: -0.02em;
   --leading-tight: 1.2;
   --leading-snug: 1.45;
   --leading-normal: 1.5;
@@ -80,7 +82,6 @@
   --color-sheet: #121720;
   --color-field: #0f1218;
   --color-border: #2a323e;
-  --color-border-strong: #2f3846;
   --color-line: #222934;
   --color-chip: #2a323e;
   --color-text: #e6e9ee;
@@ -156,7 +157,6 @@
     --color-sheet: #ffffff;
     --color-field: #ffffff;
     --color-border: #d3d9e1;
-    --color-border-strong: #c9d0d9;
     --color-line: #e2e6ec;
     --color-chip: #e2e6ec;
     --color-text: #1a1f27;

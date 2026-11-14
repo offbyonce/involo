@@ -11,7 +11,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
 -->
 <script lang="ts">
   import { panelCaption } from "./panel-name";
-  import type { ItemTarget, Panel, PanelSection as Section } from "@chocktochock/bindings";
+  import type { ItemTarget, Panel, PanelSection as Section } from "@involo/bindings";
   import { drawingScale, K, layoutSection, openingScroll, positionsOf, roomScale } from "./panel-layout";
   import PanelSection from "./PanelSection.svelte";
   import Self from "./PanelSchematic.svelte";
@@ -391,7 +391,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     margin: auto 0 0;
     padding: var(--space-4) var(--gutter) var(--space-6);
     border: 0;
-    border-top: var(--border-thin) solid var(--color-border-strong);
+    border-top: var(--border-thin) solid var(--color-border);
     border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
     background: var(--color-sheet);
     color: var(--color-text);

@@ -1,5 +1,5 @@
 {
-  "name": "@chocktochock/bindings",
+  "name": "@involo/bindings",
   "private": true,
   "description": "TypeScript types generated from Rust, and isAppError.",
   "license": "MIT",

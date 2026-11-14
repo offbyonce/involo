@@ -11,7 +11,7 @@ value on the right. The pilot confirms each step; the app never knows a switch p
   import { blankLinks } from "../flight/sections";
   import BlankFields from "./BlankFields.svelte";
   import { fillParts } from "./value-parts";
-  import type { Detail, PhaseView, Step } from "@chocktochock/bindings";
+  import type { Detail, PhaseView, Step } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import { phaseHref } from "../route.svelte";
   import ContextPane from "./ContextPane.svelte";

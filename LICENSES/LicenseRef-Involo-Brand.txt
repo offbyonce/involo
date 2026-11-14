@@ -1,0 +1,20 @@
+Involo brand license
+
+Copyright 2026 offbyonce. All rights reserved.
+
+This license covers the Involo name as a mark and the Involo logo files: the mark, the
+wordmark, the lockups and the app and platform icons made from them. It does not cover the
+code (MIT) or the checklist content (CC BY-NC-SA 4.0) in this repository.
+
+You may use the logo files, unmodified, to refer to Involo: in articles, reviews, videos,
+community posts and links to the app. Follow the rules in docs/brand/BRAND.md (no tile where
+you control the background, no recoloring, rotating, stretching or added effects) and do not
+suggest that offbyonce endorses you or your work.
+
+Any other use, including changed versions of the logo, use in another product's name or logo,
+or use on merchandise, needs written permission from offbyonce.
+
+The wordmark is outlined from Geist, a font licensed under the SIL Open Font License 1.1
+(assets/brand/GEIST-OFL.txt); that license applies to the font, not to this artwork.
+
+THE LOGO FILES ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.

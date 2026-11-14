@@ -81,8 +81,8 @@ body{margin:0}
 class Component extends DCLogic {
   renderVals() {
     const T = {
-      dark: { bg: '#0f1218', surface: '#161b23', border: '#2f3846', line: '#222934', text: '#e6e9ee', sub: '#b7bec9', muted: '#8b94a3', strong: '#ffffff', accent: '#4c8dff', accentSoft: '#14243c', link: '#7fb0ff', amber: '#f2bd5c', segTrack: '#121720', segBorder: '#2a323e', segOn: '#2a323e', segShadow: '0 0 0 0 transparent', btnBg: 'transparent', btnBgSolid: '#0f1218', btnShadow: 'none', toggleOff: '#3a4351' },
-      light: { bg: '#f5f7fa', surface: '#ffffff', border: '#c9d0d9', line: '#e2e6ec', text: '#1a1f27', sub: '#3d4552', muted: '#5b6472', strong: '#0b0f14', accent: '#2563eb', accentSoft: '#e4ecfd', link: '#1d4fd8', amber: '#8a5a00', segTrack: '#e6eaf0', segBorder: '#dde2e8', segOn: '#ffffff', segShadow: '0 1px 2px rgba(16, 24, 40, 0.14)', btnBg: '#ffffff', btnBgSolid: '#ffffff', btnShadow: '0 1px 2px rgba(16, 24, 40, 0.10)', toggleOff: '#b9c1cc' }
+      dark: { bg: '#0f1218', surface: '#161b23', border: '#2a323e', line: '#222934', text: '#e6e9ee', sub: '#b7bec9', muted: '#8b94a3', strong: '#ffffff', accent: '#4c8dff', accentSoft: '#14243c', link: '#7fb0ff', amber: '#f2bd5c', segTrack: '#121720', segBorder: '#2a323e', segOn: '#2a323e', segShadow: '0 0 0 0 transparent', btnBg: 'transparent', btnBgSolid: '#0f1218', btnShadow: 'none', toggleOff: '#3a4351' },
+      light: { bg: '#f5f7fa', surface: '#ffffff', border: '#d3d9e1', line: '#e2e6ec', text: '#1a1f27', sub: '#3d4552', muted: '#5b6472', strong: '#0b0f14', accent: '#2563eb', accentSoft: '#e4ecfd', link: '#1d4fd8', amber: '#8a5a00', segTrack: '#e6eaf0', segBorder: '#dde2e8', segOn: '#ffffff', segShadow: '0 1px 2px rgba(16, 24, 40, 0.14)', btnBg: '#ffffff', btnBgSolid: '#ffffff', btnShadow: '0 1px 2px rgba(16, 24, 40, 0.10)', toggleOff: '#b9c1cc' }
     };
     return { t: this.props.theme === 'light' ? T.light : T.dark };
   }

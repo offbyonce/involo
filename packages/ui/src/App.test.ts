@@ -11,7 +11,7 @@ import type {
   RailPhase,
   Settings,
   StepState,
-} from "@chocktochock/bindings";
+} from "@involo/bindings";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App.svelte";
@@ -135,7 +135,7 @@ function view(states: [StepState, StepState]): PhaseView {
 
 function host(overrides: Partial<Host> = {}): Host {
   return {
-    appInfo: async () => ({ name: "Chock to Chock", version: "0.1.0", packSchemaVersion: 2 }),
+    appInfo: async () => ({ name: "Involo", version: "0.1.0", packSchemaVersion: 2 }),
     packs: async () => [{ id: "demo", name: "Demo", version: "0.1.0", kind: "aircraft" }],
     loadPack: async () => pack,
     newFlight: async () =>
@@ -175,6 +175,18 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("App", () => {
+  it("shows the header logo: the decorative mark, then the live wordmark; tells the host the theme", async () => {
+    const themes: string[] = [];
+    render(App, { context: hostContext(host({ themeChanged: (t) => themes.push(t) })) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    const name = document.querySelector<HTMLElement>("header.top .brand .name");
+    expect(name?.textContent?.trim()).toBe("involo");
+    const mark = name?.querySelector(".mark");
+    expect(mark?.getAttribute("aria-hidden")).toBe("true");
+    expect(mark?.querySelector("svg path")?.getAttribute("fill")).toBe("var(--color-text-strong)");
+    expect(themes).toContain("dark");
+  });
+
   it("lays out stages, phase chips and steps, with states in words", async () => {
     render(App, { context: hostContext(host()) });
 

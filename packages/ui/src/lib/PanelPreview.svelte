@@ -10,7 +10,7 @@ panel is scaled to fit a box, its card's width and at most `size.preview-max` ta
 gate review), and centered in it; it is never cropped or stretched.
 -->
 <script lang="ts">
-  import type { ItemTarget, Panel } from "@chocktochock/bindings";
+  import type { ItemTarget, Panel } from "@involo/bindings";
   import { K } from "./panel-layout";
   import PanelSection from "./PanelSection.svelte";
 

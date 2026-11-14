@@ -7,7 +7,7 @@ reference, non-normal), its introduction, and its lists as cards that open. Step
 type (step 7 requirement for non-normal lists).
 -->
 <script lang="ts">
-  import type { Checklist, Detail, Flight, PhaseView, RailPhase } from "@chocktochock/bindings";
+  import type { Checklist, Detail, Flight, PhaseView, RailPhase } from "@involo/bindings";
   import Icon from "../lib/Icon.svelte";
   import ListCard from "../lib/ListCard.svelte";
   import type { PackIndex } from "../pack-index";

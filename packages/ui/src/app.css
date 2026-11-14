@@ -104,7 +104,7 @@ a {
   gap: var(--space-2);
   min-height: var(--size-touch-min);
   padding: var(--space-2) var(--space-4);
-  border: var(--border-thin) solid var(--color-border-strong);
+  border: var(--border-thin) solid var(--color-border);
   border-radius: var(--radius-control);
   background: var(--color-button-bg);
   box-shadow: var(--color-button-shadow);

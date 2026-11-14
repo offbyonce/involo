@@ -8,7 +8,7 @@ it moves the view there; arrow keys move it a step at a time. It keeps the whole
 while the labeled panel stays at 11 px labels or more.
 -->
 <script lang="ts">
-  import type { ItemTarget, Panel } from "@chocktochock/bindings";
+  import type { ItemTarget, Panel } from "@involo/bindings";
   import PanelPreview from "./PanelPreview.svelte";
 
   let {

@@ -6,7 +6,7 @@
 // depend on that answer links back to it. What the rows show comes from here: the page builds a
 // `Decisions` from the flight, and the design gallery builds one from an invented fixture.
 
-import type { Step, UserOption } from "@chocktochock/bindings";
+import type { Step, UserOption } from "@involo/bindings";
 
 /** How the answer was given, for the done row's line under the name. */
 export type DecisionSource = "plan" | "you" | "changed";

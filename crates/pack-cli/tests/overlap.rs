@@ -23,9 +23,9 @@ mod tests {
 
     fn run(args: &[&str], refs_variable: Option<&Path>) -> Output {
         let mut command = Command::new(env!("CARGO_BIN_EXE_pack"));
-        command.args(args).env_remove("CHOCKTOCHOCK_OVERLAP_REFS");
+        command.args(args).env_remove("INVOLO_OVERLAP_REFS");
         if let Some(refs) = refs_variable {
-            command.env("CHOCKTOCHOCK_OVERLAP_REFS", refs);
+            command.env("INVOLO_OVERLAP_REFS", refs);
         }
         command.output().unwrap()
     }

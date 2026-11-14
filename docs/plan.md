@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 -->
-# Chock to Chock: foundation plan
+# Involo: foundation plan
 
 Status as of 10 Nov 2026. Phase 0 (foundation) and Phase 1 (engine and iFly pack) are complete;
 Phase 2 (web beta) is next. The reasoning behind each choice is in `docs/decisions/`.
@@ -26,9 +26,9 @@ airplane like a trained crew, not just to run checklists (decision 0008).
 
 | Topic | Decision |
 | --- | --- |
-| Name and identifier | Chock to Chock, `com.offbyonce.chocktochock` |
+| Name and identifier | Involo, `com.offbyonce.involo` |
 | Licenses | Code MIT; pack content CC BY-NC-SA 4.0; REUSE per file (0003) |
-| Contributions | Public repo `offbyonce/ChockToChock`; DCO sign-off, no CLA |
+| Contributions | Public repo `offbyonce/involo`; DCO sign-off, no CLA |
 | Stack | Rust 1.99 (pinned), Svelte 5 + Vite + TypeScript 6 (0001); Rust runs in the browser as WebAssembly (0009); Tauri 2.12 for a later desktop build |
 | Delivery | Hosted web app on GitHub Pages, installable, offline after the first visit (0009) |
 | Privacy | No backend, accounts, analytics, cookies or third-party resources; SimBrief called from the user's browser (0009) |

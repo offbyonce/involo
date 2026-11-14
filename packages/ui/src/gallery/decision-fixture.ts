@@ -7,7 +7,7 @@
 // field and the suggestion rule (with a 0022 amendment). The location line and "0 lb" are
 // the board's stand-ins.
 
-import type { FlatPack, PhaseList, Step, StepRow, StepState, UserOption } from "@chocktochock/bindings";
+import type { FlatPack, PhaseList, Step, StepRow, StepState, UserOption } from "@involo/bindings";
 
 export const OPTION: UserOption = {
   id: "center_tank",

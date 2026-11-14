@@ -2,11 +2,16 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 -->
-# Chock to Chock
+# Involo (formerly Chock to Chock)
 
-Interactive cockpit checklists for flight simulators, from chocks off to chocks on.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/involo-lockup-on-dark.svg">
+  <img src="assets/brand/involo-lockup-on-light.svg" alt="Involo" height="48">
+</picture>
 
-Chock to Chock is a free training app for flight simulator pilots. It teaches the
+A procedures trainer for flight sim pilots. Involo is Italian for "takeoff".
+
+Involo is a free training app for flight simulator pilots. It teaches the
 procedures: checklists, flows, memory items and how the aircraft's systems work, and it
 imports your SimBrief flight plan. It never connects to the simulator, so it works
 alongside MSFS on a PC, a Mac, an Xbox or a PlayStation. Aircraft are data packs, so new
@@ -61,9 +66,13 @@ best-effort.
   [CC BY-NC-SA 4.0](LICENSES/CC-BY-NC-SA-4.0.txt): share and adapt it with credit, but
   not commercially, and keep the same license on anything you make from it.
   Want to use the checklists commercially? Contact the maintainer.
+- **The Involo name and logo** (`assets/brand/`, the app icons) are all rights reserved, with
+  permission to use the logo unmodified to refer to Involo
+  ([LicenseRef-Involo-Brand](LICENSES/LicenseRef-Involo-Brand.txt); see
+  [docs/brand/BRAND.md](docs/brand/BRAND.md)).
 
 Each file's license is recorded with [REUSE](https://reuse.software).
 
-Aircraft and product names belong to their owners. Chock to Chock is not affiliated with
+Aircraft and product names belong to their owners. Involo is not affiliated with
 Microsoft, iFly, PMDG, Navigraph/SimBrief or any aircraft developer, and ships none of
 their files, images or manuals.
