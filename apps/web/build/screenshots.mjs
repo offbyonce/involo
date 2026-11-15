@@ -394,7 +394,7 @@ const SHOTS = [
   {
     name: "board-strip-open",
     full: true,
-    only: ["desktop", "wide", "tablet-landscape"],
+    only: ["desktop", "wide", "tablet-landscape", "phone"],
     app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE, tap(".fsline")] },
   },
   {

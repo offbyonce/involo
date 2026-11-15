@@ -575,8 +575,25 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
       background: none;
       color: var(--color-text-secondary);
     }
+    /* Open, the strip and its sheet sit over the bars and the bottom bar. */
+    .fstrip.open {
+      z-index: 42;
+    }
     .foot {
+      flex-wrap: wrap;
+      height: auto;
       margin-top: auto;
+      padding: var(--space-3) var(--space-4) calc(var(--space-4) + var(--space-1));
+    }
+    .import {
+      flex-basis: 100%;
+    }
+    .foot .reset {
+      order: 2;
+      margin-right: auto;
+    }
+    .all {
+      order: 3;
     }
   }
 </style>
