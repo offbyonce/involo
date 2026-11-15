@@ -33,6 +33,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import Drawer from "./lib/Drawer.svelte";
   import ProgressRow from "./lib/ProgressRow.svelte";
   import StagePicker from "./lib/StagePicker.svelte";
+  import { openSteps } from "./lib/open-steps.svelte";
   import FlightStrip from "./lib/FlightStrip.svelte";
   import FlowView from "./lib/FlowView.svelte";
   import PhaseChips from "./lib/PhaseChips.svelte";
@@ -295,6 +296,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   function slideKeys(e: KeyboardEvent): void {
     const t = e.target instanceof Element ? e.target : null;
     if (t?.closest("input, textarea, select, [contenteditable]") || e.ctrlKey || e.metaKey || e.altKey) return;
+    // Not under the menu, the stage picker or the open-steps list.
+    if (menuOpen || pickerOpen || openSteps.shown) return;
     if (e.key === "Escape" && slide) {
       e.preventDefault();
       closeSlide();
@@ -693,6 +696,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
               onBlank={(step, index, value) => act({ type: "setBlank", step, index, value })}
               onSelect={(id) => (selected = id)}
               onClear={(list) => void clearTicks(list)}
+              inline={narrow && pane ? inlinePane : undefined}
+              inlineStep={narrow ? (pane?.step.id ?? null) : null}
             />
           {:else if view}
             {#if flow}
@@ -913,6 +918,10 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   @media (max-width: 599px) {
     .slide-box {
       top: calc(var(--bar-header) + var(--space-4));
+    }
+    /* No phase track on phone: only phase screens have the progress row. */
+    .app:not(.strip) {
+      --bars: var(--bar-header);
     }
     /* The phase's list starts under the progress row (Mobile board). */
     .app.strip main {

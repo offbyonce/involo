@@ -15,6 +15,7 @@ come from the pack, in pack order. Picking a phase goes to it (its first open st
   import check from "../icons/board/picker-check.svg?raw";
   import { phaseHref } from "../route.svelte";
   import Icon from "./Icon.svelte";
+  import { trapFocus } from "./trap";
 
   let {
     rail,
@@ -78,7 +79,7 @@ come from the pack, in pack order. Picking a phase goes to it (its first open st
   }}
 />
 <button class="scrim" type="button" aria-label="Close" tabindex="-1" onclick={onClose}></button>
-<div bind:this={box} class="picker" role="dialog" aria-modal="true" aria-label="Stage and phase" tabindex="-1" ontouchstart={swipeStart} ontouchend={swipeEnd}>
+<div bind:this={box} class="picker" role="dialog" aria-modal="true" aria-label="Stage and phase" tabindex="-1" use:trapFocus ontouchstart={swipeStart} ontouchend={swipeEnd}>
   <span class="handle" aria-hidden="true"></span>
   <div class="top">
     <div class="words">
@@ -318,8 +319,7 @@ come from the pack, in pack order. Picking a phase goes to it (its first open st
   @media (min-width: 600px) {
     .picker {
       gap: var(--space-2);
-      height: auto;
-      max-height: calc(100dvh - var(--size-header) - 2 * var(--space-8));
+      height: min(calc(2 * var(--size-drawer) + 2 * var(--space-10)), calc(100dvh - var(--size-header)));
       padding: var(--space-2) calc(var(--space-4) + var(--space-1)) var(--space-6);
     }
     .cols {
@@ -349,6 +349,7 @@ come from the pack, in pack order. Picking a phase goes to it (its first open st
       bottom: auto;
       left: calc(var(--size-touch-min) + var(--space-3));
       width: calc(var(--size-side-pane) + var(--space-10) * 2);
+      height: auto;
       max-height: calc(100dvh - var(--bar-header) - var(--space-4));
       padding: var(--space-3) var(--space-4) var(--space-4);
       border: var(--border-thin) solid var(--color-popover-border);

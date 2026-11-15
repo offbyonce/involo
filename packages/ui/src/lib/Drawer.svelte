@@ -13,6 +13,7 @@ line lives at the foot of Settings.
   import type { Detail, ListView, Progress } from "@involo/bindings";
   import headerMark from "../icons/brand/header-mark.svg?raw";
   import Icon from "./Icon.svelte";
+  import { trapFocus } from "./trap";
   let {
     open,
     aircraft,
@@ -67,7 +68,7 @@ line lives at the foot of Settings.
 {#if open}
   <button class="scrim" type="button" aria-label="Close menu" tabindex="-1" onclick={onClose}></button>
 {/if}
-<nav id="drawer" class:open aria-label="Menu" inert={!open}>
+<nav id="drawer" class:open aria-label="Menu" inert={!open} use:trapFocus={open}>
   <div class="head">
     <div class="who">
       <span class="name"><span class="mark" aria-hidden="true">{@html headerMark}</span>involo</span>

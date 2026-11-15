@@ -11,6 +11,7 @@ step at a time (lib/FlowView.svelte).
   import type { Snippet } from "svelte";
   import type { Checklist, Detail, FillField, Flight, OpenStep, PhaseView } from "@involo/bindings";
   import OpenStepsPop from "../lib/OpenStepsPop.svelte";
+  import { openSteps } from "../lib/open-steps.svelte";
   import Icon from "../lib/Icon.svelte";
   import ListCard from "../lib/ListCard.svelte";
   import OptionChoices from "../lib/OptionChoices.svelte";
@@ -85,6 +86,9 @@ step at a time (lib/FlowView.svelte).
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     const t = e.target;
     if (t instanceof Element && t.closest("input, textarea, select, button, a, summary, [contenteditable]")) return;
+    // Keys never act on the list under the menu, the stage picker or a sheet.
+    if (t instanceof Element && t.closest('[role="dialog"], #drawer')) return;
+    if (document.querySelector("#drawer.open, .picker") || openSteps.shown) return;
     const at = rows.findIndex((r) => r.id === (selected ?? view.lists.find((l) => l.current)?.current));
     // A decision step that asks takes 1, 2 … and Space (Decision.dc.html).
     const asking = at >= 0 ? index.step(rows[at]?.id ?? "") : undefined;
@@ -226,8 +230,13 @@ step at a time (lib/FlowView.svelte).
       align-items: center;
     }
   }
+  /* Phone: the title is for screen readers only; the open-steps sheet stays in this block, so
+     only the heading is clipped. */
   @media (max-width: 599px) {
     .title {
+      margin: 0;
+    }
+    .title h1 {
       position: absolute;
       width: var(--border-thin);
       height: var(--border-thin);

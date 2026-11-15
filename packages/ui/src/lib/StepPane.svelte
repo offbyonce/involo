@@ -452,5 +452,8 @@ and a caution note under If not. A step with no control shows the steps coming u
     .inline .show-panel {
       order: -1;
     }
+    .inline kbd {
+      display: none;
+    }
   }
 </style>

@@ -138,7 +138,9 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
           value: at ? `${at}${t.resolved ? " ◆" : ""}` : t.lit ? "On" : "",
           set: !t.resolved && !t.open,
         };
-      });
+      })
+      // Set by this step first, then those set by an answer or a condition (R6Phone).
+      .sort((a, b) => Number(b.set) - Number(a.set));
   });
   /** The decision a resolved control's position came from, for the legend's ◆ entry. */
   let decided = $derived.by(() => {
@@ -788,6 +790,9 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
     h2 {
       font-size: calc(var(--font-size-body) + var(--border-thin));
     }
+    .body {
+      padding: calc(var(--space-3) + var(--border-thick)) var(--space-4);
+    }
     .figure,
     .nav {
       display: none;
@@ -852,7 +857,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
     }
     .sq {
       flex: none;
-      box-sizing: border-box;
+      box-sizing: content-box;
       width: calc(var(--space-2) + var(--border-thick));
       height: calc(var(--space-2) + var(--border-thick));
       border: var(--border-thick) solid var(--color-todo-ring);

@@ -471,6 +471,10 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
   /* Tablet portrait and phone (batch 5 brings their own boards): the notes go under the
      clearance, the fields wrap three or two to a row, and the footer wraps. */
   @media (max-width: 899px) {
+    /* Open, the strip and its panel sit over the bottom bar (and on phone over the bars). */
+    .fstrip.open {
+      z-index: 42;
+    }
     .body {
       grid-template-columns: minmax(0, 1fr);
       gap: var(--space-4);
@@ -505,6 +509,12 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
   .sheet-head {
     display: none;
   }
+  /* The closed strip on tablet: Runway, SID, Squawk and the notes (Tablet board). */
+  @media (max-width: 1439px) {
+    .fsline .part:not([data-field="runway"], [data-field="sid"], [data-field="squawk"]) {
+      display: none;
+    }
+  }
   /* Phone (Mobile board): the strip sits under the header, 44 high; open, its panel is a bottom
      sheet 40 px below the header over a scrim on the whole page. */
   @media (max-width: 599px) {
@@ -517,7 +527,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
     }
     .fstrip {
       top: var(--bar-header);
-      padding: 0 var(--space-2) 0 calc(var(--space-3) + var(--border-thick));
+      padding: 0 var(--space-2) 0 0;
     }
     .scrim {
       inset: 0;
@@ -574,10 +584,6 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
       border: 0;
       background: none;
       color: var(--color-text-secondary);
-    }
-    /* Open, the strip and its sheet sit over the bars and the bottom bar. */
-    .fstrip.open {
-      z-index: 42;
     }
     .foot {
       flex-wrap: wrap;

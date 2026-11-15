@@ -703,9 +703,35 @@ row in place. A step that depends on the answer links back to it.
       font-size: calc(var(--font-size-body) + var(--border-thick));
       font-weight: var(--weight-bold);
     }
+    .it.current {
+      row-gap: var(--space-1);
+    }
+    .it.current .row {
+      min-height: 0;
+    }
     .it.current .value {
       grid-row: 2;
       grid-column: 2 / 4;
+    }
+    /* The status and the menu span the title and value rows, so the value sits under the title. */
+    .it.current .end {
+      grid-row: 1 / span 2;
+      grid-column: 4;
+      align-self: start;
+    }
+    .it.current .tick {
+      grid-row: 1 / span 2;
+      align-self: start;
+    }
+    .it.current .actions,
+    .it.current .opened {
+      margin-top: calc(var(--space-1) + var(--border-thick));
+    }
+    .keys {
+      display: none;
+    }
+    .name:has(.pill) {
+      width: 100%;
     }
   }
   /* The opened step: the pane's content under the name, to the row's end. */
@@ -757,8 +783,14 @@ row in place. A step that depends on the answer links back to it.
     font-size: var(--font-size-body);
   }
   @media (max-width: 599px) {
+    /* Rows (Mobile board): the 20 px status 14 px in, 10 px to the name; the tick keeps 44 px. */
     .it {
-      grid-template-columns: var(--size-touch-min) minmax(0, 1fr) auto;
+      grid-template-columns: var(--size-icon) minmax(0, 1fr) auto;
+      padding-left: calc(var(--space-3) + var(--border-thick));
+    }
+    .tick {
+      justify-self: center;
+      margin: 0 calc((var(--size-icon) - var(--size-touch-min)) / 2);
     }
     .value {
       grid-column: 2;

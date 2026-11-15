@@ -11,6 +11,7 @@ open. Pop-over tokens; it closes on its X, Esc or a press outside. On phone it i
   import type { OpenStep } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import Icon from "./Icon.svelte";
+  import { trapFocus } from "./trap";
   import { openSteps } from "./open-steps.svelte";
   import { stepTitle } from "./sentence";
 
@@ -33,6 +34,17 @@ open. Pop-over tokens; it closes on its X, Esc or a press outside. On phone it i
   function key(e: KeyboardEvent): void {
     if (openSteps.shown && e.key === "Escape") openSteps.shown = false;
   }
+  // On phone the sheet opens from the progress row: focus goes to its Close, and back after.
+  let back: HTMLElement | null = null;
+  $effect(() => {
+    if (openSteps.shown && !window.matchMedia?.("(min-width: 600px)").matches) {
+      back = document.activeElement as HTMLElement | null;
+      queueMicrotask(() => box?.querySelector<HTMLElement>(".pop .close")?.focus());
+    } else if (!openSteps.shown && back) {
+      back.focus();
+      back = null;
+    }
+  });
   // A new page starts with the list closed.
   $effect(() => () => (openSteps.shown = false));
 </script>
@@ -46,7 +58,7 @@ open. Pop-over tokens; it closes on its X, Esc or a press outside. On phone it i
     </button>
     {#if openSteps.shown}
       <button class="scrim" type="button" aria-label="Close" tabindex="-1" onclick={() => (openSteps.shown = false)}></button>
-      <div class="pop" role="dialog" aria-labelledby="open-title">
+      <div class="pop" role="dialog" aria-labelledby="open-title" use:trapFocus>
         <span class="arrow" aria-hidden="true"></span>
         <span class="handle" aria-hidden="true"></span>
         <div class="head">

@@ -277,6 +277,39 @@ describe("App", () => {
     expect(link.getAttribute("href")).toBe("https://github.com/offbyonce/involo/releases");
   });
 
+  it("never acts on the list under the stage picker or the menu (Space, S, P)", async () => {
+    screenWidth(820);
+    const actions: Action[] = [];
+    render(App, {
+      context: hostContext(
+        host({
+          apply: async (_pack, flight, action) => {
+            actions.push(action);
+            return { ...flight };
+          },
+        }),
+      ),
+    });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.click(screen.getByRole("button", { name: /^Stage and phase: Preflight/ }));
+    expect(screen.getByRole("dialog", { name: "Stage and phase" })).toBeTruthy();
+    for (const key of [" ", "s", "p"]) await fireEvent.keyDown(window, { key });
+    await fireEvent.keyDown(window, { key: "Escape" });
+    await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    for (const key of [" ", "s", "p"]) await fireEvent.keyDown(window, { key });
+    expect(actions).toEqual([]);
+    expect(document.querySelector(".slide-box")).toBeNull();
+  });
+
+  it("opens an emergency step in place below 900 px, as a phase step does", async () => {
+    screenWidth(390);
+    window.location.hash = "#/reference";
+    render(App, { context: hostContext(host()) });
+    const row = (await waitForElement(".it")) as HTMLElement;
+    await fireEvent.click(row.querySelector("button.row") as HTMLElement);
+    await vi.waitFor(() => expect(row.querySelector(".opened .pane-step")).toBeTruthy());
+  });
+
   it("opens the current step in place on tablet portrait, with Skip for now in its row menu", async () => {
     screenWidth(820);
     let states: [StepState, StepState] = ["current", "to_do"];

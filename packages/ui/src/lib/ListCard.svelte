@@ -69,12 +69,6 @@ folded to one line with its count until the phase's procedure is done.
     /** The list after this one, for the phone's "3 more steps · then Before start checklist, 0 of 6". */
     next?: PhaseList | null;
   } = $props();
-  /** Phone (Mobile board): the steps after the current one fold into one row until opened. */
-  let rest = $state(false);
-  let after = $derived.by(() => {
-    const at = shown.findIndex((r) => r.state === "current");
-    return at < 0 ? 0 : shown.length - at - 1;
-  });
 
   let touched = $derived(list.progress.done + list.progress.skipped > 0);
   /** Showing the whole list in Essentials, as 3.0's "Show 3 more steps from Full". */
@@ -94,6 +88,12 @@ folded to one line with its count until the phase's procedure is done.
   let shown = $derived(showDone || lead < 2 ? rows : rows.slice(lead));
   let first = $derived(lead ? index.step(rows[0]?.id ?? "") : undefined);
   let last = $derived(lead ? index.step(rows[lead - 1]?.id ?? "") : undefined);
+  /** Phone (Mobile board): the steps after the current one fold into one row until opened. */
+  let rest = $state(false);
+  let currentAt = $derived(shown.findIndex((r) => r.state === "current"));
+  let after = $derived(large || currentAt < 0 ? 0 : shown.length - currentAt - 1);
+  /** The fold opens by itself when the step chosen is one of the folded ones (Go to step). */
+  let unfolded = $derived(rest || large || (selected !== null && shown.findIndex((r) => r.id === selected) > currentAt));
   // svelte-ignore state_referenced_locally
   let openList = $state(!folded);
   $effect(() => {
@@ -132,7 +132,7 @@ folded to one line with its count until the phase's procedure is done.
       <button class="show" type="button" aria-expanded={showDone} onclick={() => (showDone = !showDone)}>{showDone ? "Hide" : "Show"}</button>
     </div>
   {/if}
-  <ol class="items" class:rest>
+  <ol class="items" class:rest={unfolded}>
     {#each shown as row (row.id)}
       {@const step = index.step(row.id)}
       {#if step}
@@ -158,8 +158,8 @@ folded to one line with its count until the phase's procedure is done.
       {/if}
     {/each}
   </ol>
-  {#if after > 0 && !rest}
-    <button class="after" type="button" onclick={() => (rest = true)}
+  {#if after > 0 && !unfolded}
+    <button class="after" type="button" aria-expanded="false" onclick={() => (rest = true)}
       ><span>{after} more {after === 1 ? "step" : "steps"}</span><span class="fill"></span>{#if next}<span class="then"
           >then {next.title}, {next.progress.done} of {next.progress.total}</span
         >{/if}</button
