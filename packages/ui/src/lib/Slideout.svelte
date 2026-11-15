@@ -12,6 +12,10 @@ expanded: the plain-language line, the side and seat views and the area map). Ho
 on the entry point: the panel (Show panel, a preview, P), Where it is expanded (the location line,
 W), or a control's card. A panel taller than the room keeps its height and the body scrolls as one
 surface, opening with the step's controls in view; nothing inside scrolls up and down on its own.
+Below 900 px it is a bottom sheet (R6TabP, R6Phone, R6PhoneL): a handle, no Esc key, and the step's
+Check pinned at its foot. A phone held upright never squeezes the labeled panel: it shows the
+label-free outline, the step's controls as a list (each opens its card) and "Turn your phone
+sideways to see the panel with its labels."; held sideways it shows the labeled panel.
 -->
 <script lang="ts">
   import type { ItemTarget, Step } from "@involo/bindings";
@@ -21,6 +25,7 @@ surface, opening with the step's controls in view; nothing inside scrolls up and
   import type { Opening } from "./opening";
   import OverviewMap from "./OverviewMap.svelte";
   import PanelNavigator from "./PanelNavigator.svelte";
+  import PanelPreview from "./PanelPreview.svelte";
   import { positionsOf } from "./panel-layout";
   import PanelSchematic from "./PanelSchematic.svelte";
   import { panelCaption } from "./panel-name";
@@ -114,6 +119,26 @@ surface, opening with the step's controls in view; nothing inside scrolls up and
           ? `from your ${lowerFirst(dependent.option.title)} answer, ${labelOf(dependent.option, dependent.answer)}`
           : null,
     };
+  });
+  /** The step's Check, pinned at the foot of the sheet (tablet portrait and phone). */
+  let check = $derived(step.check ?? (step.explain ? index.explain(step.explain)?.check : null) ?? null);
+  /** Phone upright: the step's controls on the panel shown, as a list (R6Phone). */
+  let controls = $derived.by(() => {
+    if (!shown) return [];
+    return targets
+      .filter((t) => shown?.focus.includes(t.section))
+      .map((t) => {
+        const it = index.section(t.section)?.items[t.item];
+        const positions = it ? positionsOf(it) : [];
+        const at = t.position != null ? positions[t.position] : null;
+        return {
+          section: t.section,
+          item: t.item,
+          label: it?.label ?? "",
+          value: at ? `${at}${t.resolved ? " ◆" : ""}` : t.lit ? "On" : "",
+          set: !t.resolved && !t.open,
+        };
+      });
   });
   /** The decision a resolved control's position came from, for the legend's ◆ entry. */
   let decided = $derived.by(() => {
@@ -235,6 +260,7 @@ surface, opening with the step's controls in view; nothing inside scrolls up and
 </script>
 
 <div class="slideout" role="dialog" aria-labelledby="so-title" tabindex="-1" onkeydown={key}>
+  <span class="handle" aria-hidden="true"></span>
   {#if panels.length > 1}
     <div class="switcher" role="tablist" aria-label="The step's panels">
       {#each panels as p (p.panel.id)}
@@ -265,6 +291,30 @@ surface, opening with the step's controls in view; nothing inside scrolls up and
         </div>
       {/if}
       {#if shown}
+        <!-- Phone upright (R6Phone): the outline, the controls as a list, the note. -->
+        <div class="thumb">
+          <figure class="outline">
+            <PanelPreview panel={shown.panel} focus={shown.focus} {targets} label="The whole {caption}" />
+            <figcaption>Blue: set by this step{#if decided}{" "}· ◆ set by your {decided.toLowerCase()} answer{/if}</figcaption>
+          </figure>
+          {#if controls.length}
+            <ul class="ctls" aria-label="Controls in this step">
+              {#each controls as c (`${c.section}/${c.item}`)}
+                <li>
+                  <button
+                    type="button"
+                    class:on={picked?.section === c.section && picked?.item === c.item}
+                    onclick={() => (picked = { section: c.section, item: c.item })}
+                    ><span class="sq" class:set={c.set} aria-hidden="true"></span><span class="nm">{c.label}</span><span class="val">{c.value}</span><Icon
+                      name="chevron-right"
+                    /></button
+                  >
+                </li>
+              {/each}
+            </ul>
+          {/if}
+          <p class="turn">Turn your phone sideways to see the panel with its labels.</p>
+        </div>
         <figure class="figure" bind:this={figure}>
           <PanelSchematic panel={shown.panel} focus={shown.focus} {targets} {index} large ownCard={false} {room} bind:picked bind:wider bind:scroller />
           <figcaption bind:clientHeight={legendHeight}>
@@ -340,6 +390,9 @@ surface, opening with the step's controls in view; nothing inside scrolls up and
       </button>
     {/if}
   </div>
+  {#if check}
+    <div class="pin"><span>Check</span><b>{check}</b></div>
+  {/if}
 </div>
 
 <style>
@@ -672,5 +725,157 @@ surface, opening with the step's controls in view; nothing inside scrolls up and
   .sw.other {
     border: var(--border-thin) solid var(--panel-stroke);
     background: var(--panel-fill);
+  }
+  .handle,
+  .thumb,
+  .pin {
+    display: none;
+  }
+  /* Below 900 px: a bottom sheet (Locator.dc.html, tabletP, phone and phoneL). */
+  @media (max-width: 899px) {
+    .slideout {
+      border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+    }
+    .handle {
+      display: block;
+      flex: none;
+      align-self: center;
+      width: var(--space-10);
+      height: var(--space-1);
+      margin-top: var(--space-2);
+      border-radius: var(--border-thick);
+      background: var(--color-border);
+    }
+    .esc {
+      display: none;
+    }
+    .head {
+      padding: calc(var(--space-2) + var(--border-thick)) var(--space-4) calc(var(--space-2) + var(--border-thick)) var(--space-6);
+    }
+    .pin {
+      display: flex;
+      flex: none;
+      flex-direction: column;
+      gap: var(--border-thick);
+      padding: calc(var(--space-2) + var(--border-thick)) var(--space-4) calc(var(--space-3) + var(--border-thick));
+      border-top: var(--border-thin) solid var(--color-popover-border);
+      background: var(--color-popover-surface);
+    }
+    .pin span {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-caption);
+      font-weight: var(--weight-semibold);
+    }
+    .pin b {
+      font-size: var(--font-size-body);
+      font-weight: var(--weight-semibold);
+    }
+  }
+  /* Phone held sideways: no pinned Check (R6PhoneL). */
+  @media (max-width: 899px) and (max-height: 499px) {
+    .pin {
+      display: none;
+    }
+    .head {
+      padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-4) + var(--space-1));
+    }
+  }
+  /* Phone upright: the outline and the controls list instead of the labeled panel (R6Phone). */
+  @media (max-width: 599px) {
+    .head {
+      padding: var(--space-2) var(--space-2) calc(var(--space-2) + var(--border-thick)) var(--space-4);
+    }
+    h2 {
+      font-size: calc(var(--font-size-body) + var(--border-thin));
+    }
+    .figure,
+    .nav {
+      display: none;
+    }
+    .thumb {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .outline {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-2) calc(var(--space-2) + var(--border-thick));
+      border: var(--border-thin) solid var(--color-border);
+      border-radius: var(--radius-control);
+      background: var(--color-surface);
+    }
+    .outline figcaption {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-caption);
+      line-height: var(--leading-snug);
+    }
+    .ctls {
+      margin: 0;
+      padding: 0;
+      border: var(--border-thin) solid var(--color-popover-border);
+      border-radius: var(--radius-control);
+      list-style: none;
+    }
+    .ctls li + li button {
+      border-top: var(--border-thin) solid var(--color-line);
+    }
+    .ctls button {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--space-2) + var(--border-thick));
+      width: 100%;
+      min-height: var(--size-touch-min);
+      padding: 0 var(--space-3);
+      border: 0;
+      background: none;
+      color: var(--color-text);
+      font: inherit;
+      text-align: left;
+    }
+    .ctls li:first-child button {
+      border-radius: var(--radius-control) var(--radius-control) 0 0;
+    }
+    .ctls li:last-child button {
+      border-radius: 0 0 var(--radius-control) var(--radius-control);
+    }
+    .ctls button.on {
+      background: var(--color-accent-soft);
+    }
+    .ctls :global(.icon) {
+      width: calc(var(--space-3) + var(--border-thick));
+      height: calc(var(--space-3) + var(--border-thick));
+      color: var(--color-text-muted);
+    }
+    .sq {
+      flex: none;
+      box-sizing: border-box;
+      width: calc(var(--space-2) + var(--border-thick));
+      height: calc(var(--space-2) + var(--border-thick));
+      border: var(--border-thick) solid var(--color-todo-ring);
+      border-radius: calc(var(--border-thick) + var(--border-thin));
+    }
+    .sq.set {
+      border-color: var(--color-accent);
+      background: var(--color-accent-soft);
+    }
+    .ctls .nm {
+      flex: 1;
+      font-size: var(--font-size-secondary);
+      font-weight: var(--weight-semibold);
+    }
+    .ctls .val {
+      color: var(--color-text-secondary);
+      font-family: var(--font-mono);
+      font-size: var(--font-size-value-mono);
+    }
+    .turn {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: var(--font-size-caption);
+    }
   }
 </style>

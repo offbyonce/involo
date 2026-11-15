@@ -10,7 +10,13 @@ saves them on the device, and batch 7 adds the rest.
   import Toggle from "../lib/Toggle.svelte";
   import type { Settings } from "@involo/bindings";
 
-  let { settings, onChange }: { settings: Settings; onChange: (s: Settings) => void } = $props();
+  let {
+    settings,
+    version,
+    onChange,
+  }: { settings: Settings; version: string | null; onChange: (s: Settings) => void } = $props();
+  /** The release notes, on the project's own releases page. */
+  const RELEASES = "https://github.com/offbyonce/involo/releases";
 
   type Row = {
     key: "listView" | "essentials" | "detail" | "theme" | "textSize" | "dimming";
@@ -119,8 +125,22 @@ saves them on the device, and batch 7 adds the rest.
   {/each}
 </div>
 <div class="done"><a class="btn primary" href="#/">Done</a></div>
+<!-- The version line (Views board, Settings, batch 5 additions). -->
+{#if version}
+  <p class="ver">Involo {version} · <a href={RELEASES} target="_blank" rel="noopener noreferrer">What’s new</a></p>
+{/if}
 
 <style>
+  .ver {
+    margin: var(--space-1) var(--space-1) 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-caption);
+    line-height: var(--leading-normal);
+  }
+  .ver a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
   h1 {
     margin: 0 0 var(--space-2);
     font-size: var(--font-size-section-title);

@@ -181,7 +181,7 @@ value on the right. The pilot confirms each step; the app never knows a switch p
     display: flex;
     flex-direction: column;
     /* The screen under the bars, less the flight strip and padding, so Next stays in view. */
-    min-height: calc(100vh - var(--size-header) - var(--size-phase-row) - var(--size-flight-strip) - 2 * var(--space-10));
+    min-height: calc(100vh - var(--bar-header) - var(--bar-phase) - var(--bar-strip) - 2 * var(--space-10));
   }
   .crumb {
     margin: 0;

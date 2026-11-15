@@ -152,6 +152,12 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
   {#if open}
     <div class="scrim" aria-hidden="true"></div>
     <div id="spop" class="panel" role="region" aria-label="Clearance and notes">
+      <!-- Phone (Mobile board, strip screen): a bottom sheet with its own heading and Close. -->
+      <span class="handle" aria-hidden="true"></span>
+      <div class="sheet-head">
+        <div><b>{route}</b><span>Clearance and notes</span></div>
+        <button type="button" class="sheet-close" aria-label="Close the flight strip" onclick={hide}><Icon name="x" /></button>
+      </div>
       <div class="body">
         <div class="clearance">
           <h2>Clearance</h2>
@@ -228,11 +234,11 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
   /* The closed strip: the page's width, under the phase track. */
   .fstrip {
     position: sticky;
-    top: calc(var(--size-header) + var(--size-phase-row));
+    top: calc(var(--bar-header) + var(--bar-phase));
     z-index: 18;
     display: flex;
     align-items: center;
-    height: var(--size-flight-strip);
+    height: var(--bar-strip);
     padding: 0 var(--space-4);
     border-bottom: var(--border-thin) solid var(--color-line);
     background: var(--color-surface-2);
@@ -314,7 +320,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
   /* The panel drops below the strip over the page, which a scrim dims (StripOpen). */
   .scrim {
     position: fixed;
-    inset: calc(var(--size-header) + var(--size-phase-row) + var(--size-flight-strip)) 0 0;
+    inset: calc(var(--bar-header) + var(--bar-phase) + var(--bar-strip)) 0 0;
     z-index: -1;
     background: var(--color-scrim);
   }
@@ -486,13 +492,91 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
       order: 1;
     }
     .panel {
-      max-height: calc(100dvh - var(--size-header) - var(--size-phase-row) - var(--size-flight-strip));
+      max-height: calc(100dvh - var(--bar-header) - var(--bar-phase) - var(--bar-strip));
       overflow-y: auto;
     }
   }
   @media (max-width: 599px) {
     .spf {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .handle,
+  .sheet-head {
+    display: none;
+  }
+  /* Phone (Mobile board): the strip sits under the header, 44 high; open, its panel is a bottom
+     sheet 40 px below the header over a scrim on the whole page. */
+  @media (max-width: 599px) {
+    /* The closed strip: the route, the squawk and the notes (Mobile board). */
+    .fsline .part:not([data-field="squawk"]) {
+      display: none;
+    }
+    .clearance h2 {
+      display: none;
+    }
+    .fstrip {
+      top: var(--bar-header);
+      padding: 0 var(--space-2) 0 calc(var(--space-3) + var(--border-thick));
+    }
+    .scrim {
+      inset: 0;
+      z-index: 40;
+    }
+    .panel {
+      position: fixed;
+      top: calc(var(--bar-header) + var(--space-10));
+      bottom: 0;
+      z-index: 41;
+      display: flex;
+      flex-direction: column;
+      max-height: none;
+      overflow-y: auto;
+      border: 0;
+      border-top: var(--border-thin) solid var(--color-border);
+      border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+      background: var(--color-sheet);
+    }
+    .handle {
+      display: block;
+      flex: none;
+      align-self: center;
+      width: var(--space-10);
+      height: var(--space-1);
+      margin-top: var(--space-2);
+      border-radius: var(--border-thick);
+      background: var(--color-border);
+    }
+    .sheet-head {
+      display: flex;
+      align-items: flex-start;
+      padding: var(--space-2) var(--space-2) 0 var(--space-4);
+    }
+    .sheet-head div {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+    }
+    .sheet-head b {
+      font-family: var(--font-mono);
+      font-size: calc(var(--font-size-body) + var(--border-thick));
+      font-weight: var(--weight-semibold);
+    }
+    .sheet-head span {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-caption);
+    }
+    .sheet-close {
+      display: grid;
+      place-items: center;
+      width: var(--size-touch-min);
+      height: var(--size-touch-min);
+      border: 0;
+      background: none;
+      color: var(--color-text-secondary);
+    }
+    .foot {
+      margin-top: auto;
     }
   }
 </style>

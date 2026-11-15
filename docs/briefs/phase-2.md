@@ -196,6 +196,14 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       phone. Propose whether phone shows an optional short value from the pack ("MAIN ON ·
       CENTER ON or OFF") or wraps the full value, and ask before adding a pack field (owner,
       2026-11-13).
+      Owner, 2026-11-15: the menu drawer rebuilt once for every size from the Menu, Tablet and Mobile
+      boards, its header with the small mark, "involo", the sub-line (the count on tablet only, the
+      saved time once this visit has saved) and Close; items whose page does not exist yet hidden,
+      with empty group headings, until that page is built; the version line at the foot of
+      Settings. The compact header (no brand, no stage tabs, the stage button) from 900 to 1439 px
+      too, and the stage and phase picker from StagePicker.dc.html. Phone wraps the full value: no
+      new pack field. The 5 px gaps on the top bar, phase tabs and step rows go to the boards' 6 px;
+      the keyboard focus ring checked at tablet and phone sizes.
    6. The other views: Flow, Emergency reference, step timers, CDU walkthrough, briefings,
       exterior inspection on our own airplane outline, Flight deck reference, menu, Flight log,
       Settings.

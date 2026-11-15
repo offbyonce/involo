@@ -143,8 +143,6 @@ const BOARD_STATE = [
   skipStep("TERR (EFIS"),
 ];
 /** Opens the list step `title` and its narrow-screen details (its chevron first if it is closed). */
-const openNarrow = (title) =>
-  `(() => { const it = [...document.querySelectorAll(".it")].find((i) => i.textContent.toUpperCase().includes(${JSON.stringify(title)})); const chev = it.querySelector(".chev"); if (chev.getAttribute("aria-expanded") !== "true") chev.click(); return new Promise((go) => setTimeout(() => { [...it.querySelectorAll("button")].find((b) => b.textContent.includes("Show on map")).click(); go(true); }, 300)); })()`;
 /** Show map on the pane's location line (where the drawing took the map figure's room). */
 const showMap = `[...document.querySelectorAll("aside.pane .line button")].find((b) => b.textContent.trim() === "Show map")?.click(); true`;
 /** Taps an element as a pointer does (detail 1): an SVG control's tap target, or a button whose focus
@@ -173,7 +171,6 @@ const SHOTS = [
         click(".it .more", 3),
         `[...document.querySelectorAll('[role="menuitem"]')].find((b) => b.textContent.trim() === "Skip for now").click(); true`,
         click(".it .row", 2),
-        click(".it .chev", 2),
       ],
     },
     base: {
@@ -191,7 +188,7 @@ const SHOTS = [
   {
     // N1 BUGS opened on both sides (the pack lists Landing gear pins first).
     name: "detail",
-    app: { hash: "#/phase/before-start", before: [click(".it .row", 1), click(".it .chev", 1)] },
+    app: { hash: "#/phase/before-start", before: [click(".it .row", 1)] },
     base: { hash: "#before-start", before: [click(".it .chev", 0)] },
   },
   { name: "checklist", app: { hash: "#/phase/before-start" }, base: { hash: "#before-start" } },
@@ -215,8 +212,8 @@ const SHOTS = [
   {
     // The first memory item opened and its first step chosen, so the drawing shows.
     name: "emergency-step",
-    app: { hash: "#/reference", before: [click("details summary", 0), click(".it .row", 0), click(".it .chev", 0)] },
-    base: { hash: "#memory", before: [click("details summary", 0), click(".it .chev", 0)] },
+    app: { hash: "#/reference", before: [click("details summary", 0), click(".it .row", 0)] },
+    base: { hash: "#memory", before: [click("details summary", 0)] },
   },
   { name: "settings", app: { hash: "#/settings" }, base: { hash: "#settings" } },
   // Flight setup, empty on both sides.
@@ -259,7 +256,7 @@ const SHOTS = [
     // Both sides show the step opened.
     name: "panel-mcp",
     only: ["desktop", "wide"],
-    app: { hash: "#/phase/before-start", before: [click(".it .row", 2), click(".it .chev", 2), press("p")] },
+    app: { hash: "#/phase/before-start", before: [click(".it .row", 2), press("p")] },
     base: { hash: "#before-start", before: [click(".it .chev", 1)] },
   },
   {
@@ -267,7 +264,7 @@ const SHOTS = [
     // Both sides show the step opened.
     name: "panel-doors",
     only: "desktop",
-    app: { hash: "#/phase/before-start", before: [click(".it .row", 3), click(".it .chev", 3), press("p")] },
+    app: { hash: "#/phase/before-start", before: [click(".it .row", 3), press("p")] },
     base: { hash: "#before-start", before: [click(".it .chev", 2)] },
   },
   {
@@ -275,7 +272,7 @@ const SHOTS = [
     // Both sides show the step opened.
     name: "panel-terr",
     only: "desktop",
-    app: { hash: "#/phase/before-start", before: [click(".it .row", 4), click(".it .chev", 4), press("p")] },
+    app: { hash: "#/phase/before-start", before: [click(".it .row", 4), press("p")] },
     base: { hash: "#before-start", before: [click(".it .chev", 3)] },
   },
   {
@@ -283,7 +280,7 @@ const SHOTS = [
     // Both sides show the step opened.
     name: "panel-fuel",
     only: ["desktop", "wide", "tablet-landscape"],
-    app: { hash: "#/phase/before-start", before: [click(".it .row", 5), click(".it .chev", 5), press("p")] },
+    app: { hash: "#/phase/before-start", before: [click(".it .row", 5), press("p")] },
     base: { hash: "#before-start", before: [click(".it .chev", 4)] },
   },
   {
@@ -294,7 +291,6 @@ const SHOTS = [
       hash: "#/phase/preflight",
       before: [
         stepNamed("BAT DISCHARGE, TR UNIT", ".row"),
-        stepNamed("BAT DISCHARGE, TR UNIT", ".chev"),
         press("p"),
       ],
     },
@@ -305,7 +301,7 @@ const SHOTS = [
     // parking brake and start levers (control stand, 725).
     name: "panel-lights",
     only: ["desktop", "wide"],
-    app: { hash: "#/phase/preflight", before: [stepNamed("STAB OUT OF TRIM LIGHT", ".row"), stepNamed("STAB OUT OF TRIM LIGHT", ".chev"), press("p")] },
+    app: { hash: "#/phase/preflight", before: [stepNamed("STAB OUT OF TRIM LIGHT", ".row"), press("p")] },
     base: { hash: "#preflight", before: [stepNamed("STAB OUT OF TRIM LIGHT", ".chev"), paneToControls("#pane")] },
   },
   {
@@ -313,23 +309,23 @@ const SHOTS = [
     // the pack has a drawing in the review set. No 3.0 counterpart is shot for these.
     name: "panel-aft",
     only: ["desktop", "wide"],
-    app: { hash: "#/phase/preflight", before: [stepExact("IRS", ".row"), stepExact("IRS", ".chev"), press("p")] },
+    app: { hash: "#/phase/preflight", before: [stepExact("IRS", ".row"), press("p")] },
   },
   {
     name: "panel-seat",
     only: ["desktop", "wide"],
-    app: { hash: "#/phase/preflight", before: [unfold, stepExact("OXYGEN", ".row"), stepExact("OXYGEN", ".chev"), press("p")] },
+    app: { hash: "#/phase/preflight", before: [unfold, stepExact("OXYGEN", ".row"), press("p")] },
   },
   {
-    // Tablet portrait and phone keep a dialog for Where is this? until batch 5.
+    // Tablet portrait and phone: Where is this? opens the panel sheet on Where it is (batch 5).
     name: "where-narrow",
     only: ["phone", "tablet"],
-    app: { hash: "#/phase/before-start", before: [openNarrow("FUEL PUMP SWITCHES"), click(".where-btn")] },
+    app: { hash: "#/phase/before-start", before: [stepNamed("FUEL PUMP SWITCHES", ".row"), press("w")] },
   },
   {
     name: "panel-brake",
     only: ["desktop", "wide"],
-    app: { hash: "#/phase/gpu-power", before: [stepNamed("PARKING BRAKE", ".row"), stepNamed("PARKING BRAKE", ".chev"), press("p")] },
+    app: { hash: "#/phase/gpu-power", before: [stepNamed("PARKING BRAKE", ".row"), press("p")] },
     base: { hash: "#gpu-power", before: [stepNamed("PARKING BRAKE", ".chev"), paneToControls("#pane")] },
   },
   // Board pairs: each screen in its board's step and state, shot at the board's size and whole
@@ -407,8 +403,19 @@ const SHOTS = [
     only: ["desktop"],
     app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE, tap(".fsline"), click("button.freq")] },
   },
-  // The tablet landscape board draws no menu.
-  { name: "board-checklist", full: true, only: ["tablet-landscape"], app: { hash: "#/phase/before-start", before: BOARD_STATE } },
+  // The tablet and phone boards draw no menu; tablet portrait and phone open the step in place.
+  { name: "board-checklist", full: true, only: ["tablet-landscape", "tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE] } },
+  // Batch 5: the menu drawer at every size (Menu, Tablet and Mobile boards), the stage and phase
+  // picker (StagePicker), the tablet portrait and phone panel sheets, and phone's open-steps sheet.
+  { name: "board-menu", only: ["desktop", "tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click('[aria-controls="drawer"]')] } },
+  { name: "board-stages", only: ["tablet-landscape", "tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("header.top .pick")] } },
+  { name: "board-sheet", only: ["tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("p")] } },
+  // Keyboard focus at tablet and phone sizes (batch 5): the app's 2 px ring, 2 px out. Focus goes
+  // to the control before, then a real Tab (or Shift Tab) moves it on.
+  { name: "focus-done", only: ["tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, { keys: ["\uE008"] }, `document.querySelector(".actions .donebtn").focus(); true`] } },
+  { name: "focus-menu", only: ["tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click('[aria-controls="drawer"]'), `document.querySelector("#drawer .close").focus(); true`, { keys: ["\uE004"] }] } },
+  { name: "focus-stages", only: ["tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("header.top .pick"), `document.querySelector(".picker .close").focus(); true`, { keys: ["\uE004"] }] } },
+  { name: "board-phone-open", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click(".prow .open")] } },
   // Round 6's slide-out: Show panel (P), Where is this? (W), and a control's card (tap CTR L).
   { name: "board-panel", full: true, only: ["desktop", "wide", "tablet-landscape"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("p")] } },
   { name: "board-where", full: true, only: ["desktop", "tablet-landscape"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("w")] } },
@@ -425,7 +432,7 @@ const SHOTS = [
     name: "board-phonewhere",
     full: true,
     only: ["phone"],
-    app: { hash: "#/phase/before-start", before: [...BOARD_STATE, openNarrow("FUEL PUMP SWITCHES"), click(".where-btn")] },
+    app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("w")] },
   },
   {
     name: "menu",
@@ -472,7 +479,16 @@ async function shoot(browser, url, ready, steps, file, full = false) {
   await js("document.fonts.ready.then(() => true)");
   await sleep(300);
   for (const step of steps ?? []) {
-    await js(step);
+    // A step is a script, or { keys } pressed as real keys (WebDriver BiDi input), so keyboard
+    // focus shows as it does for a pilot.
+    if (typeof step === "object") {
+      // Each entry is one key, or a chord such as ["\uE008", "\uE004"] (Shift Tab).
+      const actions = step.keys.flatMap((k) => {
+        const chord = Array.isArray(k) ? k : [k];
+        return [...chord.map((value) => ({ type: "keyDown", value })), ...chord.toReversed().map((value) => ({ type: "keyUp", value }))];
+      });
+      await send("input.performActions", { context, actions: [{ type: "key", id: "keyboard", actions }] });
+    } else await js(step);
     await sleep(350);
   }
   await sleep(300);

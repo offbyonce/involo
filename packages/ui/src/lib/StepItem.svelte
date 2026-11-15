@@ -8,21 +8,22 @@ Mark done, Skip for now, Add to or Remove from Essentials). The whole row select
 target. The current step is larger, with where it is, Done, Skip for now and the keyboard hint; a
 skipped step has a Skipped pill and Do it now. States read without color too: the icon's shape
 and the words. Every step looks the same (decision 0013). Blanks stay inline fields in the value
-column until batch 4 (owner). On narrow screens a chevron opens the step's details, until batch 5.
+column until batch 4 (owner). Below 900 px (tablet portrait and phone, no side pane) the step the
+pane would show opens in place with the pane's content (`inline`), and the current step's Done and
+Skip for now sit in the bottom bar (Tablet and Mobile boards, batch 5).
 A decision step (decision 0022, Decision.dc.html) asks its option in the value column: a diamond
 icon while unanswered, the choices as secondary buttons (choosing one ticks the step), a plan
 suggestion ringed with Confirm, the answer once done, and Change, which reopens the choices on the
 row in place. A step that depends on the answer links back to it.
 -->
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import { blankLinks } from "../flight/sections";
   import type { Detail, Step, StepRow } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import BlankFields from "./BlankFields.svelte";
-  import ContextPane from "./ContextPane.svelte";
   import Icon from "./Icon.svelte";
   import { stepTitle } from "./sentence";
-  import StepDetail from "./StepDetail.svelte";
   import { fillParts } from "./value-parts";
   import { SOURCE_WORDS, choices, labelOf, lowerFirst, shortLabel, type Decisions } from "./decision";
 
@@ -43,6 +44,7 @@ row in place. A step that depends on the answer links back to it.
     onSelect,
     onEssentials,
     decisions,
+    inline,
   }: {
     index: PackIndex;
     step: Step;
@@ -64,6 +66,8 @@ row in place. A step that depends on the answer links back to it.
     onEssentials?: ((add: boolean) => void) | undefined;
     /** Decision steps and the steps that depend on them (decision 0022). */
     decisions?: Decisions | undefined;
+    /** Below 900 px: the step's details in place (the side pane's content). */
+    inline?: Snippet | undefined;
   } = $props();
 
   let decision = $derived(decisions?.state(step) ?? null);
@@ -76,8 +80,6 @@ row in place. A step that depends on the answer links back to it.
   let suggested = $derived(!!decision && decision.answer === null && !decision.changing && !!decision.suggestion);
   let numbers = $derived(options.length > 1 ? `${options.slice(0, -1).map((_, n) => n + 1).join(", ")} or ${options.length}` : "1");
 
-  let open = $state(false);
-  let mapOpen = $state(false);
   let menu = $state(false);
   /** A value with blanks: the parts with blanks first, the rest of the instruction after. */
   let fill = $derived(fillParts(step.expect));
@@ -134,7 +136,7 @@ row in place. A step that depends on the answer links back to it.
         {#if row.state === "done" && time && !decision}<span class="stamp" aria-hidden="true">Done {time}</span>{/if}
         {#if !row.counts}<span class="ns">Not modeled in the simulator</span>{/if}
       </span>
-      {#if current && place && !decision?.changing}<span class="where-line">{place.zone.area} · {place.zone.title}</span>{:else if place && detail === "expanded" && !decision}<span class="where-line narrow">{place.zone.area} · {place.zone.title}</span>{/if}
+      {#if current && place && !decision?.changing}<span class="where-line">{place.zone.area} · {place.zone.title}</span>{/if}
       {#if decision?.changing}<span class="src">Change your answer</span>
       {:else if suggested && current}<span class="suggest">Suggested from your SimBrief plan: {decision?.suggestion?.amount}</span>
       {:else if decision?.answer !== null && decision?.source && row.state === "done"}<span class="src">{SOURCE_WORDS[decision.source]}</span>{/if}
@@ -172,11 +174,6 @@ row in place. A step that depends on the answer links back to it.
     {#if row.hint}<small class="hint">{row.hint}</small>{/if}
   </div>
   <div class="end" data-menu={row.id}>
-    {#if detail === "expanded"}
-      <button class="chev narrow" type="button" aria-expanded={open} aria-label="{open ? 'Hide' : 'Show'} details for {title}" onclick={() => (open = !open)}>
-        <Icon name="chevron-down" />
-      </button>
-    {/if}
     <button class="more" class:on={menu} type="button" aria-label="More actions for {title}" aria-expanded={menu} aria-haspopup="menu" onclick={() => (menu = !menu)}>···</button>
     {#if menu}
       <div class="menu" role="menu" aria-label="Actions for {title}">
@@ -214,23 +211,7 @@ row in place. A step that depends on the answer links back to it.
       {/if}
     </div>
   {/if}
-  {#if detail === "expanded"}
-    {#if open}
-      <!-- Narrow screens (no side pane): the details, where it is and the map in the step, until
-           batch 5's sheets. -->
-      <div class="dtl narrow">
-        <StepDetail {index} {step} />
-        {#if place?.control}<p class="where"><b>Where</b> · {place.control.location}</p>{/if}
-        {#if !step.why && place?.control?.function}<p class="where"><b>What it does</b> · {place.control.function}</p>{/if}
-        {#if place}
-          <button class="btn quiet" type="button" aria-expanded={mapOpen} onclick={() => (mapOpen = !mapOpen)}>
-            <Icon name="map-pin" />{mapOpen ? "Hide map" : "Show on map"}
-          </button>
-          {#if mapOpen}<ContextPane {index} {step} targets={row.targets} heading={false} details={false} />{/if}
-        {/if}
-      </div>
-    {/if}
-  {/if}
+  {#if inline}<div class="opened">{@render inline()}</div>{/if}
 </li>
 
 <style>
@@ -324,8 +305,7 @@ row in place. A step that depends on the answer links back to it.
   .end,
   .actions,
   .value :global(input),
-  .chev,
-  .dtl {
+  .opened {
     position: relative;
     z-index: 1;
   }
@@ -544,38 +524,6 @@ row in place. A step that depends on the answer links back to it.
     color: var(--color-text-muted);
     font-size: var(--font-size-caption);
   }
-  .chev {
-    width: var(--size-touch-min);
-    height: var(--size-touch-min);
-    border: 0;
-    background: none;
-    color: var(--color-text-muted);
-  }
-  .chev[aria-expanded="true"] :global(.icon) {
-    transform: rotate(180deg);
-  }
-  .dtl {
-    grid-column: 2 / 5;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-1) 0 var(--space-2);
-    font-size: var(--font-size-secondary);
-    line-height: var(--leading-snug);
-  }
-  .where {
-    margin: 0;
-    color: var(--color-text-muted);
-  }
-  .where b {
-    color: var(--color-text);
-    font-weight: var(--weight-semibold);
-  }
-  .btn.quiet {
-    align-self: flex-start;
-    min-height: var(--size-touch-min);
-  }
-  /* Narrow screens: the chevron sits beside the row menu. */
   /* Decision steps (Decision.dc.html). */
   .diamond {
     display: grid;
@@ -672,7 +620,7 @@ row in place. A step that depends on the answer links back to it.
     white-space: pre-line;
   }
   .it:not(.current) .value.dep {
-    padding: calc(var(--space-1) + var(--border-thick) / 2) 0;
+    padding: calc(var(--space-1) + var(--border-thick)) 0;
   }
   .current .value.dep {
     gap: var(--space-1);
@@ -722,15 +670,85 @@ row in place. A step that depends on the answer links back to it.
     color: var(--color-text);
     font-weight: var(--weight-semibold);
   }
+  /* Tablet and phone rows show no location line; tablet portrait and phone show it in the opened
+     step, tablet landscape in the side pane (Tablet and Mobile boards). */
+  @media (max-width: 1439px) {
+    .where-line {
+      display: none;
+    }
+    /* A skipped row says "Skipped" at the end of its name, in amber; the row does it now. */
+    .pill {
+      margin-left: auto;
+      padding: 0;
+      border: 0;
+      background: none;
+    }
+    .name:has(.pill) {
+      flex-wrap: nowrap;
+    }
+    .do-now {
+      display: none;
+    }
+    /* Rows (Tablet board): 10 px gaps, 2 px above and below the 44 px targets. */
+    .it {
+      column-gap: calc(var(--space-2) + var(--border-thick));
+      padding: var(--border-thick) var(--space-1) var(--border-thick) var(--space-4);
+    }
+    /* The current step: its title at 18 and its value under it. */
+    .it.current {
+      row-gap: calc(var(--space-2) + var(--border-thick));
+      padding: var(--space-3) var(--space-1) calc(var(--space-3) + var(--border-thick)) var(--space-3);
+    }
+    .it.current .nm {
+      font-size: calc(var(--font-size-body) + var(--border-thick));
+      font-weight: var(--weight-bold);
+    }
+    .it.current .value {
+      grid-row: 2;
+      grid-column: 2 / 4;
+    }
+  }
+  /* The opened step: the pane's content under the name, to the row's end. */
+  .opened {
+    grid-column: 2 / -1;
+    padding: var(--space-1) var(--space-4) var(--space-2) 0;
+  }
   @media (max-width: 899px) {
     .it {
       grid-template-columns: calc(var(--size-touch-min) - var(--space-1)) minmax(0, 1fr) 34% auto;
     }
-  }
-  /* Wide screens show the details in the side pane. */
-  @media (min-width: 900px) {
-    .narrow {
-      display: none !important;
+    /* Done and Skip for now in the bottom bar (Tablet board, portrait). */
+    .actions {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 30;
+      flex-wrap: nowrap;
+      gap: var(--space-3);
+      padding: var(--space-3) calc(var(--space-4) + var(--space-1)) calc(var(--space-4) + var(--space-1));
+      border-top: var(--border-thin) solid var(--color-line);
+      background: var(--color-surface-2);
+    }
+    .actions .fill,
+    .keys {
+      display: none;
+    }
+    .it {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+    .actions .donebtn {
+      flex: 1;
+      height: calc(var(--size-touch-min) + var(--space-2));
+      border-radius: var(--radius-segment);
+      font-size: calc(var(--font-size-body) + var(--border-thin));
+    }
+    .actions .skipb {
+      height: calc(var(--size-touch-min) + var(--space-2));
+      padding: 0 calc(var(--space-4) + var(--space-1) + var(--border-thin));
+      border-radius: var(--radius-segment);
+      font-weight: var(--weight-regular);
     }
   }
   /* Non-normal and reference lists use larger type (step 7). */
@@ -745,11 +763,45 @@ row in place. A step that depends on the answer links back to it.
     .value {
       grid-column: 2;
     }
-    .actions,
-    .dtl {
-      grid-column: 2 / 4;
+    .actions {
+      gap: calc(var(--space-2) + var(--border-thick));
+      padding: var(--space-3) calc(var(--space-3) + var(--border-thick)) calc(var(--space-4) + var(--space-1));
     }
-    .keys {
+    .actions .skipb {
+      padding: 0 var(--space-4);
+    }
+    .opened {
+      grid-column: 1 / -1;
+      padding: 0;
+    }
+    /* The current step (Mobile board): no status icon, the title at 18 and its value under it,
+       the row menu at the top right, the step's details across the row. */
+    .it.current {
+      grid-template-columns: minmax(0, 1fr) auto;
+      padding: calc(var(--space-2) + var(--border-thick)) calc(var(--space-3) + var(--border-thick)) var(--space-3)
+        calc(var(--space-3) + var(--border-thick));
+    }
+    .it.current .tick {
+      display: none;
+    }
+    .it.current .namecol,
+    .it.current .value {
+      grid-column: 1;
+    }
+    .it.current .end {
+      grid-row: 1;
+      grid-column: 2;
+    }
+    .it.current .nm {
+      font-size: calc(var(--font-size-body) + var(--border-thick));
+      font-weight: var(--weight-bold);
+    }
+    .it.current .val {
+      font-size: var(--font-size-value-mono);
+      font-weight: var(--weight-medium);
+    }
+    /* A skipped row shows no value (Mobile board). */
+    .it.skipped .value {
       display: none;
     }
     /* On phone the choices take the row's width (DecPhone), until batch 5's layout. */

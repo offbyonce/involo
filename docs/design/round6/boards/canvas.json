@@ -4,10 +4,10 @@
   "v": 1,
   "at": "2026-11-12T22:30:00Z"
  },
- "title": "Involo layout review, rounds 5 and 6",
+ "title": "Involo layout review (formerly Chock to Chock)",
  "launch": {
   "view": "canvas",
-  "page": "b4"
+  "page": "b5"
  },
  "pages": [
   {
@@ -53,6 +53,14 @@
   {
    "id": "b4",
    "name": "Batch 4 additions"
+  },
+  {
+   "id": "brand",
+   "name": "Involo: logo"
+  },
+  {
+   "id": "b5",
+   "name": "Batch 5 additions"
   }
  ],
  "boards": {
@@ -60,8 +68,8 @@
    "x": 0,
    "y": 0,
    "w": 1440,
-   "h": 1100,
-   "title": "Design rules: tokens, type, spacing, sizes",
+   "h": 1340,
+   "title": "Design rules: tokens, type, spacing, sizes, focus",
    "page": "rules"
   },
   "Checklist.dc.html": {
@@ -1207,6 +1215,166 @@
    "h": 900,
    "title": "Flight: a value out of range (light)",
    "page": "b4"
+  },
+  "Logo.dc.html": {
+   "x": 0,
+   "y": 15760,
+   "w": 1440,
+   "h": 1180,
+   "title": "Involo logo, round 1 (not chosen)",
+   "page": "brand"
+  },
+  "Logo2.dc.html": {
+   "x": 0,
+   "y": 14200,
+   "w": 1440,
+   "h": 1440,
+   "title": "Involo logo, round 2 (not chosen)",
+   "page": "brand"
+  },
+  "Logo3.dc.html": {
+   "x": 0,
+   "y": 13000,
+   "w": 1440,
+   "h": 1080,
+   "title": "Involo: pick a color and a look (chose D and 4)",
+   "page": "brand"
+  },
+  "Logo4.dc.html": {
+   "x": 0,
+   "y": 11700,
+   "w": 1440,
+   "h": 1180,
+   "title": "Involo logo, round 3: sky blue, soft and friendly (not chosen)",
+   "page": "brand"
+  },
+  "Logo5.dc.html": {
+   "x": 0,
+   "y": 10400,
+   "w": 1440,
+   "h": 1180,
+   "title": "Involo logo, round 4: the letters make the airplane (not chosen)",
+   "page": "brand"
+  },
+  "Logo6.dc.html": {
+   "x": 0,
+   "y": 9100,
+   "w": 1440,
+   "h": 1180,
+   "title": "Involo logo, round 5: curved wings (not chosen)",
+   "page": "brand"
+  },
+  "Logo7.dc.html": {
+   "x": 0,
+   "y": 7800,
+   "w": 1440,
+   "h": 1180,
+   "title": "Involo logo, round 6: the o's and a natural wing (not chosen)",
+   "page": "brand"
+  },
+  "Logo8.dc.html": {
+   "x": 0,
+   "y": 6500,
+   "w": 1440,
+   "h": 1180,
+   "title": "Involo logo, round 7: a lighter wing (not chosen)",
+   "page": "brand"
+  },
+  "Logo9.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 1180,
+   "title": "Involo logo: CHOSEN, concept 2, the paper airplane (use the files in involo-brand)",
+   "page": "brand"
+  },
+  "Logo10.dc.html": {
+   "x": 0,
+   "y": 5200,
+   "w": 1440,
+   "h": 1180,
+   "title": "Involo logo, round 9: checkmark and paper airplane (not chosen)",
+   "page": "brand"
+  },
+  "Logo11.dc.html": {
+   "x": 0,
+   "y": 3900,
+   "w": 1440,
+   "h": 1180,
+   "title": "Involo logo, round 10: the plane is the check (not chosen)",
+   "page": "brand"
+  },
+  "Logo12.dc.html": {
+   "x": 0,
+   "y": 2600,
+   "w": 1440,
+   "h": 1180,
+   "title": "Involo logo, round 11: plane over a thin check (not chosen)",
+   "page": "brand"
+  },
+  "Logo13.dc.html": {
+   "x": 0,
+   "y": 1300,
+   "w": 1440,
+   "h": 1180,
+   "title": "Involo logo, round 12: the paper airplane above the checkmark (not chosen)",
+   "page": "brand"
+  },
+  "StagesPhone.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Stage and phase: phone sheet (dark)",
+   "page": "b5"
+  },
+  "StagesPhoneLight.dc.html": {
+   "x": 470,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Stage and phase: phone sheet (light)",
+   "page": "b5"
+  },
+  "StagesTabP.dc.html": {
+   "x": 940,
+   "y": 0,
+   "w": 820,
+   "h": 1180,
+   "title": "Stage and phase: tablet portrait sheet (dark)",
+   "page": "b5"
+  },
+  "StagesTabPLight.dc.html": {
+   "x": 1840,
+   "y": 0,
+   "w": 820,
+   "h": 1180,
+   "title": "Stage and phase: tablet portrait sheet (light)",
+   "page": "b5"
+  },
+  "StagesTabL.dc.html": {
+   "x": 0,
+   "y": 1300,
+   "w": 1180,
+   "h": 820,
+   "title": "Stage and phase: tablet landscape and compact desktop pop-over (dark)",
+   "page": "b5"
+  },
+  "StagesTabLLight.dc.html": {
+   "x": 1260,
+   "y": 1300,
+   "w": 1180,
+   "h": 820,
+   "title": "Stage and phase: tablet landscape and compact desktop pop-over (light)",
+   "page": "b5"
+  },
+  "StagePicker.dc.html": {
+   "x": 2760,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Shared source: stage and phase picker (tweaks: layout, theme)",
+   "page": "b5"
   }
  },
  "order": [
@@ -1353,7 +1521,27 @@
   "FSTakeoffTabL.dc.html",
   "FSTakeoffTabLLight.dc.html",
   "FSInvalid.dc.html",
-  "FSInvalidLight.dc.html"
+  "FSInvalidLight.dc.html",
+  "Logo.dc.html",
+  "Logo2.dc.html",
+  "Logo3.dc.html",
+  "Logo4.dc.html",
+  "Logo5.dc.html",
+  "Logo6.dc.html",
+  "Logo7.dc.html",
+  "Logo8.dc.html",
+  "Logo9.dc.html",
+  "Logo10.dc.html",
+  "Logo11.dc.html",
+  "Logo12.dc.html",
+  "Logo13.dc.html",
+  "StagesPhone.dc.html",
+  "StagesPhoneLight.dc.html",
+  "StagesTabP.dc.html",
+  "StagesTabPLight.dc.html",
+  "StagesTabL.dc.html",
+  "StagesTabLLight.dc.html",
+  "StagePicker.dc.html"
  ],
  "notes": {},
  "designSystems": []

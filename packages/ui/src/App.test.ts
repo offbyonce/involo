@@ -172,7 +172,34 @@ function host(overrides: Partial<Host> = {}): Host {
 beforeEach(() => {
   window.location.hash = "";
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+
+/** A window `width` px wide, for the media queries the app reads (min-width, max-width). */
+function screenWidth(width: number): void {
+  vi.stubGlobal("matchMedia", (query: string) => {
+    const min = /min-width:\s*(\d+)px/.exec(query);
+    const max = /max-width:\s*(\d+)px/.exec(query);
+    const matches = (!min || width >= Number(min[1])) && (!max || width <= Number(max[1])) && !!(min || max);
+    return {
+      matches,
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    } as unknown as MediaQueryList;
+  });
+}
+
+async function waitForElement(selector: string): Promise<Element> {
+  for (let n = 0; n < 50; n++) {
+    const el = document.querySelector(selector);
+    if (el) return el;
+    await new Promise((r) => setTimeout(r, 10));
+  }
+  throw new Error(`no ${selector}`);
+}
 
 describe("App", () => {
   it("shows the header logo: the decorative mark, then the live wordmark; tells the host the theme", async () => {
@@ -241,19 +268,27 @@ describe("App", () => {
     expect(actions.map((a) => a.type === "tick" && a.step)).toEqual(["standby", "battery"]);
   });
 
-  it("opens a step's details once on narrow screens, with Skip for now in its row menu", async () => {
+  it("puts the version at the foot of Settings, with What's new linking to the release notes", async () => {
+    window.location.hash = "#/settings";
+    render(App, { context: hostContext(host()) });
+    const line = await screen.findByText(/Involo 0\.1\.0/);
+    const link = screen.getByRole("link", { name: "What’s new" });
+    expect(line.contains(link)).toBe(true);
+    expect(link.getAttribute("href")).toBe("https://github.com/offbyonce/involo/releases");
+  });
+
+  it("opens the current step in place on tablet portrait, with Skip for now in its row menu", async () => {
+    screenWidth(820);
     let states: [StepState, StepState] = ["current", "to_do"];
     render(App, { context: hostContext(host({ phaseView: async () => view(states) })) });
 
-    await fireEvent.click(await screen.findByRole("button", { name: "Show details for Battery" }));
-    // Once in the opened step; beside a side pane CSS hides that copy, and the pane shows them
-    // (Checklist board), so the text is in the page once per place.
-    const row = document.querySelector(".dtl") as HTMLElement;
-    expect(within(row).getAllByText(/First power\./)).toHaveLength(1);
-    const pane = document.querySelector(".pane-step") as HTMLElement;
-    expect(within(pane).getAllByText(/First power\./)).toHaveLength(1);
-    expect(screen.getByText("CHECK")).toBeTruthy();
-    // The current step's Skip for now, and every row's menu, skip it.
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    // No side pane below 900 px: the pane's content opens in the current step's row, once.
+    const inline = (await waitForElement(".it .opened")) as HTMLElement;
+    expect(within(inline).getAllByText(/First power\./)).toHaveLength(1);
+    expect(document.querySelectorAll(".pane-step")).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: /Show details for/ })).toBeNull();
+    // The current step's Skip for now (the bottom bar), and every row's menu, skip it.
     expect(screen.getAllByRole("button", { name: "Skip for now" }).length).toBeGreaterThan(0);
     await fireEvent.click(screen.getByRole("button", { name: "More actions for Battery" }));
     expect(screen.getByRole("menuitem", { name: "Skip for now" })).toBeTruthy();
@@ -389,15 +424,18 @@ describe("App", () => {
     expect(link.getAttribute("href")).toBe("#/flight/approach");
   });
 
-  it("shows what a control does on a step without a Why, where the side panel is hidden", async () => {
-    // 3.0 showed it as the step's Why; on tablets the step had none.
+  it("opens a chosen step in place below 900 px, with what the side pane would show", async () => {
+    // The opened step carries the side pane's content (Tablet and Mobile boards): here, a control
+    // with a place but no drawing says so.
+    screenWidth(820);
     render(App, { context: hostContext(host()) });
     await screen.findByRole("heading", { level: 1, name: "Power up" });
-    const row = [...document.querySelectorAll(".it")].find((el) => el.textContent?.includes("Standby power"));
-    const chev = row?.querySelector(".chev") as HTMLElement | null;
-    if (chev && !document.querySelector("p.where")) await fireEvent.click(chev);
-    const where = [...document.querySelectorAll("p.where")].map((p) => p.textContent);
-    expect(where, "the expanded step's narrow lines").toContain("What it does · Powers the standby bus.");
+    const row = [...document.querySelectorAll(".it")].find((el) =>
+      el.textContent?.includes("Standby power"),
+    ) as HTMLElement;
+    await fireEvent.click(row.querySelector("button.row") as HTMLElement);
+    expect(await within(row).findByText("Standby power switch isn't drawn among the controls.")).toBeTruthy();
+    expect(document.querySelectorAll(".it .opened")).toHaveLength(1);
   });
 
   it("says when a step's control is not drawn, rather than show nothing", async () => {

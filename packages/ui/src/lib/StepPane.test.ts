@@ -29,7 +29,7 @@ describe("StepPane", () => {
   it("shows the round 6 pane in order: value, Check, If not, Why, location line, panel preview", () => {
     render(StepPane, { ...fuel(), onOpen: () => {} });
     expect(screen.getByText("Step 6 of 9 · Fuel pump switches")).toBeTruthy();
-    const order = [...document.querySelectorAll(".pane-step > *")].map((e) =>
+    const order = [...document.querySelectorAll(".pane-step > *, .pane-step > .cells > *")].map((e) =>
       ["head", "check", "ifnot", "why", "line", "preview"].find((c) => e.classList.contains(c)),
     );
     expect(order.filter(Boolean)).toEqual(["head", "check", "ifnot", "why", "line", "preview"]);

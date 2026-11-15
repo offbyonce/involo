@@ -10,6 +10,26 @@
   color-scheme: dark light;
   /* Scrollbars in the theme's colors, so none shows as a light bar in the dark theme. */
   scrollbar-color: var(--color-border) transparent;
+  /* The bars at the top, per size: header, phase track, flight strip (Checklist board at 1440 and
+     wider; Tablet board from 600 to 1439 px, its phase tabs 56 high; Mobile board below 600 px:
+     header 56, strip 44, and the 44 px progress row in the phase track's place). */
+  --bar-header: var(--size-header);
+  --bar-phase: var(--size-phase-row);
+  --bar-strip: var(--size-flight-strip);
+}
+
+@media (max-width: 1439px) {
+  :root {
+    --bar-phase: calc(var(--size-phase-row) - var(--space-1));
+  }
+}
+
+@media (max-width: 599px) {
+  :root {
+    --bar-header: calc(var(--size-header) - var(--space-1));
+    --bar-phase: var(--size-touch-min);
+    --bar-strip: var(--size-touch-min);
+  }
 }
 
 *,

@@ -8,6 +8,7 @@ with Show; and at the end the completion call (3.0). A challenge-and-response ch
 folded to one line with its count until the phase's procedure is done.
 -->
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import type { Checklist, Detail, Flight, PhaseList } from "@involo/bindings";
   import { marksStep } from "./marked-step";
   import type { PackIndex } from "../pack-index";
@@ -35,6 +36,9 @@ folded to one line with its count until the phase's procedure is done.
     onEssentials,
     folded = false,
     decisions,
+    inline,
+    inlineStep = null,
+    next = null,
   }: {
     index: PackIndex;
     list: PhaseList;
@@ -59,7 +63,18 @@ folded to one line with its count until the phase's procedure is done.
     folded?: boolean;
     /** Decision steps and the steps that depend on them (decision 0022). */
     decisions?: Decisions | undefined;
+    /** Below 900 px: the opened step's details, shown in the row of `inlineStep`. */
+    inline?: Snippet | undefined;
+    inlineStep?: string | null;
+    /** The list after this one, for the phone's "3 more steps · then Before start checklist, 0 of 6". */
+    next?: PhaseList | null;
   } = $props();
+  /** Phone (Mobile board): the steps after the current one fold into one row until opened. */
+  let rest = $state(false);
+  let after = $derived.by(() => {
+    const at = shown.findIndex((r) => r.state === "current");
+    return at < 0 ? 0 : shown.length - at - 1;
+  });
 
   let touched = $derived(list.progress.done + list.progress.skipped > 0);
   /** Showing the whole list in Essentials, as 3.0's "Show 3 more steps from Full". */
@@ -117,7 +132,7 @@ folded to one line with its count until the phase's procedure is done.
       <button class="show" type="button" aria-expanded={showDone} onclick={() => (showDone = !showDone)}>{showDone ? "Hide" : "Show"}</button>
     </div>
   {/if}
-  <ol class="items">
+  <ol class="items" class:rest>
     {#each shown as row (row.id)}
       {@const step = index.step(row.id)}
       {#if step}
@@ -138,10 +153,18 @@ folded to one line with its count until the phase's procedure is done.
           onSelect={() => onSelect(row.id)}
           onEssentials={onEssentials ? (add) => onEssentials(row.id, add) : undefined}
           {decisions}
+          inline={inlineStep === row.id ? inline : undefined}
         />
       {/if}
     {/each}
   </ol>
+  {#if after > 0 && !rest}
+    <button class="after" type="button" onclick={() => (rest = true)}
+      ><span>{after} more {after === 1 ? "step" : "steps"}</span><span class="fill"></span>{#if next}<span class="then"
+          >then {next.title}, {next.progress.done} of {next.progress.total}</span
+        >{/if}</button
+    >
+  {/if}
   {#if list.hidden > 0 && fullList}
     <button class="more" type="button" aria-expanded={more} onclick={() => (more = !more)}>
       {more ? "Show Essentials only" : `Show ${list.hidden} more ${list.hidden === 1 ? "step" : "steps"} from Full`}
@@ -287,5 +310,40 @@ folded to one line with its count until the phase's procedure is done.
   .call.open {
     background: var(--color-open-bg);
     color: var(--color-open-text);
+  }
+  .after {
+    display: none;
+  }
+  /* Phone (Mobile board): no card frame, rows edge to edge, the steps after the current one folded. */
+  @media (max-width: 599px) {
+    section.card {
+      margin-right: calc(-1 * var(--gutter));
+      margin-left: calc(-1 * var(--gutter));
+      border-right: 0;
+      border-left: 0;
+      border-radius: 0;
+    }
+    .items:not(.rest) :global(.it.current ~ .it) {
+      display: none;
+    }
+    .after {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--space-2) + var(--border-thick));
+      width: 100%;
+      min-height: calc(var(--size-touch-min) + var(--space-1));
+      padding: 0 calc(var(--space-3) + var(--border-thick));
+      border: 0;
+      border-bottom: var(--border-thin) solid var(--color-line);
+      background: none;
+      color: var(--color-text);
+      font: inherit;
+      font-size: var(--font-size-value-mono);
+      text-align: left;
+    }
+    .after .then {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-secondary);
+    }
   }
 </style>
