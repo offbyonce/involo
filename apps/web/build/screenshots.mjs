@@ -129,6 +129,10 @@ const BOARD_FLIGHT = [
 /** Ticks every step of phase `id`, its checklist too once it unfolds, then goes to phase `then`. */
 const finishPhase = (id, then) =>
   `(async () => { const wait = (ms) => new Promise((go) => setTimeout(go, ms)); location.hash = "#/phase/${id}"; await wait(500); for (let i = 0; i < 200; i++) { const b = [...document.querySelectorAll(".it .tick")].find((t) => t.getAttribute("aria-pressed") !== "true"); if (!b) break; b.click(); await wait(80); } location.hash = "#/phase/${then}"; await wait(500); return true; })()`;
+/** Ticks every step of phase `id` but its last (its checklist's, once the procedure is done and it
+ * opens), then skips that one (S): the phase done, one step open. */
+const finishSkippingLast = (id) =>
+  `(async () => { const wait = (ms) => new Promise((go) => setTimeout(go, ms)); location.hash = "#/phase/${id}"; await wait(500); for (let i = 0; i < 200; i++) { const left = [...document.querySelectorAll(".it button.tick")].filter((t) => t.getAttribute("aria-pressed") !== "true"); if (left.length === 1 && document.body.textContent.includes("opens when the procedure is done")) { left[0].click(); await wait(500); continue; } if (left.length <= 1) break; left[0].click(); await wait(80); } window.dispatchEvent(new KeyboardEvent("keydown", { key: "s", bubbles: true })); await wait(300); return true; })()`;
 /** Opens the row menu ("···") of the list step whose name is exactly `name`. */
 const rowMenu = (name) =>
   `[...document.querySelectorAll(".it")].find((it) => it.querySelector(".nm")?.textContent.trim() === ${JSON.stringify(name)}).querySelector("button.more").click(); true`;
@@ -410,7 +414,23 @@ const SHOTS = [
   // Batch 5: the menu drawer at every size (Menu, Tablet and Mobile boards), the stage and phase
   // picker (StagePicker), the tablet portrait and phone panel sheets, and phone's open-steps sheet.
   { name: "board-menu", only: ["desktop", "tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click('[aria-controls="drawer"]')] } },
-  { name: "board-stages", only: ["tablet-landscape", "tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("header.top .pick")] } },
+  // StagePicker's state: the flight loaded, Preflight done with one step still open, Before start
+  // under way (Done, "1 open" and the stage button's amber dot).
+  {
+    name: "board-stages",
+    only: ["tablet-landscape", "tablet", "phone"],
+    app: {
+      hash: "#/phase/before-start",
+      before: [
+        ...BOARD_FLIGHT,
+        ...["cold-dark", "gpu-power", "exterior"].map((id) => finishPhase(id, "preflight")),
+        finishSkippingLast("preflight"),
+        go("#/phase/before-start"),
+        ...BOARD_STATE,
+        click("header.top .pick"),
+      ],
+    },
+  },
   { name: "board-sheet", only: ["tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("p")] } },
   // Keyboard focus at tablet and phone sizes (batch 5): the app's 2 px ring, 2 px out. Focus goes
   // to the control before, then a real Tab (or Shift Tab) moves it on.

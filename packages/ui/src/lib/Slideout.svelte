@@ -231,7 +231,9 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
         edges();
         return;
       }
-      const on = [...el.querySelectorAll("g.item.on")].map((g) => g.getBoundingClientRect());
+      // A phone held sideways opens at the top, "The panel" in view (owner, batch 6).
+      const sideways = window.matchMedia?.("(max-width: 899px) and (max-height: 499px)").matches ?? false;
+      const on = sideways ? [] : [...el.querySelectorAll("g.item.on")].map((g) => g.getBoundingClientRect());
       if (on.length) {
         const box = el.getBoundingClientRect();
         const top = Math.min(...on.map((r) => r.top)) - box.top + el.scrollTop;
@@ -296,7 +298,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
         <!-- Phone upright (R6Phone): the outline, the controls as a list, the note. -->
         <div class="thumb">
           <figure class="outline">
-            <PanelPreview panel={shown.panel} focus={shown.focus} {targets} label="The whole {caption}" />
+            <PanelPreview panel={shown.panel} focus={shown.focus} {targets} label="The whole {caption}" ringed={picked} />
             <figcaption>Blue: set by this step{#if decided}{" "}· ◆ set by your {decided.toLowerCase()} answer{/if}</figcaption>
           </figure>
           {#if controls.length}

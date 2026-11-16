@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import type { FlatPack } from "@involo/bindings";
-import { cleanup, fireEvent, render, screen } from "@testing-library/svelte";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
 import Slideout from "./Slideout.svelte";
@@ -64,6 +64,23 @@ describe("Slideout", () => {
     expect(screen.getByText("In this step")).toBeTruthy();
     expect(document.querySelectorAll(".selection")).toHaveLength(1);
     expect(screen.getByRole("button", { name: /^Where it is/ }).getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("phone: a control tapped in the list is the one ringed in the outline above (R6PhoneCtl)", async () => {
+    render(Slideout, props("panel"));
+    const halos = () => [...document.querySelectorAll(".outline .halo")].map((h) => h.closest("g.item"));
+    expect(halos()).toHaveLength(2);
+    await fireEvent.click(
+      within(screen.getByRole("list", { name: "Controls in this step" })).getByRole("button", {
+        name: /^CTR L/,
+      }),
+    );
+    expect(halos()).toHaveLength(1);
+    const items = [
+      ...(document.querySelector(".outline g.item")?.parentElement?.querySelectorAll(":scope > g.item") ??
+        []),
+    ];
+    expect(items.indexOf(halos()[0] as Element)).toBe(ctrL);
   });
 
   it("lists Used in once per step, in flight order, as 'Step · Phase'", () => {

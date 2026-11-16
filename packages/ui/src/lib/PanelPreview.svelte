@@ -22,6 +22,7 @@ gate review), and centered in it; it is never cropped or stretched.
     label,
     view,
     marker,
+    ringed = null,
     svg = $bindable(),
   }: {
     panel: Panel;
@@ -36,6 +37,8 @@ gate review), and centered in it; it is never cropped or stretched.
     view?: { x: number; y: number; w: number; h: number } | undefined;
     /** A frame over part of the drawing, as fractions of the view box (the navigator's view). */
     marker?: { x0: number; y0: number; x1: number; y1: number } | undefined;
+    /** A control tapped in the phone's controls list: it alone keeps the halo (R6PhoneCtl). */
+    ringed?: { section: string; item: number } | null | undefined;
     /** Out: the svg element, for mapping pointer positions. */
     svg?: SVGSVGElement | null | undefined;
   } = $props();
@@ -54,7 +57,7 @@ gate review), and centered in it; it is never cropped or stretched.
 
 <svg class="preview" viewBox="{box.x} {box.y} {box.w} {box.h}" role="img" aria-label={label} bind:this={svg}>
   {#each sections as s (s.id)}
-    <PanelSection section={s} {targets} {guardClosed} band={whole(s)} frame={whole(s)} titled={false} textless halo k={K} />
+    <PanelSection section={s} {targets} {guardClosed} band={whole(s)} frame={whole(s)} titled={false} textless halo k={K} ringed={ringed ? (ringed.section === s.id ? ringed.item : -1) : null} />
   {/each}
   {#if marker}
     <rect

@@ -326,6 +326,10 @@ folded to one line with its count until the phase's procedure is done.
     .items:not(.rest) :global(.it.current ~ .it) {
       display: none;
     }
+    /* The fold names the next list ("then …"), so the lists below it wait until it opens. */
+    section.card:has(> .after) ~ :global(.card) {
+      display: none;
+    }
     .after {
       display: flex;
       align-items: center;
