@@ -26,7 +26,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   import OverviewMap from "./OverviewMap.svelte";
   import PanelNavigator from "./PanelNavigator.svelte";
   import PanelPreview from "./PanelPreview.svelte";
-  import { positionsOf } from "./panel-layout";
+  import { openingTop, positionsOf } from "./panel-layout";
   import PanelTiles from "./PanelTiles.svelte";
   import { stepTiles, tilesTitle } from "./step-tiles";
   import { panelCaption } from "./panel-name";
@@ -227,7 +227,12 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
         const box = el.getBoundingClientRect();
         const top = Math.min(...on.map((r) => r.top)) - box.top + el.scrollTop;
         const bottom = Math.max(...on.map((r) => r.bottom)) - box.top + el.scrollTop;
-        el.scrollTop = Math.max(0, (top + bottom) / 2 - el.clientHeight / 2);
+        // Never past the first wide panel's navigator strip: it stays in view (owner, batch 6).
+        const nav = el.querySelector(".navigator")?.parentElement;
+        const strip = nav
+          ? nav.getBoundingClientRect().top - box.top + el.scrollTop - Number.parseFloat(getComputedStyle(el).paddingTop || "0")
+          : null;
+        el.scrollTop = openingTop((top + bottom) / 2 - el.clientHeight / 2, strip);
       }
       edges();
     });

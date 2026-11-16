@@ -71,6 +71,11 @@ export function drawingScale(room: number, boxWidth: number, page = 1): { k: num
  * or without a room (the slide-out's, or the flow's pane card), never stretched past K. */
 export const tileScale = (k: number, page = 1): number => Math.min(k, K * page);
 
+/** Where a sheet opens scrolled to: centered on the step's controls, but never past the first wide
+ * panel's navigator strip, which stays in view (owner, batch 6). Offsets in the sheet's pixels. */
+export const openingTop = (centered: number, stripTop: number | null = null): number =>
+  Math.max(0, Math.min(stripTop ?? Number.POSITIVE_INFINITY, centered));
+
 /** Line height for labels under a control, as a multiple of the text size. */
 const LINE = 1.15;
 

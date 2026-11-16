@@ -18,6 +18,7 @@ import {
   MIN_SCALE,
   nameFit,
   openingScroll,
+  openingTop,
   PX,
   roomScale,
   TOGGLE,
@@ -358,5 +359,15 @@ describe("tileScale (PanelTiles board)", () => {
     expect(tileScale(drawingScale(800, 100, 1.25).k, 1.25)).toBe(K * 1.25);
     // Smaller only to fit.
     expect(tileScale(K / 2)).toBe(K / 2);
+  });
+});
+
+describe("openingTop (owner, batch 6)", () => {
+  it("centers on the step's controls but never scrolls past the first navigator strip", () => {
+    expect(openingTop(500)).toBe(500);
+    // tiles-07: the strip sits at 40, the controls would center at 500; the strip stays in view.
+    expect(openingTop(500, 40)).toBe(40);
+    expect(openingTop(20, 40)).toBe(20);
+    expect(openingTop(-30, 40)).toBe(0);
   });
 });
