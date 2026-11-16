@@ -289,17 +289,8 @@ Each part ends in an "In Involo" box whose link goes to the real place: the pilo
     color: var(--color-text);
     line-height: normal;
   }
-  /* The column and the phone's page scroll with no scrollbar, as the boards draw none. */
-  .side,
-  .read,
-  .page {
-    scrollbar-width: none;
-  }
-  .side::-webkit-scrollbar,
-  .read::-webkit-scrollbar,
-  .page::-webkit-scrollbar {
-    display: none;
-  }
+  /* The parts list, the column and the phone's page keep the browser's scrollbar, as the Glossary
+     does (owner, How review): desktop shows it in the theme's colors (app.css), phones draw their own. */
   /* Phone header (HowPhone): 56 px and its rule, the back icon, the title and "Part n of 7". */
   .top {
     display: flex;
