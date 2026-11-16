@@ -143,4 +143,26 @@ describe("GlossaryPage", () => {
     await tick();
     expect(screen.getByRole("link", { name: "Back to checklist" })).toBeTruthy();
   });
+
+  it("names the list on rows that would read the same, and only on those (owner)", () => {
+    const twin = { title: "Pump", value: "ON", phase: "p1" };
+    render(GlossaryPage, {
+      ...base,
+      terms: [
+        {
+          term: "PMP",
+          expansion: null,
+          definition: "A pump.",
+          steps: [
+            { id: "a", ...twin, list: "Start flow" },
+            { id: "b", ...twin, list: "Start checklist" },
+            { id: "c", title: "Valve", value: "OPEN", phase: "p1", list: "Start flow" },
+          ],
+        },
+      ],
+      term: "PMP",
+    });
+    const subs = [...document.querySelectorAll(".step .sub > span:first-child")].map((e) => e.textContent);
+    expect(subs).toEqual(["Alpha › First · Start flow", "Alpha › First · Start checklist", "Alpha › First"]);
+  });
 });

@@ -222,21 +222,45 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
       }
       // A phone held sideways opens at the top, "The panel" in view (owner, batch 6).
       const sideways = window.matchMedia?.("(max-width: 899px) and (max-height: 499px)").matches ?? false;
-      const on = sideways ? [] : [...el.querySelectorAll("g.item.on")].map((g) => g.getBoundingClientRect());
-      if (on.length) {
+      // The step's controls on its first panel (the main one, PanelTiles), as several tiles can run
+      // taller than the sheet together; only drawings on screen, not the phone's outline (hidden
+      // here) or a navigator's thumbnail.
+      const lit = sideways
+        ? []
+        : [...el.querySelectorAll("g.item.on")].filter((g) => !g.closest(".navigator") && g.getBoundingClientRect().height > 0);
+      const firstTile = lit[0]?.closest(".tile");
+      const on = lit.filter((g) => !firstTile || g.closest(".tile") === firstTile).map((g) => g.getBoundingClientRect());
+      // The step's controls in view, with the first wide panel's navigator strip when both fit.
+      // A strip appears a frame or two after the sheet opens, so this runs again whenever the
+      // panel section resizes in the first half second (as the larger view does).
+      const place = () => {
+        if (!on.length) return;
+        const fresh = lit.filter((g) => !firstTile || g.closest(".tile") === firstTile).map((g) => g.getBoundingClientRect());
         const box = el.getBoundingClientRect();
-        const top = Math.min(...on.map((r) => r.top)) - box.top + el.scrollTop;
-        const bottom = Math.max(...on.map((r) => r.bottom)) - box.top + el.scrollTop;
-        // Never past the first wide panel's navigator strip: it stays in view (owner, batch 6).
-        const nav = el.querySelector(".navigator")?.parentElement;
+        const top = Math.min(...fresh.map((r) => r.top)) - box.top + el.scrollTop;
+        const bottom = Math.max(...fresh.map((r) => r.bottom)) - box.top + el.scrollTop;
+        const nav = (firstTile ?? el).querySelector(".navigator")?.parentElement;
         const strip = nav
           ? nav.getBoundingClientRect().top - box.top + el.scrollTop - Number.parseFloat(getComputedStyle(el).paddingTop || "0")
           : null;
-        el.scrollTop = openingTop((top + bottom) / 2 - el.clientHeight / 2, strip);
+        el.scrollTop = openingTop({ top, bottom }, el.clientHeight, strip);
+        edges();
+      };
+      place();
+      const section = el.querySelector(".panel");
+      if (section && on.length && typeof ResizeObserver !== "undefined") {
+        const watch = new ResizeObserver(place);
+        watch.observe(section);
+        stop = () => watch.disconnect();
+        setTimeout(() => stop(), 500);
       }
       edges();
     });
-    return () => cancelAnimationFrame(frame);
+    let stop = () => {};
+    return () => {
+      cancelAnimationFrame(frame);
+      stop();
+    };
   });
 
   // A control tapped in the slide-out: its card into view.
@@ -455,6 +479,8 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    /* The opening view is placed by hand; the browser must not move it when a strip appears. */
+    overflow-anchor: none;
     scrollbar-width: none;
     display: flex;
     flex-direction: column;

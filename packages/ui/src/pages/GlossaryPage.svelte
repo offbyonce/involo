@@ -67,6 +67,21 @@ them (owner).
    * Glossary does not hold opens nothing. */
   let open = $derived(named ?? (wide && !term ? (shown[0] ?? terms[0] ?? null) : null));
 
+  /** The steps of a term whose rows would read the same (title, phase and value): these name
+   * their list too (owner). */
+  let twins = $derived.by(() => {
+    const out = new Set<string>();
+    const seen = new Map<string, string>();
+    for (const s of open?.steps ?? []) {
+      const key = `${s.title}|${s.phase}|${s.value}`;
+      const other = seen.get(key);
+      if (other) {
+        out.add(other);
+        out.add(s.id);
+      } else seen.set(key, s.id);
+    }
+    return out;
+  });
   /** Each phase's stage and title, for a step's "Stage › Phase". */
   let phases = $derived.by(() => {
     const m = new Map<string, string>();
@@ -153,7 +168,10 @@ them (owner).
                 e.preventDefault();
                 onStep(s.id);
               }}
-              ><span class="txt"><span class="st">{s.title}</span><span class="sub"><span>{phases.get(s.phase) ?? ""}</span><span class="val">{s.value}</span></span></span
+              ><span class="txt"
+                ><span class="st">{s.title}</span><span class="sub"
+                  ><span>{phases.get(s.phase) ?? ""}{#if twins.has(s.id) && s.list}{" "}· {s.list}{/if}</span><span class="val">{s.value}</span></span
+                ></span
               ><Icon name="chevron-right" /></a
             >
           {/each}
@@ -311,7 +329,6 @@ them (owner).
     flex-direction: column;
     min-height: 0;
     overflow-y: auto;
-    scrollbar-width: none;
   }
   .letter {
     padding: var(--space-3) var(--space-4) var(--space-1);
@@ -381,7 +398,6 @@ them (owner).
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    scrollbar-width: none;
   }
   /* A term (GlossaryPhoneTerm): 20 16 padding, 18 px apart; the name 24 px, its expansion 15 px. */
   .term {

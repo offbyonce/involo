@@ -7,7 +7,8 @@ import type { FlatPack, Rail } from "@involo/bindings";
 import type { PackIndex } from "../pack-index";
 import { stepTitle } from "./sentence";
 
-export type FindStep = { id: string; title: string; value: string; phase: string };
+/** A step, with the title of the first list that holds it (to tell apart rows that read the same). */
+export type FindStep = { id: string; title: string; value: string; phase: string; list?: string | undefined };
 export type FindControl = {
   id: string;
   name: string;
@@ -34,7 +35,13 @@ export function buildFind(pack: FlatPack, index: PackIndex): FindIndex {
       for (const step of lists.get(id)?.steps ?? []) {
         if (seen.has(step.id)) continue;
         seen.add(step.id);
-        steps.push({ id: step.id, title: stepTitle(index, step), value: step.expect, phase: phase.id });
+        steps.push({
+          id: step.id,
+          title: stepTitle(index, step),
+          value: step.expect,
+          phase: phase.id,
+          list: lists.get(id)?.title,
+        });
       }
     }
   }

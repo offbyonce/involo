@@ -149,10 +149,12 @@ and a caution note under If not. A step with no control shows the steps coming u
     {/if}
     {#if termsOpen}
       <dl class="open-block terms">
-        {#each terms as t (t.term)}<div><dt>{t.term}</dt><dd>{t.meaning}</dd></div>{/each}
+        <!-- Each term keeps its definition here, with its own way into the Glossary (owner). -->
+        {#each terms as t (t.term)}<div>
+            <dt>{t.term}</dt>
+            <dd>{t.meaning} <a class="lk" href={glossaryHref(t.term)}>Open in Glossary<span class="sr-only">: {t.term}</span></a></dd>
+          </div>{/each}
       </dl>
-      <!-- The terms keep their definitions here, and open in the Glossary too (owner). -->
-      <a class="lk glossary" href={glossaryHref(terms[0]?.term)}>Open in Glossary</a>
     {/if}
   {/if}
   {/if}

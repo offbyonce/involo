@@ -18,6 +18,10 @@ export type GlossaryTerm = {
   steps: FindStep[];
 };
 
+/** Terms that meet the rule but whose first sentence reads as a description, not a name: no
+ * expansion (owner, reviewed 2026-11-15). A test holds the list to the pack. */
+export const NO_EXPANSION = ["IGN L", "IGN R", "PERF INIT", "MA"];
+
 /** Words that make a first sentence a statement, not a name (owner: no verb). */
 const VERBS = new Set(
   "is are was were be been has have shows shown showing makes means meaning used gives sends tracks stops raises cools joins lists turns comes points supplies moves fires changes sets set lets keeps disables that which where while when".split(
@@ -37,7 +41,7 @@ export function split(term: string, meaning: string): { expansion: string | null
   const first = m?.[1]?.trim() ?? "";
   const rest = m ? text.slice(m[0].length).trim() : "";
   const none = { expansion: null, definition: text };
-  if (!first) return none;
+  if (!first || NO_EXPANSION.includes(term)) return none;
   if (!/^[A-Z0-9/&.\- ]*[A-Z][A-Z0-9/&.\- ]*$/.test(term)) return none;
   const words = first.split(/\s+/);
   if (words.length > 8) return none;

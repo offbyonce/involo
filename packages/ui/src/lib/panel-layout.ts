@@ -71,10 +71,20 @@ export function drawingScale(room: number, boxWidth: number, page = 1): { k: num
  * or without a room (the slide-out's, or the flow's pane card), never stretched past K. */
 export const tileScale = (k: number, page = 1): number => Math.min(k, K * page);
 
-/** Where a sheet opens scrolled to: centered on the step's controls, but never past the first wide
- * panel's navigator strip, which stays in view (owner, batch 6). Offsets in the sheet's pixels. */
-export const openingTop = (centered: number, stripTop: number | null = null): number =>
-  Math.max(0, Math.min(stripTop ?? Number.POSITIVE_INFINITY, centered));
+/**
+ * Where a sheet opens scrolled to (owner, Glossary answers): the step's own controls always in view,
+ * centered when nothing else matters; the first wide panel's navigator strip in view as well when
+ * both fit, and the controls winning when they do not. Offsets in the sheet's scrolled pixels.
+ */
+export function openingTop(
+  controls: { top: number; bottom: number },
+  height: number,
+  stripTop: number | null = null,
+): number {
+  const centered = (controls.top + controls.bottom) / 2 - height / 2;
+  if (stripTop == null || controls.bottom - stripTop > height) return Math.max(0, centered);
+  return Math.max(0, Math.min(stripTop, Math.max(controls.bottom - height, centered)));
+}
 
 /** Line height for labels under a control, as a multiple of the text size. */
 const LINE = 1.15;

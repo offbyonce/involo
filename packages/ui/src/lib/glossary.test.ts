@@ -5,7 +5,7 @@ import type { FlatPack } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
 import { buildFind } from "./find-index";
-import { buildGlossary, filterTerms, letterOf, split } from "./glossary";
+import { buildGlossary, filterTerms, letterOf, NO_EXPANSION, split } from "./glossary";
 
 const pack = Object.values(
   import.meta.glob<FlatPack>("../../../../apps/web/public/packs/ifly-737-max8.json", {
@@ -62,5 +62,16 @@ describe("the Glossary", () => {
   it("filters by name or expansion", () => {
     expect(filterTerms(all, "auxiliary").map((t) => t.term)).toContain("APU");
     expect(filterTerms(all, "")).toBe(all);
+  });
+});
+
+describe("the reviewed exceptions (owner)", () => {
+  it("gives no expansion to the terms whose first sentence reads as a description, each still in the pack", () => {
+    const terms = pack.content.glossary?.terms ?? [];
+    for (const name of NO_EXPANSION) {
+      const t = terms.find((x) => x.term === name);
+      expect(t, name).toBeTruthy();
+      expect(split(name, t?.meaning ?? "")).toEqual({ expansion: null, definition: t?.meaning });
+    }
   });
 });
