@@ -12,7 +12,7 @@ const children = createRawSnippet(() => ({ render: () => "<p>Drawing</p>" }));
 describe("PanelSheet", () => {
   it("has the standard sheet head: the panel's name and the × close, not a Close text button (owner)", async () => {
     render(PanelSheet, { caption: "Fuel panel", children });
-    const dialog = screen.getByRole("dialog", { hidden: true });
+    const dialog = screen.getByRole("dialog", { hidden: true }) as HTMLDialogElement;
     dialog.setAttribute("open", "");
     const close = screen.getByRole("button", { name: "Close" });
     expect(close.textContent?.trim()).toBe("");
