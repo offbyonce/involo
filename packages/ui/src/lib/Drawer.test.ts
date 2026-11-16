@@ -33,9 +33,9 @@ describe("Drawer", () => {
     expect(container.querySelector(".who small")?.textContent).toBe("Test Jet · saved 10:14 · 41/366");
   });
 
-  it("hides the items whose page does not exist yet; Practice, How procedures work, the Flight deck and the Glossary have theirs", () => {
+  it("hides the items whose page does not exist yet; Practice, How procedures work, the Flight deck, the Glossary and the Flight log have theirs", () => {
     const { container } = render(Drawer, base);
-    for (const name of ["References", "Flight log", "Take the tour"]) {
+    for (const name of ["References", "Take the tour"]) {
       expect(screen.queryByRole("link", { name })).toBeNull();
     }
     expect(screen.getByText("Learn")).toBeTruthy();
@@ -54,7 +54,16 @@ describe("Drawer", () => {
     expect(screen.getByRole("link", { name: "Glossary" }).getAttribute("href")).toBe("#/glossary");
     expect(screen.getByRole("link", { name: /^Flight deck/ }).getAttribute("href")).toBe("#/deck");
     expect(screen.getByText("This flight and the app")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Settings" }).getAttribute("href")).toBe("#/settings");
+    // Flight log first in its group, then Settings (Menu, Tablet and Mobile boards).
+    const flight = [...container.querySelectorAll(".group")].find(
+      (g) => g.querySelector(".label")?.textContent === "This flight and the app",
+    );
+    expect(
+      [...(flight?.querySelectorAll("a") ?? [])].map((a) => [a.textContent, a.getAttribute("href")]),
+    ).toEqual([
+      ["Flight log", "#/log"],
+      ["Settings", "#/settings"],
+    ]);
     // The old menu's items have their homes elsewhere now (owner, batch 5).
     expect(screen.queryByText(/Continue|Version/)).toBeNull();
   });

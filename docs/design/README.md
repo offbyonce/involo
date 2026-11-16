@@ -137,6 +137,16 @@ phase" is the one Take the tour opens. Part 2's figure is drawn in panel colors 
 map draws its panels and area labels (owner: the board's frame color and label tracking were an
 error), and every part uses part 2's 16 px spacing (owner). In the menu it follows Practice under Learn.
 
+**Flight log (owner, 2026-11-16).** Built from `FlightLog.dc.html` (in `round6/boards`), completing
+round 6's Log view: `LogDesk` (desktop and tablet landscape), `LogPhone` (phone and tablet portrait)
+and `LogPhoneFlight` (one earlier flight on phone), each in dark and light. Saved on the device only
+(decision 0026). This flight, Earlier flights newest first (the opened one in color.current-row with
+the 1.5 px accent ring, shown below the list with the time in each stage as proportional bars),
+Practice results, and the actions column; on phone a flight opens on its own page and the export and
+import actions open as a sheet from "···". Finished is color.done; Not finished and "open" are
+color.open-text (the board's amber stands for the app's amber text token). In the menu it is first
+under This flight and the app.
+
 **Practice (owner, 2026-11-16).** Built from `Practice.dc.html` (in `round6/boards`):
 `PracticeHome` and `PracticeHomePhone` (the ready-made tests, Build a test, "Earlier this visit"),
 `PracticeQuestion` and `PracticeQuestionPhone` (a choice answered wrong, with feedback),

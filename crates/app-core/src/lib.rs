@@ -8,6 +8,7 @@ mod actions;
 mod app;
 mod error;
 mod flight;
+mod log;
 mod open_steps;
 mod packs;
 mod phase_view;
@@ -26,6 +27,10 @@ pub use actions::{Action, apply};
 pub use app::{AppInfo, app_info, example_checklist};
 pub use error::AppError;
 pub use flight::{FLIGHT_FORMAT, Flight, new_flight};
+pub use log::{
+    LOG_FORMAT, LOG_LIMIT, Log, LogChange, LogEdit, LoggedFlight, LoggedStep, LoggedTick,
+    PlanSource, PracticeResult, StageTime, edit_log, load_log, log_csv, log_entry, new_log,
+};
 pub use open_steps::{OpenStep, open_steps};
 pub use packs::load_pack;
 pub use phase_view::{PhaseLink, PhaseList, PhaseView, StepRow, phase_view};

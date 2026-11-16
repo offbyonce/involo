@@ -13,9 +13,14 @@ import type {
   FlatPack,
   Flight,
   Loaded,
+  Log,
+  LogChange,
+  LogEdit,
+  LoggedFlight,
   OpenStep,
   PhaseView,
   Plan,
+  PlanSource,
   PlanValues,
   Rail,
   Reply,
@@ -148,4 +153,48 @@ export async function decodeTaf(text: string): Promise<Decoded> {
 export async function planValues(plan: Plan): Promise<PlanValues> {
   await load();
   return unwrap<PlanValues>(wasm.plan_values(JSON.stringify(plan)));
+}
+
+/** An empty flight log (decision 0026). */
+export async function newLog(): Promise<Log> {
+  await load();
+  return unwrap<Log>(wasm.new_log());
+}
+
+/** Reads the saved flight log: ready (migrated if older), newer, or unreadable. */
+export async function loadLog(json: string): Promise<Loaded<Log>> {
+  await load();
+  return unwrap<Loaded<Log>>(wasm.load_log(json));
+}
+
+/** The flight as a log entry, logged at `at`. */
+export async function logEntry(
+  pack: string,
+  flight: Flight,
+  settings: Settings,
+  plan: PlanSource,
+  at: number,
+): Promise<LoggedFlight> {
+  await load();
+  return unwrap<LoggedFlight>(
+    wasm.log_entry(
+      pack,
+      JSON.stringify(flight),
+      JSON.stringify(settings),
+      JSON.stringify(plan),
+      JSON.stringify(at),
+    ),
+  );
+}
+
+/** Applies an edit to the log: add, delete, or merge a log file. */
+export async function editLog(log: Log, edit: LogEdit): Promise<LogChange> {
+  await load();
+  return unwrap<LogChange>(wasm.edit_log(JSON.stringify(log), JSON.stringify(edit)));
+}
+
+/** The log's flights as CSV. */
+export async function logCsv(log: Log): Promise<string> {
+  await load();
+  return unwrap<string>(wasm.log_csv(JSON.stringify(log)));
 }

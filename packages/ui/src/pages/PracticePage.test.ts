@@ -245,6 +245,47 @@ describe("PracticePage", () => {
     expect(screen.getByText("Question 1 of 2")).toBeTruthy();
   });
 
+  it("a finished test's score goes in the Flight log, and home shows the latest saved result with Retry while its questions are here (decision 0026)", async () => {
+    const onResult = vi.fn();
+    const { rerender } = render(PracticePage, { ...base, onResult });
+    await fireEvent.click(screen.getByRole("button", { name: /^Lights of the flight deck/ }));
+    for (let n = 0; n < 2; n++) {
+      const q = current();
+      if (q.kind !== "choice") throw new Error("choice expected");
+      await fireEvent.click(
+        screen.getAllByRole("radio")[n === 0 ? q.answer : (q.answer + 1) % 4] as HTMLElement,
+      );
+      await fireEvent.click(screen.getByRole("button", { name: "Next question" }));
+    }
+    await fireEvent.click(screen.getByRole("button", { name: "End test" }));
+    expect(onResult).toHaveBeenCalledTimes(1);
+    const result = onResult.mock.calls[0]?.[0];
+    expect(result).toMatchObject({ title: "Lights of the flight deck", score: 1, total: 2 });
+    await rerender({ ...base, onResult, latest: { id: "r", pack: "demo", ...result } });
+    await fireEvent.click(screen.getByRole("button", { name: "New test" }));
+    expect(screen.getByText(/^Last result, /).textContent).toMatch(/Lights of the flight deck, 1 of 2$/);
+    expect(screen.queryByText(/Earlier this visit/)).toBeNull();
+    expect(screen.getByRole("button", { name: /^Retry the 1 missed/ })).toBeTruthy();
+  });
+
+  it("home shows a result saved on an earlier visit, with no Retry (its questions are gone)", () => {
+    render(PracticePage, {
+      ...base,
+      latest: {
+        id: "r",
+        pack: "demo",
+        at: new Date(2026, 10, 13, 12).getTime(),
+        title: "Memory items",
+        score: 9,
+        total: 10,
+      },
+    });
+    expect(screen.getByText(/^Last result, /).textContent).toBe(
+      "Last result, Fri 13 Nov: Memory items, 9 of 10",
+    );
+    expect(screen.queryByRole("button", { name: /^Retry/ })).toBeNull();
+  });
+
   it("a feedback link to a step opens it in the checklist", async () => {
     render(PracticePage, base);
     await fireEvent.click(screen.getByRole("button", { name: /^Before engine start/ }));

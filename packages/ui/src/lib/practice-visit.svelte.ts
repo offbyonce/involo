@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// Practice for this visit only: the test in progress and the last result. Nothing is saved across
-// visits; that needs the owner's decision (the same question as the Flight log).
+// Practice for this visit: the test in progress and the last one taken, with its questions and
+// answers. Only a finished test's score is saved, in the Flight log (decision 0026).
 
 import type { Question, Topic } from "./practice";
 

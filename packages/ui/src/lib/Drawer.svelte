@@ -5,8 +5,7 @@ The menu drawer, at every size (boards: Menu at 1440, Tablet's menu overlay from
 Mobile's menu screen below 600 px). Its header holds the small mark, "involo", a sub-line
 (aircraft, the time of the last save this visit, and on tablet the overall count) and Close. Then
 the step settings, the menu groups and Reset flight plan. Items whose page does not exist yet
-(References, Flight log) stay
-hidden until that page is built, with any group heading left empty (owner, batch 5). The version
+(References) stay hidden until that page is built, with any group heading left empty (owner, batch 5). The version
 line lives at the foot of Settings.
 -->
 <script lang="ts">
@@ -121,6 +120,8 @@ line lives at the foot of Settings.
     </div>
     <div class="group">
       <span class="label">This flight and the app</span>
+      <!-- Flight log (Menu, Tablet and Mobile boards): first in this group. -->
+      <a href="#/log" onclick={onClose}>Flight log</a>
       <a href="#/settings" onclick={onClose}>Settings</a>
       <!-- Take the tour (Menu, Tablet and Mobile boards): the last item of this group. -->
       <button

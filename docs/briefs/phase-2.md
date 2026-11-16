@@ -237,8 +237,10 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       whether the welcome has been seen (Settings format 6) and never changes the flight.
       Then How procedures work (owner, 2026-11-16, How boards): seven short parts from one
       content module, counts from the pack, each ending in a link to the real place in Involo.
-      Flight log waits for the owner's decision on saving past flights (and saved Practice
-      results with it); References waits for its boards.
+      Then the Flight log (owner, 2026-11-16, Log boards; decision 0026): This flight, earlier
+      flights and practice results, saved on the device only (IndexedDB), with exports, import,
+      the 500-entry limit and a versioned format; Practice home shows the latest saved result.
+      References waits for its boards.
       First, from batch 5 (owner, 2026-11-15), once the boards show them: the procedure header
       hidden at tablet and phone, with Clear ticks in the menu as a row just above Reset flight
       plan (same style, same Undo toast); and the desktop menu's "Where is Flight setup?", which

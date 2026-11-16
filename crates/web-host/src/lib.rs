@@ -175,6 +175,47 @@ pub fn plan_format() -> u32 {
     app_core::PLAN_FORMAT
 }
 
+/// An empty flight log (decision 0026).
+#[wasm_bindgen]
+pub fn new_log() -> String {
+    reply(Ok::<_, AppError>(app_core::new_log()))
+}
+
+/// Read the saved flight log: ready (migrated if older), newer or unreadable.
+#[wasm_bindgen]
+pub fn load_log(json: &str) -> String {
+    reply(Ok::<_, AppError>(app_core::load_log(json)))
+}
+
+/// The flight as a log entry: `plan` is the JSON "simbrief" or "manual", `at` when it was logged
+/// (milliseconds, as JSON).
+#[wasm_bindgen]
+pub fn log_entry(pack: &str, flight: &str, settings: &str, plan: &str, at: &str) -> String {
+    reply((|| {
+        let flight: Flight = read("flight", flight)?;
+        let settings: Settings = read("settings", settings)?;
+        let plan: app_core::PlanSource = read("plan source", plan)?;
+        let at: u64 = read("time", at)?;
+        with_pack(pack, |p| {
+            Ok(app_core::log_entry(p, &flight, &settings, plan, at))
+        })
+    })())
+}
+
+/// Applies an edit to the log: add, delete, or merge a log file.
+#[wasm_bindgen]
+pub fn edit_log(log: &str, edit: &str) -> String {
+    reply((|| {
+        app_core::edit_log(read("log", log)?, read("log edit", edit)?)
+    })())
+}
+
+/// The log's flights as CSV, one row per flight.
+#[wasm_bindgen]
+pub fn log_csv(log: &str) -> String {
+    reply((|| Ok(app_core::log_csv(&read("log", log)?)))())
+}
+
 /// A METAR decoded from the code table (batch 4).
 #[wasm_bindgen]
 pub fn decode_metar(text: &str) -> String {
@@ -195,6 +236,10 @@ mod tests {
         serde_json::from_str(text).unwrap()
     }
 
+    fn new_log_text() -> String {
+        json(&new_log())["ok"].to_string()
+    }
+
     #[test]
     fn answers_are_ok_or_a_tagged_error() {
         assert_eq!(json(&app_info())["ok"]["name"], "Involo");
@@ -212,6 +257,21 @@ mod tests {
             "InvalidAction"
         );
         assert_eq!(json(&default_settings())["ok"]["theme"], "system");
+        assert_eq!(json(&new_log())["ok"]["format"], 1);
+        assert_eq!(json(&load_log(r#"{"format":99}"#))["ok"]["state"], "newer");
+        assert_eq!(
+            json(&edit_log(
+                &new_log_text(),
+                r#"{"type":"merge","text":"nope"}"#
+            ))["error"]["kind"],
+            "LogFile"
+        );
+        assert!(
+            json(&log_csv(&new_log_text()))["ok"]
+                .as_str()
+                .unwrap()
+                .starts_with("Date")
+        );
         assert_eq!(
             json(&load_settings(r#"{"format":99}"#))["ok"]["state"],
             "newer"

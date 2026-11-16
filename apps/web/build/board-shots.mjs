@@ -217,6 +217,12 @@ const SHOTS = [
   // How procedures work (owner): part 2, desktop and phone.
   ["HowDesk", { layout: "desktop" }, 1440, 900, "HowItWorks", round6],
   ["HowPhone", { layout: "phone" }, 390, 844, "HowItWorks", round6],
+  // The Flight log (owner): desktop and tablet, the phone's log, one earlier flight on phone; and
+  // round 6's Log view it completes.
+  ["LogDesk", { layout: "desktop" }, 1440, 1100, "FlightLog", round6],
+  ["LogPhone", { layout: "phone" }, 390, 844, "FlightLog", round6],
+  ["LogPhoneFlight", { layout: "phoneFlight" }, 390, 844, "FlightLog", round6],
+  ["R6Log", { view: "log", r6: true }, 1440, 900, "Views", round6],
 ];
 
 async function main() {
