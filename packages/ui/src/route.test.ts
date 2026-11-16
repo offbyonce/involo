@@ -14,4 +14,8 @@ describe("parseRoute", () => {
     });
     expect(parseRoute("#/glossary/TO%2FGA")).toEqual({ screen: "glossary", term: "TO/GA" });
   });
+
+  it("reads Practice", () => {
+    expect(parseRoute("#/practice")).toEqual({ screen: "practice" });
+  });
 });

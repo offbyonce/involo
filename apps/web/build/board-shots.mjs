@@ -199,6 +199,14 @@ const SHOTS = [
   ["GlossaryDesk", { layout: "desktop" }, 1440, 900, "Glossary", round6],
   ["GlossaryPhone", { layout: "phone" }, 390, 844, "Glossary", round6],
   ["GlossaryPhoneTerm", { layout: "phoneTerm" }, 390, 844, "Glossary", round6],
+  // Practice (owner): home, a question answered wrong, a step order question, the results.
+  ["PracticeHome", { layout: "desktop", state: "home" }, 1440, 900, "Practice", round6],
+  ["PracticeHomePhone", { layout: "phone", state: "home" }, 390, 844, "Practice", round6],
+  ["PracticeQuestion", { layout: "desktop", state: "question" }, 1440, 900, "Practice", round6],
+  ["PracticeQuestionPhone", { layout: "phone", state: "question" }, 390, 844, "Practice", round6],
+  ["PracticeOrder", { layout: "desktop", state: "order" }, 1440, 900, "Practice", round6],
+  ["PracticeResults", { layout: "desktop", state: "results" }, 1440, 900, "Practice", round6],
+  ["PracticeResultsPhone", { layout: "phone", state: "results" }, 390, 844, "Practice", round6],
 ];
 
 async function main() {
