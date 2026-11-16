@@ -495,6 +495,10 @@ const SHOTS = [
     },
   })),
   { name: "board-menu-where", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click('[aria-controls="drawer"]'), click("#drawer .wlink")] } },
+  // The Glossary (owner): desktop at APU as the boards show, the phone's list, and APU on phone.
+  { name: "board-glossary", only: ["desktop"], app: { hash: "#/glossary/APU" } },
+  { name: "board-glossary-list", only: ["phone"], app: { hash: "#/glossary" } },
+  { name: "board-glossary-term", only: ["phone"], app: { hash: "#/glossary/APU" } },
   // The phone list with its fold opened: each later list starts with its label row (owner, batch 6).
   { name: "board-phone-fold", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("button.after"), click("button.card.folded"), `(() => { [...document.querySelectorAll("section.card > p.label")].find((p) => p.offsetParent)?.scrollIntoView({ block: "center" }); return true; })()`] } },
   { name: "board-phone-open", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click(".prow .open")] } },

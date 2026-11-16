@@ -222,6 +222,10 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       Batch 6 boards (owner, 2026-11-15): Find from the Find boards, searching the pack's steps,
       controls and terms; the drawer pages one at a time, each from a board the owner gives first,
       its menu item shown once its page exists.
+      The Glossary first (owner, 2026-11-15, Glossary boards): every pack term A to Z, the
+      expansion only for an abbreviation whose first sentence is a short name, "In the steps";
+      no Where is this? or Related (no pack data, no format change). Find's terms and the step's
+      "Open in Glossary" lead to it; its menu item shows under Reference.
       First, from batch 5 (owner, 2026-11-15), once the boards show them: the procedure header
       hidden at tablet and phone, with Clear ticks in the menu as a row just above Reset flight
       plan (same style, same Undo toast); and the desktop menu's "Where is Flight setup?", which

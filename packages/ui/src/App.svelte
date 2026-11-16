@@ -47,6 +47,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import ReferencePage from "./pages/ReferencePage.svelte";
   import SettingsPage from "./pages/SettingsPage.svelte";
   import FlightPage from "./flight/FlightPage.svelte";
+  import { buildGlossary, glossaryHref } from "./lib/glossary";
+  import GlossaryPage from "./pages/GlossaryPage.svelte";
   import { currentRoute, flightHref, phaseHref } from "./route.svelte";
   import { applyPalette, applyScale } from "./theme/tokens";
 
@@ -125,6 +127,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let cursor = $state<string | null>(null);
   /** Find (batch 6): its index, built once per pack, and whether it is open. */
   let findIndex = $state<FindIndex | null>(null);
+  /** The Glossary (owner): every term A to Z, with the steps that use it. */
+  let glossary = $derived(index && findIndex ? buildGlossary(index, findIndex.terms, findIndex.steps) : []);
   let findOpen = $state(false);
   let findOpener: HTMLElement | null = null;
   const findKey = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "⌘K" : "Ctrl K";
@@ -306,7 +310,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let current = $derived(view?.lists.find((l) => l.current)?.current ?? null);
   /** The step the context panel shows, its row, and the steps after it. */
   let pane = $derived.by(() => {
-    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open") return null;
+    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary") return null;
     const id = flow ? (cursor ?? current) : (selected ?? (screen === "reference" ? null : current));
     const rows = view.lists.flatMap((l) => l.steps);
     const at = rows.findIndex((r) => r.id === id);
@@ -653,10 +657,18 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       goToStep(id);
     }}
     onControl={findControl}
+    onTerm={(term) => {
+      closeFind(false);
+      location.hash = glossaryHref(term);
+    }}
     onClose={() => closeFind()}
   />
 {/if}
-{#if route.value.screen === "flight" && settings && flight && index && rail}
+{#if route.value.screen === "glossary" && index}
+  <div class="flightwrap">
+    <GlossaryPage terms={glossary} term={route.value.term} {rail} backHref={lastPhase ? phaseHref(lastPhase) : "#/"} onStep={goToStep} />
+  </div>
+{:else if route.value.screen === "flight" && settings && flight && index && rail}
   {@const r = route.value}
   {@const s = settings}
   <div class="flightwrap" data-app-ready="">

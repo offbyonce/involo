@@ -192,6 +192,10 @@ const SHOTS = [
   ["FindPhoneStart", { layout: "phone", state: "start" }, 390, 844, "Find", round6],
   // Batch 6 panels: a step's panels as tiles, and the deck map (owner).
   ["PanelTiles", {}, 1440, 1100, "PanelTiles", round6],
+  // The Glossary (owner): desktop and tablet landscape, the phone's term list, one term on phone.
+  ["GlossaryDesk", { layout: "desktop" }, 1440, 900, "Glossary", round6],
+  ["GlossaryPhone", { layout: "phone" }, 390, 844, "Glossary", round6],
+  ["GlossaryPhoneTerm", { layout: "phoneTerm" }, 390, 844, "Glossary", round6],
 ];
 
 async function main() {

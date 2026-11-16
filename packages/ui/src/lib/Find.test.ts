@@ -95,12 +95,13 @@ describe("Find", () => {
     expect(screen.getByRole("button", { name: "Show all 4 controls" })).toBeTruthy();
   });
 
-  it("moves with ↑ and ↓ and opens with Enter: a step, a control, a term in place", async () => {
+  it("moves with ↑ and ↓ and opens with Enter: a step, a control, a term in the Glossary", async () => {
     const calls: string[] = [];
     render(Find, {
       ...base,
       onStep: (id: string) => calls.push(`step ${id}`),
       onControl: (c: { id: string }) => calls.push(`control ${c.id}`),
+      onTerm: (term: string) => calls.push(`term ${term}`),
     });
     const field = screen.getByRole("combobox");
     await fireEvent.input(field, { target: { value: "widget" } });
@@ -112,9 +113,12 @@ describe("Find", () => {
     for (let i = 0; i < 2; i++) await fireEvent.keyDown(field, { key: "ArrowDown" });
     await fireEvent.keyDown(field, { key: "Enter" });
     expect(calls).toEqual(["step s2", "control cA"]);
-    const term = screen.getByRole("option", { name: /Gizmo box/ });
-    await fireEvent.click(term);
-    expect(term.classList.contains("opened")).toBe(true);
+    await fireEvent.click(screen.getByRole("option", { name: /Gizmo box/ }));
+    expect(calls).toEqual(["step s2", "control cA", "term Gizmo box"]);
+    // And with Enter, the term the active result.
+    await fireEvent.input(field, { target: { value: "gizmo" } });
+    await fireEvent.keyDown(field, { key: "Enter" });
+    expect(calls.at(-1)).toBe("term Gizmo box");
   });
 
   it("says nothing matches, and closes on Esc and the scrim (FindDeskNone)", async () => {

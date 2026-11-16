@@ -57,6 +57,8 @@ const pack = {
     },
   ],
   content: {
+    // An invented term, for the Glossary.
+    glossary: { terms: [{ term: "WGT", meaning: "Widget gate timer. Times the widget gate." }] },
     phases: {
       options: [
         {
@@ -641,6 +643,22 @@ describe("App", () => {
     const labels = [...document.querySelectorAll("section.card > p.label")].map((p) => p.textContent);
     expect(labels.length).toBeGreaterThan(0);
     for (const l of labels) expect(l).toMatch(/^.+ · \d+ of \d+$/);
+  });
+
+  it("opens the Glossary at a term chosen in Find, and from the menu", async () => {
+    render(App, { context: hostContext(host()) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.click(screen.getByRole("button", { name: "Find a step, control or term" }));
+    const field = await screen.findByRole("combobox", { name: "Find a step, control or term" });
+    await fireEvent.input(field, { target: { value: "widget gate" } });
+    await fireEvent.click(screen.getByRole("option", { name: /^WGT/ }));
+    await waitFor(() => expect(location.hash).toBe("#/glossary/WGT"));
+    expect(await screen.findByRole("heading", { level: 2, name: "WGT" })).toBeTruthy();
+    expect(screen.getByText("Widget gate timer", { selector: ".expansion" })).toBeTruthy();
+    location.hash = "#/";
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    expect(screen.getByRole("link", { name: "Glossary" }).getAttribute("href")).toBe("#/glossary");
   });
 
   it("closes Find on the system back, as any full-screen sheet", async () => {
