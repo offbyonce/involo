@@ -129,19 +129,25 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let findOpener: HTMLElement | null = null;
   const findKey = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "⌘K" : "Ctrl K";
   function openFind(): void {
-    if (findOpen || !findIndex) return;
-    findOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    // Not over a modal drawing (Where is this?, the schematic): it would open out of reach.
+    if (findOpen || !findIndex || document.querySelector("dialog[open]")) return;
+    const from = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    // Focus goes back to the opener, unless it sits in a layer Find closes.
+    findOpener = from && !from.closest('#drawer, .picker, .slide-box, [role="dialog"]') ? from : null;
     menuOpen = false;
     pickerOpen = false;
+    openSteps.shown = false;
+    slide = null;
     findOpen = true;
   }
   function closeFind(back = true): void {
     findOpen = false;
-    if (back) findOpener?.focus();
+    if (back) (findOpener?.isConnected ? findOpener : document.querySelector<HTMLElement>("header.top .find"))?.focus();
     findOpener = null;
   }
-  /** A slide-out to open once its step is on screen (a control chosen in Find). */
-  let pendingSlide: { step: string; opening: Opening } | null = null;
+  /** A slide-out to open once its step is on screen (a control chosen in Find); dropped if the
+   * step's phase shows without it (Essentials, say). */
+  let pendingSlide = $state<{ step: string; phase: string; opening: Opening } | null>(null);
   function findControl(c: FindControl): void {
     closeFind(false);
     if (!c.step) return;
@@ -150,7 +156,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       openSlide(opening);
       return;
     }
-    pendingSlide = { step: c.step, opening };
+    pendingSlide = { step: c.step, phase: index?.phaseOf(c.step) ?? "", opening };
     goToStep(c.step);
   }
 
@@ -365,11 +371,16 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     if (id !== slideStep) {
       slideStep = id;
       slide = null;
-      if (id && pendingSlide?.step === id) {
-        slide = pendingSlide.opening;
-        pendingSlide = null;
-      }
     }
+  });
+  $effect(() => {
+    const id = pane?.step.id;
+    const p = pendingSlide;
+    if (!p || !view) return;
+    if (id === p.step) {
+      slide = p.opening;
+      pendingSlide = null;
+    } else if (view.id === p.phase) pendingSlide = null;
   });
 
   /** The rail and open steps for the flight and settings. */

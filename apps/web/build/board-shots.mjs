@@ -190,6 +190,8 @@ const SHOTS = [
   ["FindPhone", { layout: "phone", state: "results" }, 390, 844, "Find", round6],
   ["FindPhoneNone", { layout: "phone", state: "none" }, 390, 844, "Find", round6],
   ["FindPhoneStart", { layout: "phone", state: "start" }, 390, 844, "Find", round6],
+  // Batch 6 panels: a step's panels as tiles, and the deck map (owner).
+  ["PanelTiles", {}, 1440, 1100, "PanelTiles", round6],
 ];
 
 async function main() {

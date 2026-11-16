@@ -52,7 +52,8 @@ describe("find", () => {
     for (const c of controls) expect(c.where).toBe("Forward overhead (P5) · Fuel panel");
     const ctr = findIn(find, "fuel pump switches", rail).controls[0];
     expect(ctr?.at?.section).toBe("fuel");
-    expect(ctr?.step).toBeTruthy();
+    // The first step this flight shows that uses it (not Cruise, whose item comes first).
+    expect(ctr?.step).toMatch(/\.(apu-power|before-start)\./);
   });
 
   it("finds terms by the term first, then by their definition", () => {

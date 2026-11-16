@@ -35,12 +35,15 @@ const find: FindIndex = {
     id: `c${n}`,
     name: `Widget switch ${n}`,
     where: "Overhead · Widget panel",
+    location: "Overhead, widget row.",
     at: { section: "w", item: 0 },
-    step: "s1",
+    // Switch D is used by no step on this flight: it opens in place.
+    usedBy: n === "D" ? [] : [{ step: "s1", phase: "p1", at: { section: "w", item: 0 } }],
+    step: null,
   })),
   terms: [
     {
-      term: "Gizmo",
+      term: "Gizmo box",
       meaning: "A part of the widget system, explained at length so it can be opened in place.",
     },
   ],
@@ -93,12 +96,14 @@ describe("Find", () => {
     const field = screen.getByRole("combobox");
     await fireEvent.input(field, { target: { value: "widget" } });
     await fireEvent.keyDown(field, { key: "ArrowDown" });
-    expect(field.getAttribute("aria-activedescendant")).toBe("find-s-s2");
+    expect(document.getElementById(field.getAttribute("aria-activedescendant") ?? "")?.textContent).toContain(
+      "Widget valve",
+    );
     await fireEvent.keyDown(field, { key: "Enter" });
     for (let i = 0; i < 2; i++) await fireEvent.keyDown(field, { key: "ArrowDown" });
     await fireEvent.keyDown(field, { key: "Enter" });
     expect(calls).toEqual(["step s2", "control cA"]);
-    const term = screen.getByRole("option", { name: /Gizmo/ });
+    const term = screen.getByRole("option", { name: /Gizmo box/ });
     await fireEvent.click(term);
     expect(term.classList.contains("opened")).toBe(true);
   });
@@ -113,5 +118,35 @@ describe("Find", () => {
     await fireEvent.click(document.querySelector(".scrim") as HTMLElement);
     await fireEvent.click(screen.getByRole("button", { name: "Close Find" }));
     expect(closed).toBe(3);
+  });
+
+  it("keeps the keys in Find after Show all, the same result active, and opens an unused control in place", async () => {
+    const calls: string[] = [];
+    render(Find, { ...base, onControl: (c: { id: string }) => calls.push(c.id) });
+    const field = screen.getByRole("combobox");
+    await fireEvent.input(field, { target: { value: "widget" } });
+    for (let i = 0; i < 3; i++) await fireEvent.keyDown(field, { key: "ArrowDown" });
+    expect(document.getElementById(field.getAttribute("aria-activedescendant") ?? "")?.textContent).toContain(
+      "Widget switch A",
+    );
+    await fireEvent.click(screen.getByRole("button", { name: "Show all 5 steps" }));
+    expect(document.activeElement).toBe(field);
+    expect(document.getElementById(field.getAttribute("aria-activedescendant") ?? "")?.textContent).toContain(
+      "Widget switch A",
+    );
+    // Keys pressed with focus elsewhere still move in Find (on the window).
+    (document.activeElement as HTMLElement).blur();
+    await fireEvent.keyDown(window, { key: "ArrowDown" });
+    expect(document.getElementById(field.getAttribute("aria-activedescendant") ?? "")?.textContent).toContain(
+      "Widget switch B",
+    );
+    await fireEvent.click(screen.getByRole("button", { name: "Show all 4 controls" }));
+    const d = screen.getByRole("option", { name: /Widget switch D/ });
+    await fireEvent.click(d);
+    expect(calls).toEqual([]);
+    expect(d.textContent).toContain("Overhead, widget row.");
+    // Every result id is a valid id (terms have spaces).
+    for (const o of screen.getAllByRole("option")) expect(o.id).toMatch(/^find-r-\d+$/);
+    expect(screen.getByRole("status").textContent).toBe("5 steps, 4 controls, 1 term");
   });
 });

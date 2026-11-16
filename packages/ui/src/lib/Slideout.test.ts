@@ -126,4 +126,27 @@ describe("Slideout", () => {
     await fireEvent.click(screen.getByRole("button", { name: "Change" }));
     expect(changed).toBe("ask");
   });
+
+  it("titles the sheet with the main panel, adds Also for the others, and keeps an undrawn panel as a list (owner, batch 6)", () => {
+    const efb = index.step("ifly-737-max8.gpu-power.ground-power-cart-efb");
+    const locate = (at: string) => {
+      const [, section, label, n] = at.split("/");
+      let seen = 0;
+      const item = (index.section(section ?? "")?.items ?? []).findIndex(
+        (it) => it.label === label && ++seen === Number(n),
+      );
+      return { section: section ?? "", item, position: null, lit: true, open: false, resolved: false };
+    };
+    render(Slideout, {
+      ...props("panel"),
+      step: efb!,
+      number: 2,
+      targets: (efb?.targets ?? []).map((t) => locate(t.at ?? "")),
+    });
+    const title = screen.getByRole("heading", { level: 2 }).textContent ?? "";
+    expect(title).not.toMatch(/ and .* and /);
+    expect(document.querySelector(".head .where")?.textContent).toMatch(/Also: /);
+    // The panel the pack does not draw is a tile naming the step's control on it.
+    expect(document.querySelector(".figure .listed")?.textContent).toMatch(/panel/);
+  });
 });

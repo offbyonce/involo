@@ -133,6 +133,26 @@ const finishPhase = (id, then) =>
  * opens), then skips that one (S): the phase done, one step open. */
 const finishSkippingLast = (id) =>
   `(async () => { const wait = (ms) => new Promise((go) => setTimeout(go, ms)); location.hash = "#/phase/${id}"; await wait(500); for (let i = 0; i < 200; i++) { const left = [...document.querySelectorAll(".it button.tick")].filter((t) => t.getAttribute("aria-pressed") !== "true"); if (left.length === 1 && document.body.textContent.includes("opens when the procedure is done")) { left[0].click(); await wait(500); continue; } if (left.length <= 1) break; left[0].click(); await wait(80); } window.dispatchEvent(new KeyboardEvent("keydown", { key: "s", bubbles: true })); await wait(300); return true; })()`;
+/** Goes to a phase (or emergency reference list) and opens step `id` there, its folded list first. */
+const openStep = (kind, phase, id) =>
+  `(async () => { const wait = (ms) => new Promise((go) => setTimeout(go, ms)); location.hash = ${JSON.stringify(kind === "reference" ? "#/reference/" : "#/phase/")} + ${JSON.stringify(phase)}; await wait(700); for (const b of document.querySelectorAll("button.card.folded")) b.click(); await wait(300); const row = document.querySelector('[data-step="' + ${JSON.stringify(id)} + '"] button.row'); if (!row) { const b = document.createElement("div"); b.textContent = "Not on screen for this flight: " + ${JSON.stringify(id)}; b.setAttribute("style", "position:fixed;top:0;left:0;right:0;z-index:99;background:#b00;color:#fff;font:16px sans-serif;padding:8px"); document.body.append(b); return true; } row.click(); await wait(400); return true; })()`;
+function stepShots() {
+  const file = process.env.INVOLO_STEPS;
+  if (!file) return [];
+  return fs
+    .readFileSync(file, "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .flatMap((line, n) => {
+      const [kind, phase, id] = line.split("\t");
+      const open = [openStep(kind, phase, id), press("p")];
+      const tag = String(n + 1).padStart(2, "0");
+      return [
+        { name: `tiles-${tag}`, only: ["desktop"], app: { hash: "#/", before: open } },
+        ...(n < 3 ? [{ name: `tiles-map-${tag}`, only: ["desktop"], app: { hash: "#/", before: [...open, click(".slide-box .deck-toggle")] } }] : []),
+      ];
+    });
+}
 /** Opens the row menu ("···") of the list step whose name is exactly `name`. */
 const rowMenu = (name) =>
   `[...document.querySelectorAll(".it")].find((it) => it.querySelector(".nm")?.textContent.trim() === ${JSON.stringify(name)}).querySelector("button.more").click(); true`;
@@ -442,11 +462,21 @@ const SHOTS = [
   // The decision step on phone (DecPhone), from the design gallery's invented fixture (the pack has
   // no decision step yet).
   { name: "board-decision", only: ["phone"], app: { hash: "", page: "design/?view=decision&state=phone&theme={theme}" } },
+  // Batch 6 panels (owner): a step's sheet and side-pane preview card, opened by P, for each step in
+  // INVOLO_STEPS (a local file of "phase|reference <tab> phase id <tab> step id" lines), named
+  // tiles-<n>; with its map open, tiles-map-<n>, for the first three.
+  ...stepShots(),
+  // The PanelTiles board's step: the wiper selectors, their sheet and the deck map open.
+  { name: "board-tiles", only: ["desktop"], app: { hash: "#/phase/cold-dark", before: [openStep("phase", "cold-dark", "ifly-737-max8.cold-dark.wiper-selectors"), press("p"), click(".slide-box .deck-toggle")] } },
+  // Each phone-sized panel sheet once (upright and sideways), for a row of tiles and a stack.
+  ...["ifly-737-max8.cold-dark.wiper-selectors", "ifly-737-max8.landing.speedbrake-lever"].flatMap((id, n) => [
+    { name: `tiles-phone-${n}`, only: ["phone", "phone-sideways"], app: { hash: "#/", before: [openStep("phase", id.split(".")[1], id), press("p")] } },
+  ]),
   // Batch 6: Find (results for "fuel", no match, before typing) over the boards' state, opened
   // from the header; the desktop menu's "Where is Flight setup?" opened.
   ...[
     ["board-find", "fuel"],
-    ["board-find-none", "trimm"],
+    ["board-find-none", "trimmx"],
     ["board-find-start", null],
   ].map(([name, word]) => ({
     name,
@@ -663,6 +693,8 @@ async function main() {
   const pairs = [];
   try {
     for (const [theme, override] of Object.entries(THEMES)) {
+      // SCREENSHOTS_THEME=dark (or light) shoots one theme only.
+      if (process.env.SCREENSHOTS_THEME && process.env.SCREENSHOTS_THEME !== theme) continue;
       for (const [size, viewport] of Object.entries(VIEWPORTS)) {
         for (const target of targets) {
           const prefs = { "layout.css.prefers-color-scheme.content-override": override };

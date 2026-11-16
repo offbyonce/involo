@@ -13,8 +13,12 @@ export type FindControl = {
   name: string;
   /** "Panel area · Panel" (Find board). */
   where: string;
-  /** Where the control is drawn, and the first step (in flight order) that uses it. */
+  /** Where it is, in words, for a control no step on this flight uses (shown in place). */
+  location: string;
+  /** Where the control is drawn, and the steps (in flight order, with their phases) that use it;
+   * findIn picks the first one this flight shows. */
   at: { section: string; item: number } | null;
+  usedBy: { step: string; phase: string; at: { section: string; item: number } }[];
   step: string | null;
 };
 export type FindTerm = { term: string; meaning: string };
@@ -34,25 +38,37 @@ export function buildFind(pack: FlatPack, index: PackIndex): FindIndex {
       }
     }
   }
-  const drawn = new Map<string, { panel: string; section: string; item: number }>();
+  const drawn = new Map<string, { panel: string; section: string; item: number }[]>();
   for (const panel of pack.content.panels ?? []) {
     for (const section of panel.sections) {
       section.items.forEach((item, i) => {
         for (const c of item.controls ?? [])
-          if (!drawn.has(c)) drawn.set(c, { panel: panel.id, section: section.id, item: i });
+          drawn.set(c, [...(drawn.get(c) ?? []), { panel: panel.id, section: section.id, item: i }]);
       });
     }
   }
+  const order = new Map(steps.map((s, i) => [s.id, i]));
   const zones = new Map((pack.content.controls?.zones ?? []).map((z) => [z.id, z]));
   const controls = (pack.content.controls?.controls ?? []).map((c): FindControl => {
     const zone = c.zone ? zones.get(c.zone) : undefined;
-    const at = drawn.get(c.id);
+    const items = drawn.get(c.id) ?? [];
+    const first = items[0];
     return {
       id: c.id,
       name: c.name,
       where: zone ? `${zone.area} · ${zone.title}` : c.location,
-      at: at ? { section: at.section, item: at.item } : null,
-      step: at ? (index.usedIn(at.panel, at.section, at.item)[0]?.step.id ?? null) : null,
+      location: c.location,
+      at: first ? { section: first.section, item: first.item } : null,
+      // Every step that uses one of its drawn items, in flight order.
+      usedBy: items
+        .flatMap((it) =>
+          index.usedIn(it.panel, it.section, it.item).flatMap((u) => {
+            const phase = index.phaseOf(u.step.id);
+            return phase ? [{ step: u.step.id, phase, at: { section: it.section, item: it.item } }] : [];
+          }),
+        )
+        .sort((a, b) => (order.get(a.step) ?? 0) - (order.get(b.step) ?? 0)),
+      step: null,
     };
   });
   const terms = (pack.content.glossary?.terms ?? []).map((t) => ({ term: t.term, meaning: t.meaning }));
@@ -113,7 +129,10 @@ export function findIn(
       find.controls,
       (c) => c.name,
       (c) => [c.where],
-    ),
+    ).map((c) => {
+      const u = c.usedBy.find((x) => phases.has(x.phase));
+      return { ...c, step: u?.step ?? null, at: u?.at ?? c.at };
+    }),
     terms: rank(
       find.terms,
       (t) => t.term,

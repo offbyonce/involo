@@ -635,6 +635,24 @@ describe("App", () => {
     expect(await screen.findByRole("dialog", { name: "Find" })).toBeTruthy();
   });
 
+  it("never ticks the step behind Find, even with focus outside its field (Space after Show all)", async () => {
+    const actions: Action[] = [];
+    const h = host({
+      apply: async (_pack, flight, action) => {
+        actions.push(action);
+        return { ...flight };
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+    await screen.findByRole("dialog", { name: "Find" });
+    (document.activeElement as HTMLElement).blur();
+    await fireEvent.keyDown(document.body, { key: " " });
+    await fireEvent.keyDown(document.body, { key: "s" });
+    expect(actions).toEqual([]);
+  });
+
   it("lists open steps and puts one back to do", async () => {
     window.location.hash = "#/open";
     const actions: Action[] = [];

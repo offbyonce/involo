@@ -47,9 +47,9 @@ matches “…”". Esc, the scrim and the back button close it.
 
   let query = $state("");
   let input = $state<HTMLInputElement | null>(null);
-  let list = $state<HTMLElement | null>(null);
   let found = $derived(findIn(find, query, rail, { phase, step: current }));
   let all = $state({ steps: false, controls: false });
+  /** A term, or a control no step on this flight uses, opened in place. */
   let opened = $state<string | null>(null);
   $effect(() => {
     void query;
@@ -66,26 +66,40 @@ matches “…”". Esc, the scrim and the back button close it.
     ...found.terms.map((t) => ({ kind: "term" as const, t })),
   ]);
   let active = $state(0);
-  let activeId = $derived.by(() => {
-    const r = rows[active];
-    return r ? rowId(r) : undefined;
-  });
   let none = $derived(query.trim() !== "" && rows.length === 0);
+  /** What a screen reader hears as the results change. */
+  let said = $derived.by(() => {
+    if (!query.trim()) return "";
+    if (none) return `Nothing matches “${query.trim()}”`;
+    const n = (k: number, one: string) => `${k} ${one}${k === 1 ? "" : "s"}`;
+    return [n(found.steps.length, "step"), n(found.controls.length, "control"), n(found.terms.length, "term")].join(", ");
+  });
 
-  const rowId = (r: Row) => (r.kind === "step" ? `find-s-${r.s.id}` : r.kind === "control" ? `find-c-${r.c.id}` : `find-t-${r.t.term}`);
+  const keyOf = (r: Row) => (r.kind === "step" ? `s:${r.s.id}` : r.kind === "control" ? `c:${r.c.id}` : `t:${r.t.term}`);
   const stateOf = (id: string) => (id === current ? "current" : done[id] !== undefined ? "done" : "todo");
 
   function choose(r: Row): void {
     if (r.kind === "step") onStep(r.s.id);
-    else if (r.kind === "control") onControl(r.c);
-    else opened = opened === r.t.term ? null : r.t.term;
+    else if (r.kind === "control" && r.c.step) onControl(r.c);
+    else opened = opened === keyOf(r) ? null : keyOf(r);
   }
   async function move(by: number): Promise<void> {
     if (!rows.length) return;
     active = Math.max(0, Math.min(rows.length - 1, active + by));
     await tick();
-    list?.querySelector(`[data-at="${active}"]`)?.scrollIntoView?.({ block: "nearest" });
+    document.getElementById(`find-r-${active}`)?.scrollIntoView?.({ block: "nearest" });
   }
+  /** Show all keeps the active result where it was, and focus in the field. */
+  async function showAll(section: "steps" | "controls"): Promise<void> {
+    const r = rows[active];
+    const was = r ? keyOf(r) : null;
+    all = { ...all, [section]: true };
+    await tick();
+    const at = rows.findIndex((x) => keyOf(x) === was);
+    active = at < 0 ? 0 : at;
+    input?.focus();
+  }
+  // On the window, so the keys still reach Find when focus is not in the field.
   function onKey(e: KeyboardEvent): void {
     if (e.key === "Escape") {
       e.preventDefault();
@@ -96,12 +110,15 @@ matches “…”". Esc, the scrim and the back button close it.
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       void move(-1);
-    } else if (e.key === "Enter" && e.target === input) {
+    } else if (e.key === "Enter" && !(e.target instanceof HTMLButtonElement || e.target instanceof HTMLAnchorElement)) {
       const r = rows[active];
       if (r) {
         e.preventDefault();
         choose(r);
       }
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && e.target !== input && !(e.target instanceof HTMLButtonElement && e.key === " ")) {
+      // A letter typed anywhere in Find goes to the field, never to the page behind it.
+      input?.focus();
     }
   }
   function fill(word: string): void {
@@ -111,14 +128,19 @@ matches “…”". Esc, the scrim and the back button close it.
   onMount(() => input?.focus());
 </script>
 
+<svelte:window onkeydown={onKey} />
+
 {#snippet title(text: string)}
   {@const m = marked(text, query)}
   {#if m}{m[0]}<mark>{m[1]}</mark>{m[2]}{:else}{text}{/if}
 {/snippet}
 
+{#snippet head(name: string, count: number, id: string)}
+  <div class="head" {id}><b>{name}</b><span>{count}</span></div>
+{/snippet}
+
 <div class="scrim" aria-hidden="true" onclick={onClose}></div>
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div class="find" role="dialog" aria-modal="true" aria-label="Find" tabindex="-1" onkeydown={onKey} use:trapFocus>
+<div class="find" role="dialog" aria-modal="true" aria-label="Find" tabindex="-1" use:trapFocus>
   <div class="bar">
     <button class="back" type="button" aria-label="Close Find" onclick={onClose}><Icon name="chevron-left" /></button>
     <div class="field">
@@ -129,9 +151,9 @@ matches “…”". Esc, the scrim and the back button close it.
         type="text"
         role="combobox"
         aria-expanded={rows.length > 0}
-        aria-controls="find-results"
+        aria-controls="find-steps find-controls find-terms"
         aria-autocomplete="list"
-        aria-activedescendant={activeId}
+        aria-activedescendant={rows[active] ? `find-r-${active}` : undefined}
         aria-label="Find a step, control or term"
         placeholder="Find a step, control or term"
         autocomplete="off"
@@ -141,7 +163,8 @@ matches “…”". Esc, the scrim and the back button close it.
     </div>
     <kbd class="esc">Esc</kbd>
   </div>
-  <div class="results" id="find-results" role="listbox" aria-label="Results" bind:this={list}>
+  <p class="said" role="status">{said}</p>
+  <div class="results">
     {#if !query.trim()}
       <div class="start">
         <p class="help">Search every step, control and term for this aircraft: a step’s title or value, a control, a panel or a word you don’t know.</p>
@@ -153,66 +176,84 @@ matches “…”". Esc, the scrim and the back button close it.
         </div>
       </div>
     {:else if none}
-      <div class="none" role="status">
+      <div class="none">
         <b>Nothing matches “{query.trim()}”</b>
         <p class="help">Find looks through every step, control and term for this aircraft. Check the spelling, or try a panel or control name, like Fuel or MCP.</p>
       </div>
     {:else}
       {#if found.steps.length}
-        <div class="head" role="presentation"><b>Steps</b><span>{found.steps.length}</span></div>
-        {#each steps as s, i (s.id)}
-          {@const st = stateOf(s.id)}
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <div class="opt" role="option" tabindex="-1" id="find-s-{s.id}" data-at={i} aria-selected={active === i} onclick={() => onStep(s.id)}>
-            <span class="ic st-{st}" role="img" aria-label={st === "current" ? "Current step" : st === "done" ? "Done" : "To do"}
-              ><Icon name="find-{st}" /></span
-            >
-            <span class="txt"
-              ><span class="t">{@render title(s.title)}</span><span class="sub"
-                ><span>{s.stage} › {s.phaseTitle}</span><span class="val">{s.value}</span></span
-              ></span
-            >
-            <span class="end">{#if st === "current"}<span class="now">Current</span>{/if}<Icon name="chevron-right" /></span>
-          </div>
-        {/each}
+        {@render head("Steps", found.steps.length, "find-steps-h")}
+        <div class="group" id="find-steps" role="listbox" aria-labelledby="find-steps-h">
+          {#each steps as s, i (s.id)}
+            {@const st = stateOf(s.id)}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <div class="opt" role="option" tabindex="-1" id="find-r-{i}" aria-selected={active === i} onclick={() => onStep(s.id)}>
+              <span class="ic st-{st}" role="img" aria-label={st === "current" ? "Current step" : st === "done" ? "Done" : "To do"}
+                ><Icon name="find-{st}" /></span
+              >
+              <span class="txt"
+                ><span class="t">{@render title(s.title)}</span><span class="sub"
+                  ><span>{s.stage} › {s.phaseTitle}</span><span class="val">{s.value}</span></span
+                ></span
+              >
+              <span class="end">{#if st === "current"}<span class="now">Current</span>{/if}<Icon name="chevron-right" /></span>
+            </div>
+          {/each}
+        </div>
         {#if found.steps.length > FIRST && !all.steps}
-          <button class="all" type="button" onclick={() => (all.steps = true)}>Show all {found.steps.length} steps</button>
+          <button class="all" type="button" onclick={() => void showAll("steps")}>Show all {found.steps.length} steps</button>
         {/if}
       {/if}
       {#if found.controls.length}
-        <div class="head" role="presentation"><b>Controls</b><span>{found.controls.length}</span></div>
-        {#each controls as c, i (c.id)}
-          {@const at = steps.length + i}
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <div class="opt" role="option" tabindex="-1" id="find-c-{c.id}" data-at={at} aria-selected={active === at} onclick={() => onControl(c)}>
-            <span class="ic kind"><Icon name="find-control" /></span>
-            <span class="txt"><span class="t">{@render title(c.name)}</span><span class="sub">{c.where}</span></span>
-            <span class="end"><Icon name="chevron-right" /></span>
-          </div>
-        {/each}
+        {@render head("Controls", found.controls.length, "find-controls-h")}
+        <div class="group" id="find-controls" role="listbox" aria-labelledby="find-controls-h">
+          {#each controls as c, i (c.id)}
+            {@const at = steps.length + i}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <div
+              class="opt"
+              class:opened={opened === `c:${c.id}`}
+              role="option"
+              tabindex="-1"
+              id="find-r-{at}"
+              aria-selected={active === at}
+              onclick={() => choose({ kind: "control", c })}
+            >
+              <span class="ic kind"><Icon name="find-control" /></span>
+              <span class="txt"
+                ><span class="t">{@render title(c.name)}</span><span class="sub">{c.where}</span>{#if opened === `c:${c.id}`}<span
+                    class="sub">{c.location}</span
+                  >{/if}</span
+              >
+              <span class="end"><Icon name="chevron-right" /></span>
+            </div>
+          {/each}
+        </div>
         {#if found.controls.length > FIRST && !all.controls}
-          <button class="all" type="button" onclick={() => (all.controls = true)}>Show all {found.controls.length} controls</button>
+          <button class="all" type="button" onclick={() => void showAll("controls")}>Show all {found.controls.length} controls</button>
         {/if}
       {/if}
       {#if found.terms.length}
-        <div class="head" role="presentation"><b>Terms</b><span>{found.terms.length}</span></div>
-        {#each found.terms as t, i (t.term)}
-          {@const at = steps.length + controls.length + i}
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <div
-            class="opt"
-            class:opened={opened === t.term}
-            role="option" tabindex="-1"
-            id="find-t-{t.term}"
-            data-at={at}
-            aria-selected={active === at}
-            onclick={() => (opened = opened === t.term ? null : t.term)}
-          >
-            <span class="ic kind"><Icon name="find-term" /></span>
-            <span class="txt"><span class="t">{@render title(t.term)}</span><span class="sub mean">{t.meaning}</span></span>
-            <span class="end"><Icon name="chevron-right" /></span>
-          </div>
-        {/each}
+        {@render head("Terms", found.terms.length, "find-terms-h")}
+        <div class="group" id="find-terms" role="listbox" aria-labelledby="find-terms-h">
+          {#each found.terms as t, i (t.term)}
+            {@const at = steps.length + controls.length + i}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <div
+              class="opt"
+              class:opened={opened === `t:${t.term}`}
+              role="option"
+              tabindex="-1"
+              id="find-r-{at}"
+              aria-selected={active === at}
+              onclick={() => choose({ kind: "term", t })}
+            >
+              <span class="ic kind"><Icon name="find-term" /></span>
+              <span class="txt"><span class="t">{@render title(t.term)}</span><span class="sub mean">{t.meaning}</span></span>
+              <span class="end"><Icon name="chevron-right" /></span>
+            </div>
+          {/each}
+        </div>
       {/if}
     {/if}
   </div>
@@ -332,6 +373,19 @@ matches “…”". Esc, the scrim and the back button close it.
     overflow-y: auto;
     padding: 0 var(--space-2) var(--space-2);
     scrollbar-width: none;
+  }
+  .group {
+    display: flex;
+    flex-direction: column;
+  }
+  .said {
+    position: absolute;
+    width: var(--border-thin);
+    height: var(--border-thin);
+    margin: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   .head {
     display: flex;

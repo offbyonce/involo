@@ -113,7 +113,7 @@ row in place. A step that depends on the answer links back to it.
 
 <svelte:document onpointerdown={outside} onkeydown={key} />
 
-<li class="it {row.state}" class:sel={selected} class:marked class:large class:current class:changing={decision?.changing}>
+<li class="it {row.state}" data-step={row.id} class:sel={selected} class:marked class:large class:current class:changing={decision?.changing}>
   <button class="tick" type="button" aria-label={tickLabel} aria-pressed={row.state === "done"} aria-disabled={decision && decision.answer === null && row.state !== "done" ? "true" : undefined} onclick={tickOrAsk}>
     {#if current && asking && !decision?.changing}
       <!-- A decision step to answer: a diamond, not the circle (Decision.dc.html). -->
@@ -831,10 +831,12 @@ row in place. A step that depends on the answer links back to it.
       grid-column: 1;
       padding-top: 0;
     }
-    /* The menu's 44 px target reaches above and below the title line, so the value sits right
-       under the title (Mobile board, DecPhone). */
+    /* The menu's 44 px target reaches into the row's top padding (never past it) and over the
+       value below, so the value sits right under the title (Mobile board, DecPhone). */
     .it.current .end {
-      margin: calc((var(--font-size-body) + var(--border-thick)) * var(--leading-tight) / 2 - var(--size-touch-min) / 2) 0;
+      margin: calc(-1 * (var(--space-2) + var(--border-thick))) 0
+        calc((var(--font-size-body) + var(--border-thick)) * var(--leading-tight) - var(--size-touch-min) + var(--space-2) + var(--border-thick));
+      align-self: start;
       grid-row: 1;
       grid-column: 2;
     }

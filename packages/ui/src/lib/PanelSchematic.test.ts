@@ -5,6 +5,7 @@ import type { Panel } from "@involo/bindings";
 import { cleanup, render, screen } from "@testing-library/svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import PanelSchematic from "./PanelSchematic.svelte";
+import PanelTiles from "./PanelTiles.svelte";
 
 const toggle = (label: string, x: number, controls: string[], guarded = false) => ({
   kind: "toggle_switch",
@@ -153,7 +154,7 @@ describe("PanelSchematic", () => {
     expect(container.querySelector(".on .body.conditional")).not.toBeNull();
   });
 
-  it("draws neighboring small sections together in one drawing", () => {
+  it("draws two of the step's sections, titled, and names them as a left and right pair", () => {
     const targets = [
       { section: "lwip", item: 0, position: 1, lit: false, open: false, resolved: false },
       { section: "rwip", item: 0, position: 1, lit: false, open: false, resolved: false },
@@ -162,7 +163,7 @@ describe("PanelSchematic", () => {
 
     const svg = screen.getByRole("img");
     expect(svg.getAttribute("aria-label")).toBe(
-      "L wiper and R wiper panel, schematic. This step: L WIPER set to ON; R WIPER set to ON.",
+      "L and R wiper panels, schematic. This step: L WIPER set to ON; R WIPER set to ON.",
     );
     // Each section's title and its control's label.
     expect(screen.getAllByText("L WIPER")).toHaveLength(2);
@@ -693,9 +694,9 @@ describe("PanelSchematic", () => {
     expect(container.querySelector("svg.schematic")?.textContent).toContain("INBD");
   });
 
-  it("draws the sections between two far-apart step sections, so the piece is never empty", () => {
-    // TERR: the two EFIS panels at either end of the glareshield, with the MCP (taller than a
-    // context neighbor) between them; the MCP was left out and the drawing opened on empty panel.
+  it("draws only the step's panels as tiles, never one between them (owner, batch 6)", () => {
+    // TERR: the two EFIS panels at either end of the glareshield; the MCP between them is not the
+    // step's and is not drawn, and each EFIS panel is its own tile.
     const item = (label: string) => ({
       kind: "push_button",
       label,
@@ -715,16 +716,20 @@ describe("PanelSchematic", () => {
         { id: "efisr", title: "EFIS R", x: 800, y: 0, width: 200, height: 120, items: [item("TERR")] },
       ],
     } as unknown as Panel;
-    const { container } = render(PanelSchematic, {
-      panel,
-      focus: ["efisl", "efisr"],
+    const sections = panel.sections;
+    const tile = (n: number) => {
+      const section = sections[n] as (typeof sections)[number];
+      return { kind: "drawn" as const, id: section.id, panel, section, title: section.title };
+    };
+    const { container } = render(PanelTiles, {
+      tiles: [tile(0), tile(2)],
       targets: [
         { section: "efisl", item: 0, position: null, lit: false, open: false, resolved: false },
         { section: "efisr", item: 0, position: null, lit: false, open: false, resolved: false },
       ],
     });
-    expect(container.querySelectorAll("svg.schematic")).toHaveLength(1);
-    expect(container.textContent).toContain("VNAV");
+    expect(container.querySelectorAll("svg.schematic")).toHaveLength(2);
+    expect(container.textContent).not.toContain("VNAV");
   });
 
   it("draws a decided control resolved: at its position, as changed", () => {

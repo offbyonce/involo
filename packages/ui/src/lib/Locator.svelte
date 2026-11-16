@@ -10,6 +10,7 @@ from the seat, the side and seat views, the legend, and the whole flight deck be
 deck" until the Flight deck page exists (batch 6). All from the pack, in the panel palette.
 -->
 <script lang="ts">
+  import WholeDeck from "./WholeDeck.svelte";
   import type { Zone } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import Icon from "./Icon.svelte";
@@ -131,21 +132,7 @@ deck" until the Flight deck page exists (batch 6). All from the pack, in the pan
       </button>
     </div>
     {#if deck}
-      <p class="zone">{zone.title}, marked on the map.</p>
-      <svg class="deck" viewBox="0 0 {overview.width} {overview.height}" role="img" aria-label="The whole flight deck, {zone.title} marked">
-        {#if region}
-          <rect class="region" x={region.x} y={region.y} width={region.width} height={region.height} rx="6" />
-        {/if}
-        {#each overview.areas as area (area.zone + area.x + area.y)}
-          <rect class="area" class:on={area.zone === zone.id} x={area.x} y={area.y} width={area.width} height={area.height} rx="2" />
-        {/each}
-        {#each overview.captions ?? [] as caption (caption.text)}
-          <text class="cap" x={caption.x} y={caption.y}>{caption.text}</text>
-        {/each}
-        {#each overview.areas.filter((a) => a.zone === zone.id) as area (area.x + area.y)}
-          <text class="mark" x={area.x + area.width / 2} y={area.y + area.height / 2}>{area.label ?? byId.get(area.zone)?.short_title}</text>
-        {/each}
-      </svg>
+      <WholeDeck {index} {zone} />
     {/if}
   </dialog>
 {/if}
@@ -279,46 +266,6 @@ deck" until the Flight deck page exists (batch 6). All from the pack, in the pan
   .deck-toggle[aria-expanded="true"] :global(.icon) {
     transform: rotate(180deg);
   }
-  .zone {
-    margin: 0;
-    color: var(--color-text-muted);
-    font-size: var(--font-size-secondary);
-  }
   /* The whole flight deck, on the panel palette. */
-  .deck {
-    display: block;
-    width: 100%;
-    max-height: 55vh;
-    border-radius: var(--radius-panel);
-    background: var(--panel-bg);
-  }
-  .area {
-    fill: var(--panel-fill);
-    stroke: var(--panel-stroke);
-  }
-  .area.on {
-    fill: var(--panel-changed);
-    stroke: var(--panel-changed);
-  }
-  .region {
-    fill: none;
-    stroke: var(--panel-changed);
-    stroke-width: 2.5;
-    stroke-dasharray: 6 4;
-  }
-  text {
-    font-family: var(--font-sans);
-    font-weight: var(--weight-bold);
-  }
   /* Map units, about one to a pixel here: 11 or more. */
-  .cap {
-    font-size: 11.5px;
-    fill: var(--panel-label);
-  }
-  .mark {
-    font-size: 11.5px;
-    fill: var(--color-on-accent);
-    text-anchor: middle;
-    dominant-baseline: central;
-  }
 </style>

@@ -2,10 +2,9 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-A panel drawing for one step. It draws the panel sections that hold the step's controls, in the
-pack's own panel layout, with their neighbors in the same rows for context (so two small sections
-side by side, such as the wiper selectors, share one drawing). The drawing is one piece: never
-split, cropped or rearranged (decision 0021, docs/design/rules.md §5). It is as wide as its card,
+A panel drawing for one step: the panel sections that hold the step's controls, and nothing else
+(owner, batch 6: never a neighbor, even one between them). PanelTiles draws each panel as its own
+tile; a tile among several is titled with its panel's name. It is as wide as its card,
 keeping its proportions, unless that would draw a label under 11 px; then it is drawn at the
 smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width view.
 -->
@@ -34,6 +33,8 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     ownCard = true,
     wider = $bindable(),
     scroller = $bindable(),
+    tile = false,
+    natural = $bindable(),
   }: {
     /** The panel the sections are on. */
     panel: Panel;
@@ -73,32 +74,15 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     wider?: boolean | undefined;
     /** Out: the element that scrolls the drawing, for the navigator. */
     scroller?: HTMLDivElement | null | undefined;
+    /** One tile among several: the whole section, titled with its name (PanelTiles board). */
+    tile?: boolean | undefined;
+    /** Out: the drawing's width in pixels at its scale, for laying tiles side by side. */
+    natural?: number | undefined;
   } = $props();
 
-  /** How far beside the step's sections a neighbor may sit and still be drawn. */
-  const NEAR = 120;
-
   let focused = $derived(panel.sections.filter((s) => focus.includes(s.id)));
-  /**
-   * The step's sections and, for context, the sections beside and between them in the same rows.
-   * A tall section stands alone.
-   */
-  let drawn = $derived.by((): Section[] => {
-    if (focused.length === 1 && (focused[0]?.height ?? 0) > 200) return focused;
-    const x0 = Math.min(...focused.map((s) => s.x)) - NEAR;
-    const x1 = Math.max(...focused.map((s) => s.x + s.width)) + NEAR;
-    const y0 = Math.min(...focused.map((s) => s.y));
-    const y1 = Math.max(...focused.map((s) => s.y + s.height));
-    const [left, right] = [x0 + NEAR, x1 - NEAR];
-    return panel.sections.filter((s) => {
-      if (focus.includes(s.id)) return true;
-      if (!(s.y < y1 && s.y + s.height > y0)) return false;
-      // Everything between the step's sections is part of the one piece (the MCP between the two
-      // EFIS panels); small neighbors beside them are drawn for context.
-      if (s.x >= left && s.x + s.width <= right) return true;
-      return s.x >= x0 && s.x + s.width <= x1 && s.height <= 200;
-    });
-  });
+  /** Only the step's sections (owner, batch 6). */
+  let drawn = $derived(focused);
 
   type Band = { y0: number; y1: number; x0: number; x1: number };
   const wholeOf = (s: Section): Band => ({ y0: 0, y1: s.height, x0: 0, x1: s.width });
@@ -109,7 +93,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
    */
   let band = $derived.by((): Band | null => {
     const only = drawn.length === 1 ? drawn[0] : undefined;
-    if (!around || large || !only) return null;
+    if (!around || large || !only || tile) return null;
     const words = ` ${named.toUpperCase().replace(/[^A-Z0-9/ ]+/g, " ")} `;
     const ys = only.items.flatMap((it, i) =>
       targets.some((t) => t.section === only.id && t.item === i) || (it.label && words.includes(` ${it.label.toUpperCase()} `))
@@ -152,7 +136,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
    */
   let view = $derived.by(() => {
     const frames = new Map<string, Band | undefined>();
-    const only = drawn.length === 1 ? drawn[0] : undefined;
+    const only = drawn.length === 1 && !tile ? drawn[0] : undefined;
     if (only) {
       const e = layoutFor(only, -1000).extent;
       const f = { x0: e.x0 - 8, x1: e.x1 + 8, y0: e.y0 - 8, y1: e.y1 + 8 };
@@ -187,13 +171,18 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
   let scale = $derived.by(() => {
     if (!room) return drawingScale(width, view.box.w, pageScale);
     const fit = roomScale(room.width, room.height, view.box, pageScale);
-    return { k: fit.k, overflow: fit.wider, wider: fit.wider };
+    // A tile among several keeps its drawing's own size, smaller only to fit (PanelTiles board).
+    const k = tile ? Math.min(fit.k, K * pageScale) : fit.k;
+    return { k, overflow: fit.wider, wider: fit.wider };
   });
   $effect(() => {
     if (room) wider = "wider" in scale ? scale.wider : false;
   });
   $effect(() => {
     scroller = wrap;
+  });
+  $effect(() => {
+    natural = Math.floor(view.box.w * scale.k);
   });
 
   /**
@@ -280,7 +269,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
       .filter(Boolean)
       .join("; "),
   );
-  let title = $derived(focused.map((s) => s.title).join(" and "));
+  let title = $derived(panelCaption(focused.map((s) => s.title)));
   /** The larger view's title: the pane card's caption ("Fuel panel"). */
   let caption = $derived(panelCaption(focused.map((s) => s.title)));
 </script>
@@ -295,7 +284,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     viewBox="{view.box.x} {view.box.y} {view.box.w} {view.box.h}"
     style:width="{Math.floor(view.box.w * scale.k)}px"
     role="img"
-    aria-label="{title} panel, schematic.{described ? ` This step: ${described}.` : ''}"
+    aria-label="{title}, schematic.{described ? ` This step: ${described}.` : ''}"
   >
     {#each drawn as s (s.id)}
       <PanelSection section={s} {targets} {guardClosed} band={bandOf(s)} frame={view.frames.get(s.id)} titled={view.titled} framed={large || !around || view.titled} k={K} hit={index ? (44 * pageScale) / scale.k : 0} onPick={index ? (section, item) => (picked = { section, item }) : undefined} selected={picked?.section === s.id ? picked.item : null} />

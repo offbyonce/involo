@@ -10,7 +10,7 @@ panel is scaled to fit a box, its card's width and at most `size.preview-max` ta
 gate review), and centered in it; it is never cropped or stretched.
 -->
 <script lang="ts">
-  import type { ItemTarget, Panel } from "@involo/bindings";
+  import type { ItemTarget, Panel, PanelSection as PanelSectionT } from "@involo/bindings";
   import { K } from "./panel-layout";
   import PanelSection from "./PanelSection.svelte";
 
@@ -23,6 +23,7 @@ gate review), and centered in it; it is never cropped or stretched.
     view,
     marker,
     ringed = null,
+    tiles,
     svg = $bindable(),
   }: {
     panel: Panel;
@@ -39,13 +40,50 @@ gate review), and centered in it; it is never cropped or stretched.
     marker?: { x0: number; y0: number; x1: number; y1: number } | undefined;
     /** A control tapped in the phone's controls list: it alone keeps the halo (R6PhoneCtl). */
     ringed?: { section: string; item: number } | null | undefined;
+    /** The step's panels as tiles (owner, batch 6): each section on its own, side by side when that
+     * draws them larger than stacked, 16 px apart, never the deck's gaps; `panel` and `focus` are
+     * then ignored. */
+    tiles?: PanelSectionT[] | undefined;
     /** Out: the svg element, for mapping pointer positions. */
     svg?: SVGSVGElement | null | undefined;
   } = $props();
 
-  let sections = $derived(panel.sections.filter((s) => focus.includes(s.id)));
+  let sections = $derived(tiles ?? panel.sections.filter((s) => focus.includes(s.id)));
+  let cardWidth = $state(0);
+  /** Where each tile goes, in panel units: side by side or stacked, whichever draws larger in the
+   * card (its width, and at most size.preview-max tall), a 16 px gap between them. */
+  let packed = $derived.by(() => {
+    if (!tiles || tiles.length < 2) return null;
+    const W = cardWidth || 320;
+    const H = 240;
+    const ws = tiles.map((t) => t.width + 4);
+    const hs = tiles.map((t) => t.height + 4);
+    const sum = (a: number[]) => a.reduce((n, x) => n + x, 0);
+    const gapPx = 16;
+    const n = tiles.length;
+    const kRow = Math.min((W - gapPx * (n - 1)) / sum(ws), H / Math.max(...hs));
+    const kCol = Math.min(W / Math.max(...ws), (H - gapPx * (n - 1)) / sum(hs));
+    const rowWay = kRow >= kCol;
+    const k = Math.max(kRow, kCol);
+    const gap = gapPx / k;
+    const at: { dx: number; dy: number }[] = [];
+    let cursor = 0;
+    const w = rowWay ? sum(ws) + gap * (n - 1) : Math.max(...ws);
+    const h = rowWay ? Math.max(...hs) : sum(hs) + gap * (n - 1);
+    tiles.forEach((t, i) => {
+      const tw = ws[i] ?? 0;
+      const th = hs[i] ?? 0;
+      // Each tile centered across the other way.
+      const x = rowWay ? cursor : (w - tw) / 2;
+      const y = rowWay ? (h - th) / 2 : cursor;
+      at.push({ dx: x + 2 - t.x, dy: y + 2 - t.y });
+      cursor += (rowWay ? tw : th) + gap;
+    });
+    return { at, box: { x: 0, y: 0, w, h } };
+  });
   let box = $derived.by(() => {
     if (view) return view;
+    if (packed) return packed.box;
     const x = Math.min(...sections.map((s) => s.x)) - 2;
     const y = Math.min(...sections.map((s) => s.y)) - 2;
     const x1 = Math.max(...sections.map((s) => s.x + s.width)) + 2;
@@ -55,9 +93,17 @@ gate review), and centered in it; it is never cropped or stretched.
   const whole = (s: { width: number; height: number }) => ({ x0: 0, y0: 0, x1: s.width, y1: s.height });
 </script>
 
-<svg class="preview" viewBox="{box.x} {box.y} {box.w} {box.h}" role="img" aria-label={label} bind:this={svg}>
-  {#each sections as s (s.id)}
-    <PanelSection section={s} {targets} {guardClosed} band={whole(s)} frame={whole(s)} titled={false} textless halo k={K} ringed={ringed ? (ringed.section === s.id ? ringed.item : -1) : null} />
+{#snippet one(s: PanelSectionT)}
+  <PanelSection section={s} {targets} {guardClosed} band={whole(s)} frame={whole(s)} titled={false} textless halo k={K} ringed={ringed ? (ringed.section === s.id ? ringed.item : -1) : null} />
+{/snippet}
+
+<svg class="preview" viewBox="{box.x} {box.y} {box.w} {box.h}" role="img" aria-label={label} bind:this={svg} bind:clientWidth={cardWidth}>
+  {#each sections as s, i (s.id)}
+    {#if packed}
+      <g transform="translate({packed.at[i]?.dx ?? 0} {packed.at[i]?.dy ?? 0})">{@render one(s)}</g>
+    {:else}
+      {@render one(s)}
+    {/if}
   {/each}
   {#if marker}
     <rect

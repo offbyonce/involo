@@ -14,8 +14,8 @@ the list on wide screens and inside the step on narrow ones.
   import { type PackIndex, splitArea } from "../pack-index";
   import Locator from "./Locator.svelte";
   import OverviewMap from "./OverviewMap.svelte";
-  import PanelSchematic from "./PanelSchematic.svelte";
-  import { panelCaption } from "./panel-name";
+  import PanelTiles from "./PanelTiles.svelte";
+  import { stepTiles, tilesTitle } from "./step-tiles";
 
   let {
     index,
@@ -56,19 +56,9 @@ the list on wide screens and inside the step on narrow ones.
     return [region.name, many ? (code ?? name) : (region.code ?? code)];
   });
   // One drawing per panel, starting with the control's own section; up to three, as 3.0 shows.
-  let cards = $derived.by(() => {
-    const ids = [...new Set([place?.section?.id, ...targets.map((t) => t.section)].filter((x): x is string => !!x))];
-    const byPanel = new Map<string, { panel: NonNullable<ReturnType<PackIndex["panelOf"]>>; focus: string[] }>();
-    for (const id of ids) {
-      const panel = index.panelOf(id);
-      if (!panel) continue;
-      const card = byPanel.get(panel.id) ?? { panel, focus: [] };
-      card.focus.push(id);
-      byPanel.set(panel.id, card);
-    }
-    return [...byPanel.values()].slice(0, 3);
-  });
-  const cardTitle = (focus: string[]) => panelCaption(focus.map((id) => index.section(id)?.title ?? id));
+  /** The step's panels as tiles (owner, batch 6). */
+  let tiles = $derived(stepTiles(index, step, targets));
+  let cardName = $derived(tilesTitle(tiles).title);
   let guardClosed = $derived(/\bGUARDS? CLOSED\b/i.test(step.expect));
   let setTo = $derived(
     targets
@@ -97,16 +87,14 @@ the list on wide screens and inside the step on narrow ones.
     </div>
     <OverviewMap {index} zone={place.zone} />
 
-    {#if cards.length}
+    {#if tiles.length}
       <h3 class="label">The controls</h3>
-      {#each cards as card (card.panel.id)}
-        <figure class="card">
-          <figcaption>{cardTitle(card.focus)}</figcaption>
-          {#if region?.top}<p class="edge">↑ {region.top}</p>{/if}
-          <div class="pad"><PanelSchematic panel={card.panel} focus={card.focus} {targets} {guardClosed} /></div>
-          {#if region?.bottom}<p class="edge">↓ {region.bottom}</p>{/if}
-        </figure>
-      {/each}
+      <figure class="card">
+        <figcaption>{cardName}</figcaption>
+        {#if region?.top}<p class="edge">↑ {region.top}</p>{/if}
+        <div class="pad"><PanelTiles {tiles} {targets} {guardClosed} /></div>
+        {#if region?.bottom}<p class="edge">↓ {region.bottom}</p>{/if}
+      </figure>
       <p class="tiny">
         {#if setTo.length}Blue: set by this step ({setTo.join("; ")}). Not the simulator's live state.{/if}
         {#if targets.some((t) => t.open)}Dashed: only if the step's condition applies.{/if}

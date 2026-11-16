@@ -343,7 +343,7 @@ folded to one line with its count until the phase's procedure is done.
       display: none;
     }
     /* The fold names the next list ("then …"), so the lists below it wait until it opens. */
-    section.card:has(> .after) ~ :global(.card) {
+    section.card:has(> .after) ~ :global(.card:not(.large)) {
       display: none;
     }
     .after {

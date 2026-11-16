@@ -80,6 +80,18 @@ Reset flight plan, and draw no procedure header. `Menu.dc.html` (with `MenuWhere
 opens "Where is Flight setup?" on desktop. `StagePicker.dc.html` and `Mobile.dc.html` correct the
 dark scrim to 0.55, and `Decision.dc.html` redraws DecPhone to the Mobile board's rules.
 
+**Batch 6 panels (owner, 2026-11-15).** `PanelTiles.dc.html` (dark and light) draws a step whose
+controls are on two panels, and the Whole flight deck map. A step draws only the panels that hold
+its controls or the lights its Check names, nothing between them; each is its own tile at its own
+scale, side by side when they fit at full size, otherwise stacked, 16 px apart, centered, never
+the deck's gaps. The side pane's preview card uses the same tiles at thumbnail size. A panel the
+pack has no drawing for is a tile with its name and the step's controls on it. The sheet's title
+names one panel, or a left and right pair as one ("L and R wiper panels"); otherwise the main
+control's panel, with "Also: …" in the sub-line; names follow the pack, in sentence case. The map
+has no line above it; area labels sit above their area, 8 px clear of the outline and 16 px under
+the area before; the dashed outline runs 6 px outside the area's panels; a marked box is labeled
+only when the label fits with 6 px either side.
+
 ## Read in this order
 
 1. `rules.md`: what the tokens mean and the rules every screen follows.

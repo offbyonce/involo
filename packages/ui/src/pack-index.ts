@@ -57,6 +57,8 @@ export type PackIndex = {
    * phase (a flow and its checklist) is listed once, at its first place.
    */
   usedIn(panel: string, section: string, item: number): { step: Step; phase: string }[];
+  /** Whether the pack draws a zone's panel: a section carries its id, or one of its controls. */
+  zoneDrawn(zone: string): boolean;
 };
 
 export type MapRegion = { region: OverviewRegion | null; areas: OverviewArea[] };
@@ -91,6 +93,14 @@ export function indexPack(pack: FlatPack): PackIndex {
     }
   }
 
+  // The zones whose panel the pack draws (a section with the zone's id, or a drawn control in it).
+  const drawnZones = new Set<string>(sections.keys());
+  for (const s of sections.values())
+    for (const it of s.items)
+      for (const c of it.controls ?? []) {
+        const z = controls.get(c)?.zone;
+        if (z) drawnZones.add(z);
+      }
   const glossary = new Map((pack.content.glossary?.terms ?? []).map((t) => [t.term, t.meaning]));
   const lightNotes = new Map((pack.content.lights?.lights ?? []).map((n) => [n.locator, n.meaning]));
 
@@ -164,6 +174,7 @@ export function indexPack(pack: FlatPack): PackIndex {
     startStates: pack.content.start_states?.states ?? [],
     section: (id) => sections.get(id),
     panelOf: (id) => panels.get(id),
+    zoneDrawn: (zone) => drawnZones.has(zone),
     how: (id) => pack.content.notes?.how?.find((n) => n.id === id)?.steps,
     explain: (id) => pack.content.notes?.explain?.find((n) => n.id === id),
     region(zone) {
