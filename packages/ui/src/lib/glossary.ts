@@ -96,7 +96,8 @@ function showsFor(show: ShowIf | null | undefined): Map<string, string[]> {
 /**
  * Rows that would read the same (title, phase and value) name what tells them apart (owner): their
  * lists when those differ; otherwise the condition each shows for, in the pack's own labels for the
- * option ("Ground power at the gate", "No ground power"); nothing when neither differs.
+ * option ("Ground power at the gate", "No ground power"); for a step repeated for each engine, the
+ * engine the step before it names ("Engine 1"); nothing otherwise.
  */
 export function rowTags(index: PackIndex, steps: FindStep[]): Record<string, string> {
   const groups = new Map<string, FindStep[]>();
@@ -121,9 +122,16 @@ export function rowTags(index: PackIndex, steps: FindStep[]): Record<string, str
     group.forEach((s, i) => {
       const values = option ? (shows[i]?.get(option.id) ?? []) : [];
       const label = values.map((v) => option?.choices?.find((c) => c.value === v)?.label ?? v).join(" or ");
-      // Nothing in the pack tells them apart (a step repeated for each engine): no tag.
       if (label) tags[s.id] = label;
     });
+    // A step repeated for each engine in one list: the engine, from the step before each (owner).
+    if (!option) {
+      const engines = group.map((s) => /\bengine (\d+)\b/i.exec(s.before ?? "")?.[1]);
+      if (engines.every(Boolean) && new Set(engines).size === engines.length)
+        group.forEach((s, i) => {
+          tags[s.id] = `Engine ${engines[i]}`;
+        });
+    }
   }
   return tags;
 }

@@ -8,7 +8,15 @@ import type { PackIndex } from "../pack-index";
 import { stepTitle } from "./sentence";
 
 /** A step, with the title of the first list that holds it (to tell apart rows that read the same). */
-export type FindStep = { id: string; title: string; value: string; phase: string; list?: string | undefined };
+export type FindStep = {
+  id: string;
+  title: string;
+  value: string;
+  phase: string;
+  list?: string | undefined;
+  /** The text of the step before it in that list (the Glossary tells repeated steps apart by it). */
+  before?: string | undefined;
+};
 export type FindControl = {
   id: string;
   name: string;
@@ -32,7 +40,8 @@ export function buildFind(pack: FlatPack, index: PackIndex): FindIndex {
   const seen = new Set<string>();
   for (const phase of pack.content.phases?.phases ?? []) {
     for (const id of phase.lists) {
-      for (const step of lists.get(id)?.steps ?? []) {
+      const all = lists.get(id)?.steps ?? [];
+      for (const [n, step] of all.entries()) {
         if (seen.has(step.id)) continue;
         seen.add(step.id);
         steps.push({
@@ -41,6 +50,7 @@ export function buildFind(pack: FlatPack, index: PackIndex): FindIndex {
           value: step.expect,
           phase: phase.id,
           list: lists.get(id)?.title,
+          before: all[n - 1]?.text,
         });
       }
     }

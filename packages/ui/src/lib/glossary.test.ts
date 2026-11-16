@@ -64,11 +64,11 @@ describe("the Glossary", () => {
     const pumps = apu?.steps.filter((s) => s.title === "One left fuel pump") ?? [];
     expect(pumps.length).toBe(2);
     expect(pumps.map((s) => apu?.tags[s.id])).toEqual(["Ground power at the gate", "No ground power"]);
-    // Steps repeated for each engine in one list differ in neither: no tag.
+    // A step repeated for each engine in one list: the engine, from the step before each.
     const egt = all.find((t) => t.term === "EGT");
-    for (const s of egt?.steps.filter((x) => x.title === "Fuel flow and EGT" && x.phase === "engine-start") ??
-      [])
-      expect(egt?.tags[s.id]).toBeUndefined();
+    const repeated =
+      egt?.steps.filter((x) => x.title === "Fuel flow and EGT" && x.phase === "engine-start") ?? [];
+    expect(repeated.map((s) => egt?.tags[s.id])).toEqual(["Engine 1", "Engine 2"]);
     // Only rows that would read the same carry one.
     const key = (s: { title: string; phase: string; value: string }) => `${s.title}|${s.phase}|${s.value}`;
     for (const s of apu?.steps ?? [])
