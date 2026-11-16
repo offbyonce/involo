@@ -72,6 +72,32 @@ export function drawingScale(room: number, boxWidth: number, page = 1): { k: num
 export const tileScale = (k: number, page = 1): number => Math.min(k, K * page);
 
 /**
+ * The one scale for panels shown together (owner: the Flight deck's selected panel, a step's
+ * sheet, a pane card): the largest at which every one of them fits, so their labels are the same
+ * size. Each drawing's own fit is as before: in a `room` (the sheet, the slide-out) both ways at
+ * the 11 px label minimum or more; in a card `width` wide, across at that minimum or more; as an
+ * `overview`, fitted to the width, its labels smaller where they must be. Tiles never grow past K.
+ * Unmeasured (no room, width 0), the layout scale.
+ */
+export function sharedScale(
+  boxes: readonly { w: number; h: number }[],
+  at: {
+    width: number;
+    room?: { width: number; height: number } | undefined;
+    overview?: boolean;
+    page?: number;
+  },
+): number {
+  const page = at.page ?? 1;
+  const fit = (b: { w: number; h: number }) => {
+    if (at.overview) return at.width > 0 ? Math.min(at.width / b.w, K * page) : K * page;
+    if (at.room) return tileScale(roomScale(at.room.width, at.room.height, b, page).k, page);
+    return tileScale(drawingScale(at.width, b.w, page).k, page);
+  };
+  return boxes.length ? Math.min(...boxes.map(fit)) : K * page;
+}
+
+/**
  * Where a sheet opens scrolled to (owner, Glossary answers): the step's own controls always in view,
  * centered when nothing else matters; the first wide panel's navigator strip in view as well when
  * both fit, and the controls winning when they do not. Offsets in the sheet's scrolled pixels.
@@ -291,6 +317,65 @@ export function halfWidth(item: PanelItem): number {
       return (item.width ?? 60) / 2;
   }
 }
+
+/** A control's own outline, in drawing units around its center: a rounded box or a circle. */
+export type Outline =
+  | { kind: "rect"; x: number; y: number; w: number; h: number; rx: number }
+  | { kind: "circle"; r: number };
+
+/**
+ * The outline a control draws (PanelSection): its body, its guard when it has one (raised above
+ * the hinge when open), and for a handle the stem and grip at its position (`at`, -1 at the
+ * center). The selection ring and the keyboard focus ring follow it (`grow`), whatever the kind.
+ */
+export function outline(item: PanelItem, state: { guardOpen: boolean; at: number }): Outline {
+  const box = (w: number, h: number, rx: number, y = -h / 2): Outline => ({
+    kind: "rect",
+    x: -w / 2,
+    y,
+    w,
+    h,
+    rx,
+  });
+  switch (item.kind) {
+    case "toggle_switch": {
+      if (!item.guarded) return box(TOGGLE.w, TOGGLE.h, TOGGLE.w / 2);
+      const gw = TOGGLE.w / 2 + TOGGLE.guard;
+      const gh = TOGGLE.h / 2 + TOGGLE.guard;
+      if (!state.guardOpen) return box(2 * gw, 2 * gh, 2);
+      // The raised cover reaches out 1.5 either side and COVER_RAISE above the hinge.
+      const top = -gh - COVER_RAISE;
+      return box(2 * gw + 3, TOGGLE.h / 2 - top, 2, top);
+    }
+    case "selector":
+      return { kind: "circle", r: DIAL };
+    case "gauge":
+      return { kind: "circle", r: 14 };
+    case "push_button":
+      return item.guarded ? box(BUTTON.w + 4, BUTTON.h + 4, 4) : box(BUTTON.w, BUTTON.h, 3);
+    case "light":
+      return box(LAMP.w, LAMP.h, 2.6);
+    case "lever":
+      return box(16, 32, 3);
+    case "handle": {
+      const gy = state.at >= 0 ? leverY(state.at, positionsOf(item).length) : 0;
+      // The stem starts 12 above the center; the grip reaches 5 either side of its position.
+      const top = Math.min(-12, gy - 5);
+      return box(26, gy + 5 - top, 4, top);
+    }
+    default:
+      return box(item.width ?? 60, item.height ?? 30, 3);
+  }
+}
+
+/** An outline grown by `d` on every side, its corners rounded to match. */
+export const grow = (o: Outline, d: number): Outline =>
+  o.kind === "circle"
+    ? { kind: "circle", r: o.r + d }
+    : { kind: "rect", x: o.x - d, y: o.y - d, w: o.w + 2 * d, h: o.h + 2 * d, rx: o.rx + d };
+
+/** The selection ring's padding around a control's outline, in drawing units. */
+export const RING_PAD = 3;
 
 /**
  * Where a toggle's knob sits, first position at the top: on the centers of the track's round

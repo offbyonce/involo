@@ -21,6 +21,7 @@ import {
   openingTop,
   PX,
   roomScale,
+  sharedScale,
   TOGGLE,
   tileScale,
 } from "./panel-layout";
@@ -359,6 +360,29 @@ describe("tileScale (PanelTiles board)", () => {
     expect(tileScale(drawingScale(800, 100, 1.25).k, 1.25)).toBe(K * 1.25);
     // Smaller only to fit.
     expect(tileScale(K / 2)).toBe(K / 2);
+  });
+});
+
+describe("sharedScale (owner: panels shown together share one scale)", () => {
+  const narrow = { w: 204, h: 124 };
+  const wide = { w: 564, h: 232 };
+  it("fits the fitted overview to its width at the smallest panel's fit, below 11 px if it must", () => {
+    // The Flight deck's Test switches: the wide section alone would draw at 300 / 564, the narrow
+    // one at K; together, both at 300 / 564.
+    expect(sharedScale([narrow, wide], { width: 300, overview: true })).toBeCloseTo(300 / 564, 6);
+    expect(sharedScale([narrow, wide], { width: 300, overview: true })).toBeLessThan(MIN_SCALE);
+    expect(sharedScale([narrow], { width: 400, overview: true })).toBe(K);
+    expect(sharedScale([narrow, wide], { width: 2000, overview: true, page: 1.25 })).toBe(K * 1.25);
+  });
+
+  it("keeps the 11 px minimum in a card or a room, and never grows a tile past K", () => {
+    // 11 px labels are the layout size (MIN_SCALE is K), so tiles shown together there already
+    // share it; the shared rule keeps them together if either ever changes.
+    expect(MIN_SCALE).toBe(K);
+    expect(sharedScale([narrow, wide], { width: 300 })).toBe(MIN_SCALE);
+    expect(sharedScale([narrow, wide], { width: 3000 })).toBe(K);
+    expect(sharedScale([narrow, wide], { width: 0, room: { width: 300, height: 4000 } })).toBe(MIN_SCALE);
+    expect(sharedScale([], { width: 300 })).toBe(K);
   });
 });
 

@@ -2,15 +2,17 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-A step's panels as tiles (owner, batch 6; PanelTiles board). Each panel is its own tile at its own
-scale: side by side when they fit at full size, otherwise stacked, 16 px apart, centered; never the
-deck's gaps between them (the map shows where things are). Several tiles are titled with their
+A step's panels as tiles (owner, batch 6; PanelTiles board). Every tile shares one scale, the
+largest at which each of them fits, so their labels are the same size (owner, replacing "each tile
+at its own scale"): side by side when they fit that way, otherwise stacked, 16 px apart, centered;
+never the deck's gaps between them (the map shows where things are). Several tiles are titled with their
 panel's name. A panel the pack has no drawing for is a tile too: its name and the step's controls
 on it, as a list. One drawn panel alone is drawn as before.
 -->
 <script lang="ts">
   import type { ItemTarget } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
+  import { sharedScale } from "./panel-layout";
   import { panelName } from "./panel-name";
   import PanelNavigator from "./PanelNavigator.svelte";
   import PanelSchematic from "./PanelSchematic.svelte";
@@ -32,7 +34,7 @@ on it, as a list. One drawn panel alone is drawn as before.
     targets: ItemTarget[];
     guardClosed?: boolean;
     index?: PackIndex | undefined;
-    /** The room the slide-out gives the drawing (each tile fits it on its own). */
+    /** The room the slide-out gives the drawing (every tile fits it, at the shared scale). */
     room?: { width: number; height: number } | undefined;
     large?: boolean;
     ownCard?: boolean;
@@ -53,16 +55,21 @@ on it, as a list. One drawn panel alone is drawn as before.
   let GAP = $derived(16 * page);
   let single = $derived(tiles.length === 1 && tiles[0]?.kind === "drawn" ? tiles[0] : null);
   let naturals = $state<Record<string, number>>({});
+  /** Each drawn tile's box in panel units, and the one scale they share. */
+  let extents = $state<Record<string, { w: number; h: number }>>({});
+  let drawnIds = $derived(tiles.flatMap((t) => (t.kind === "drawn" ? [t.id] : [])));
+  let boxes = $derived(drawnIds.flatMap((id) => (extents[id] ? [extents[id]] : [])));
   /** Each tile wider than its room, and the element that scrolls it: a navigator strip above it
    * (owner, batch 6: every wide panel, on single and multi-panel sheets alike). */
   let wides = $state<Record<string, boolean>>({});
   let scrollers = $state<Record<string, HTMLDivElement | null>>({});
   let width = $state(0);
-  /** Side by side when every tile fits at its own full size; stacked otherwise. */
+  let shared = $derived(boxes.length === drawnIds.length ? sharedScale(boxes, { width, room, page }) : undefined);
+  /** Side by side when every tile fits that way at the shared scale; stacked otherwise. */
   let row = $derived.by(() => {
     const room_ = room?.width ?? width;
-    if (!room_) return false;
-    const sum = tiles.reduce((n, t) => n + (t.kind === "drawn" ? (naturals[t.id] ?? room_) : 0), 0);
+    if (!room_ || shared == null) return false;
+    const sum = boxes.reduce((n, b) => n + Math.floor(b.w * shared), 0);
     return tiles.every((t) => t.kind === "drawn") && sum + GAP * (tiles.length - 1) <= room_;
   });
   $effect(() => {
@@ -89,6 +96,8 @@ on it, as a list. One drawn panel alone is drawn as before.
             {ownCard}
             {room}
             tile
+            {shared}
+            bind:extent={() => extents[t.id], (v) => v && (extents[t.id] = v)}
             bind:picked
             bind:natural={() => naturals[t.id], (v) => (naturals[t.id] = v ?? 0)}
             bind:wider={() => wides[t.id], (v) => (wides[t.id] = v ?? false)}

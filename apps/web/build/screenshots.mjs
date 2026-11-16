@@ -214,6 +214,15 @@ const tap = (selector) =>
 /** Opens the checklists still folded until their procedure is done. */
 const unfold = `[...document.querySelectorAll("button.folded")].forEach((b) => b.click()); true`;
 /** Presses a key on the page, as the pilot would. */
+/** Picks a panel control by its label, as a pointer tap (an SVG element has no click()). */
+const pick = (label, within = ".deck-panel") =>
+  `document.querySelector(${JSON.stringify(`${within} .hit[aria-label="${label}: what it is"]`)}).dispatchEvent(new MouseEvent("click", { bubbles: true })); true`;
+/** Picks a panel control from the keyboard (focused, then Enter), so its focus ring shows. */
+const pickByKey = (label) => [
+  { keys: ["\uE008"] },
+  `document.querySelector(${JSON.stringify(`.deck-panel .hit[aria-label="${label}: what it is"]`)}).focus(); true`,
+  { keys: ["\uE007"] },
+];
 const press = (key) => `window.dispatchEvent(new KeyboardEvent("keydown", { key: ${JSON.stringify(key)}, bubbles: true })); true`;
 /** The Flow view button in the top bar. */
 const toFlow = `[...document.querySelectorAll("header.top .seg button")].find((b) => b.textContent.trim() === "Flow").click(); true`;
@@ -556,6 +565,8 @@ const SHOTS = [
   ...stepShots(),
   // The PanelTiles board's step: the wiper selectors, their sheet and the deck map open.
   { name: "board-tiles", only: ["desktop"], app: { hash: "#/phase/cold-dark", before: [openStep("phase", "cold-dark", "ifly-737-max8.cold-dark.wiper-selectors"), press("p")] } },
+  // The same sheet with the L WIPER selector picked: its one round selection ring (owner's fix).
+  { name: "tiles-picked", only: ["desktop"], app: { hash: "#/phase/cold-dark", before: [openStep("phase", "cold-dark", "ifly-737-max8.cold-dark.wiper-selectors"), press("p"), pick("L WIPER", ".slideout")] } },
   // Each phone-sized panel sheet once (upright and sideways), for a row of tiles and a stack.
   ...["ifly-737-max8.cold-dark.wiper-selectors", "ifly-737-max8.landing.speedbrake-lever"].flatMap((id, n) => [
     { name: `tiles-phone-${n}`, only: ["phone", "phone-sideways"], app: { hash: "#/", before: [openStep("phase", id.split(".")[1], id), press("p")] } },
@@ -578,6 +589,10 @@ const SHOTS = [
   // The Flight deck (owner; Deck, PhoneDeck): the forward overhead with the fuel panel selected, as
   // the boards show; at 1280 px, the area list and the area, the panel in its slide-out.
   { name: "board-deck", only: ["desktop", "phone", "laptop"], app: { hash: "#/deck/forward-overhead/fuel" } },
+  // The owner's panel-highlight bug: the aft overhead's test switches with MACH TEST 1 picked, by
+  // pointer and from the keyboard (its focus ring shown).
+  { name: "deck-picked", only: ["desktop"], app: { hash: "#/deck/aft-overhead/atest", before: [pick("MACH TEST 1")] } },
+  { name: "deck-picked-key", only: ["desktop"], app: { hash: "#/deck/aft-overhead/atest", before: pickByKey("MACH TEST 1") } },
   // The selected panel's "Full size ›": the panel sheet at full size, with its navigator when wider.
   { name: "board-deck-full", only: ["desktop", "phone"], app: { hash: "#/deck/forward-overhead/fuel", before: [click(".deck-panel .full")] } },
   // Practice (owner; PracticeHome, PracticeQuestion, PracticeOrder, PracticeResults), each in its

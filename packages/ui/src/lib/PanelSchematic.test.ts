@@ -6,6 +6,7 @@ import { cleanup, render, screen } from "@testing-library/svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import PanelSchematic from "./PanelSchematic.svelte";
 import PanelTiles from "./PanelTiles.svelte";
+import { MIN_SCALE } from "./panel-layout";
 
 const toggle = (label: string, x: number, controls: string[], guarded = false) => ({
   kind: "toggle_switch",
@@ -730,6 +731,47 @@ describe("PanelSchematic", () => {
     });
     expect(container.querySelectorAll("svg.schematic")).toHaveLength(2);
     expect(container.textContent).not.toContain("VNAV");
+  });
+
+  it("draws tiles shown together at one scale, so their labels are the same size (owner)", () => {
+    // EFIS L and the MCP in a 300 px sheet: each at its own scale, EFIS L's labels were twice the
+    // MCP's.
+    const item = (label: string) => ({
+      kind: "push_button",
+      label,
+      x: 40,
+      y: 40,
+      controls: ["c"],
+      description: "",
+    });
+    const glare = {
+      id: "gl",
+      title: "Glareshield",
+      width: 1000,
+      height: 260,
+      sections: [
+        { id: "efisl", title: "EFIS L", x: 0, y: 0, width: 200, height: 120, items: [item("TERR")] },
+        { id: "mcp", title: "MCP", x: 220, y: 0, width: 560, height: 228, items: [item("VNAV")] },
+      ],
+    } as unknown as Panel;
+    const tile = (n: number) => {
+      const section = glare.sections[n] as (typeof glare.sections)[number];
+      return { kind: "drawn" as const, id: section.id, panel: glare, section, title: section.title };
+    };
+    const { container } = render(PanelTiles, {
+      tiles: [tile(0), tile(1)],
+      targets: [],
+      large: true,
+      room: { width: 300, height: 4000 },
+    });
+    const scales = [...container.querySelectorAll("svg.schematic")].map((svg) => {
+      const w = Number(svg.getAttribute("viewBox")?.split(" ")[2]);
+      return Number.parseFloat((svg as SVGElement).style.width) / w;
+    });
+    expect(scales).toHaveLength(2);
+    // The MCP's floor: 11 px labels (MIN_SCALE); EFIS L takes it too, never its own larger scale.
+    expect(scales[0]).toBeCloseTo(MIN_SCALE, 2);
+    expect(scales[1]).toBeCloseTo(MIN_SCALE, 2);
   });
 
   it("draws a decided control resolved: at its position, as changed", () => {
