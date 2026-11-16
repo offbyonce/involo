@@ -39,7 +39,8 @@ export function duration(ms: number): string {
  * Each stage's time under its bar, "38 min" (Log boards: minutes only), rounded so the stages add
  * up to the flight's rounded total: every stage gets its whole minutes, then the stages with the
  * largest leftover seconds get one more each, earlier stages first on a tie (the largest remainder
- * method; app-core's `stage_minutes` does the same for the CSV).
+ * method; app-core's `stage_minutes` does the same for the CSV, and both are tested against
+ * crates/app-core/tests/fixtures/stage-minutes.json).
  */
 export function stageTimes(stages: readonly StageTime[]): string[] {
   const out = stages.map((s) => Math.floor(s.ms / 60_000));

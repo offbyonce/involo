@@ -11,6 +11,7 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
   import type { Zone } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import { zoneControls, zoneLights, zoneSections, zoneSteps } from "./deck";
+  import { sharedScale } from "./panel-layout";
   import PanelNavigator from "./PanelNavigator.svelte";
   import PanelSchematic from "./PanelSchematic.svelte";
   import PanelSheet from "./PanelSheet.svelte";
@@ -69,6 +70,22 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
   let room = $derived(sheetWidth ? { width: sheetWidth, height: sheetWidth * 8 } : undefined);
   let wider = $state(false);
   let scroller = $state<HTMLDivElement | null>(null);
+  /** The overview's tiles share one scale, the largest at which each fits the column (owner), and
+   * one picked control, so only one is ever ringed. */
+  let figure = $state<DOMRectReadOnly | undefined>();
+  let page = $state(1);
+  $effect(() => {
+    const read = () => (page = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) / 16 || 1);
+    read();
+    window.addEventListener("resize", read);
+    return () => window.removeEventListener("resize", read);
+  });
+  let extents = $state<Record<string, { w: number; h: number }>>({});
+  let boxes = $derived(tiles.flatMap((t) => (extents[t.id] ? [extents[t.id] as { w: number; h: number }] : [])));
+  let shared = $derived(
+    tiles.length > 1 && boxes.length === tiles.length ? sharedScale(boxes, { width: figure?.width ?? 0, overview: true, page }) : undefined,
+  );
+  let picked = $state<{ section: string; item: number } | null>(null);
 </script>
 
 <div class="deck-panel" class:compact>
@@ -94,10 +111,21 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
       </figure>
     {:else}
       <!-- An overview fitted to the column, never scrolling (owner); Full size opens the panel sheet. -->
-      <figure class="drawing">
+      <figure class="drawing" bind:contentRect={figure}>
         {#each tiles as t (t.id)}
           {#if t.kind === "drawn"}
-            <PanelSchematic panel={t.panel} focus={[t.id]} targets={[]} {index} overview tile={tiles.length > 1} ownButton={false} />
+            <PanelSchematic
+              panel={t.panel}
+              focus={[t.id]}
+              targets={[]}
+              {index}
+              overview
+              tile={tiles.length > 1}
+              ownButton={false}
+              {shared}
+              bind:picked
+              bind:extent={() => extents[t.id], (v) => v && (extents[t.id] = v)}
+            />
           {/if}
         {/each}
         <figcaption>

@@ -21,7 +21,7 @@ What the step asks for, never the simulator's state (decision 0006).
 <script lang="ts">
   import type { ItemTarget, PanelItem, PanelSection } from "@involo/bindings";
   import { em } from "./text-width";
-  import { angleOf, BUTTON, COVER_RAISE, DIAL, half, halfWidth, withinAcross, knobY, LAMP, TOGGLE, labelled, lampText, layoutSection, leverY, PX, positionsOf, slotY } from "./panel-layout";
+  import { angleOf, BUTTON, COVER_RAISE, DIAL, grow, half, halfWidth, type Outline, outline, RING_PAD, withinAcross, knobY, LAMP, TOGGLE, labelled, lampText, layoutSection, leverY, PX, positionsOf, slotY } from "./panel-layout";
 
   let {
     section,
@@ -74,6 +74,10 @@ What the step asks for, never the simulator's state (decision 0006).
     ringed?: number | null | undefined;
   } = $props();
 
+  /** The selection ring's width, in drawing units, and the focus ring's, in screen pixels
+   * (size.focus-ring). */
+  const SELECTION_STROKE = 2;
+  const FOCUS_PX = 1.5;
   /** Room above a cut-down section for its title, so it never overlaps the top row. */
   const TITLE = 18;
   const fs = (px: number) => `${(px / k).toFixed(2)}px`;
@@ -129,6 +133,14 @@ What the step asks for, never the simulator's state (decision 0006).
   let right = $derived(frame?.x1 ?? band.x1);
 </script>
 
+{#snippet ring(o: Outline, cls: string)}
+  {#if o.kind === "circle"}
+    <circle class={cls} r={o.r} />
+  {:else}
+    <rect class={cls} x={o.x} y={o.y} width={o.w} height={o.h} rx={o.rx} />
+  {/if}
+{/snippet}
+
 <g class:textless transform="translate({section.x} {section.y})">
   <rect class="frame" class:bare={!framed} class:tile={tileRx != null} x={left} y={top} width={right - left} height={frameBottom - top} rx={tileRx ?? 3} />
   {#if titled}<text class="title" x={left + 8} y={top + 13} style:font-size={fs(PX.title * layout.scale)}>{section.title.toUpperCase()}</text>{/if}
@@ -141,6 +153,8 @@ What the step asks for, never the simulator's state (decision 0006).
          (its caption says to see the step): drawn at rest, it read as set to that position. -->
     {@const open = on && (byItem.get(i)?.open ?? false)}
     {@const r = (!on || (t == null && !open)) && item.rest ? positions.indexOf(item.rest) : -1}
+    <!-- The control's own outline, which the selection and focus rings follow. -->
+    {@const own = outline(item, { guardOpen: item.kind === "toggle_switch" && !!item.guarded && !guardShut(on), at: on && t != null ? t : r })}
     <g class="item {item.kind}" class:on class:resolved={on && (byItem.get(i)?.resolved ?? false)} class:conditional={open} transform="translate({item.x} {item.y})">
       {#if ringed != null ? ringed === i : halo && on}
         {@const hw = item.kind === "light" ? LAMP.w / 2 : halfWidth(item)}
@@ -261,21 +275,8 @@ What the step asks for, never the simulator's state (decision 0006).
         {/if}
       {/if}
       {#if selected === i}
-        {@const hw = item.kind === "light" ? LAMP.w / 2 : halfWidth(item)}
-        {@const hh = item.kind === "light" ? LAMP.h / 2 : half(item)}
-        {@const name = layout.items.get(i)?.name}
-        {@const low = name ? name.y + name.lines.length * ((name.px * 1.15) / k) : hh}
-        <!-- Around the control, its position labels and its name, as the board rings CTR L. -->
-        {@const labels = layout.items.get(i)?.positions ?? []}
-        {@const px = (PX.pos * layout.scale) / k}
-        {@const reach = (l: { x: number; anchor: string; n: number }) => {
-          const w = em(positionsOf(item)[l.n] ?? "") * px;
-          return l.anchor === "start" ? [l.x, l.x + w] : l.anchor === "end" ? [l.x - w, l.x] : [l.x - w / 2, l.x + w / 2];
-        }}
-        {@const nameW = name ? Math.max(...name.lines.map((line) => em(line))) * (name.px / k) : 0}
-        {@const x0 = Math.min(-hw, -nameW / 2, ...labels.map((l) => reach(l)[0] ?? 0)) - 4}
-        {@const x1 = Math.max(hw, nameW / 2, ...labels.map((l) => reach(l)[1] ?? 0)) + 4}
-        <rect class="selection" x={x0} y={-hh - 4} width={x1 - x0} height={low + hh + 5} rx="4" />
+        <!-- The one selection ring, following the control's own outline (owner, after round 6). -->
+        {@render ring(grow(own, RING_PAD), "selection")}
       {/if}
       {#if hit > 0 && onPick}
         {@const hw = Math.max(halfWidth(item), hit / 2)}
@@ -294,6 +295,9 @@ What the step asks for, never the simulator's state (decision 0006).
           onclick={() => onPick(section.id, i)}
           onkeydown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onPick(section.id, i))}
         />
+        <!-- The keyboard focus ring: the selection ring's shape, 2 px outside it (shown by CSS while
+             the tap target has keyboard focus). The tap target itself draws nothing. -->
+        {@render ring(grow(own, RING_PAD + (SELECTION_STROKE / 2) + (2 + FOCUS_PX / 2) / k), "focusring")}
       {/if}
     </g>
   {/each}
@@ -307,6 +311,7 @@ What the step asks for, never the simulator's state (decision 0006).
   /* The tapped control's selection ring (round 6, R6Control): solid. */
   .selection {
     fill: none;
+    pointer-events: none;
     stroke: var(--panel-changed);
     stroke-width: 2;
   }
@@ -525,9 +530,19 @@ What the step asks for, never the simulator's state (decision 0006).
   }
   .hit:focus-visible {
     outline: none;
+  }
+  /* The keyboard focus ring follows the selection ring's shape, 2 px outside it. */
+  .focusring {
+    display: none;
+    fill: none;
     stroke: var(--panel-changed);
-    stroke-width: 1.5;
+    stroke-width: var(--size-focus-ring);
     stroke-dasharray: 2 2;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+  }
+  .hit:focus-visible + .focusring {
+    display: inline;
   }
   .lamp-on {
     fill: var(--panel-text);

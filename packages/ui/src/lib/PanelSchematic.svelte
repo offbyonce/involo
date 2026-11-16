@@ -37,6 +37,8 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     tile = false,
     natural = $bindable(),
     overview = false,
+    extent = $bindable(),
+    shared,
   }: {
     /** The panel the sections are on. */
     panel: Panel;
@@ -83,6 +85,10 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     tile?: boolean | undefined;
     /** Out: the drawing's width in pixels at its scale, for laying tiles side by side. */
     natural?: number | undefined;
+    /** Out: the drawing's box in panel units, for the scale panels shown together share. */
+    extent?: { w: number; h: number } | undefined;
+    /** The scale every panel shown with it shares (sharedScale), in place of its own. */
+    shared?: number | undefined;
   } = $props();
 
   let focused = $derived(panel.sections.filter((s) => focus.includes(s.id)));
@@ -175,7 +181,16 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
   const TILE_RADIUS = 8;
   let wrap = $state<HTMLDivElement | null>(null);
   let height = $state(0);
+  $effect(() => {
+    extent = { w: view.box.w, h: view.box.h };
+  });
   let scale = $derived.by(() => {
+    if (shared != null) {
+      // Panels shown together share one scale (owner); wider than its room, it scrolls as before.
+      const roomWidth = room?.width ?? width;
+      const over = !overview && roomWidth > 0 && view.box.w * shared > roomWidth + 1;
+      return room ? { k: shared, overflow: over, wider: over } : { k: shared, overflow: over };
+    }
     if (overview) return { k: width > 0 ? Math.min(width / view.box.w, K * pageScale) : K * pageScale, overflow: false };
     if (!room) {
       const fit = drawingScale(width, view.box.w, pageScale);
@@ -250,7 +265,8 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
   /** The open control card: the item, its light meaning, and what its control does. */
   let card = $derived.by(() => {
     if (!picked || !index) return null;
-    const item = panel.sections.find((s) => s.id === picked?.section)?.items[picked.item];
+    // Only the drawing that holds it shows its card: tiles of one panel share `picked`.
+    const item = drawn.find((s) => s.id === picked?.section)?.items[picked.item];
     if (!item) return null;
     const meaning = item.kind === "light" ? index.lightMeaning(panel.id, picked.section, picked.item) : undefined;
     const does = (item.controls ?? []).map((c) => index?.control(c)?.function).find(Boolean);
