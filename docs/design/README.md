@@ -126,6 +126,17 @@ seen is stored (Settings.tourSeen; settings saved before format 6 count as seen)
 color.toggle-off (owner: the board's own grays were an error). While the tour is open no key or click
 reaches the page, so it never ticks, skips or changes the flight.
 
+**How procedures work (owner, 2026-11-16).** Built from `HowItWorks.dc.html` (in `round6/boards`):
+`HowDesk` (desktop and tablet landscape) and `HowPhone` (phone and tablet portrait), each in dark and
+light. Every word lives in `packages/ui/src/lib/how-content.ts`, a first draft the owner adjusts
+there; the counts (stages, and the lists in each Emergency tab) come from the pack. 900 px and up: the
+parts list on the left follows the reading column, and a part picked there scrolls to it and goes in
+the address (`#/how/2`). Below: one part per screen, "All seven parts" at the top, Back and Next
+naming their parts. Each part ends in an "In Involo" box linking to the real place; "the current
+phase" is the one Take the tour opens. Part 2's figure is drawn in panel colors as the Flight deck
+map draws its panels and area labels (owner: the board's frame color and label tracking were an
+error), and every part uses part 2's 16 px spacing (owner). In the menu it follows Practice under Learn.
+
 **Practice (owner, 2026-11-16).** Built from `Practice.dc.html` (in `round6/boards`):
 `PracticeHome` and `PracticeHomePhone` (the ready-made tests, Build a test, "Earlier this visit"),
 `PracticeQuestion` and `PracticeQuestionPhone` (a choice answered wrong, with feedback),

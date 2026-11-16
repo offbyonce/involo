@@ -33,13 +33,23 @@ describe("Drawer", () => {
     expect(container.querySelector(".who small")?.textContent).toBe("Test Jet · saved 10:14 · 41/366");
   });
 
-  it("hides the items whose page does not exist yet; Practice, the Flight deck and the Glossary have theirs", () => {
-    render(Drawer, base);
-    for (const name of ["How procedures work", "References", "Flight log", "Take the tour"]) {
+  it("hides the items whose page does not exist yet; Practice, How procedures work, the Flight deck and the Glossary have theirs", () => {
+    const { container } = render(Drawer, base);
+    for (const name of ["References", "Flight log", "Take the tour"]) {
       expect(screen.queryByRole("link", { name })).toBeNull();
     }
     expect(screen.getByText("Learn")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Practice" }).getAttribute("href")).toBe("#/practice");
+    // How procedures work: after Practice under Learn, as the Menu boards place it.
+    const learn = [...container.querySelectorAll(".group")].find(
+      (g) => g.querySelector(".label")?.textContent === "Learn",
+    );
+    expect(
+      [...(learn?.querySelectorAll("a") ?? [])].map((a) => [a.textContent, a.getAttribute("href")]),
+    ).toEqual([
+      ["Practice", "#/practice"],
+      ["How procedures work", "#/how"],
+    ]);
     expect(screen.getByText("Reference")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Glossary" }).getAttribute("href")).toBe("#/glossary");
     expect(screen.getByRole("link", { name: /^Flight deck/ }).getAttribute("href")).toBe("#/deck");

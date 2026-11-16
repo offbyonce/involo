@@ -30,6 +30,7 @@ const DRAWINGS = new Set([
   "lib/OverviewMap.svelte",
   "lib/ViewDrawing.svelte",
   "lib/DeckMap.svelte",
+  "lib/FlowFigure.svelte",
 ]);
 
 /** The generated token file. Font sizes in map units inside a drawing ("11.5px" in Locator) are

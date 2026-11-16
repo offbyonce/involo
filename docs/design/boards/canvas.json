@@ -1729,6 +1729,46 @@
       "h": 900,
       "title": "Shared source: Tour (tweaks: layout, state, theme)",
       "page": "b8"
+    },
+    "HowDesk.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "How procedures work: desktop and tablet (dark)",
+      "page": "b9"
+    },
+    "HowDeskLight.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "How procedures work: desktop and tablet (light)",
+      "page": "b9"
+    },
+    "HowPhone.dc.html": {
+      "x": 3120,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "How procedures work: phone (dark)",
+      "page": "b9"
+    },
+    "HowPhoneLight.dc.html": {
+      "x": 3590,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "How procedures work: phone (light)",
+      "page": "b9"
+    },
+    "HowItWorks.dc.html": {
+      "x": 0,
+      "y": 1020,
+      "w": 1440,
+      "h": 900,
+      "title": "Shared source: How procedures work (tweaks: layout, theme)",
+      "page": "b9"
     }
   },
   "createdOnFiles": {
@@ -1737,7 +1777,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b8",
+    "page": "b9",
     "view": "canvas"
   },
   "notes": {},
@@ -1957,7 +1997,12 @@
     "TourEndLight.dc.html",
     "TourEndPhone.dc.html",
     "TourEndPhoneLight.dc.html",
-    "Tour.dc.html"
+    "Tour.dc.html",
+    "HowDesk.dc.html",
+    "HowDeskLight.dc.html",
+    "HowPhone.dc.html",
+    "HowPhoneLight.dc.html",
+    "HowItWorks.dc.html"
   ],
   "pages": [
     {
@@ -2023,6 +2068,10 @@
     {
       "id": "b8",
       "name": "Tour"
+    },
+    {
+      "id": "b9",
+      "name": "How procedures work"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"
