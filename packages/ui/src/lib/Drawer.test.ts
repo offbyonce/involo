@@ -35,19 +35,13 @@ describe("Drawer", () => {
 
   it("hides the items whose page does not exist yet, and their empty groups; Glossary has its page", () => {
     render(Drawer, base);
-    for (const name of [
-      "Practice",
-      "How procedures work",
-      "Flight deck",
-      "References",
-      "Flight log",
-      "Take the tour",
-    ]) {
+    for (const name of ["Practice", "How procedures work", "References", "Flight log", "Take the tour"]) {
       expect(screen.queryByRole("link", { name })).toBeNull();
     }
     expect(screen.queryByText("Learn")).toBeNull();
     expect(screen.getByText("Reference")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Glossary" }).getAttribute("href")).toBe("#/glossary");
+    expect(screen.getByRole("link", { name: /^Flight deck/ }).getAttribute("href")).toBe("#/deck");
     expect(screen.getByText("This flight and the app")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Settings" }).getAttribute("href")).toBe("#/settings");
     // The old menu's items have their homes elsewhere now (owner, batch 5).

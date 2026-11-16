@@ -18,6 +18,8 @@ both themes, sized by width.
     region,
     kind,
     title,
+    shape = null,
+    bare = false,
   }: {
     frame: ViewFrame;
     /** The overview region to highlight, by name. */
@@ -25,6 +27,10 @@ both themes, sized by width.
     kind: "side" | "seat";
     /** What the view shows, e.g. "From the side: how high, how far". */
     title: string;
+    /** Only this outline of the region's place (the console's three panels, front to back). */
+    shape?: number | null;
+    /** The Flight deck's area list (Deck board): the drawing alone, no caption, sight line, name or note. */
+    bare?: boolean;
   } = $props();
 
   /** The board's label sizes in view units: fixed labels, and the highlighted region's name. */
@@ -64,8 +70,8 @@ both themes, sized by width.
   });
 </script>
 
-<figure class="view">
-  <figcaption>{title}</figcaption>
+<figure class="view" class:bare>
+  {#if !bare}<figcaption>{title}</figcaption>{/if}
   <div class="wrap" bind:clientWidth={width}>
     <svg viewBox="0 0 {frame.width} {frame.height}" role="img" aria-label="{title}{here ? `, ${region} highlighted` : ''}. Schematic, not to scale.">
       {#each shapes.filter((s) => s.role !== "eye") as shape, n (n)}
@@ -73,22 +79,22 @@ both themes, sized by width.
       {/each}
       {#each places as place (place.region)}
         {#each place.shapes as outline, n (n)}
-          <path class="place" class:here={place === here} d={path(outline, true)} />
+          <path class="place" class:here={place === here && (shape == null || shape === n)} d={path(outline, true)} />
         {/each}
       {/each}
-      {#if kind === "side" && eye && target}
+      {#if kind === "side" && eye && target && !bare}
         <line class="sight" x1={eye[0]} y1={eye[1]} x2={target.x} y2={target.y} />
         <circle class="sight-end" cx={target.x} cy={target.y} r="5" />
       {/if}
-      {#each labels as label (label.text + label.x)}
+      {#each bare ? [] : labels as label (label.text + label.x)}
         <text class="tag" x={label.x} y={label.y} style:font-size="{atLeast(LABEL)}px" style:text-anchor={label.anchor ?? "middle"}>{label.text}</text>
       {/each}
-      {#if here?.label_at && region}
+      {#if here?.label_at && region && !bare}
         <text class="name" x={here.label_at[0]} y={here.label_at[1]} style:font-size="{atLeast(NAME)}px">{region.toUpperCase()}</text>
       {/if}
     </svg>
   </div>
-  <p class="note">Schematic, not to scale.</p>
+  {#if !bare}<p class="note">Schematic, not to scale.</p>{/if}
 </figure>
 
 <style>
@@ -100,6 +106,11 @@ both themes, sized by width.
     border: var(--border-thin) solid var(--panel-frame);
     border-radius: var(--radius-panel);
     background: var(--panel-bg);
+  }
+  /* The Deck board's area list: 6 px padding, 10 px corners. */
+  .view.bare {
+    padding: calc(var(--space-1) + var(--border-thick));
+    border-radius: var(--radius-control);
   }
   figcaption {
     margin-bottom: var(--space-2);

@@ -49,6 +49,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import FlightPage from "./flight/FlightPage.svelte";
   import { buildGlossary, glossaryHref } from "./lib/glossary";
   import GlossaryPage from "./pages/GlossaryPage.svelte";
+  import FlightDeckPage from "./pages/FlightDeckPage.svelte";
   import { currentRoute, flightHref, phaseHref } from "./route.svelte";
   import { applyPalette, applyScale } from "./theme/tokens";
 
@@ -310,7 +311,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let current = $derived(view?.lists.find((l) => l.current)?.current ?? null);
   /** The step the context panel shows, its row, and the steps after it. */
   let pane = $derived.by(() => {
-    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary") return null;
+    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck") return null;
     const id = flow ? (cursor ?? current) : (selected ?? (screen === "reference" ? null : current));
     const rows = view.lists.flatMap((l) => l.steps);
     const at = rows.findIndex((r) => r.id === id);
@@ -667,6 +668,10 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
 {#if route.value.screen === "glossary" && index}
   <div class="flightwrap">
     <GlossaryPage terms={glossary} term={route.value.term} {rail} backHref={lastPhase ? phaseHref(lastPhase) : "#/"} onStep={goToStep} />
+  </div>
+{:else if route.value.screen === "deck" && index}
+  <div class="flightwrap">
+    <FlightDeckPage {index} area={route.value.area} zone={route.value.zone} backHref={lastPhase ? phaseHref(lastPhase) : "#/"} onStep={goToStep} />
   </div>
 {:else if route.value.screen === "flight" && settings && flight && index && rail}
   {@const r = route.value}

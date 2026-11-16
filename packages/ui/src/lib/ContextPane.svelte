@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
 The context for one step, as in 3.0's right-hand panel: the control, where it is on the flight
-deck map ("Where is this?" shows the whole flight deck), the panel sections it is on with the
+deck map ("Where is this?", with "Open in Flight deck"), the panel sections it is on with the
 step's target position, then where to find it and what it does. A step with no control on the
 map shows the steps coming up instead, so the panel is never empty; its details stay in the list
 or Flow view, never repeated here. Shown beside
