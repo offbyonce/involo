@@ -20,7 +20,7 @@ body{margin:0}
 
   <nav aria-label="Menu" style="position: absolute; left: 0; top: 0; bottom: 0; width: 360px; box-sizing: border-box; background: {{t.surface}}; border-right: 1px solid {{t.border}}; box-shadow: 24px 0 48px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column">
     <div style="height: 60px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 8px 0 20px; border-bottom: 1px solid {{t.line}}">
-      <div style="flex: 1; display: flex; flex-direction: column; line-height: 1.2"><span style="display: flex; align-items: center; gap: 4px; font-weight: 600; font-size: 17px; letter-spacing: -0.02em; color: {{t.strong}}"><svg width="17.99" height="15" viewBox="0 0 72.77 60.68" role="img" aria-label="Involo" style="display: block; flex: none"><path fill="{{t.strong}}" d="M72.05 1.19Q72.34 1.5 72.52 1.84L23.99 38.65L23.9 38.44L23.26 38.21L2.05 30.37Q0.76 29.89 0.28 28.59Q-0.76 25.78 2.06 24.74L68.28 0.34Q69.01 -0.05 69.76 0.01Q70.78 0.01 71.57 0.78Q71.84 0.98 72.05 1.19Z"></path><path fill="{{t.accent}}" d="M23.9 38.44L23.26 38.21L72.05 1.19Q72.78 1.96 72.75 2.9Q72.9 4.03 71.92 5L38.65 59.13Q38.18 59.89 37.36 60.27Q36 60.91 35 60.54Q34.01 60.18 33.37 58.82Z"></path></svg>involo</span><span style="font-size: 12px; color: {{t.muted}}">iFly 737 MAX 8 · saved 10:14</span></div>
+      <div style="flex: 1; display: flex; flex-direction: column; line-height: 1.2"><span style="display: flex; align-items: center; gap: 4px; font-weight: 600; font-size: 17px; letter-spacing: -0.02em; color: {{t.strong}}"><svg width="17.99" height="15" viewBox="0 0 72.77 60.68" aria-hidden="true" style="display: block; flex: none"><path fill="{{t.strong}}" d="M72.05 1.19Q72.34 1.5 72.52 1.84L23.99 38.65L23.9 38.44L23.26 38.21L2.05 30.37Q0.76 29.89 0.28 28.59Q-0.76 25.78 2.06 24.74L68.28 0.34Q69.01 -0.05 69.76 0.01Q70.78 0.01 71.57 0.78Q71.84 0.98 72.05 1.19Z"></path><path fill="{{t.accent}}" d="M23.9 38.44L23.26 38.21L72.05 1.19Q72.78 1.96 72.75 2.9Q72.9 4.03 71.92 5L38.65 59.13Q38.18 59.89 37.36 60.27Q36 60.91 35 60.54Q34.01 60.18 33.37 58.82Z"></path></svg>involo</span><span style="font-size: 12px; color: {{t.muted}}">iFly 737 MAX 8 · saved 10:14</span></div>
       <a href="Checklist.dc.html" aria-label="Close menu" style="width: 44px; height: 44px; color: {{t.sub}}; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
     </div>
 
@@ -59,12 +59,12 @@ body{margin:0}
         <span style="font-size: 16px; font-weight: 600">Reset flight plan</span>
         <span style="font-size: 12px; color: {{t.muted}}">Clears the plan, clearance and notes. Undo right after.</span>
       </button>
-      <a href="#" style="min-height: 44px; display: flex; align-items: center; padding: 0 12px; font-size: 12px; color: {{t.link}}; text-decoration: none">Where is Flight setup? ⌄</a>
+      <sc-if value="{{whereClosed}}" hint-placeholder-val="{{ true }}"><a href="#" aria-expanded="false" style="min-height: 44px; display: flex; align-items: center; padding: 0 12px; font-size: 12px; color: {{t.link}}; text-decoration: none">Where is Flight setup? ⌄</a></sc-if><sc-if value="{{whereOpen}}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-direction: column"><a href="#" aria-expanded="true" style="min-height: 44px; display: flex; align-items: center; padding: 0 12px; font-size: 12px; color: {{t.link}}; text-decoration: none">Where is Flight setup? ⌃</a><p style="margin: 0; padding: 0 12px 6px; font-size: 14px; line-height: 1.45; color: {{t.sub}}">Flight setup is now the Flight pages. Open them from the flight strip, or from any step that needs a flight value.</p><a href="FSOverview.dc.html" style="min-height: 44px; display: flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 600; color: {{t.link}}; text-decoration: none">Open Flight ›</a></div></sc-if>
     </div>
   </nav>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":900}}'>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"where":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
 class Component extends DCLogic {
   renderVals() {
     const T = {
@@ -72,7 +72,8 @@ class Component extends DCLogic {
       light: { bg: '#f5f7fa', surface: '#ffffff', border: '#d3d9e1', line: '#e2e6ec', text: '#1a1f27', sub: '#3d4552', muted: '#5b6472', strong: '#0b0f14', accent: '#2563eb', link: '#1d4fd8', redText: '#b3261e', segTrack: '#e6eaf0', segBorder: '#dde2e8', segOn: '#ffffff', segShadow: '0 1px 2px rgba(16, 24, 40, 0.14)', scrim: 'rgba(20, 26, 36, 0.35)' }
     };
     const th = this.props.theme === 'light' ? 'light' : 'dark';
-    return { theme: th, t: T[th] };
+    const w = this.props.where === true || this.props.where === 'true';
+    return { theme: th, t: T[th], whereOpen: w, whereClosed: !w };
   }
 }
 </script>

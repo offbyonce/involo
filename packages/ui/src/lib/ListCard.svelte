@@ -113,12 +113,14 @@ folded to one line with its count until the phase's procedure is done.
     <span class="fd">{list.progress.done} of {list.progress.total} ⌄</span>
   </button>
 {:else}
-<section class="card" aria-labelledby="list-{list.id}">
+<section class="card" class:large aria-labelledby="list-{list.id}">
   <header>
     <h2 id="list-{list.id}">{list.title}</h2>
     <span class="count">{counts}</span>
     {#if touched}<button class="clear" type="button" onclick={() => onClear(list.id)}>Clear ticks</button>{/if}
   </header>
+  <!-- Tablet and phone: a later list starts with a plain label, the fold's text (owner, batch 6). -->
+  <p class="label" aria-hidden="true">{list.title} · {list.progress.done} of {list.progress.total}</p>
   {#if source?.when || source?.why}
     <div class="when">
       {#if source?.when}<p><b>When</b> · {source.when}</p>{/if}
@@ -314,6 +316,36 @@ folded to one line with its count until the phase's procedure is done.
   .after {
     display: none;
   }
+  /* Tablet and phone (Tablet and Mobile boards): no procedure header; the header names the phase,
+     the menu has Clear ticks. The list keeps its name for screen readers. An emergency list keeps
+     its header. */
+  @media (max-width: 1439px) {
+    section.card:not(.large) > header {
+      position: absolute;
+      width: var(--border-thin);
+      height: var(--border-thin);
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    section.card:not(.large) > header :is(.count, .clear) {
+      display: none;
+    }
+    /* A list after the first starts with a plain label row: 32 px, 12 px semibold, muted. */
+    :global(.card) ~ section.card:not(.large) > .label {
+      display: flex;
+    }
+  }
+  .label {
+    display: none;
+    align-items: center;
+    min-height: var(--space-8);
+    margin: 0;
+    padding: 0 calc(var(--space-3) + var(--border-thick));
+    color: var(--color-text-muted);
+    font-size: var(--font-size-caption);
+    font-weight: var(--weight-semibold);
+  }
   /* Phone (Mobile board): no card frame, rows edge to edge, the steps after the current one folded. */
   @media (max-width: 599px) {
     section.card {
@@ -324,6 +356,10 @@ folded to one line with its count until the phase's procedure is done.
       border-radius: 0;
     }
     .items:not(.rest) :global(.it.current ~ .it) {
+      display: none;
+    }
+    /* The fold names the next list ("then …"), so the lists below it wait until it opens. */
+    section.card:has(> .after) ~ :global(.card:not(.large)) {
       display: none;
     }
     .after {

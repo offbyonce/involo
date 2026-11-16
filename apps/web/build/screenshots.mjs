@@ -129,6 +129,38 @@ const BOARD_FLIGHT = [
 /** Ticks every step of phase `id`, its checklist too once it unfolds, then goes to phase `then`. */
 const finishPhase = (id, then) =>
   `(async () => { const wait = (ms) => new Promise((go) => setTimeout(go, ms)); location.hash = "#/phase/${id}"; await wait(500); for (let i = 0; i < 200; i++) { const b = [...document.querySelectorAll(".it .tick")].find((t) => t.getAttribute("aria-pressed") !== "true"); if (!b) break; b.click(); await wait(80); } location.hash = "#/phase/${then}"; await wait(500); return true; })()`;
+/** Ticks every step of phase `id` but its last (its checklist's, once the procedure is done and it
+ * opens), then skips that one (S): the phase done, one step open. */
+const finishSkippingLast = (id) =>
+  `(async () => { const wait = (ms) => new Promise((go) => setTimeout(go, ms)); location.hash = "#/phase/${id}"; await wait(500); for (let i = 0; i < 200; i++) { const left = [...document.querySelectorAll(".it button.tick")].filter((t) => t.getAttribute("aria-pressed") !== "true"); if (left.length === 1 && document.body.textContent.includes("opens when the procedure is done")) { left[0].click(); await wait(500); continue; } if (left.length <= 1) break; left[0].click(); await wait(80); } window.dispatchEvent(new KeyboardEvent("keydown", { key: "s", bubbles: true })); await wait(300); return true; })()`;
+/** Goes to a phase (or emergency reference list) and opens step `id` there, its folded list first. */
+const openStep = (kind, phase, id) =>
+  `(async () => { const wait = (ms) => new Promise((go) => setTimeout(go, ms)); location.hash = ${JSON.stringify(kind === "reference" ? "#/reference/" : "#/phase/")} + ${JSON.stringify(phase)}; await wait(700); for (const b of document.querySelectorAll("button.card.folded")) b.click(); await wait(300); const row = document.querySelector('[data-step="' + ${JSON.stringify(id)} + '"] button.row'); if (!row) { const b = document.createElement("div"); b.textContent = "Not on screen for this flight: " + ${JSON.stringify(id)}; b.setAttribute("style", "position:fixed;top:0;left:0;right:0;z-index:99;background:#b00;color:#fff;font:16px sans-serif;padding:8px"); document.body.append(b); return true; } row.click(); await wait(400); return true; })()`;
+/** Picks the option choice labeled `label` on the phase page that asks it. */
+const pickChoice = (phase, label) =>
+  `(async () => { const wait = (ms) => new Promise((go) => setTimeout(go, ms)); location.hash = "#/phase/" + ${JSON.stringify(phase)}; await wait(700); [...document.querySelectorAll('[role="radiogroup"] button, .cards button')].find((b) => b.textContent.trim().startsWith(${JSON.stringify(label)}))?.click(); await wait(300); return true; })()`;
+function stepShots() {
+  const file = process.env.INVOLO_STEPS;
+  if (!file) return [];
+  return fs
+    .readFileSync(file, "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .flatMap((line, n) => {
+      // An optional fourth column numbers the shot (to retake some of a list under their numbers).
+      // A fifth, "<phase>|<choice>", first picks an option asked in that phase (a step shown only for
+      // a visual approach, say).
+      const [kind, phase, id, number, choose] = line.split("\t");
+      const [askedIn, choice] = (choose ?? "").split("|");
+      const open = [...(choice ? [pickChoice(askedIn, choice)] : []), openStep(kind, phase, id), press("p")];
+      const at = number ? Number(number) - 1 : n;
+      const tag = String(at + 1).padStart(2, "0");
+      return [
+        { name: `tiles-${tag}`, only: ["desktop"], app: { hash: "#/", before: open } },
+        ...(at < 3 ? [{ name: `tiles-map-${tag}`, only: ["desktop"], app: { hash: "#/", before: [...open, click(".slide-box .deck-toggle")] } }] : []),
+      ];
+    });
+}
 /** Opens the row menu ("···") of the list step whose name is exactly `name`. */
 const rowMenu = (name) =>
   `[...document.querySelectorAll(".it")].find((it) => it.querySelector(".nm")?.textContent.trim() === ${JSON.stringify(name)}).querySelector("button.more").click(); true`;
@@ -410,7 +442,23 @@ const SHOTS = [
   // Batch 5: the menu drawer at every size (Menu, Tablet and Mobile boards), the stage and phase
   // picker (StagePicker), the tablet portrait and phone panel sheets, and phone's open-steps sheet.
   { name: "board-menu", only: ["desktop", "tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click('[aria-controls="drawer"]')] } },
-  { name: "board-stages", only: ["tablet-landscape", "tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("header.top .pick")] } },
+  // StagePicker's state: the flight loaded, Preflight done with one step still open, Before start
+  // under way (Done, "1 open" and the stage button's amber dot).
+  {
+    name: "board-stages",
+    only: ["tablet-landscape", "tablet", "phone"],
+    app: {
+      hash: "#/phase/before-start",
+      before: [
+        ...BOARD_FLIGHT,
+        ...["cold-dark", "gpu-power", "exterior"].map((id) => finishPhase(id, "preflight")),
+        finishSkippingLast("preflight"),
+        go("#/phase/before-start"),
+        ...BOARD_STATE,
+        click("header.top .pick"),
+      ],
+    },
+  },
   { name: "board-sheet", only: ["tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("p")] } },
   // Keyboard focus at tablet and phone sizes (batch 5): the app's 2 px ring, 2 px out. Focus goes
   // to the control before, then a real Tab (or Shift Tab) moves it on.
@@ -422,6 +470,33 @@ const SHOTS = [
   // The decision step on phone (DecPhone), from the design gallery's invented fixture (the pack has
   // no decision step yet).
   { name: "board-decision", only: ["phone"], app: { hash: "", page: "design/?view=decision&state=phone&theme={theme}" } },
+  // Batch 6 panels (owner): a step's sheet and side-pane preview card, opened by P, for each step in
+  // INVOLO_STEPS (a local file of "phase|reference <tab> phase id <tab> step id [<tab> number]" lines), named
+  // tiles-<n>; with its map open, tiles-map-<n>, for the first three.
+  ...stepShots(),
+  // The PanelTiles board's step: the wiper selectors, their sheet and the deck map open.
+  { name: "board-tiles", only: ["desktop"], app: { hash: "#/phase/cold-dark", before: [openStep("phase", "cold-dark", "ifly-737-max8.cold-dark.wiper-selectors"), press("p"), click(".slide-box .deck-toggle")] } },
+  // Each phone-sized panel sheet once (upright and sideways), for a row of tiles and a stack.
+  ...["ifly-737-max8.cold-dark.wiper-selectors", "ifly-737-max8.landing.speedbrake-lever"].flatMap((id, n) => [
+    { name: `tiles-phone-${n}`, only: ["phone", "phone-sideways"], app: { hash: "#/", before: [openStep("phase", id.split(".")[1], id), press("p")] } },
+  ]),
+  // Batch 6: Find (results for "fuel", no match, before typing) over the boards' state, opened
+  // from the header; the desktop menu's "Where is Flight setup?" opened.
+  ...[
+    ["board-find", "fuel"],
+    ["board-find-none", "trimmx"],
+    ["board-find-start", null],
+  ].map(([name, word]) => ({
+    name,
+    only: ["desktop", "phone"],
+    app: {
+      hash: "#/phase/before-start",
+      before: [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE, click("header.top .find"), ...(word ? [typeInto(".find .field input", word)] : [])],
+    },
+  })),
+  { name: "board-menu-where", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click('[aria-controls="drawer"]'), click("#drawer .wlink")] } },
+  // The phone list with its fold opened: each later list starts with its label row (owner, batch 6).
+  { name: "board-phone-fold", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("button.after"), click("button.card.folded"), `(() => { [...document.querySelectorAll("section.card > p.label")].find((p) => p.offsetParent)?.scrollIntoView({ block: "center" }); return true; })()`] } },
   { name: "board-phone-open", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click(".prow .open")] } },
   // Round 6's slide-out: Show panel (P), Where is this? (W), and a control's card (tap CTR L).
   { name: "board-panel", full: true, only: ["desktop", "wide", "tablet-landscape"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("p")] } },
@@ -500,6 +575,9 @@ async function shoot(browser, url, ready, steps, file, full = false) {
   }
   await sleep(300);
   if (await js("!!document.getElementById('update-ready')")) process.stderr.write(`update offer showing: ${file}\n`);
+  // SCREENSHOTS_IF: keep only the shots where this selector matches (a wide tile among several, say).
+  const only = process.env.SCREENSHOTS_IF;
+  if (only && !(await js(`!!document.querySelector(${JSON.stringify(only)})`))) return;
   const { data } = await send("browsingContext.captureScreenshot", { context });
   fs.writeFileSync(file, Buffer.from(data, "base64"));
   if (full) await shootWhole(browser, file);
@@ -628,6 +706,8 @@ async function main() {
   const pairs = [];
   try {
     for (const [theme, override] of Object.entries(THEMES)) {
+      // SCREENSHOTS_THEME=dark (or light) shoots one theme only.
+      if (process.env.SCREENSHOTS_THEME && process.env.SCREENSHOTS_THEME !== theme) continue;
       for (const [size, viewport] of Object.entries(VIEWPORTS)) {
         for (const target of targets) {
           const prefs = { "layout.css.prefers-color-scheme.content-override": override };

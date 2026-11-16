@@ -71,4 +71,40 @@ describe("Drawer", () => {
     expect(calls).toEqual(["view flow", "essentials true", "detail quick", "close", "reset"]);
     expect(screen.getByRole("button", { name: "Full" }).getAttribute("aria-pressed")).toBe("true");
   });
+
+  it("offers Clear ticks for the ticked procedure above Reset flight plan, with its tick count (Tablet and Mobile boards)", async () => {
+    const calls: string[] = [];
+    const { rerender } = render(Drawer, {
+      ...base,
+      onClearTicks: () => calls.push("clear"),
+      onClose: () => calls.push("close"),
+    });
+    expect(screen.queryByRole("button", { name: /^Clear ticks/ })).toBeNull();
+    await rerender({
+      ...base,
+      clear: { title: "Before start procedure", ticks: 5 },
+      onClearTicks: () => calls.push("clear"),
+      onClose: () => calls.push("close"),
+    });
+    const clear = screen.getByRole("button", { name: /^Clear ticks/ });
+    expect(clear.textContent).toContain("Before start procedure: 5 ticks. Undo right after.");
+    expect(clear.textContent).toContain("Before start procedure · Undo right after");
+    const buttons = screen.getAllByRole("button").map((b) => b.querySelector("b")?.textContent);
+    expect(buttons.indexOf("Clear ticks")).toBe(buttons.indexOf("Reset flight plan") - 1);
+    await fireEvent.click(clear);
+    expect(calls).toEqual(["close", "clear"]);
+  });
+
+  it("folds 'Where is Flight setup?' and opens it to the Flight pages (Menu board, MenuWhere)", async () => {
+    render(Drawer, base);
+    const where = screen.getByRole("button", { name: /^Where is Flight setup\?/ });
+    expect(where.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.queryByRole("link", { name: "Open Flight ›" })).toBeNull();
+    await fireEvent.click(where);
+    expect(where.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByText(/^Flight setup is now the Flight pages\./)).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Open Flight ›" }).getAttribute("href")).toBe(
+      "#/flight/overview",
+    );
+  });
 });

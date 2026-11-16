@@ -23,6 +23,7 @@ steps:
         set: "NORMAL"
       - at: "con/fi/OVHT DET 2/1"
         set: "NORMAL"
+      - at: "con/fi/FIRE TEST/1"
     quick: always
     why: Confirms the fire protection panel is in its normal state before it is tested.
     confirmed_by:
@@ -182,6 +183,7 @@ steps:
     targets:
       - at: "oh/elecl/GRD POWER AVAILABLE/1"
         light: out
+      - at: "oh/elecl/GRD PWR/1"
     quick: always
     show_if:
       any_of:

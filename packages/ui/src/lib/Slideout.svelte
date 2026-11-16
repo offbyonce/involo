@@ -4,10 +4,10 @@ SPDX-License-Identifier: MIT
 
 The slide-out (round 6, ROUND6.md; boards R6Panel, R6Where, R6Control, R6TabL; Locator.dc.html):
 the step's panel, labeled at 11 px or more, and where it is. It fills the box its parent gives it
-(beside the side pane, over the step list, below the flight strip). In order: a switcher when the
-step's controls are on several panels; the header (the step, the panel's name, where it is, Esc
-and close); The panel, with a navigator above it when it is wider than the slide-out (owner,
-gate reviews); a tapped control's card under it; then Where it is (folded to one line, or
+(beside the side pane, over the step list, below the flight strip). In order: the header (the
+step, the panels' title, where it is with "Also:" the other panels, Esc and close); The panel: the
+step's panels as tiles (PanelTiles, owner batch 6), with a navigator above one wider than the
+slide-out (owner, gate reviews); a tapped control's card under it; then Where it is (folded to one line, or
 expanded: the plain-language line, the side and seat views and the area map). How it opens depends
 on the entry point: the panel (Show panel, a preview, P), Where it is expanded (the location line,
 W), or a control's card. A panel taller than the room keeps its height and the body scrolls as one
@@ -27,7 +27,8 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   import PanelNavigator from "./PanelNavigator.svelte";
   import PanelPreview from "./PanelPreview.svelte";
   import { positionsOf } from "./panel-layout";
-  import PanelSchematic from "./PanelSchematic.svelte";
+  import PanelTiles from "./PanelTiles.svelte";
+  import { stepTiles, tilesTitle } from "./step-tiles";
   import { panelCaption } from "./panel-name";
   import { stepTitle } from "./sentence";
   import ViewDrawing from "./ViewDrawing.svelte";
@@ -39,7 +40,6 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
     number,
     targets,
     opening,
-    panel: chosen = $bindable(),
     onClose,
     onGo,
     decisions,
@@ -51,8 +51,6 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
     targets: ItemTarget[];
     /** How it opened: which section shows first. */
     opening: Opening;
-    /** The panel shown, by id, when the step's controls are on several. */
-    panel?: string | undefined;
     onClose: () => void;
     /** Goes to a step (the control card's Used in links). */
     onGo: (stepId: string) => void;
@@ -62,29 +60,21 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   let dependent = $derived(decisions?.dependent(step) ?? null);
 
   // svelte-ignore state_referenced_locally
-  let whereOpen = $state(opening.entry === "where");
+  let whereOpen = $state(opening.entry === "where" || !!opening.where);
   // svelte-ignore state_referenced_locally
   let picked = $state<{ section: string; item: number } | null>(opening.entry === "control" ? (opening.control ?? null) : null);
   let deck = $state(false);
   // svelte-ignore state_referenced_locally
-  if (opening.panel && !chosen) chosen = opening.panel;
 
   let place = $derived(index.place(step));
-  /** One entry per panel the step's controls are on, its own control's first. */
-  let panels = $derived.by(() => {
-    const ids = [...new Set([place?.section?.id, ...targets.map((t) => t.section)].filter((x): x is string => !!x))];
-    const out = new Map<string, { panel: NonNullable<ReturnType<PackIndex["panelOf"]>>; focus: string[] }>();
-    for (const id of ids) {
-      const p = index.panelOf(id);
-      if (!p) continue;
-      const entry = out.get(p.id) ?? { panel: p, focus: [] };
-      entry.focus.push(id);
-      out.set(p.id, entry);
-    }
-    return [...out.values()];
-  });
-  let shown = $derived(panels.find((p) => p.panel.id === chosen) ?? panels[0]);
-  let caption = $derived(shown ? panelCaption(shown.focus.map((id) => index.section(id)?.title ?? id)) : "");
+  /** The step's panels as tiles (owner, batch 6): only those holding its controls or the lights
+   * its Check names, the main control's first. */
+  let tiles = $derived(stepTiles(index, step, targets));
+  let drawnTiles = $derived(tiles.flatMap((t) => (t.kind === "drawn" ? [t] : [])));
+  let named = $derived(tilesTitle(tiles));
+  let caption = $derived(named.title);
+  /** One drawn panel alone (the navigator follows it when it is wider than the room). */
+  let single = $derived(tiles.length === 1 ? drawnTiles[0] : undefined);
   let zone = $derived(place?.zone);
   let where = $derived(
     zone ? [zone.area, zone.position ? zone.position.charAt(0).toLowerCase() + zone.position.slice(1) : null].filter(Boolean).join(" · ") : "",
@@ -94,7 +84,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   let locate = $derived(region?.locate ? region.locate.split(/(?<=\.)\s/)[0]?.replace(/\.$/, "") : "");
   /** The tapped control's card (round 6, R6Control). */
   let card = $derived.by(() => {
-    if (!picked || !shown) return null;
+    if (!picked) return null;
     const { section, item } = picked;
     const it = index.section(section)?.items[item];
     if (!it) return null;
@@ -111,8 +101,8 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
       positions: across.join(" · "),
       inStep: target ? (setTo ? `${setTo}${target.resolved ? " ◆" : ""}` : target.lit ? "Expected on" : target.open ? "Only if the step's condition applies" : "Used by this step") : null,
       does: it.description || control?.function || null,
-      lit: it.kind === "light" ? index.lightMeaning(shown.panel.id, section, item) : undefined,
-      usedIn: index.usedIn(shown.panel.id, section, item),
+      lit: it.kind === "light" ? index.lightMeaning(index.panelOf(section)?.id ?? "", section, item) : undefined,
+      usedIn: index.usedIn(index.panelOf(section)?.id ?? "", section, item),
       // "OFF ◆ · from your center tank answer, 1,000 lb (450 kg) or less  Change" (R6Control).
       from:
         target?.resolved && dependent?.answer != null
@@ -124,9 +114,8 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   let check = $derived(step.check ?? (step.explain ? index.explain(step.explain)?.check : null) ?? null);
   /** Phone upright: the step's controls on the panel shown, as a list (R6Phone). */
   let controls = $derived.by(() => {
-    if (!shown) return [];
     return targets
-      .filter((t) => shown?.focus.includes(t.section))
+      .filter((t) => drawnTiles.some((d) => d.id === t.section))
       .map((t) => {
         const it = index.section(t.section)?.items[t.item];
         const positions = it ? positionsOf(it) : [];
@@ -212,7 +201,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   $effect(() => {
     const el = roomEl;
     void room;
-    void shown;
+    void tiles;
     if (!el) return;
     const frame = requestAnimationFrame(() => {
       // Opened from Where is this?: Where it is in view.
@@ -231,7 +220,9 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
         edges();
         return;
       }
-      const on = [...el.querySelectorAll("g.item.on")].map((g) => g.getBoundingClientRect());
+      // A phone held sideways opens at the top, "The panel" in view (owner, batch 6).
+      const sideways = window.matchMedia?.("(max-width: 899px) and (max-height: 499px)").matches ?? false;
+      const on = sideways ? [] : [...el.querySelectorAll("g.item.on")].map((g) => g.getBoundingClientRect());
       if (on.length) {
         const box = el.getBoundingClientRect();
         const top = Math.min(...on.map((r) => r.top)) - box.top + el.scrollTop;
@@ -263,19 +254,11 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
 
 <div class="slideout" role="dialog" aria-labelledby="so-title" tabindex="-1" onkeydown={key}>
   <span class="handle" aria-hidden="true"></span>
-  {#if panels.length > 1}
-    <div class="switcher" role="tablist" aria-label="The step's panels">
-      {#each panels as p (p.panel.id)}
-        {@const name = panelCaption(p.focus.map((id) => index.section(id)?.title ?? id))}
-        <button type="button" role="tab" aria-selected={p === shown} class:on={p === shown} onclick={() => (chosen = p.panel.id)}>{name}</button>
-      {/each}
-    </div>
-  {/if}
   <header class="head">
     <div class="titles">
       <span class="step">Step {number} · {stepTitle(index, step)}</span>
       <h2 id="so-title" tabindex="-1" bind:this={head}>{caption}</h2>
-      {#if where}<span class="where">{where}</span>{/if}
+      {#if where || named.also}<span class="where">{[where, named.also ? `Also: ${named.also}` : ""].filter(Boolean).join(" · ")}</span>{/if}
     </div>
     <kbd class="esc" aria-hidden="true">Esc</kbd>
     <button class="close" type="button" aria-label="Close" onclick={onClose}><Icon name="x" /></button>
@@ -286,17 +269,16 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
         <h3 id="so-panel">The panel</h3>
         <button class="deck-toggle" type="button" aria-expanded={deck} onclick={() => (deck = !deck)}>Whole flight deck <Icon name="chevron-down" /></button>
       </div>
-      {#if deck && zone}<WholeDeck {index} {zone} />{/if}
-      {#if wider && scroller && shown}
+      {#if wider && scroller && single}
         <div class="nav" bind:clientHeight={navHeight}>
-          <PanelNavigator panel={shown.panel} focus={shown.focus} {targets} {scroller} title={caption} />
+          <PanelNavigator panel={single.panel} focus={[single.id]} {targets} {scroller} title={caption} />
         </div>
       {/if}
-      {#if shown}
+      {#if tiles.length}
         <!-- Phone upright (R6Phone): the outline, the controls as a list, the note. -->
         <div class="thumb">
           <figure class="outline">
-            <PanelPreview panel={shown.panel} focus={shown.focus} {targets} label="The whole {caption}" />
+            {#if drawnTiles[0]}<PanelPreview panel={drawnTiles[0].panel} focus={[]} tiles={drawnTiles.map((d) => d.section)} {targets} label="The whole {caption}" ringed={picked} />{/if}
             <figcaption>Blue: set by this step{#if decided}{" "}· ◆ set by your {decided.toLowerCase()} answer{/if}</figcaption>
           </figure>
           {#if controls.length}
@@ -317,13 +299,15 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
           {/if}
           <p class="turn">Turn your phone sideways to see the panel with its labels.</p>
         </div>
-        <figure class="figure" bind:this={figure}>
-          <PanelSchematic panel={shown.panel} focus={shown.focus} {targets} {index} large ownCard={false} {room} bind:picked bind:wider bind:scroller />
+        <figure class="figure" class:tiled={!single} bind:this={figure}>
+          <PanelTiles {tiles} {targets} {index} large ownCard={false} {room} bind:picked bind:wider bind:scroller />
           <figcaption bind:clientHeight={legendHeight}>
-            Blue: set by this step{#if targets.some((t) => t.open)}{" "}· dashed: only if the step's condition applies{/if}{#if decided}{" "}· ◆ set by your {decided.toLowerCase()} answer{/if} · lights drawn unlit · tap a control for details
+            Blue: set by this step{#if targets.some((t) => t.open)}{" "}· dashed: only if the step's condition applies{/if}{#if decided}{" "}· ◆ set by your {decided.toLowerCase()} answer{/if}{#if single}{" "}· lights drawn unlit · tap a control for details{/if}
           </figcaption>
         </figure>
       {/if}
+      <!-- The map comes after the step's panels (PanelTiles board). -->
+      {#if deck && zone}<WholeDeck {index} {zone} />{/if}
     </section>
     {#if card}
       <section class="card" aria-labelledby="so-card" bind:this={cardEl}>
@@ -411,25 +395,6 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
     background: var(--color-popover-surface);
     box-shadow: var(--color-overlay-shadow);
     color: var(--color-text);
-  }
-  .switcher {
-    display: flex;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-6) 0;
-  }
-  .switcher button {
-    min-height: var(--size-touch-min);
-    padding: 0 var(--space-3);
-    border: var(--border-thin) solid var(--color-border);
-    border-radius: var(--radius-pill);
-    background: none;
-    color: var(--color-text-secondary);
-    font: inherit;
-    font-size: var(--font-size-secondary);
-  }
-  .switcher button.on {
-    border-color: var(--color-accent);
-    color: var(--color-accent-text);
   }
   .head {
     flex: none;
@@ -530,6 +495,15 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
     border: var(--border-thin) solid var(--panel-frame);
     border-radius: var(--radius-control);
     background: var(--panel-bg);
+  }
+  /* Several tiles (PanelTiles board): the card's padding, radius and gap, and its muted caption. */
+  .figure.tiled {
+    gap: var(--space-3);
+    padding: calc(var(--space-4) + var(--space-1)) var(--space-4) calc(var(--space-3) + var(--border-thick));
+    border-radius: var(--radius-panel);
+  }
+  .figure.tiled figcaption {
+    color: var(--color-text-muted);
   }
   figcaption {
     color: var(--panel-label);

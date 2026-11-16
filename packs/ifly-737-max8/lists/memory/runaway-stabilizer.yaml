@@ -31,6 +31,7 @@ steps:
       - apdisc
     targets:
       - at: "seat/yoke/A/P DISENGAGE/1"
+      - at: "gl/mcp/DISENGAGE/1"
     confirmed_by:
       - kind: vendor-docs
         date: 2026-11-10

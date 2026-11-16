@@ -216,6 +216,12 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       Tour, References, How procedures work). The coverage.md rows added for review apply.
       Find (Ctrl K) in the header, built from a results board the owner will provide; hidden
       in the header until then (owner, 2026-11-13).
+      Batch 6 first (owner, 2026-11-15, PanelTiles board): a step draws only its own panels, each
+      a tile; the preview card the same tiles; undrawn panels as a list; sheet titles one name, an
+      L and R pair, or the main panel with "Also:"; the deck map's labels, outline and marks.
+      Batch 6 boards (owner, 2026-11-15): Find from the Find boards, searching the pack's steps,
+      controls and terms; the drawer pages one at a time, each from a board the owner gives first,
+      its menu item shown once its page exists.
       First, from batch 5 (owner, 2026-11-15), once the boards show them: the procedure header
       hidden at tablet and phone, with Clear ticks in the menu as a row just above Reset flight
       plan (same style, same Undo toast); and the desktop menu's "Where is Flight setup?", which

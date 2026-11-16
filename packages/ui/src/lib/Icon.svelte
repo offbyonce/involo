@@ -25,6 +25,12 @@ control around them carries the words.
   import decision from "../icons/board/decision.svg?raw";
   import fieldAlert from "../icons/board/field-alert.svg?raw";
   import fileUpload from "../icons/board/file-upload.svg?raw";
+  import find from "../icons/board/find.svg?raw";
+  import findControl from "../icons/board/find-control.svg?raw";
+  import findCurrent from "../icons/board/find-current.svg?raw";
+  import findDone from "../icons/board/find-done.svg?raw";
+  import findTodo from "../icons/board/find-todo.svg?raw";
+  import findTerm from "../icons/board/find-term.svg?raw";
   import globe from "../icons/board/globe.svg?raw";
   import notice from "../icons/board/notice.svg?raw";
   import panel from "../icons/board/panel.svg?raw";
@@ -41,6 +47,12 @@ control around them carries the words.
     decision,
     "field-alert": fieldAlert,
     "file-upload": fileUpload,
+    find,
+    "find-control": findControl,
+    "find-current": findCurrent,
+    "find-done": findDone,
+    "find-todo": findTodo,
+    "find-term": findTerm,
     globe,
     "map-pin": mapPin,
     notice,

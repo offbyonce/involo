@@ -4,7 +4,7 @@ SPDX-License-Identifier: MIT
 
 The header (Checklist board, 60 px): menu, the app's name and aircraft, the stage tabs (the
 current one bold and underlined, an amber dot on any stage holding an open step), the Checklist /
-Flow switch and Emergency. Find is hidden until it is built (batch 6, owner). Below 1440 px it is
+Flow switch and Emergency, Find before them (Ctrl K; the icon alone below 1440 px). Below 1440 px it is
 the compact header (Tablet and Mobile boards, batch 5): no brand and no stage tabs, but a stage
 button (with the phase on phone, and an amber dot when another stage holds an open step) that opens
 the stage and phase picker; phone keeps Checklist / Flow in the menu.
@@ -27,6 +27,8 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
     onMenu,
     onView,
     onPicker = () => {},
+    onFind,
+    findKey = "Ctrl K",
   }: {
     aircraft: string;
     rail: Rail | null;
@@ -43,6 +45,10 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
     onMenu: () => void;
     onView: (view: ListView) => void;
     onPicker?: () => void;
+    /** Opens Find (Find boards); no button without it. */
+    onFind?: (() => void) | undefined;
+    /** The Find shortcut as this computer writes it ("Ctrl K", "⌘K"). */
+    findKey?: string;
   } = $props();
   /** Open steps in stages other than the one on screen (the stage button's amber dot). */
   let elsewhere = $derived(
@@ -94,6 +100,13 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
     </nav>
   {/if}
   <div class="end">
+    {#if onFind}
+      <!-- Find (Checklist, Tablet and Mobile boards): the word and its shortcut on desktop, the
+           icon alone below 1440 px. -->
+      <button class="find" type="button" aria-label="Find a step, control or term" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" onclick={onFind}
+        ><Icon name="find" /><span class="fw">Find</span><span class="fk">{findKey}</span></button
+      >
+    {/if}
     {#if view}
       <div class="seg" role="group" aria-label="View">
         <button type="button" aria-pressed={view === "checklist"} onclick={() => onView("checklist")}>Checklist</button>
@@ -183,6 +196,29 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
     align-items: center;
     gap: var(--space-4);
     margin-left: auto;
+  }
+  .find {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: var(--size-touch-min);
+    padding: 0 var(--space-3);
+    border: var(--border-thin) solid var(--color-border);
+    border-radius: var(--radius-control);
+    background: var(--color-button-bg);
+    box-shadow: var(--color-button-shadow);
+    color: var(--color-text-secondary);
+    font: inherit;
+    font-size: var(--font-size-secondary);
+  }
+  .find :global(.icon) {
+    width: var(--size-icon-small);
+    height: var(--size-icon-small);
+  }
+  .fk {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-caption);
   }
   /* The segmented control (rules.md components). */
   .seg {
@@ -324,6 +360,33 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
     }
     .emg {
       padding: 0 calc(var(--space-2) + var(--border-thick));
+    }
+  }
+  /* Below 1440 px Find is the icon alone: boxed on tablet, plain on phone (Tablet, Mobile boards). */
+  @media (max-width: 1439px) {
+    .find {
+      justify-content: center;
+      width: var(--size-touch-min);
+      padding: 0;
+    }
+    .find :global(.icon) {
+      width: calc(var(--space-4) + var(--border-thick));
+      height: calc(var(--space-4) + var(--border-thick));
+    }
+    .fw,
+    .fk {
+      display: none;
+    }
+  }
+  @media (max-width: 599px) {
+    .find {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .find :global(.icon) {
+      width: var(--size-icon);
+      height: var(--size-icon);
     }
   }
 </style>

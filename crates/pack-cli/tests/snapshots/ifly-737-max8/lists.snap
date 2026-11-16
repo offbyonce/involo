@@ -332,6 +332,9 @@ source: crates/pack-cli/tests/snapshot.rs
           {
             "at": "con/fi/OVHT DET 2/1",
             "set": "NORMAL"
+          },
+          {
+            "at": "con/fi/FIRE TEST/1"
           }
         ],
         "quick": "always",
@@ -604,6 +607,9 @@ source: crates/pack-cli/tests/snapshot.rs
           {
             "at": "oh/elecl/GRD POWER AVAILABLE/1",
             "light": "out"
+          },
+          {
+            "at": "oh/elecl/GRD PWR/1"
           }
         ],
         "quick": "always",
@@ -4544,6 +4550,9 @@ source: crates/pack-cli/tests/snapshot.rs
           {
             "at": "oh/fuel/AFT 2/1",
             "set": "ON"
+          },
+          {
+            "at": "mn/cd/INBOARD DU: ND AND ENGINES/1"
           }
         ],
         "fill": [
@@ -7128,6 +7137,9 @@ source: crates/pack-cli/tests/snapshot.rs
         "targets": [
           {
             "at": "con/st/FLAP LEVER/1"
+          },
+          {
+            "at": "mn/cd/OUTBOARD DU: PFD/1"
           }
         ],
         "quick": "always",
@@ -8708,6 +8720,9 @@ source: crates/pack-cli/tests/snapshot.rs
         "targets": [
           {
             "at": "con/st/FLAP LEVER/1"
+          },
+          {
+            "at": "mn/cd/OUTBOARD DU: PFD/1"
           }
         ],
         "quick": "always",
@@ -11467,6 +11482,9 @@ source: crates/pack-cli/tests/snapshot.rs
         "targets": [
           {
             "at": "seat/yoke/A/P DISENGAGE/1"
+          },
+          {
+            "at": "gl/mcp/DISENGAGE/1"
           }
         ],
         "terms": [
@@ -11709,6 +11727,9 @@ source: crates/pack-cli/tests/snapshot.rs
         "targets": [
           {
             "at": "seat/yoke/A/P DISENGAGE/1"
+          },
+          {
+            "at": "gl/mcp/DISENGAGE/1"
           }
         ],
         "terms": [
@@ -12123,6 +12144,9 @@ source: crates/pack-cli/tests/snapshot.rs
           },
           {
             "at": "con/a2/AUDIO PANEL 2/1"
+          },
+          {
+            "at": "seat/side/MASK STOWAGE/1"
           }
         ]
       },
@@ -12304,6 +12328,9 @@ source: crates/pack-cli/tests/snapshot.rs
           },
           {
             "at": "con/a2/AUDIO PANEL 2/1"
+          },
+          {
+            "at": "seat/side/MASK STOWAGE/1"
           }
         ],
         "non_recall": true

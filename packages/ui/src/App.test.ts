@@ -12,7 +12,7 @@ import type {
   Settings,
   StepState,
 } from "@involo/bindings";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/svelte";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App.svelte";
 import { type Host, hostContext } from "./host";
@@ -600,6 +600,76 @@ describe("App", () => {
     await fireEvent.click(await screen.findByRole("button", { name: "Clear ticks" }));
     expect(actions).toEqual([{ type: "clearList", list: "power-up-flow" }]);
     expect(await screen.findByRole("button", { name: "Undo" })).toBeTruthy();
+  });
+
+  it("clears the ticked list from the menu too (tablet and phone), with the same Undo", async () => {
+    const actions: Action[] = [];
+    const h = host({
+      apply: async (_pack, flight, action) => {
+        actions.push(action);
+        return { ...flight };
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.click(screen.getByRole("button", { name: /^Clear ticks\s*Power up flow: \d+ ticks?\./ }));
+    expect(actions).toEqual([{ type: "clearList", list: "power-up-flow" }]);
+    expect(await screen.findByRole("button", { name: "Undo" })).toBeTruthy();
+  });
+
+  it("opens Find from the header and with Ctrl K, finds a control, and gives focus back on Esc", async () => {
+    render(App, { context: hostContext(host()) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    const button = screen.getByRole("button", { name: "Find a step, control or term" });
+    button.focus();
+    await fireEvent.click(button);
+    const field = await screen.findByRole("combobox", { name: "Find a step, control or term" });
+    await fireEvent.input(field, { target: { value: "standby" } });
+    expect(screen.getByRole("option", { name: /Standby power switch/ }).textContent).toContain(
+      "Forward overhead · Electrical",
+    );
+    await fireEvent.keyDown(field, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Find" })).toBeNull();
+    expect(document.activeElement).toBe(button);
+    await fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+    expect(await screen.findByRole("dialog", { name: "Find" })).toBeTruthy();
+  });
+
+  it("gives each list a plain label row with the fold's text, for tablet and phone (owner, batch 6)", async () => {
+    render(App, { context: hostContext(host()) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    const labels = [...document.querySelectorAll("section.card > p.label")].map((p) => p.textContent);
+    expect(labels.length).toBeGreaterThan(0);
+    for (const l of labels) expect(l).toMatch(/^.+ · \d+ of \d+$/);
+  });
+
+  it("closes Find on the system back, as any full-screen sheet", async () => {
+    render(App, { context: hostContext(host()) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.click(screen.getByRole("button", { name: "Find a step, control or term" }));
+    expect(await screen.findByRole("dialog", { name: "Find" })).toBeTruthy();
+    expect(history.state?.find).toBe(true);
+    history.replaceState({ ...history.state, find: false }, "");
+    window.dispatchEvent(new PopStateEvent("popstate", { state: history.state }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Find" })).toBeNull());
+  });
+
+  it("never ticks the step behind Find, even with focus outside its field (Space after Show all)", async () => {
+    const actions: Action[] = [];
+    const h = host({
+      apply: async (_pack, flight, action) => {
+        actions.push(action);
+        return { ...flight };
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+    await screen.findByRole("dialog", { name: "Find" });
+    (document.activeElement as HTMLElement).blur();
+    await fireEvent.keyDown(document.body, { key: " " });
+    await fireEvent.keyDown(document.body, { key: "s" });
+    expect(actions).toEqual([]);
   });
 
   it("lists open steps and puts one back to do", async () => {

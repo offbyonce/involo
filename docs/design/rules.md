@@ -43,6 +43,7 @@
 - Labels render at 11 px or more and light legends at 10 px or more at the smallest size each drawing is used. Adjust label size inside the drawing, never the geometry.
 - Switches are drawn in their real ON direction (down is ON for most of these switches) with OFF and ON labels beside each.
 - Changed controls: blue fill and outline. Resting controls: neutral outline. A control whose setting depends on a condition the app does not know yet: dashed blue outline, with the legend "dashed: only if the step's condition applies". When the condition is known (for example from the center tank step), draw the resolved position instead.
+- A step draws only the panels holding its controls or the lights its Check names, each its own tile at its own scale: side by side when they fit at full size, otherwise stacked, 16 px apart, centered, never the deck's gaps (owner, batch 6; PanelTiles board). A panel without a drawing is a tile with its name and the step's controls as a list.
 - The step map is unlabeled except the focused panel, with direction captions (aft and forward, captain and F/O side).
 - In light mode drawings use the light panel palette. No dark boxes on light pages.
 

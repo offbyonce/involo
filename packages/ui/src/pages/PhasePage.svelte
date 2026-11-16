@@ -88,7 +88,7 @@ step at a time (lib/FlowView.svelte).
     if (t instanceof Element && t.closest("input, textarea, select, button, a, summary, [contenteditable]")) return;
     // Keys never act on the list under the menu, the stage picker or a sheet.
     if (t instanceof Element && t.closest('[role="dialog"], #drawer')) return;
-    if (document.querySelector("#drawer.open, .picker") || openSteps.shown) return;
+    if (document.querySelector('#drawer.open, .picker, .find[role="dialog"]') || openSteps.shown) return;
     const at = rows.findIndex((r) => r.id === (selected ?? view.lists.find((l) => l.current)?.current));
     // A decision step that asks takes 1, 2 … and Space (Decision.dc.html).
     const asking = at >= 0 ? index.step(rows[at]?.id ?? "") : undefined;

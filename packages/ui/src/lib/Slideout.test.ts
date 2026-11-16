@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import type { FlatPack } from "@involo/bindings";
-import { cleanup, fireEvent, render, screen } from "@testing-library/svelte";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
 import Slideout from "./Slideout.svelte";
@@ -66,6 +66,23 @@ describe("Slideout", () => {
     expect(screen.getByRole("button", { name: /^Where it is/ }).getAttribute("aria-expanded")).toBe("false");
   });
 
+  it("phone: a control tapped in the list is the one ringed in the outline above (R6PhoneCtl)", async () => {
+    render(Slideout, props("panel"));
+    const halos = () => [...document.querySelectorAll(".outline .halo")].map((h) => h.closest("g.item"));
+    expect(halos()).toHaveLength(2);
+    await fireEvent.click(
+      within(screen.getByRole("list", { name: "Controls in this step" })).getByRole("button", {
+        name: /^CTR L/,
+      }),
+    );
+    expect(halos()).toHaveLength(1);
+    const items = [
+      ...(document.querySelector(".outline g.item")?.parentElement?.querySelectorAll(":scope > g.item") ??
+        []),
+    ];
+    expect(items.indexOf(halos()[0] as Element)).toBe(ctrL);
+  });
+
   it("lists Used in once per step, in flight order, as 'Step · Phase'", () => {
     render(Slideout, props("control"));
     const links = [...document.querySelectorAll(".links .lk")].map((b) => b.textContent ?? "");
@@ -108,5 +125,30 @@ describe("Slideout", () => {
     );
     await fireEvent.click(screen.getByRole("button", { name: "Change" }));
     expect(changed).toBe("ask");
+  });
+
+  it("titles the sheet with the main panel, adds Also for the others, and keeps an undrawn panel as a list (owner, batch 6)", () => {
+    const efb = index.step("ifly-737-max8.gpu-power.ground-power-cart-efb");
+    const locate = (at: string) => {
+      const [, section, label, n] = at.split("/");
+      let seen = 0;
+      const item = (index.section(section ?? "")?.items ?? []).findIndex(
+        (it) => it.label === label && ++seen === Number(n),
+      );
+      return { section: section ?? "", item, position: null, lit: true, open: false, resolved: false };
+    };
+    render(Slideout, {
+      ...props("panel"),
+      step: efb!,
+      number: 2,
+      targets: (efb?.targets ?? []).map((t) => locate(t.at ?? "")),
+    });
+    const title = screen.getByRole("heading", { level: 2 }).textContent ?? "";
+    expect(title).not.toMatch(/ and .* and /);
+    expect(document.querySelector(".head .where")?.textContent).toMatch(/Also: /);
+    // The panel the pack does not draw is a tile naming the step's control on it.
+    expect(document.querySelector(".figure .listed")?.textContent).toMatch(
+      /^Electronic flight bag(?! panel)/,
+    );
   });
 });

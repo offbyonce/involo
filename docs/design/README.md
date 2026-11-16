@@ -70,6 +70,40 @@ its stage tabs and does not use it. The stages and phases come from the pack, in
 whose page does not exist yet stay hidden, with any group heading left empty, until that page is
 built (owner, 2026-11-15).
 
+**Batch 6 additions (approved 2026-11-15).** `Find.dc.html` with twelve wrapper boards (`FindDesk`,
+`FindDeskNone`, `FindDeskStart`, `FindPhone`, `FindPhoneNone`, `FindPhoneStart`, dark and light)
+draws Find: a 640 px dialog 88 px from the top on the pop-over tokens over `color.scrim` from 900 px,
+a full-screen sheet below it. It searches every step, control and term in the pack, in sections
+(Steps, Controls, Terms) with counts and "Show all N"; the sample results are stand-ins. Ctrl K (⌘K)
+opens it from any page. `Tablet.dc.html` and `Mobile.dc.html` add Clear ticks to the menu above
+Reset flight plan, and draw no procedure header. `Menu.dc.html` (with `MenuWhere`, in `boards/`)
+opens "Where is Flight setup?" on desktop. `StagePicker.dc.html` and `Mobile.dc.html` correct the
+dark scrim to 0.55, and `Decision.dc.html` redraws DecPhone to the Mobile board's rules. The owner's
+answers: matches are marked in a step's value and a term's definition too, values clamp to two
+lines, the header button is named "Find a step, control or term", and the system back closes Find;
+Try chips keep the 44 px touch size. At tablet and phone each list after the first starts with a
+plain label row (32 px, 12 px semibold, `color.muted`, "Before start checklist · 0 of 6"), with no
+Clear ticks.
+
+**Batch 6 panels (owner, 2026-11-15).** `PanelTiles.dc.html` (dark and light) draws a step whose
+controls are on two panels, and the Whole flight deck map. A step draws only the panels that hold
+its controls or the lights its Check names, nothing between them; each is its own tile at its own
+scale, side by side when they fit at full size, otherwise stacked, 16 px apart, centered, never
+the deck's gaps. The side pane's preview card uses the same tiles at thumbnail size. A panel the
+pack has no drawing for is a tile with its name and the step's controls on it. The sheet's title
+names one panel, or a left and right pair as one ("L and R wiper panels"); otherwise the panel
+with the control the step sets (never one holding only lights its Check names), with "Also: …" in
+the sub-line. Names are the pack's as they are, in sentence case, with "panel" added only when the
+name does not end in a thing ("Control stand", "Captain and first officer displays", "Fuel
+panel"). A left and right or numbered pair is named as one ("Radio 1 and 2 panels"), in the title
+and in the "Also:" line. Every panel too wide for its room keeps a navigator strip, on single and
+multi-panel sheets alike, drawn like the Locator board's figure with "Scroll sideways for the rest
+of the panel →" beside it. A step's control the pack does not draw is listed the way a panel with
+no drawing is. The map
+has no line above it; area labels sit above their area, 8 px clear of the outline and 16 px under
+the area before; the dashed outline runs 6 px outside the area's panels; a marked box is labeled
+only when the label fits with 6 px either side.
+
 ## Read in this order
 
 1. `rules.md`: what the tokens mean and the rules every screen follows.

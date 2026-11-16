@@ -7,8 +7,8 @@
  */
 export type Opening = {
   entry: "panel" | "where" | "control";
-  /** The panel to show, when the step's controls are on several. */
-  panel?: string;
   /** The control whose card opens. */
   control?: { section: string; item: number };
+  /** Where it is open too (a control chosen in Find opens its Where is this?). */
+  where?: boolean;
 };

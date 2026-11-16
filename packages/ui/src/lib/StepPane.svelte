@@ -16,7 +16,8 @@ and a caution note under If not. A step with no control shows the steps coming u
   import Icon from "./Icon.svelte";
   import PanelPreview from "./PanelPreview.svelte";
   import type { Opening } from "./opening";
-  import { panelCaption } from "./panel-name";
+  import { panelName } from "./panel-name";
+  import { stepTiles, tilesTitle } from "./step-tiles";
 
   let {
     index,
@@ -68,20 +69,11 @@ and a caution note under If not. A step with no control shows the steps coming u
   let howOpen = $state(false);
   let termsOpen = $state(false);
 
-  // One preview per panel the step's controls are on, its own control's first.
-  let cards = $derived.by(() => {
-    const ids = [...new Set([place?.section?.id, ...targets.map((t) => t.section)].filter((x): x is string => !!x))];
-    const byPanel = new Map<string, { panel: NonNullable<ReturnType<PackIndex["panelOf"]>>; focus: string[] }>();
-    for (const id of ids) {
-      const panel = index.panelOf(id);
-      if (!panel) continue;
-      const card = byPanel.get(panel.id) ?? { panel, focus: [] };
-      card.focus.push(id);
-      byPanel.set(panel.id, card);
-    }
-    return [...byPanel.values()];
-  });
-  const caption = (focus: string[]) => panelCaption(focus.map((id) => index.section(id)?.title ?? id));
+  // The step's panels as tiles (owner, batch 6), in one preview card at thumbnail size.
+  let tiles = $derived(stepTiles(index, step, targets));
+  let drawnTiles = $derived(tiles.flatMap((t) => (t.kind === "drawn" ? [t] : [])));
+  let listedTiles = $derived(tiles.flatMap((t) => (t.kind === "listed" ? [t] : [])));
+  let cardName = $derived(tilesTitle(tiles).title);
   /** The step's own control, for How to do it's link to its card. */
   let own = $derived.by(() => {
     const id = place?.control?.id;
@@ -93,8 +85,7 @@ and a caution note under If not. A step with no control shows the steps coming u
     return null;
   });
   const openOwn = () => {
-    const card = cards.find((c) => own && c.focus.includes(own.section));
-    if (card && own) onOpen({ entry: "control", panel: card.panel.id, control: { section: own.section, item: own.item } });
+    if (own) onOpen({ entry: "control", control: { section: own.section, item: own.item } });
   };
   let guardClosed = $derived(/\bGUARDS? CLOSED\b/i.test(step.expect));
   let where = $derived(place ? `${place.zone.area}` : "");
@@ -170,16 +161,21 @@ and a caution note under If not. A step with no control shows the steps coming u
       <span class="lk">Where is this?</span>
     </button>
     {#if preview}
-      {#each cards as card (card.panel.id)}
-        <button class="preview" type="button" aria-label="Show the whole {caption(card.focus)}" onclick={() => onOpen({ entry: "panel", panel: card.panel.id })}>
-          <PanelPreview panel={card.panel} focus={card.focus} {targets} {guardClosed} label="The whole {caption(card.focus)}" />
+      {#if tiles.length}
+        <button class="preview" type="button" aria-label="Show the whole {[cardName, tilesTitle(tiles).also].filter(Boolean).join(", ")}" onclick={() => onOpen({ entry: "panel" })}>
+          {#if drawnTiles[0]}
+            <PanelPreview panel={drawnTiles[0].panel} focus={[]} tiles={drawnTiles.map((d) => d.section)} {targets} {guardClosed} label="The whole {cardName}" />
+          {/if}
+          {#each listedTiles as l (l.id)}
+            <span class="listed"><b>{panelName(l.title)}</b> {l.controls.join(", ")}</span>
+          {/each}
           <span class="foot">
-            <span class="cap">{caption(card.focus)} · blue: set by this step</span>
+            <span class="cap">{cardName}{#if drawnTiles.length}{" · blue: set by this step"}{/if}</span>
             <span class="show">Show panel</span>
             <kbd aria-hidden="true">P</kbd>
           </span>
         </button>
-      {/each}
+      {/if}
     {:else}
       <button class="show-panel" type="button" onclick={() => onOpen({ entry: "panel" })}>
         <Icon name="panel" /> Show panel <kbd aria-hidden="true">P</kbd>
@@ -358,6 +354,15 @@ and a caution note under If not. A step with no control shows the steps coming u
     background: var(--panel-bg);
     font: inherit;
     text-align: left;
+  }
+  /* A panel the pack does not draw, named with the step's controls on it (owner, batch 6). */
+  .listed {
+    color: var(--panel-text);
+    font-size: var(--font-size-secondary);
+  }
+  .listed b {
+    color: var(--panel-label);
+    font-weight: var(--weight-semibold);
   }
   .foot {
     display: flex;

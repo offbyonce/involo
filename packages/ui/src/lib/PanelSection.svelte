@@ -30,6 +30,7 @@ What the step asks for, never the simulator's state (decision 0006).
     band,
     frame,
     titled = true,
+    tileRx = null,
     framed = true,
     textless = false,
     halo = false,
@@ -37,6 +38,7 @@ What the step asks for, never the simulator's state (decision 0006).
     hit = 0,
     onPick,
     selected,
+    ringed = null,
   }: {
     section: PanelSection;
     targets: ItemTarget[];
@@ -47,6 +49,9 @@ What the step asks for, never the simulator's state (decision 0006).
     frame?: { y0: number; y1: number; x0: number; x1: number } | undefined;
     /** The section's title is drawn; a later part of a divided section continues without it. */
     titled?: boolean;
+    /** One tile among several (PanelTiles board): the panel's fill, a thin frame, and this radius
+     * (8 px on screen, in drawing units). */
+    tileRx?: number | null;
     /** Its outline is drawn; the side pane's card is the outline of a drawing of one section, as
      * on the boards, so a cut frame never shows as stray lines across it. */
     framed?: boolean;
@@ -64,6 +69,9 @@ What the step asks for, never the simulator's state (decision 0006).
     onPick?: ((section: string, item: number) => void) | undefined;
     /** The tapped control, ringed while its card is open (solid, never dashed). */
     selected?: number | null | undefined;
+    /** A control tapped in the phone's controls list: the only one with the halo in the
+     * label-free outline (R6PhoneCtl); -1 when it is in another section. */
+    ringed?: number | null | undefined;
   } = $props();
 
   /** Room above a cut-down section for its title, so it never overlaps the top row. */
@@ -122,7 +130,7 @@ What the step asks for, never the simulator's state (decision 0006).
 </script>
 
 <g class:textless transform="translate({section.x} {section.y})">
-  <rect class="frame" class:bare={!framed} x={left} y={top} width={right - left} height={frameBottom - top} rx="3" />
+  <rect class="frame" class:bare={!framed} class:tile={tileRx != null} x={left} y={top} width={right - left} height={frameBottom - top} rx={tileRx ?? 3} />
   {#if titled}<text class="title" x={left + 8} y={top + 13} style:font-size={fs(PX.title * layout.scale)}>{section.title.toUpperCase()}</text>{/if}
   {#each shown as { item, i } (i)}
     {@const on = byItem.has(i)}
@@ -134,7 +142,7 @@ What the step asks for, never the simulator's state (decision 0006).
     {@const open = on && (byItem.get(i)?.open ?? false)}
     {@const r = (!on || (t == null && !open)) && item.rest ? positions.indexOf(item.rest) : -1}
     <g class="item {item.kind}" class:on class:resolved={on && (byItem.get(i)?.resolved ?? false)} class:conditional={open} transform="translate({item.x} {item.y})">
-      {#if halo && on}
+      {#if ringed != null ? ringed === i : halo && on}
         {@const hw = item.kind === "light" ? LAMP.w / 2 : halfWidth(item)}
         {@const hh = item.kind === "light" ? LAMP.h / 2 : half(item)}
         <rect class="halo" x={-hw - 6} y={-hh - 6} width={2 * hw + 12} height={2 * hh + 12} rx="6" />
@@ -329,6 +337,11 @@ What the step asks for, never the simulator's state (decision 0006).
     fill: var(--panel-bg);
     stroke: var(--panel-stroke);
     stroke-width: 1;
+  }
+  .frame.tile {
+    fill: var(--panel-fill);
+    stroke: var(--panel-frame);
+    vector-effect: non-scaling-stroke;
   }
   .frame.bare {
     stroke: none;

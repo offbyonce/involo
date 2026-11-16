@@ -19,6 +19,7 @@ steps:
       - speedt
     targets:
       - at: "con/st/FLAP LEVER/1"
+      - at: "mn/cd/OUTBOARD DU: PFD/1"
     quick: always
     why: "Configure early so you are stable by 1,000 ft in cloud or 500 ft in visual conditions"
     how: flapdn

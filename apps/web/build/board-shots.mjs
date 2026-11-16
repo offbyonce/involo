@@ -182,6 +182,16 @@ const SHOTS = [
   ["StagesPhone", { layout: "phone" }, 390, 844, "StagePicker", round6],
   ["StagesTabP", { layout: "tabletP" }, 820, 1180, "StagePicker", round6],
   ["StagesTabL", { layout: "tabletL" }, 1180, 820, "StagePicker", round6],
+  // Batch 6: the desktop menu's "Where is Flight setup?" opened, and Find.
+  ["MenuWhere", { where: true }, 1440, 900, "Menu"],
+  ["FindDesk", { layout: "desktop", state: "results" }, 1440, 900, "Find", round6],
+  ["FindDeskNone", { layout: "desktop", state: "none" }, 1440, 900, "Find", round6],
+  ["FindDeskStart", { layout: "desktop", state: "start" }, 1440, 900, "Find", round6],
+  ["FindPhone", { layout: "phone", state: "results" }, 390, 844, "Find", round6],
+  ["FindPhoneNone", { layout: "phone", state: "none" }, 390, 844, "Find", round6],
+  ["FindPhoneStart", { layout: "phone", state: "start" }, 390, 844, "Find", round6],
+  // Batch 6 panels: a step's panels as tiles, and the deck map (owner).
+  ["PanelTiles", {}, 1440, 1100, "PanelTiles", round6],
 ];
 
 async function main() {
