@@ -557,7 +557,7 @@ const SHOTS = [
   { name: "board-tour-welcome", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenWelcome] } },
   { name: "board-tour-step", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(0)] } },
   { name: "board-tour-end", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(5)] } },
-  ...[3, 4, 5, 6].map((n) => ({ name: `tour-step-${n}`, tour: true, only: n === 3 ? ["desktop", "phone"] : ["desktop"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(n - 2)] } })),
+  ...[3, 4, 5, 6].map((n) => ({ name: `tour-step-${n}`, tour: true, only: n <= 4 ? ["desktop", "phone"] : ["desktop"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(n - 2)] } })),
   { name: "practice-paired-light", only: ["desktop"], app: { hash: "#/practice", before: [practice("pair")] } },
   { name: "practice-engine-start", only: ["desktop"], app: { hash: "#/practice", before: [practice("engine")] } },
   // The Glossary (owner): desktop at APU as the boards show, the phone's list, and APU on phone.

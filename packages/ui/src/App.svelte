@@ -673,7 +673,13 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let tourFrom: HTMLElement | null = null;
   function takeTour(): void {
     tourFrom = document.querySelector<HTMLElement>("header.top .menu");
-    if (screen !== "phase" && screen !== "start") location.hash = "#/";
+    // From another page: the checklist where the pilot left it, as the pages' Checklist button (the
+    // phase last open this visit), else the first phase with steps still to do. Nothing is reset.
+    if (screen !== "phase" && screen !== "start") {
+      const open = rail?.stages.flatMap((s) => s.phases).find((p) => p.progress.toDo > 0)?.id;
+      const to = lastPhase ?? open;
+      location.hash = to ? phaseHref(to) : "#/";
+    }
     tour.dir = 1;
     tour.step = 2;
   }

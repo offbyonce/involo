@@ -30,7 +30,7 @@ export const TARGETS: Record<number, string[]> = {
  */
 export function stepText(
   step: number,
-  opts: { tabs: boolean; stages: [string, string]; findKey: string },
+  opts: { tabs: boolean; bar?: boolean; stages: [string, string]; findKey: string },
 ): StepText | null {
   switch (step) {
     case 2:
@@ -46,13 +46,16 @@ export function stepText(
     case 3:
       return {
         title: "The current step",
-        body: "The highlighted row is the step to do now. Set the control in the simulator, then press Done, or pick the answer when the step asks a question. Skip for now leaves it open, so you can come back to it.",
+        // On phone the Done / Skip for now bar is lit, not the row (owner).
+        body: opts.bar
+          ? "The step to do now is at the top of the list. Set the control in the simulator, then press Done here, or pick an answer when the step asks a question. Skip for now leaves it open to come back to."
+          : "The highlighted row is the step to do now. Set the control in the simulator, then press Done, or pick an answer when the step asks a question. Skip for now leaves it open to come back to.",
         keys: "Space done · S skip for now",
       };
     case 4:
       return {
         title: "Where is this?",
-        body: "Each step with a control says which panel it’s on and where that panel is on the flight deck. The panel preview, when it’s on in Settings, shows the controls this step sets in blue. Where is this? shows the panel on a map of the flight deck.",
+        body: "Each step with a control says which panel it’s on and where that panel is. Where is this? opens the panel with the step’s controls in blue, and a link to it on the Flight deck.",
         keys: "W where is this? · P show panel",
       };
     case 5:
@@ -116,7 +119,18 @@ export function targetOf(step: number, root: ParentNode = document): Target | nu
     return { els: [row], selector: "row", bar: false, row: null };
   }
   for (const selector of TARGETS[step] ?? []) {
-    const els = [...root.querySelectorAll(selector)].filter(shown);
+    let els = [...root.querySelectorAll(selector)].filter(shown);
+    // Step 4: the location line and the preview together where they sit one under the other (the
+    // side pane); where they are apart (the phone's opened row), the line alone, with its Where is
+    // this?, so the ring never runs under the sheet.
+    if (step === 4 && els.length > 1) {
+      const rects = els
+        .map((el) => ({ el, r: el.getBoundingClientRect() }))
+        .sort((a, b) => a.r.top - b.r.top);
+      const apart = rects.some((x, i) => i > 0 && x.r.top - (rects[i - 1]?.r.bottom ?? x.r.top) > 24);
+      const line = els.find((el) => el.classList.contains("line"));
+      if (apart && line) els = [line];
+    }
     if (els.length) return { els, selector, bar: false, row: null };
   }
   return null;

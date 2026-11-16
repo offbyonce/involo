@@ -889,6 +889,37 @@ describe("App", () => {
       expect(screen.queryByRole("dialog", { name: /step 3 of 7/ })).toBeNull();
     });
 
+    it("from another page, opens the checklist where the pilot left it, or at the first phase with steps to do, resetting nothing", async () => {
+      const actions: Action[] = [];
+      const h = host({
+        apply: async (_pack, flight, action) => {
+          actions.push(action);
+          return { ...flight };
+        },
+      });
+      const take = async () => {
+        await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+        await fireEvent.click(screen.getByRole("button", { name: "Take the tour" }));
+      };
+      // Straight to Settings on this visit: the first phase with steps still to do.
+      window.location.hash = "#/settings";
+      render(App, { context: hostContext(h) });
+      await screen.findByRole("button", { name: "Menu" });
+      await waitFor(() => expect(screen.getByRole("button", { name: "Take the tour" })).toBeTruthy());
+      await take();
+      await waitFor(() => expect(window.location.hash).toBe("#/phase/power-up"));
+      await fireEvent.keyDown(window, { key: "Escape" });
+      // After Taxi, from Settings: back to Taxi.
+      window.location.hash = "#/phase/taxi";
+      await waitFor(() => expect(window.location.hash).toBe("#/phase/taxi"));
+      await new Promise((r) => setTimeout(r, 20));
+      window.location.hash = "#/settings";
+      await screen.findByRole("heading", { level: 1, name: "Settings" });
+      await take();
+      await waitFor(() => expect(window.location.hash).toBe("#/phase/taxi"));
+      expect(actions).toEqual([]);
+    });
+
     it("starts from the menu's Take the tour, the last item of This flight and the app, and gives focus back to the menu button", async () => {
       vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
         const on = this.matches('[data-tour="stage-button"], [data-tour="stages"]');

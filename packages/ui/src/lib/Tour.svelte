@@ -49,7 +49,7 @@ ticks, skips or changes anything in the flight.
   let centerTop = $state<number | null>(null);
 
   let step = $derived(tour.step ?? 1);
-  let text = $derived(stepText(step, { tabs: lit?.tabs ?? true, stages, findKey }));
+  let text = $derived(stepText(step, { tabs: lit?.tabs ?? true, bar: lit?.bar ?? false, stages, findKey }));
   let sheet = $derived(!wide && !lit?.bar);
   /** Whether the card is placed and can show: a lit step's card waits for its element, so a step
    * that will be skipped never shows (review). */

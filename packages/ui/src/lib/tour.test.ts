@@ -60,6 +60,24 @@ describe("the tour's targets", () => {
     document.body.innerHTML = `<button class="line" data-tour="where"></button><button class="preview" data-tour="where"></button><aside><button data-tour="where" class="hidden"></button></aside>`;
     layout(".line, .preview");
     expect(targetOf(4)?.els.map((e) => e.className)).toEqual(["line", "preview"]);
+    // Apart (the phone's opened row): the line alone.
+    vi.restoreAllMocks();
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
+      const top = this.matches(".line") ? 600 : 100;
+      const on = this.matches(".line, .preview");
+      return {
+        top,
+        left: 10,
+        bottom: on ? top + 40 : top,
+        right: on ? 300 : 10,
+        width: on ? 290 : 0,
+        height: on ? 40 : 0,
+        x: 10,
+        y: top,
+        toJSON: () => ({}),
+      } as DOMRect;
+    });
+    expect(targetOf(4)?.els.map((e) => e.className)).toEqual(["line"]);
   });
 });
 
@@ -85,6 +103,14 @@ describe("the tour's words", () => {
       expect(sentences, String(n)).toBeLessThanOrEqual(3);
     }
     expect(stepText(3, opts)?.keys).toBe("Space done · S skip for now");
+    // Step 3 on phone lights the bar, not the row (owner).
+    expect(stepText(3, opts)?.body).toMatch(/^The highlighted row is the step to do now\./);
+    expect(stepText(3, { ...opts, bar: true })?.body).toBe(
+      "The step to do now is at the top of the list. Set the control in the simulator, then press Done here, or pick an answer when the step asks a question. Skip for now leaves it open to come back to.",
+    );
+    expect(stepText(4, opts)?.body).toBe(
+      "Each step with a control says which panel it’s on and where that panel is. Where is this? opens the panel with the step’s controls in blue, and a link to it on the Flight deck.",
+    );
     expect(stepText(4, opts)?.keys).toBe("W where is this? · P show panel");
     expect(stepText(5, opts)?.keys).toBeUndefined();
     expect(stepText(6, opts)?.keys).toBe("Ctrl K open Find");
