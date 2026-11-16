@@ -7,8 +7,8 @@ a 640 px dialog 88 px from the top, centered, on the pop-over tokens over color.
 full-screen sheet with a back button and a boxed field. It searches every step, control and term
 in the pack: Steps, Controls, Terms, each with its count and its first three matches ("Show all N";
 Terms shows every match). The first result is active; ↑ and ↓ move, Enter opens. A step goes to the
-step and opens it, a control opens its Where is this?, a term shows its whole definition in place
-(until the Glossary page exists). Before typing: the help line and the Try chips; no match: "Nothing
+step and opens it, a control opens its Where is this?, a term opens the Glossary at that
+term. Before typing: the help line and the Try chips; no match: "Nothing
 matches “…”". Esc, the scrim and the back button close it.
 -->
 <script lang="ts">
@@ -27,6 +27,7 @@ matches “…”". Esc, the scrim and the back button close it.
     findKey = "Ctrl K",
     onStep,
     onControl,
+    onTerm = () => {},
     onClose,
   }: {
     find: FindIndex;
@@ -39,6 +40,8 @@ matches “…”". Esc, the scrim and the back button close it.
     findKey?: string;
     onStep: (id: string) => void;
     onControl: (control: FindControl) => void;
+    /** A term opens the Glossary at that term (owner), in place of its definition. */
+    onTerm?: (term: string) => void;
     onClose: () => void;
   } = $props();
 
@@ -49,7 +52,7 @@ matches “…”". Esc, the scrim and the back button close it.
   let input = $state<HTMLInputElement | null>(null);
   let found = $derived(findIn(find, query, rail, { phase, step: current }));
   let all = $state({ steps: false, controls: false });
-  /** A term, or a control no step on this flight uses, opened in place. */
+  /** A control no step on this flight uses, opened in place. */
   let opened = $state<string | null>(null);
   $effect(() => {
     void query;
@@ -81,6 +84,7 @@ matches “…”". Esc, the scrim and the back button close it.
   function choose(r: Row): void {
     if (r.kind === "step") onStep(r.s.id);
     else if (r.kind === "control" && r.c.step) onControl(r.c);
+    else if (r.kind === "term") onTerm(r.t.term);
     else opened = opened === keyOf(r) ? null : keyOf(r);
   }
   async function move(by: number): Promise<void> {
@@ -242,7 +246,6 @@ matches “…”". Esc, the scrim and the back button close it.
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <div
               class="opt"
-              class:opened={opened === `t:${t.term}`}
               role="option"
               tabindex="-1"
               id="find-r-{at}"
@@ -472,15 +475,12 @@ matches “…”". Esc, the scrim and the back button close it.
     font-family: var(--font-mono);
     font-size: var(--font-size-caption);
   }
-  /* A term's definition on one line until it is opened (in place, until the Glossary page). */
+  /* A term's definition on one line (the Glossary holds it whole). */
   .mean {
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-  .opened .mean {
-    white-space: normal;
   }
   .end {
     display: flex;

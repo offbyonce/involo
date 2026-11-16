@@ -4,7 +4,7 @@
 // Screens have their own address after `#`, so Back works and a screen can be bookmarked,
 // offline too. `#/phase/<id>`, `#/reference` (optionally `/<phase id>`), `#/settings`,
 // `#/flight/<section>` (the Flight pages, batch 4; optionally `/<field>` to focus a field, or the
-// Weather tab), `#/open` (open steps); anything else is the start. `#/setup` (Flight setup until
+// Weather tab), `#/open` (open steps), `#/glossary` (optionally `/<term>`); anything else is the start. `#/setup` (Flight setup until
 // batch 4) leads to Flight › Overview.
 
 export type Route =
@@ -13,7 +13,8 @@ export type Route =
   | { screen: "reference"; id: string | null }
   | { screen: "settings" }
   | { screen: "flight"; section: FlightSection; focus: string | null }
-  | { screen: "open" };
+  | { screen: "open" }
+  | { screen: "glossary"; term: string | null };
 
 export function parseRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
@@ -28,6 +29,7 @@ export function parseRoute(hash: string): Route {
     return { screen: "flight", section, focus: parts[2] ?? null };
   }
   if (parts[0] === "open") return { screen: "open" };
+  if (parts[0] === "glossary") return { screen: "glossary", term: parts[1] ?? null };
   return { screen: "start" };
 }
 

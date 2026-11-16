@@ -18,6 +18,7 @@ import {
   MIN_SCALE,
   nameFit,
   openingScroll,
+  openingTop,
   PX,
   roomScale,
   TOGGLE,
@@ -358,5 +359,19 @@ describe("tileScale (PanelTiles board)", () => {
     expect(tileScale(drawingScale(800, 100, 1.25).k, 1.25)).toBe(K * 1.25);
     // Smaller only to fit.
     expect(tileScale(K / 2)).toBe(K / 2);
+  });
+});
+
+describe("openingTop (owner, Glossary answers)", () => {
+  it("keeps the step's controls in view, the strip too when both fit, and the controls when not", () => {
+    // No strip: the controls centered.
+    expect(openingTop({ top: 900, bottom: 1000 }, 400)).toBe(750);
+    // tiles-07: the strip at 40, the controls at 300 to 380, a 400 high sheet: both, from the strip.
+    expect(openingTop({ top: 300, bottom: 380 }, 400, 40)).toBe(40);
+    // Both fit, but the controls' bottom needs more than the strip's top allows: as low as keeps the strip.
+    expect(openingTop({ top: 150, bottom: 430 }, 400, 40)).toBe(40);
+    // They do not fit: the controls win, centered.
+    expect(openingTop({ top: 1100, bottom: 1200 }, 400, 40)).toBe(950);
+    expect(openingTop({ top: 0, bottom: 50 }, 400, 300)).toBe(0);
   });
 });

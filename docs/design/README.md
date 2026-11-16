@@ -85,6 +85,18 @@ Try chips keep the 44 px touch size. At tablet and phone each list after the fir
 plain label row (32 px, 12 px semibold, `color.muted`, "Before start checklist · 0 of 6"), with no
 Clear ticks.
 
+**Glossary (approved 2026-11-15).** `Glossary.dc.html` with `GlossaryDesk` (desktop and tablet
+landscape), `GlossaryPhone` (the term list; tablet portrait uses it) and `GlossaryPhoneTerm` (one
+term), dark and light, in `round6/boards`. Built from the pack's terms: a term's expansion is the
+first sentence of its definition only when the term is an abbreviation and that sentence is a
+short name (no verb, eight words or fewer); "In the steps" lists every step whose terms name it.
+Where is this? and Related stay out, as the pack has no data for them (owner). A term in Find opens
+the Glossary at that term, each definition in a step's Terms has its own "Open in Glossary", and
+the menu shows Glossary under Reference. Two step rows that would read the same also name their
+list. No new tokens (owner): a term's text keeps the boards' 640 px reading width (written as
+`size.drawer` plus `size.map-figure`) and its definition the 1.55 line height (`leading.normal`
+plus 0.05). Terms IGN L, IGN R, PERF INIT and MA take no expansion (reviewed exceptions).
+
 **Batch 6 panels (owner, 2026-11-15).** `PanelTiles.dc.html` (dark and light) draws a step whose
 controls are on two panels, and the Whole flight deck map. A step draws only the panels that hold
 its controls or the lights its Check names, nothing between them; each is its own tile at its own

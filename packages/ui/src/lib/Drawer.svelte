@@ -5,7 +5,7 @@ The menu drawer, at every size (boards: Menu at 1440, Tablet's menu overlay from
 Mobile's menu screen below 600 px). Its header holds the small mark, "involo", a sub-line
 (aircraft, the time of the last save this visit, and on tablet the overall count) and Close. Then
 the step settings, the menu groups and Reset flight plan. Items whose page does not exist yet
-(Practice, How procedures work, Flight deck, Glossary, References, Flight log, Take the tour) stay
+(Practice, How procedures work, Flight deck, References, Flight log, Take the tour) stay
 hidden until that page is built, with any group heading left empty (owner, batch 5). The version
 line lives at the foot of Settings.
 -->
@@ -103,6 +103,11 @@ line lives at the foot of Settings.
         <button type="button" aria-pressed={detail === "expanded"} onclick={() => onDetail("expanded")}>Detailed</button>
         <button type="button" aria-pressed={detail === "quick"} onclick={() => onDetail("quick")}>Simple</button>
       </div>
+    </div>
+    <!-- Reference (Menu board): Glossary; Flight deck and References wait for their pages. -->
+    <div class="group">
+      <span class="label">Reference</span>
+      <a href="#/glossary" onclick={onClose}>Glossary</a>
     </div>
     <div class="group">
       <span class="label">This flight and the app</span>

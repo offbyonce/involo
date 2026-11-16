@@ -16,6 +16,7 @@ and a caution note under If not. A step with no control shows the steps coming u
   import Icon from "./Icon.svelte";
   import PanelPreview from "./PanelPreview.svelte";
   import type { Opening } from "./opening";
+  import { glossaryHref } from "./glossary";
   import { panelName } from "./panel-name";
   import { stepTiles, tilesTitle } from "./step-tiles";
 
@@ -148,7 +149,11 @@ and a caution note under If not. A step with no control shows the steps coming u
     {/if}
     {#if termsOpen}
       <dl class="open-block terms">
-        {#each terms as t (t.term)}<div><dt>{t.term}</dt><dd>{t.meaning}</dd></div>{/each}
+        <!-- Each term keeps its definition here, with its own way into the Glossary (owner). -->
+        {#each terms as t (t.term)}<div>
+            <dt>{t.term}</dt>
+            <dd>{t.meaning} <a class="lk" href={glossaryHref(t.term)}>Open in Glossary<span class="sr-only">: {t.term}</span></a></dd>
+          </div>{/each}
       </dl>
     {/if}
   {/if}
