@@ -472,7 +472,8 @@ fn minutes(ms: Millis) -> u64 {
 /// Each stage's whole minutes, rounded so they add up to the flight's rounded total (the largest
 /// remainder method: every stage gets its whole minutes, then the stages with the largest leftover
 /// seconds get one more each, earlier stages first on a tie). The stages run from off blocks to on
-/// blocks, so their sum is the flight's time. packages/ui's `stageMinutes` does the same.
+/// blocks, so their sum is the flight's time. packages/ui's `stageTimes` does the same; both are
+/// tested against tests/fixtures/stage-minutes.json.
 fn stage_minutes(stages: &[StageTime]) -> Vec<u64> {
     const MIN: Millis = 60_000;
     let mut out: Vec<u64> = stages.iter().map(|s| s.ms / MIN).collect();
@@ -971,35 +972,32 @@ mod tests {
 
     #[test]
     fn stage_minutes_add_up_to_the_flight_s_total() {
-        let st = |title: &str, ms: Millis| StageTime {
-            title: title.into(),
-            ms,
-        };
-        // 38 min 40 s + 50 min 40 s + 71 min 40 s = 161 min: rounded one by one they make 162.
-        let stages = [
-            st("Preflight", 38 * MIN + 40_000),
-            st("Departure", 50 * MIN + 40_000),
-            st("Arrival", 71 * MIN + 40_000),
-        ];
-        assert_eq!(stage_minutes(&stages), [39, 51, 71]);
-        // 3 × 20 min 20 s = 61 min: the earliest stage takes the one extra minute.
-        let even = [
-            st("A", 20 * MIN + 20_000),
-            st("B", 20 * MIN + 20_000),
-            st("C", 20 * MIN + 20_000),
-        ];
-        assert_eq!(stage_minutes(&even), [21, 20, 20]);
-        // The largest leftover wins, wherever it is.
-        let mixed = [
-            st("A", 10 * MIN + 10_000),
-            st("B", 10 * MIN + 50_000),
-            st("C", 10 * MIN),
-        ];
-        assert_eq!(stage_minutes(&mixed), [10, 11, 10]);
-        assert_eq!(stage_minutes(&[]), Vec::<u64>::new());
-        let total = |s: &[StageTime]| minutes(s.iter().map(|s| s.ms).sum());
-        for s in [&stages[..], &even, &mixed] {
-            assert_eq!(stage_minutes(s).iter().sum::<u64>(), total(s));
+        // The cases packages/ui's stageTimes test reads too, so the two copies cannot drift.
+        let fixture: serde_json::Value =
+            serde_json::from_str(include_str!("../tests/fixtures/stage-minutes.json")).unwrap();
+        let cases = fixture["cases"].as_array().unwrap();
+        assert!(cases.len() >= 5);
+        for case in cases {
+            let name = case["name"].as_str().unwrap();
+            let numbers = |key: &str| -> Vec<u64> {
+                case[key]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|n| n.as_u64().unwrap())
+                    .collect()
+            };
+            let stages: Vec<StageTime> = numbers("ms")
+                .into_iter()
+                .map(|ms| StageTime {
+                    title: "Stage".into(),
+                    ms,
+                })
+                .collect();
+            let shown = stage_minutes(&stages);
+            assert_eq!(shown, numbers("minutes"), "{name}");
+            let total = minutes(stages.iter().map(|s| s.ms).sum());
+            assert_eq!(shown.iter().sum::<u64>(), total, "{name}");
         }
     }
 
