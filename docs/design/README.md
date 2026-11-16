@@ -97,8 +97,23 @@ list. No new tokens (owner): a term's text keeps the boards' 640 px reading widt
 `size.drawer` plus `size.map-figure`) and its definition the 1.55 line height (`leading.normal`
 plus 0.05). Terms IGN L, IGN R, PERF INIT and MA take no expansion (reviewed exceptions).
 
+**Flight deck (owner, 2026-11-16).** Built from `Deck.dc.html` (1440 px and up: the side view
+over the area list, the area's map with "Panels in this area, as a list" and "Light meanings for
+this area", the selected panel) and `PhoneDeck.dc.html` (below 900 px: the area picker in the
+header, the map, the list and the selected panel, "Used by"). From 900 to 1439 px the page shows the
+area list and the area, and a selected panel opens in a slide-out drawn as the step's, not a third
+column. The areas are the board's seven, the pack's center console split into the forward
+electronic panel (P9), the control stand and the aft electronic panel (P8) by its places' area
+names, then "Around the flight deck" last: it has no map region, so its places are a list, each with
+its location line and, where the pack draws it, its drawing, and nothing is lit in the side view.
+The map is the pack's overview, with the batch 6 map rules (a box is named only when its name fits
+with 6 px either side). The selected panel is an overview fitted to its column (labels may go below
+11 px there), with "Full size ›" opening it in the panel sheet at the 11 px minimum, under a
+navigator when wider; the 900 to 1439 px slide-out shows it at full size. The slide-out's and Where is this?'s "Whole flight deck" map is gone: "Open
+in Flight deck", as the Locator board draws it, opens the page at that panel.
+
 **Batch 6 panels (owner, 2026-11-15).** `PanelTiles.dc.html` (dark and light) draws a step whose
-controls are on two panels, and the Whole flight deck map. A step draws only the panels that hold
+controls are on two panels, and the Whole flight deck map (replaced by the Flight deck page). A step draws only the panels that hold
 its controls or the lights its Check names, nothing between them; each is its own tile at its own
 scale, side by side when they fit at full size, otherwise stacked, 16 px apart, centered, never
 the deck's gaps. The side pane's preview card uses the same tiles at thumbnail size. A panel the

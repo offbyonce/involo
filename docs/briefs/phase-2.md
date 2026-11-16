@@ -226,6 +226,11 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       expansion only for an abbreviation whose first sentence is a short name, "In the steps";
       no Where is this? or Related (no pack data, no format change). Find's terms and the step's
       "Open in Glossary" lead to it; its menu item shows under Reference.
+      Then the Flight deck (owner, 2026-11-16, Deck and PhoneDeck boards): the board's seven
+      areas and "Around the flight deck" last; 900 to 1439 px in two columns with the panel in a
+      slide-out; "Open in Flight deck" replaces the slide-out's Whole flight deck map. Flight log
+      waits for the owner's decision on saving past flights; Practice, How procedures work,
+      References and the tour wait for their boards.
       First, from batch 5 (owner, 2026-11-15), once the boards show them: the procedure header
       hidden at tablet and phone, with Clear ticks in the menu as a row just above Reset flight
       plan (same style, same Undo toast); and the desktop menu's "Where is Flight setup?", which

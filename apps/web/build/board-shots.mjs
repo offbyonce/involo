@@ -193,6 +193,9 @@ const SHOTS = [
   // Batch 6 panels: a step's panels as tiles, and the deck map (owner).
   ["PanelTiles", {}, 1440, 1100, "PanelTiles", round6],
   // The Glossary (owner): desktop and tablet landscape, the phone's term list, one term on phone.
+  // The Flight deck (owner): Deck, and PhoneDeck (the Mobile board's deck screen).
+  ["Deck", {}, 1440, 900, "Deck"],
+  ["PhoneDeck", { screen: "deck" }, 390, 844, "Mobile", round6],
   ["GlossaryDesk", { layout: "desktop" }, 1440, 900, "Glossary", round6],
   ["GlossaryPhone", { layout: "phone" }, 390, 844, "Glossary", round6],
   ["GlossaryPhoneTerm", { layout: "phoneTerm" }, 390, 844, "Glossary", round6],

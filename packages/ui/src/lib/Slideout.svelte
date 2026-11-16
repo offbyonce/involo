@@ -32,7 +32,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   import { panelCaption } from "./panel-name";
   import { stepTitle } from "./sentence";
   import ViewDrawing from "./ViewDrawing.svelte";
-  import WholeDeck from "./WholeDeck.svelte";
+  import { areaOf, deckAreas, deckHref } from "./deck";
 
   let {
     index,
@@ -63,7 +63,6 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   let whereOpen = $state(opening.entry === "where" || !!opening.where);
   // svelte-ignore state_referenced_locally
   let picked = $state<{ section: string; item: number } | null>(opening.entry === "control" ? (opening.control ?? null) : null);
-  let deck = $state(false);
   // svelte-ignore state_referenced_locally
 
   let place = $derived(index.place(step));
@@ -76,6 +75,8 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   /** One drawn panel alone (the navigator follows it when it is wider than the room). */
   let single = $derived(tiles.length === 1 ? drawnTiles[0] : undefined);
   let zone = $derived(place?.zone);
+  /** The Flight deck page at this panel (Locator board: "Open in Flight deck"). */
+  let deckLink = $derived(zone ? deckHref(areaOf(deckAreas(index), zone.id)?.id, zone.id) : "#/deck");
   let where = $derived(
     zone ? [zone.area, zone.position ? zone.position.charAt(0).toLowerCase() + zone.position.slice(1) : null].filter(Boolean).join(" · ") : "",
   );
@@ -296,7 +297,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
     <section class="panel" aria-labelledby="so-panel">
       <div class="row" bind:clientHeight={rowHeight}>
         <h3 id="so-panel">The panel</h3>
-        <button class="deck-toggle" type="button" aria-expanded={deck} onclick={() => (deck = !deck)}>Whole flight deck <Icon name="chevron-down" /></button>
+        <a class="deck-link" href={deckLink}>Open in Flight deck</a>
       </div>
       {#if wider && scroller && single}
         <div class="nav" bind:clientHeight={navHeight}>
@@ -335,8 +336,6 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
           </figcaption>
         </figure>
       {/if}
-      <!-- The map comes after the step's panels (PanelTiles board). -->
-      {#if deck && zone}<WholeDeck {index} {zone} />{/if}
     </section>
     {#if card}
       <section class="card" aria-labelledby="so-card" bind:this={cardEl}>
@@ -570,19 +569,14 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   .row h3 {
     flex: 1;
   }
-  .deck-toggle {
+  /* "Open in Flight deck" (Locator board): a 44 px link. */
+  .deck-link {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-1);
     min-height: var(--size-touch-min);
-    border: 0;
-    background: none;
     color: var(--color-link);
-    font: inherit;
     font-size: var(--font-size-secondary);
-  }
-  .deck-toggle[aria-expanded="true"] :global(.icon) {
-    transform: rotate(180deg);
+    text-decoration: none;
   }
   /* The control card (R6Control). */
   .card {

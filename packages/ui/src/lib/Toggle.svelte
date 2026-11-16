@@ -10,17 +10,20 @@ knob, a 44 px target. Off, the white knob takes a muted ring so it reads at 3:1 
     on,
     labelledby,
     label,
+    text = null,
     onToggle,
   }: {
     on: boolean;
     labelledby?: string;
     label?: string;
+    /** Its own words beside the track instead of On or Off (Deck board's "Name every panel"). */
+    text?: string | null;
     onToggle: () => void;
   } = $props();
 </script>
 
-<button class="switch" type="button" role="switch" aria-checked={on} aria-labelledby={labelledby} aria-label={label} onclick={onToggle}>
-  {on ? "On" : "Off"}<span class="track"><span class="knob"></span></span>
+<button class="switch" class:named={text != null} type="button" role="switch" aria-checked={on} aria-labelledby={labelledby} aria-label={label} onclick={onToggle}>
+  {text ?? (on ? "On" : "Off")}<span class="track"><span class="knob"></span></span>
 </button>
 
 <style>
@@ -40,6 +43,12 @@ knob, a 44 px target. Off, the white knob takes a muted ring so it reads at 3:1 
   }
   .switch[aria-checked="false"] {
     color: var(--color-text-secondary);
+  }
+  /* Named (Deck board): the words in the secondary color, regular weight, 10 px from the track. */
+  .switch.named {
+    gap: calc(var(--space-2) + var(--border-thick));
+    color: var(--color-text-secondary);
+    font-weight: var(--weight-regular);
   }
   .track {
     position: relative;

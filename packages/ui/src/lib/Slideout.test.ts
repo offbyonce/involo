@@ -41,6 +41,11 @@ describe("Slideout", () => {
     expect(screen.getByRole("heading", { level: 2, name: "Fuel panel" })).toBeTruthy();
     expect(screen.getByText("Step 6 · Fuel pump switches")).toBeTruthy();
     expect(screen.getByRole("button", { name: /^Where it is/ }).getAttribute("aria-expanded")).toBe("false");
+    // The whole flight deck is the Flight deck page now, opened at this panel (Locator board).
+    expect(screen.getByRole("link", { name: "Open in Flight deck" }).getAttribute("href")).toBe(
+      "#/deck/forward-overhead/fuel",
+    );
+    expect(screen.queryByRole("button", { name: /Whole flight deck/ })).toBeNull();
     // The center pumps are drawn dashed, so the legend says what dashed means.
     expect(document.querySelector(".figure figcaption")?.textContent).toMatch(
       /dashed: only if the step's condition applies/,

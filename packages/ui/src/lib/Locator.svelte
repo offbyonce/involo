@@ -6,11 +6,11 @@ SPDX-License-Identifier: MIT
 is a pop-over that opens leftward over the step list where the board places it, so the side pane with
 Check, If not and Why stays in view; elsewhere (tablet portrait, phone) it is a dialog until the
 TabWhere and PhoneWhere boards arrive in batch 5. Inside: the region's title and where to look
-from the seat, the side and seat views, the legend, and the whole flight deck behind "Whole flight
-deck" until the Flight deck page exists (batch 6). All from the pack, in the panel palette.
+from the seat, the side and seat views, the legend, and "Open in Flight deck", which opens the
+Flight deck page at this panel. All from the pack, in the panel palette.
 -->
 <script lang="ts">
-  import WholeDeck from "./WholeDeck.svelte";
+  import { areaOf, deckAreas, deckHref } from "./deck";
   import type { Zone } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import Icon from "./Icon.svelte";
@@ -32,7 +32,6 @@ deck" until the Flight deck page exists (batch 6). All from the pack, in the pan
   let heading = $state<HTMLHeadingElement | null>(null);
   let open = $state(false);
   let popover = $state(false);
-  let deck = $state(false);
   let phone = $state(false);
   /** Where the pop-over sits, and where its arrow points, in pixels. */
   let place = $state({ top: 0, right: 0, arrow: 0 });
@@ -47,7 +46,6 @@ deck" until the Flight deck page exists (batch 6). All from the pack, in the pan
     phone = !window.matchMedia("(min-width: 600px)").matches;
     const pane = trigger.closest("aside");
     popover = !!pane && window.matchMedia("(min-width: 900px)").matches;
-    deck = false;
     if (popover && pane) {
       dialog.show();
       position(pane);
@@ -126,13 +124,8 @@ deck" until the Flight deck page exists (batch 6). All from the pack, in the pan
       <span class="key"><i class="sw here"></i>This area</span>
       <span class="key"><i class="sw other"></i>Other panels</span>
       <span class="fill"></span>
-      <button class="deck-toggle" type="button" aria-expanded={deck} onclick={() => (deck = !deck)}>
-        Whole flight deck <Icon name="chevron-down" />
-      </button>
+      <a class="deck-link" href={deckHref(areaOf(deckAreas(index), zone.id)?.id, zone.id)}>Open in Flight deck</a>
     </div>
-    {#if deck}
-      <WholeDeck {index} {zone} />
-    {/if}
   </dialog>
 {/if}
 
@@ -255,14 +248,12 @@ deck" until the Flight deck page exists (batch 6). All from the pack, in the pan
   .fill {
     flex: 1;
   }
-  .deck-toggle {
+  .deck-link {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-1);
+    min-height: var(--size-touch-min);
     color: var(--color-link);
     font-size: var(--font-size-secondary);
-  }
-  .deck-toggle[aria-expanded="true"] :global(.icon) {
-    transform: rotate(180deg);
+    text-decoration: none;
   }
 </style>

@@ -28,6 +28,8 @@ const VIEWPORTS = {
   wide: { width: 2560, height: 1440 },
   // A phone held sideways (R6PhoneL); shot only by the screens that name it.
   "phone-sideways": { width: 844, height: 390, named: true },
+  // The Flight deck page between its board sizes (900 to 1439 px); shot only when named.
+  laptop: { width: 1280, height: 800, named: true },
 };
 // layout.css.prefers-color-scheme.content-override: 0 dark, 1 light.
 const THEMES = { dark: 0, light: 1 };
@@ -157,7 +159,6 @@ function stepShots() {
       const tag = String(at + 1).padStart(2, "0");
       return [
         { name: `tiles-${tag}`, only: ["desktop"], app: { hash: "#/", before: open } },
-        ...(at < 3 ? [{ name: `tiles-map-${tag}`, only: ["desktop"], app: { hash: "#/", before: [...open, click(".slide-box .deck-toggle")] } }] : []),
       ];
     });
 }
@@ -472,10 +473,10 @@ const SHOTS = [
   { name: "board-decision", only: ["phone"], app: { hash: "", page: "design/?view=decision&state=phone&theme={theme}" } },
   // Batch 6 panels (owner): a step's sheet and side-pane preview card, opened by P, for each step in
   // INVOLO_STEPS (a local file of "phase|reference <tab> phase id <tab> step id [<tab> number]" lines), named
-  // tiles-<n>; with its map open, tiles-map-<n>, for the first three.
+  // tiles-<n>.
   ...stepShots(),
   // The PanelTiles board's step: the wiper selectors, their sheet and the deck map open.
-  { name: "board-tiles", only: ["desktop"], app: { hash: "#/phase/cold-dark", before: [openStep("phase", "cold-dark", "ifly-737-max8.cold-dark.wiper-selectors"), press("p"), click(".slide-box .deck-toggle")] } },
+  { name: "board-tiles", only: ["desktop"], app: { hash: "#/phase/cold-dark", before: [openStep("phase", "cold-dark", "ifly-737-max8.cold-dark.wiper-selectors"), press("p")] } },
   // Each phone-sized panel sheet once (upright and sideways), for a row of tiles and a stack.
   ...["ifly-737-max8.cold-dark.wiper-selectors", "ifly-737-max8.landing.speedbrake-lever"].flatMap((id, n) => [
     { name: `tiles-phone-${n}`, only: ["phone", "phone-sideways"], app: { hash: "#/", before: [openStep("phase", id.split(".")[1], id), press("p")] } },
@@ -495,6 +496,11 @@ const SHOTS = [
     },
   })),
   { name: "board-menu-where", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click('[aria-controls="drawer"]'), click("#drawer .wlink")] } },
+  // The Flight deck (owner; Deck, PhoneDeck): the forward overhead with the fuel panel selected, as
+  // the boards show; at 1280 px, the area list and the area, the panel in its slide-out.
+  { name: "board-deck", only: ["desktop", "phone", "laptop"], app: { hash: "#/deck/forward-overhead/fuel" } },
+  // The selected panel's "Full size ›": the panel sheet at full size, with its navigator when wider.
+  { name: "board-deck-full", only: ["desktop", "phone"], app: { hash: "#/deck/forward-overhead/fuel", before: [click(".deck-panel .full")] } },
   // The Glossary (owner): desktop at APU as the boards show, the phone's list, and APU on phone.
   { name: "board-glossary", only: ["desktop"], app: { hash: "#/glossary/APU" } },
   { name: "board-glossary-list", only: ["phone"], app: { hash: "#/glossary" } },

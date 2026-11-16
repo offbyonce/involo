@@ -5,7 +5,7 @@ The menu drawer, at every size (boards: Menu at 1440, Tablet's menu overlay from
 Mobile's menu screen below 600 px). Its header holds the small mark, "involo", a sub-line
 (aircraft, the time of the last save this visit, and on tablet the overall count) and Close. Then
 the step settings, the menu groups and Reset flight plan. Items whose page does not exist yet
-(Practice, How procedures work, Flight deck, References, Flight log, Take the tour) stay
+(Practice, How procedures work, References, Flight log, Take the tour) stay
 hidden until that page is built, with any group heading left empty (owner, batch 5). The version
 line lives at the foot of Settings.
 -->
@@ -104,9 +104,10 @@ line lives at the foot of Settings.
         <button type="button" aria-pressed={detail === "quick"} onclick={() => onDetail("quick")}>Simple</button>
       </div>
     </div>
-    <!-- Reference (Menu board): Glossary; Flight deck and References wait for their pages. -->
+    <!-- Reference (Menu board): Flight deck and Glossary; References waits for its page. -->
     <div class="group">
       <span class="label">Reference</span>
+      <a class="deck" href="#/deck" onclick={onClose}>Flight deck<small>Panels and lights</small></a>
       <a href="#/glossary" onclick={onClose}>Glossary</a>
     </div>
     <div class="group">
@@ -291,6 +292,14 @@ line lives at the foot of Settings.
     color: var(--color-text);
     font-size: var(--font-size-body);
     text-decoration: none;
+  }
+  /* Flight deck (Menu board): "Panels and lights" at the right, 12 px muted. */
+  .group a.deck {
+    justify-content: space-between;
+  }
+  .deck small {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-caption);
   }
   .fill {
     flex: 1;

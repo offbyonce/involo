@@ -25,6 +25,12 @@ export type PackIndex = {
   /** The step's first control, its zone and the panel section drawn for that zone. */
   place(step: Step): Place | null;
   zones: Zone[];
+  /** The pack's panel drawings, in pack order. */
+  panels: Panel[];
+  /** Every control, in pack order. */
+  controls: Control[];
+  /** A step's place in flight order (the phases' lists in turn), for sorting. */
+  order(stepId: string): number;
   overview: Overview | null;
   options: UserOption[];
   /** The iFly panel states (start states) the pack offers. */
@@ -132,6 +138,9 @@ export function indexPack(pack: FlatPack): PackIndex {
   ].filter((l, i, all) => all.indexOf(l) === i);
   const listOfStep = new Map<string, string>();
   for (const list of pack.lists) for (const step of list.steps) listOfStep.set(step.id, list.id);
+  const stepOrder = new Map<string, number>();
+  for (const list of flightOrder)
+    for (const step of list.steps) if (!stepOrder.has(step.id)) stepOrder.set(step.id, stepOrder.size);
 
   return {
     name: pack.manifest.name,
@@ -173,6 +182,9 @@ export function indexPack(pack: FlatPack): PackIndex {
       return null;
     },
     zones: [...zones.values()],
+    panels: pack.content.panels ?? [],
+    controls: [...controls.values()],
+    order: (stepId) => stepOrder.get(stepId) ?? Number.MAX_SAFE_INTEGER,
     overview: pack.content.controls?.overview ?? null,
     options: pack.content.phases?.options ?? [],
     startStates: pack.content.start_states?.states ?? [],
