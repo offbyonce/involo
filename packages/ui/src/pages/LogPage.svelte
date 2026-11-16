@@ -26,7 +26,7 @@ bottom bar, and "···" opens the export and import actions as a sheet.
     planLabel,
     routeWords,
     score,
-    stageTime,
+    stageTimes,
     summary,
   } from "../lib/flight-log";
   import Icon from "../lib/Icon.svelte";
@@ -202,6 +202,7 @@ bottom bar, and "···" opens the export and import actions as a sheet.
       <div><dt>Steps</dt><dd class="mono">{f.done} of {f.total}</dd></div>
     </dl>
     {#if f.stages.length}
+      {@const times = stageTimes(f.stages)}
       <div class="stages">
         <span class="lbl" id="stages-{f.id}">Time in each stage</span>
         <div class="bars" role="list" aria-labelledby="stages-{f.id}">
@@ -209,7 +210,7 @@ bottom bar, and "···" opens the export and import actions as a sheet.
             <div class="stage" role="listitem" style:flex={Math.max(s.ms, 1)}>
               <div class="bar" style:opacity={0.55 + 0.09 * i}></div>
               <span class="sname">{s.title}</span>
-              <span class="mono stime">{stageTime(s.ms)}</span>
+              <span class="mono stime">{times[i]}</span>
             </div>
           {/each}
         </div>

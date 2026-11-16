@@ -434,7 +434,8 @@ pub fn log_csv(log: &Log) -> String {
         let stages = f
             .stages
             .iter()
-            .map(|s| format!("{} {}", s.title, minutes(s.ms)))
+            .zip(stage_minutes(&f.stages))
+            .map(|(s, m)| format!("{} {m}", s.title))
             .collect::<Vec<_>>()
             .join("; ");
         let row = [
@@ -466,6 +467,27 @@ pub fn log_csv(log: &Log) -> String {
 /// Whole minutes, rounded to the nearest.
 fn minutes(ms: Millis) -> u64 {
     (ms + 30_000) / 60_000
+}
+
+/// Each stage's whole minutes, rounded so they add up to the flight's rounded total (the largest
+/// remainder method: every stage gets its whole minutes, then the stages with the largest leftover
+/// seconds get one more each, earlier stages first on a tie). The stages run from off blocks to on
+/// blocks, so their sum is the flight's time. packages/ui's `stageMinutes` does the same.
+fn stage_minutes(stages: &[StageTime]) -> Vec<u64> {
+    const MIN: Millis = 60_000;
+    let mut out: Vec<u64> = stages.iter().map(|s| s.ms / MIN).collect();
+    let target = minutes(stages.iter().map(|s| s.ms).sum());
+    let short = usize::try_from(target.saturating_sub(out.iter().sum())).unwrap_or(0);
+    let mut order: Vec<usize> = (0..stages.len()).collect();
+    order.sort_by(|&a, &b| {
+        (stages[b].ms % MIN)
+            .cmp(&(stages[a].ms % MIN))
+            .then(a.cmp(&b))
+    });
+    for &i in order.iter().take(short) {
+        out[i] += 1;
+    }
+    out
 }
 
 /// A CSV cell, quoted when it holds a comma, quote or line break. A cell a spreadsheet would read
@@ -945,6 +967,40 @@ mod tests {
         assert_eq!(value.practice[0].score, 9);
         let raw: serde_json::Value = serde_json::from_str(text).unwrap();
         assert_eq!(raw["format"], json!(1));
+    }
+
+    #[test]
+    fn stage_minutes_add_up_to_the_flight_s_total() {
+        let st = |title: &str, ms: Millis| StageTime {
+            title: title.into(),
+            ms,
+        };
+        // 38 min 40 s + 50 min 40 s + 71 min 40 s = 161 min: rounded one by one they make 162.
+        let stages = [
+            st("Preflight", 38 * MIN + 40_000),
+            st("Departure", 50 * MIN + 40_000),
+            st("Arrival", 71 * MIN + 40_000),
+        ];
+        assert_eq!(stage_minutes(&stages), [39, 51, 71]);
+        // 3 × 20 min 20 s = 61 min: the earliest stage takes the one extra minute.
+        let even = [
+            st("A", 20 * MIN + 20_000),
+            st("B", 20 * MIN + 20_000),
+            st("C", 20 * MIN + 20_000),
+        ];
+        assert_eq!(stage_minutes(&even), [21, 20, 20]);
+        // The largest leftover wins, wherever it is.
+        let mixed = [
+            st("A", 10 * MIN + 10_000),
+            st("B", 10 * MIN + 50_000),
+            st("C", 10 * MIN),
+        ];
+        assert_eq!(stage_minutes(&mixed), [10, 11, 10]);
+        assert_eq!(stage_minutes(&[]), Vec::<u64>::new());
+        let total = |s: &[StageTime]| minutes(s.iter().map(|s| s.ms).sum());
+        for s in [&stages[..], &even, &mixed] {
+            assert_eq!(stage_minutes(s).iter().sum::<u64>(), total(s));
+        }
     }
 
     #[test]

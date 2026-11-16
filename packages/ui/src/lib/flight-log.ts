@@ -5,7 +5,7 @@
 // "09:48", durations "2 h 41 min"), and its files: the HTML copy and downloads. The log itself
 // (entries, the 500 limit, merging, CSV) is Rust's (crates/app-core/src/log.rs, decision 0026).
 
-import type { Log, LoggedFlight, PracticeResult } from "@involo/bindings";
+import type { Log, LoggedFlight, PracticeResult, StageTime } from "@involo/bindings";
 
 /** How many flights, and how many practice results, the log keeps (app-core's LOG_LIMIT). */
 export const LOG_LIMIT = 500;
@@ -26,8 +26,8 @@ export function clock(ms: number): string {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-/** Whole minutes, rounded to the nearest. */
-const minutes = (ms: number) => Math.round(ms / 60_000);
+/** Whole minutes, rounded to the nearest (half a minute up, as app-core's `minutes`). */
+const minutes = (ms: number) => Math.floor((ms + 30_000) / 60_000);
 
 /** "48 min", or "2 h 05 min" from an hour up. */
 export function duration(ms: number): string {
@@ -35,8 +35,24 @@ export function duration(ms: number): string {
   return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${pad(m % 60)} min`;
 }
 
-/** A stage's time under its bar: "38 min" (Log boards: minutes only). */
-export const stageTime = (ms: number) => `${minutes(ms)} min`;
+/**
+ * Each stage's time under its bar, "38 min" (Log boards: minutes only), rounded so the stages add
+ * up to the flight's rounded total: every stage gets its whole minutes, then the stages with the
+ * largest leftover seconds get one more each, earlier stages first on a tie (the largest remainder
+ * method; app-core's `stage_minutes` does the same for the CSV).
+ */
+export function stageTimes(stages: readonly StageTime[]): string[] {
+  const out = stages.map((s) => Math.floor(s.ms / 60_000));
+  const short = minutes(stages.reduce((sum, s) => sum + s.ms, 0)) - out.reduce((a, b) => a + b, 0);
+  stages
+    .map((s, i) => ({ i, left: s.ms % 60_000 }))
+    .sort((a, b) => b.left - a.left || a.i - b.i)
+    .slice(0, Math.max(short, 0))
+    .forEach(({ i }) => {
+      out[i] = (out[i] ?? 0) + 1;
+    });
+  return out.map((m) => `${m} min`);
+}
 
 /** When a flight happened: its first tick, else when it was logged. */
 export const flightDay = (f: LoggedFlight) => f.offBlocks ?? f.loggedAt;
@@ -95,7 +111,8 @@ export function htmlCopy(log: Log, savedAt: number, name: (text: string, step: s
   const flights = log.flights
     .map((f) => {
       const t = flightTime(f);
-      const stages = f.stages.map((s) => `${e(s.title)} ${stageTime(s.ms)}`).join(" · ");
+      const times = stageTimes(f.stages);
+      const stages = f.stages.map((s, i) => `${e(s.title)} ${times[i]}`).join(" · ");
       const skipped = f.skipped
         .map((s) => `<li>${e(name(s.text, s.step))} (${e(s.stage)} › ${e(s.phaseTitle)})</li>`)
         .join("");
