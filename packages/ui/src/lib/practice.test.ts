@@ -120,7 +120,7 @@ describe("the question generator", () => {
     expect(count("terms", "meaning")).toBe(100);
     expect(count("terms", "term")).toBe(80);
     expect(count("where", "area")).toBe(148);
-    expect(count("where", "panel")).toBe(64);
+    expect(count("where", "panel")).toBe(77);
   });
 
   it("asks which mnemonic an item belongs to, its next item and its order, with no letter questions (owner)", () => {
@@ -352,6 +352,23 @@ describe("the question generator", () => {
     expect(sharesWord("Fuel pump switches", "Fuel panel")).toBe(true);
     expect(sharesWord("Flight deck windows", "Windows and oxygen masks")).toBe(true);
     expect(sharesWord("Battery switch", "Electrical panel, upper section")).toBe(false);
+    // Words on panels all over the deck give nothing away (owner).
+    for (const w of [
+      "light",
+      "lights",
+      "control",
+      "controls",
+      "indicator",
+      "indicators",
+      "display",
+      "displays",
+      "unit",
+      "units",
+      "lever",
+      "levers",
+    ])
+      expect(sharesWord(`Test ${w}`, `Other ${w}`), w).toBe(false);
+    expect(sharesWord("Hydraulic pump switches", "Hydraulic panel"), "giveaways stay").toBe(true);
     for (const q of all.filter((x) => x.topic === "where")) {
       if (q.kind !== "choice") continue;
       const name = q.prompt.replace(/^Where (is|are) the /, "").replace(/\?$/, "");

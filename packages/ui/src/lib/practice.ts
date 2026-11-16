@@ -781,7 +781,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
 
 const lowerFirst = (s: string) => (/^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s);
 
-/** Words that say nothing about where a control is. */
+/** Words that say nothing about where a control is, and words found on panels all over the deck
+ * (owner). */
 const PLAIN = new Set([
   "AND",
   "THE",
@@ -797,6 +798,18 @@ const PLAIN = new Set([
   "SWITCHES",
   "SELECTOR",
   "SELECTORS",
+  "LIGHT",
+  "LIGHTS",
+  "CONTROL",
+  "CONTROLS",
+  "INDICATOR",
+  "INDICATORS",
+  "DISPLAY",
+  "DISPLAYS",
+  "UNIT",
+  "UNITS",
+  "LEVER",
+  "LEVERS",
 ]);
 /** Whether two names share a meaningful word ("Fuel pump switches" and "Fuel panel"), singular or
  * plural (owner). */
