@@ -122,6 +122,7 @@
   --color-popover-border: #34404f;
   --color-overlay-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
   --color-slideout-scrim: rgba(6, 8, 12, 0.45);
+  --color-scrim-light: rgba(6, 8, 12, 0.35);
   --color-popover-surface: #1b212b;
   --color-toggle-knob: #ffffff;
   --color-toast-text: #0f1218;
@@ -197,6 +198,7 @@
     --color-popover-border: #d3d9e1;
     --color-overlay-shadow: 0 24px 60px rgba(16, 24, 40, 0.18);
     --color-slideout-scrim: rgba(20, 26, 36, 0.28);
+    --color-scrim-light: rgba(20, 26, 36, 0.18);
     --color-popover-surface: #ffffff;
     --color-toggle-knob: #ffffff;
     --color-toast-text: #ffffff;

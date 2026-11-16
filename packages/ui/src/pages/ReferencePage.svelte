@@ -7,6 +7,7 @@ reference, non-normal), its introduction, and its lists as cards that open. Step
 type (step 7 requirement for non-normal lists).
 -->
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import type { Checklist, Detail, Flight, PhaseView, RailPhase } from "@involo/bindings";
   import Icon from "../lib/Icon.svelte";
   import ListCard from "../lib/ListCard.svelte";
@@ -28,6 +29,8 @@ type (step 7 requirement for non-normal lists).
     onSelect,
     onClear,
     full = true,
+    inline,
+    inlineStep = null,
   }: {
     index: PackIndex;
     phases: RailPhase[];
@@ -44,6 +47,9 @@ type (step 7 requirement for non-normal lists).
     onSelect: (id: string) => void;
     onClear: (list: string) => void;
     full?: boolean;
+    /** Below 900 px: the opened step's details, shown in the row of `inlineStep`. */
+    inline?: Snippet | undefined;
+    inlineStep?: string | null;
   } = $props();
 
   // The notice is under every screen already; a pack introduction that repeats it is skipped.
@@ -85,6 +91,8 @@ type (step 7 requirement for non-normal lists).
     {onBlank}
         {onSelect}
         {onClear}
+        {inline}
+        {inlineStep}
       />
     </details>
   {/each}

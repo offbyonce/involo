@@ -191,7 +191,7 @@ it. Every field of the old Flight setup lives in one section.
     flex: none;
     align-items: center;
     gap: var(--space-4);
-    height: var(--size-header);
+    height: var(--bar-header);
     padding: 0 var(--space-4);
     border-bottom: var(--border-thin) solid var(--color-line);
   }

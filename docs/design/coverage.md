@@ -45,7 +45,7 @@ Every 3.0 feature and where it lives at each size. Use this as a release check: 
 | Settings | Menu | Menu | Menu | Menu |
 | Tour | Menu | Menu | Menu | Menu |
 | References | Menu | Menu | Menu | Menu |
-| Flight setup (all flight data) | The Flight pages (batch 4): Strip › All flight data, the menu, each step's "— enter …" link | Same | Same | Same |
+| Flight setup (all flight data) | The Flight pages (batch 4): Strip › All flight data, each step's "— enter …" link (the menu's Flight item went with the batch 5 menu, owner 2026-11-15) | Same | Same | Same |
 | Approach type and arrival data | Flight › Approach | Same | Same | Same |
 | Progress saves | Saved time and overall count in the phase track | Menu header | Menu header | Menu header |
 

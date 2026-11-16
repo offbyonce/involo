@@ -4,17 +4,19 @@ SPDX-License-Identifier: MIT
 
 "2 open steps" and its pop-over (OpenSteps board): every open step from every stage, grouped by
 phase and list, each with its setting and Go to step, and the footer saying skipped steps stay
-open. Pop-over tokens; it closes on its X, Esc or a press outside.
+open. Pop-over tokens; it closes on its X, Esc or a press outside. On phone it is the bottom sheet
+(Mobile board, open screen), opened from the progress row's "2 open".
 -->
 <script lang="ts">
   import type { OpenStep } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import Icon from "./Icon.svelte";
+  import { trapFocus } from "./trap";
+  import { openSteps } from "./open-steps.svelte";
   import { stepTitle } from "./sentence";
 
   let { index, open, onGo }: { index: PackIndex; open: OpenStep[]; onGo: (step: string) => void } = $props();
 
-  let shown = $state(false);
   let box = $state<HTMLElement | null>(null);
   let groups = $derived.by(() => {
     const out: { title: string; steps: OpenStep[] }[] = [];
@@ -27,26 +29,41 @@ open. Pop-over tokens; it closes on its X, Esc or a press outside.
   });
   const label = (n: number) => `${n} open step${n === 1 ? "" : "s"}`;
   function outside(e: PointerEvent): void {
-    if (shown && box && !box.contains(e.target as Node)) shown = false;
+    if (openSteps.shown && box && !box.contains(e.target as Node)) openSteps.shown = false;
   }
   function key(e: KeyboardEvent): void {
-    if (shown && e.key === "Escape") shown = false;
+    if (openSteps.shown && e.key === "Escape") openSteps.shown = false;
   }
+  // On phone the sheet opens from the progress row: focus goes to its Close, and back after.
+  let back: HTMLElement | null = null;
+  $effect(() => {
+    if (openSteps.shown && !window.matchMedia?.("(min-width: 600px)").matches) {
+      back = document.activeElement as HTMLElement | null;
+      queueMicrotask(() => box?.querySelector<HTMLElement>(".pop .close")?.focus());
+    } else if (!openSteps.shown && back) {
+      back.focus();
+      back = null;
+    }
+  });
+  // A new page starts with the list closed.
+  $effect(() => () => (openSteps.shown = false));
 </script>
 
 <svelte:document onpointerdown={outside} onkeydown={key} />
 
 {#if open.length}
   <div class="wrap" bind:this={box}>
-    <button class="opener" type="button" aria-haspopup="dialog" aria-expanded={shown} onclick={() => (shown = !shown)}>
+    <button class="opener" type="button" aria-haspopup="dialog" aria-expanded={openSteps.shown} onclick={() => (openSteps.shown = !openSteps.shown)}>
       {label(open.length)}<Icon name="chevron-down" />
     </button>
-    {#if shown}
-      <div class="pop" role="dialog" aria-labelledby="open-title">
+    {#if openSteps.shown}
+      <button class="scrim" type="button" aria-label="Close" tabindex="-1" onclick={() => (openSteps.shown = false)}></button>
+      <div class="pop" role="dialog" aria-labelledby="open-title" use:trapFocus>
         <span class="arrow" aria-hidden="true"></span>
+        <span class="handle" aria-hidden="true"></span>
         <div class="head">
           <h2 id="open-title">{label(open.length)}</h2>
-          <button class="close" type="button" aria-label="Close" onclick={() => (shown = false)}><Icon name="x" /></button>
+          <button class="close" type="button" aria-label="Close" onclick={() => (openSteps.shown = false)}><Icon name="x" /></button>
         </div>
         {#each groups as g (g.title)}
           <p class="group">{g.title}</p>
@@ -62,10 +79,11 @@ open. Pop-over tokens; it closes on its X, Esc or a press outside.
                 <button
                   class="go"
                   type="button"
+                  aria-label="Go to step"
                   onclick={() => {
-                    shown = false;
+                    openSteps.shown = false;
                     onGo(o.step);
-                  }}>Go to step</button
+                  }}><span class="long">Go to step</span><span class="short">Go</span></button
                 >
               </div>
             {/if}
@@ -204,5 +222,88 @@ open. Pop-over tokens; it closes on its X, Esc or a press outside.
     color: var(--color-text-muted);
     font-size: var(--font-size-caption);
     line-height: var(--leading-snug);
+  }
+  .scrim,
+  .handle,
+  .short {
+    display: none;
+  }
+  /* Phone (Mobile board, open screen): a bottom sheet over a scrim. */
+  @media (max-width: 599px) {
+    .wrap {
+      position: static;
+    }
+    .opener {
+      display: none;
+    }
+    .scrim {
+      position: fixed;
+      inset: 0;
+      z-index: 55;
+      display: block;
+      background: var(--color-scrim);
+    }
+    .pop {
+      position: fixed;
+      top: auto;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      gap: calc(var(--space-1) + var(--border-thick));
+      width: auto;
+      min-height: calc(var(--size-drawer) + var(--size-header));
+      max-height: calc(100dvh - var(--size-header));
+      padding: var(--space-2) var(--space-3) var(--space-6);
+      overflow-y: auto;
+      border: 0;
+      border-top: var(--border-thin) solid var(--color-border);
+      border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+      background: var(--color-sheet);
+      box-shadow: none;
+    }
+    .arrow,
+    .status,
+    .foot,
+    .long {
+      display: none;
+    }
+    .handle {
+      display: block;
+      flex: none;
+      align-self: center;
+      width: var(--space-10);
+      height: var(--space-1);
+      border-radius: var(--border-thick);
+      background: var(--color-border);
+    }
+    .short {
+      display: inline;
+    }
+    .head {
+      padding-left: var(--space-1);
+    }
+    h2 {
+      font-size: calc(var(--font-size-body) + var(--border-thick));
+      font-weight: var(--weight-bold);
+    }
+    .group {
+      margin: 0;
+      padding: var(--space-2) var(--space-1) var(--space-1);
+    }
+    .head + .group {
+      padding-top: var(--space-1);
+    }
+    .row {
+      gap: calc(var(--space-2) + var(--border-thick));
+      min-height: calc(var(--size-touch-min) + var(--space-3));
+      padding: 0 var(--space-3);
+      background: var(--color-surface);
+    }
+    .val {
+      color: var(--color-text-secondary);
+    }
   }
 </style>

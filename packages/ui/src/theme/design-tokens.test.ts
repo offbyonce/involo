@@ -116,6 +116,8 @@ describe("design tokens", () => {
     const defined = new Set([...tokens.matchAll(/(--[a-z0-9-]+):/g)].map((m) => m[1]));
     // Set at runtime by tokens.ts.
     for (const name of ["--scale", "--text-scale"]) defined.add(name);
+    // The bars' heights per size, set once on :root in app.css.
+    for (const m of css("app.css").matchAll(/(--bar-[a-z-]+):/g)) defined.add(m[1] ?? "");
     const found = all.flatMap((f) => {
       const text = f.endsWith(".css") ? css(f) : (SOURCES[f] ?? "");
       const local = new Set([...text.matchAll(/(--[a-z0-9-]+)(?:\s*:|=)/g)].map((m) => m[1]));

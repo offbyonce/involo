@@ -28,6 +28,7 @@ and a caution note under If not. A step with no control shows the steps coming u
     preview = true,
     onOpen,
     flow = false,
+    inline = false,
   }: {
     index: PackIndex;
     step: Step;
@@ -43,6 +44,9 @@ and a caution note under If not. A step with no control shows the steps coming u
     /** Flow view's pane (R6Flow): the location line and the previews only; Flow shows the step's
      * details itself. */
     flow?: boolean;
+    /** Opened in the step's row (tablet portrait and phone): no heading, the row shows the step; Check
+     * and If not side by side on tablet, the preview first on phone (Tablet and Mobile boards). */
+    inline?: boolean;
   } = $props();
 
   const sentence = (text: string) => toSentence(index, text);
@@ -96,13 +100,15 @@ and a caution note under If not. A step with no control shows the steps coming u
   let where = $derived(place ? `${place.zone.area}` : "");
 </script>
 
-<div class="pane-step">
+<div class="pane-step" class:inline>
   {#if !flow}
+  {#if !inline}
   <div class="head">
     <span class="pos">Step {number} of {total} · {stepTitle(index, step)}</span>
     <span class="value">{step.expect}</span>
   </div>
-
+  {/if}
+  {#if check || ifNot}<div class="cells">
   {#if check}
     <div class="box check">
       <div class="txt">
@@ -128,6 +134,7 @@ and a caution note under If not. A step with no control shows the steps coming u
       {/if}
     </div>
   {/if}
+  </div>{/if}
   {#if caution}<p class="caution"><b>Caution</b> {caution}</p>{/if}
 
   {#if why || how?.length || explain || background || terms.length || (own && place?.control)}
@@ -424,5 +431,29 @@ and a caution note under If not. A step with no control shows the steps coming u
   }
   .next li.done {
     color: var(--color-text-muted);
+  }
+  .cells {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .inline {
+    min-height: 0;
+  }
+  @media (min-width: 600px) {
+    .inline .cells {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+    }
+  }
+  @media (max-width: 599px) {
+    .inline .preview,
+    .inline .show-panel {
+      order: -1;
+    }
+    .inline kbd {
+      display: none;
+    }
   }
 </style>

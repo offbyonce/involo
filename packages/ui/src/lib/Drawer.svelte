@@ -1,39 +1,63 @@
 <!--
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
-
-The menu, as in 3.0: where to continue, the stages, the reference screens and settings. Later
-batches add flight setup, the flight log, practice and the rest here.
+The menu drawer, at every size (boards: Menu at 1440, Tablet's menu overlay from 600 to 1439 px,
+Mobile's menu screen below 600 px). Its header holds the small mark, "involo", a sub-line
+(aircraft, the time of the last save this visit, and on tablet the overall count) and Close. Then
+the step settings, the menu groups and Reset flight plan. Items whose page does not exist yet
+(Practice, How procedures work, Flight deck, Glossary, References, Flight log, Take the tour) stay
+hidden until that page is built, with any group heading left empty (owner, batch 5). The version
+line lives at the foot of Settings.
 -->
 <script lang="ts">
-  import type { Detail, Progress, Rail } from "@involo/bindings";
-  import { phaseHref } from "../route.svelte";
-
+  import type { Detail, ListView, Progress } from "@involo/bindings";
+  import headerMark from "../icons/brand/header-mark.svg?raw";
+  import Icon from "./Icon.svelte";
+  import { trapFocus } from "./trap";
   let {
     open,
-    rail,
-    stage,
+    aircraft,
+    savedAt,
     total,
+    view,
     detail,
     essentials,
-    openCount,
-    version,
+    onView,
+    onDetail,
+    onEssentials,
+    onReset,
     onClose,
   }: {
     open: boolean;
-    rail: Rail;
-    stage: string | null;
+    aircraft: string;
+    /** When this visit last saved, if it has. */
+    savedAt: number | null;
     total: Progress;
+    /** The list view, when a phase is on screen (phone shows Checklist / Flow here). */
+    view: ListView | null;
     detail: Detail;
     essentials: boolean;
-    /** How many steps are skipped and still open. */
-    openCount: number;
-    version: string | null;
+    onView: (view: ListView) => void;
+    onDetail: (detail: Detail) => void;
+    onEssentials: (on: boolean) => void;
+    onReset: () => void;
     onClose: () => void;
   } = $props();
-
-  let resume = $derived(rail.stages.flatMap((s) => s.phases).find((p) => !p.complete) ?? null);
-  const target = (phases: Rail["stages"][number]["phases"]) => (phases.find((p) => !p.complete) ?? phases[0])?.id;
+  let saved = $derived(
+    savedAt === null ? null : new Date(savedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
+  );
+  let closer = $state<HTMLButtonElement | null>(null);
+  let back: HTMLElement | null = null;
+  // Focus moves into the drawer when it opens and back to where it was when it closes.
+  $effect(() => {
+    if (open) {
+      back = document.activeElement as HTMLElement | null;
+      closer?.focus();
+    } else if (back) {
+      back.focus();
+      back = null;
+    }
+  });
 </script>
 
 <svelte:window
@@ -41,39 +65,59 @@ batches add flight setup, the flight log, practice and the rest here.
     if (open && e.key === "Escape") onClose();
   }}
 />
-
 {#if open}
-  <button class="scrim" type="button" aria-label="Close menu" onclick={onClose}></button>
+  <button class="scrim" type="button" aria-label="Close menu" tabindex="-1" onclick={onClose}></button>
 {/if}
-<nav id="drawer" class:open aria-label="Menu" inert={!open}>
-  {#if resume}
-    <a class="continue" href={phaseHref(resume.id)} onclick={onClose}>
-      <small>Continue</small>
-      <b>{resume.title}</b>
-      <span class="bar" aria-hidden="true"><i style:width="{total.total ? (100 * total.done) / total.total : 0}%"></i></span>
-      <small>{total.done} of {total.total} steps</small>
-    </a>
-  {/if}
-  <div class="stages">
-    {#each rail.stages as s (s.title)}
-      {@const id = target(s.phases)}
-      {#if id}
-        <a href={phaseHref(id)} aria-current={s.title === stage ? "true" : undefined} onclick={onClose}>{s.title}</a>
-      {/if}
-    {/each}
+<nav id="drawer" class:open aria-label="Menu" inert={!open} use:trapFocus={open}>
+  <div class="head">
+    <div class="who">
+      <span class="name"><span class="mark" aria-hidden="true">{@html headerMark}</span>involo</span>
+      <small
+        >{aircraft}{#if saved}<span>{` · saved ${saved}`}</span>{/if}<span class="count">{` · ${total.done}/${total.total}`}</span></small
+      >
+    </div>
+    <button bind:this={closer} class="close" type="button" aria-label="Close menu" onclick={onClose}><Icon name="x" /></button>
   </div>
-  <p class="grp">Flight</p>
-  <a class="ref" href="#/flight/overview" onclick={onClose}>Flight</a>
-  <a class="ref" href="#/open" onclick={onClose}>Open steps <span>{openCount}</span></a>
-  <p class="grp">Reference</p>
-  <a class="ref" href="#/reference" onclick={onClose}>Emergency</a>
-  <div class="foot">
-    <a class="ref" href="#/settings" onclick={onClose}>Settings <span>{essentials ? "Essentials" : "Full"} · {detail === "expanded" ? "Detailed" : "Simple"}</span></a>
-    {#if version}<p class="ver">Version {version}</p>{/if}
+  <div class="body">
+    <div class="steps">
+      <span class="label">Steps</span>
+      {#if view && open}
+        <div class="seg view" role="group" aria-label="View">
+          <button type="button" aria-pressed={view === "checklist"} onclick={() => onView("checklist")}>Checklist</button>
+          <button type="button" aria-pressed={view === "flow"} onclick={() => onView("flow")}>Flow</button>
+        </div>
+      {/if}
+      <div class="seg" role="group" aria-label="Steps shown">
+        <button type="button" aria-pressed={!essentials} onclick={() => onEssentials(false)}>Full</button>
+        <button type="button" aria-pressed={essentials} onclick={() => onEssentials(true)}>Essentials</button>
+      </div>
+      <div class="seg" role="group" aria-label="Step detail">
+        <button type="button" aria-pressed={detail === "expanded"} onclick={() => onDetail("expanded")}>Detailed</button>
+        <button type="button" aria-pressed={detail === "quick"} onclick={() => onDetail("quick")}>Simple</button>
+      </div>
+    </div>
+    <div class="group">
+      <span class="label">This flight and the app</span>
+      <a href="#/settings" onclick={onClose}>Settings</a>
+    </div>
+    <div class="fill"></div>
+    <div class="rule"></div>
+    <button
+      class="reset"
+      type="button"
+      onclick={() => {
+        onClose();
+        onReset();
+      }}
+      ><b>Reset flight plan</b><small class="long">Clears the plan, clearance and notes. Undo right after.</small><small class="short"
+        >Undo right after</small
+      ></button
+    >
   </div>
 </nav>
 
 <style>
+  /* Tablet (600 to 1439 px): the Tablet board's menu overlay. Phone and desktop follow below. */
   nav {
     position: fixed;
     top: 0;
@@ -83,10 +127,8 @@ batches add flight setup, the flight log, practice and the rest here.
     display: flex;
     flex-direction: column;
     width: var(--size-drawer);
-    padding: var(--space-3) var(--space-3) var(--space-4);
-    overflow-y: auto;
     border-right: var(--border-thin) solid var(--color-border);
-    background: var(--color-surface);
+    background: var(--color-sheet);
     transform: translateX(-102%);
     transition: transform 0.18s;
   }
@@ -99,93 +141,216 @@ batches add flight setup, the flight log, practice and the rest here.
     z-index: 45;
     background: var(--color-scrim);
   }
-  .continue {
+  .head {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    padding: var(--space-3);
-    border-radius: var(--radius-panel);
-    background: var(--color-bg);
-    text-decoration: none;
+    flex: none;
+    align-items: center;
+    height: var(--bar-header);
+    padding: 0 var(--space-2) 0 calc(var(--space-4) + var(--space-1));
+    border-bottom: var(--border-thin) solid var(--color-line);
   }
-  .continue small {
+  .who {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    line-height: var(--leading-tight);
+  }
+  /* The header logo, as in the top bar (docs/brand/DESIGN-SYSTEM.md §11). */
+  .name {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    color: var(--color-text-strong);
+    font-size: var(--font-size-wordmark);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-wordmark);
+  }
+  .mark {
+    display: flex;
+    flex: none;
+  }
+  .who small {
     color: var(--color-text-muted);
     font-size: var(--font-size-caption);
   }
-  .continue b {
+  .close {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: var(--size-touch-min);
+    height: var(--size-touch-min);
+    color: var(--color-text-secondary);
+  }
+  .body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: calc(var(--space-3) + var(--border-thick));
+    padding: var(--space-3);
+    overflow-y: auto;
+  }
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: 0 var(--space-1);
+  }
+  .steps .label {
+    padding: 0;
+  }
+  .label {
+    padding: 0 var(--space-2) var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-caption);
+    font-weight: var(--weight-semibold);
+  }
+  /* The segmented control (rules.md components). */
+  .seg {
+    display: flex;
+    padding: var(--border-thick);
+    border: var(--border-thin) solid var(--color-segment-border);
+    border-radius: var(--radius-segment);
+    background: var(--color-segment-track);
+  }
+  .seg.view {
+    display: none;
+  }
+  .seg button {
+    flex: 1;
+    height: var(--size-touch-min);
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: var(--font-size-secondary);
+  }
+  .seg button[aria-pressed="true"] {
+    background: var(--color-segment-on);
+    outline: var(--size-focus-ring) solid var(--color-accent);
+    outline-offset: calc(-1 * var(--size-focus-ring));
+    box-shadow: var(--color-segment-shadow);
+    color: var(--color-text-strong);
+    font-weight: var(--weight-semibold);
+  }
+  /* Keyboard focus shows the app's ring (app.css), over the pressed segment's own outline. */
+  .seg button:focus-visible {
+    outline: var(--border-thick) solid var(--color-accent);
+    outline-offset: var(--border-thick);
+  }
+  .group {
+    display: flex;
+    flex-direction: column;
+  }
+  .group a {
+    display: flex;
+    align-items: center;
+    height: var(--size-touch-min);
+    padding: 0 var(--space-3);
+    color: var(--color-text);
+    font-size: var(--font-size-body);
+    text-decoration: none;
+  }
+  .fill {
+    flex: 1;
+  }
+  .rule {
+    flex: none;
+    height: var(--border-thin);
+    background: var(--color-line);
+  }
+  .reset {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: calc(var(--size-touch-min) + var(--space-2));
+    padding: 0 var(--space-3);
+    border: 0;
+    background: transparent;
+    color: var(--color-danger-text);
+    font: inherit;
+    text-align: left;
+  }
+  .reset b {
     font-size: var(--font-size-body);
     font-weight: var(--weight-semibold);
   }
-  .bar {
-    display: block;
-    height: var(--size-progress-bar);
-    margin: var(--space-1) 0;
-    overflow: hidden;
-    border-radius: var(--radius-control);
-    background: var(--color-surface-2);
-  }
-  .bar i {
-    display: block;
-    height: 100%;
-    background: var(--color-done);
-  }
-  .stages {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1);
-    margin: var(--space-3) 0;
-  }
-  .stages a {
-    display: flex;
-    align-items: center;
-    min-height:  var(--size-touch-min);
-    padding: 0 var(--space-3);
-    border-radius: var(--radius-control);
-    background: var(--color-bg);
-    color: var(--color-text-muted);
-    font-size: var(--font-size-secondary);
-    font-weight: var(--weight-medium);
-    text-decoration: none;
-  }
-  .stages a[aria-current="true"] {
-    background: var(--color-accent-soft);
-    color: var(--color-accent);
-  }
-  .grp {
-    margin: 0;
-    padding: var(--space-4) var(--space-3) var(--space-2);
+  .reset small {
     color: var(--color-text-muted);
     font-size: var(--font-size-caption);
-    font-weight: var(--weight-semibold);
-    text-transform: uppercase;
   }
-  .ref {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height:  var(--size-touch-min);
-    padding: 0 var(--space-3);
-    border-radius: var(--radius-control);
-    font-weight: var(--weight-medium);
-    text-decoration: none;
+  .reset .short {
+    display: none;
   }
-  .ref:hover {
-    background: var(--color-bg);
+
+  /* Desktop (1440 px and wider): the Menu board. */
+  @media (min-width: 1440px) {
+    nav {
+      background: var(--color-surface);
+      box-shadow: var(--color-overlay-shadow);
+    }
+    .head {
+      gap: var(--space-3);
+    }
+    .count {
+      display: none;
+    }
+    .body {
+      gap: var(--space-4);
+    }
+    .rule {
+      margin: 0 var(--space-1);
+    }
+    .reset {
+      gap: var(--border-thick);
+      padding: calc(var(--space-1) + var(--border-thick)) var(--space-3);
+      border-radius: var(--radius-control);
+    }
   }
-  .ref span {
-    color: var(--color-text-muted);
-    font-size: var(--font-size-caption);
-    font-weight: var(--weight-regular);
-  }
-  .foot {
-    margin-top: auto;
-    padding-top: var(--space-3);
-    border-top: var(--border-thin) solid var(--color-border);
-  }
-  .ver {
-    margin: var(--space-2) var(--space-3) 0;
-    color: var(--color-text-muted);
-    font-size: var(--font-size-caption);
+
+  /* Phone (below 600 px): Mobile's menu screen, 320 wide, with Checklist / Flow. */
+  @media (max-width: 599px) {
+    nav {
+      width: calc(var(--size-drawer) - var(--space-10));
+    }
+    .head {
+      padding: 0 calc(var(--space-1) + var(--border-thick)) 0 var(--space-4);
+    }
+    .count {
+      display: none;
+    }
+    .body {
+      gap: calc(var(--space-2) + var(--border-thick));
+      padding: calc(var(--space-2) + var(--border-thick)) var(--space-2);
+    }
+    .steps {
+      gap: calc(var(--space-1) + var(--border-thick));
+      padding: 0 calc(var(--space-1) + var(--border-thick));
+    }
+    .steps .label {
+      display: none;
+    }
+    .seg.view {
+      display: flex;
+    }
+    .label {
+      padding: 0 calc(var(--space-2) + var(--border-thick)) var(--border-thick);
+    }
+    .group a {
+      padding: 0 calc(var(--space-2) + var(--border-thick));
+    }
+    .reset {
+      min-height: calc(var(--size-touch-min) + var(--space-1));
+      padding: 0 calc(var(--space-2) + var(--border-thick));
+    }
+    .reset .long {
+      display: none;
+    }
+    .reset .short {
+      display: inline;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     nav {

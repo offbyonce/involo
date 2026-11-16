@@ -31,6 +31,9 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import { stepTitle } from "./lib/sentence";
   import StepPane from "./lib/StepPane.svelte";
   import Drawer from "./lib/Drawer.svelte";
+  import ProgressRow from "./lib/ProgressRow.svelte";
+  import StagePicker from "./lib/StagePicker.svelte";
+  import { openSteps } from "./lib/open-steps.svelte";
   import FlightStrip from "./lib/FlightStrip.svelte";
   import FlowView from "./lib/FlowView.svelte";
   import PhaseChips from "./lib/PhaseChips.svelte";
@@ -239,6 +242,19 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       ? (rail?.stages.find((s) => s.title === stage)?.phases ?? [])
       : [],
   );
+  /** The phase on screen in the rail (the stage button, the picker and phone's progress row). */
+  let railPhase = $derived(stagePhases.find((p) => p.id === phaseId) ?? null);
+  let pickerOpen = $state(false);
+  /** Below 900 px there is no side pane: the step opens in place (tablet portrait and phone). */
+  let narrow = $state(false);
+  $effect(() => {
+    const query = window.matchMedia?.("(max-width: 899px)");
+    if (!query) return;
+    narrow = query.matches;
+    const change = () => (narrow = query.matches);
+    query.addEventListener("change", change);
+    return () => query.removeEventListener("change", change);
+  });
   let current = $derived(view?.lists.find((l) => l.current)?.current ?? null);
   /** The step the context panel shows, its row, and the steps after it. */
   let pane = $derived.by(() => {
@@ -280,6 +296,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   function slideKeys(e: KeyboardEvent): void {
     const t = e.target instanceof Element ? e.target : null;
     if (t?.closest("input, textarea, select, [contenteditable]") || e.ctrlKey || e.metaKey || e.altKey) return;
+    // Not under the menu, the stage picker or the open-steps list.
+    if (menuOpen || pickerOpen || openSteps.shown) return;
     if (e.key === "Escape" && slide) {
       e.preventDefault();
       closeSlide();
@@ -580,6 +598,22 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     {/if}
   </div>
 {:else}
+{#snippet inlinePane()}
+  {#if pane && index}
+    {#key pane.step.id}
+      <StepPane
+        {index}
+        step={pane.step}
+        targets={pane.row.targets}
+        number={pane.row.number}
+        total={pane.total}
+        preview={settings?.panelPreview ?? true}
+        onOpen={openSlide}
+        inline
+      />
+    {/key}
+  {/if}
+{/snippet}
 <div class="shell" data-app-ready={rail && (view || screen === "settings" || screen === "flight" || screen === "open") ? "" : undefined}>
   <TopBar
     aircraft={index?.name ?? ""}
@@ -588,8 +622,11 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     view={settings && view && (screen === "phase" || screen === "start") ? listView : null}
     {menuOpen}
     open={openShown.map((o) => o.phase)}
+    phase={railPhase?.title ?? null}
+    {pickerOpen}
     onMenu={() => (menuOpen = !menuOpen)}
     onView={changeView}
+    onPicker={() => (pickerOpen = !pickerOpen)}
   />
   {#if error}
     <p class="msg" role="alert">{error}</p>
@@ -599,15 +636,21 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     <PhaseChips phases={stagePhases} current={phaseId} {detail} essentials={settings.essentials} {total} {savedAt} open={openShown.map((o) => o.phase)} />
     <Drawer
       open={menuOpen}
-      {rail}
-      {stage}
+      aircraft={index.name}
+      {savedAt}
       {total}
+      view={view && (screen === "phase" || screen === "start") ? listView : null}
       {detail}
       essentials={settings.essentials}
-      openCount={open.length}
-      version={info?.version ?? null}
+      onView={changeView}
+      onDetail={(d) => void changeSettings({ ...settings!, detail: d })}
+      onEssentials={(on) => void changeSettings({ ...settings!, essentials: on })}
+      onReset={() => void clearFlight()}
       onClose={() => (menuOpen = false)}
     />
+    {#if pickerOpen && rail}
+      <StagePicker {rail} current={phaseId} open={openShown.map((o) => o.phase)} onClose={() => (pickerOpen = false)} />
+    {/if}
     {#if view && screen !== "settings" && screen !== "open" && screen !== "reference"}
       <FlightStrip
         values={flight.values ?? {}}
@@ -619,6 +662,9 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
         onImport={() => void importLatest()}
       />
     {/if}
+    {#if screen === "phase" || screen === "start"}
+      <ProgressRow progress={railPhase?.progress ?? null} open={openShown.length} />
+    {/if}
     <div class="app" class:strip={!!view && screen !== "settings" && screen !== "open" && screen !== "reference"} class:nopane={!pane} class:flow={flow && screen !== "settings"}>
       <main>
         <div class="inner">
@@ -626,7 +672,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
             <KeptNotice what={k.what} state={k.state} text={k.text} onFresh={() => startFresh(k.what)} />
           {/each}
           {#if screen === "settings"}
-            <SettingsPage {settings} onChange={(s) => void changeSettings(s)} />
+            <SettingsPage {settings} version={info?.version ?? null} onChange={(s) => void changeSettings(s)} />
           {:else if screen === "open"}
             <OpenStepsPage
               {index}
@@ -650,6 +696,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
               onBlank={(step, index, value) => act({ type: "setBlank", step, index, value })}
               onSelect={(id) => (selected = id)}
               onClear={(list) => void clearTicks(list)}
+              inline={narrow && pane ? inlinePane : undefined}
+              inlineStep={narrow ? (pane?.step.id ?? null) : null}
             />
           {:else if view}
             {#if flow}
@@ -676,6 +724,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
                 onOption={(option, value) => act({ type: "setOption", option, value })}
                 onValue={(field, value) => act({ type: "setValue", field, value })}
                 {decisions}
+                inline={narrow && pane ? inlinePane : undefined}
+                inlineStep={narrow ? (pane?.step.id ?? null) : null}
               />
             {/if}
           {:else}
@@ -695,6 +745,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       <div class="page-fade up" class:on={pageMore.up} aria-hidden="true"></div>
       <div class="page-fade down" class:on={pageMore.down} aria-hidden="true"></div>
       {#if pane}
+        {#if !narrow}
         <aside class="pane" class:more-up={paneMore.up} class:more-down={paneMore.down} aria-label="About the step" use:fades>
           {#key pane.step.id}
             <StepPane
@@ -710,6 +761,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
             />
           {/key}
         </aside>
+        {/if}
         {#if slide}
           <button class="slide-scrim" type="button" aria-label="Close the panel" tabindex="-1" onclick={closeSlide}></button>
           <div class="slide-box">
@@ -727,13 +779,13 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
 <style>
   /* The bars at the top that stay in place: header, phase track and, on a phase, the strip. */
   .app {
-    --bars: calc(var(--size-header) + var(--size-phase-row));
+    --bars: calc(var(--bar-header) + var(--bar-phase));
     display: grid;
     grid-template-columns: minmax(0, 1fr) var(--side-pane);
     align-items: start;
   }
   .app.strip {
-    --bars: calc(var(--size-header) + var(--size-phase-row) + var(--size-flight-strip));
+    --bars: calc(var(--bar-header) + var(--bar-phase) + var(--bar-strip));
   }
   .app.nopane {
     grid-template-columns: minmax(0, 1fr);
@@ -832,8 +884,26 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     color: var(--color-text-muted);
     font-size: var(--font-size-caption);
   }
-  /* Narrow screens show the context inside the step instead. */
+  /* Narrow screens show the context inside the step instead, the slide-out as a bottom sheet over
+     a scrim on the whole page (Locator.dc.html: tablet portrait 36 px below the bars, phone 16 px
+     below the header, a phone held sideways 12 px from the top), and keep room for the bottom bar. */
   @media (max-width: 899px) {
+    main {
+      padding-bottom: calc(var(--size-touch-min) + var(--space-2) + var(--space-3) + var(--space-4) + var(--space-1) + var(--space-6));
+    }
+    .slide-scrim {
+      top: 0;
+      width: 100%;
+      z-index: 40;
+      background: var(--color-scrim);
+    }
+    .slide-box {
+      top: calc(var(--bars) + var(--space-8) + var(--space-1));
+      right: 0;
+      left: 0;
+      width: auto;
+      z-index: 41;
+    }
     .app,
     .app.flow {
       grid-template-columns: minmax(0, 1fr);
@@ -843,6 +913,24 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     }
     .page-fade {
       width: 100%;
+    }
+  }
+  @media (max-width: 599px) {
+    .slide-box {
+      top: calc(var(--bar-header) + var(--space-4));
+    }
+    /* No phase track on phone: only phase screens have the progress row. */
+    .app:not(.strip) {
+      --bars: var(--bar-header);
+    }
+    /* The phase's list starts under the progress row (Mobile board). */
+    .app.strip main {
+      padding-top: 0;
+    }
+  }
+  @media (max-width: 899px) and (max-height: 499px) {
+    .slide-box {
+      top: var(--space-3);
     }
   }
 </style>

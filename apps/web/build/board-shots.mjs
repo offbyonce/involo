@@ -169,6 +169,19 @@ const SHOTS = [
   ["WindsTabL", { tab: "winds", layout: "tabletL" }, 1180, 820, "Weather", round6],
   ["FSTakeoffTabL", { section: "takeoff", layout: "tabletL" }, 1180, 820, "FlightSection", round6],
   ["FSInvalid", { section: "cruiseInvalid" }, 1440, 900, "FlightSection", round6],
+  // Batch 5: tablet and phone, the menu at every size, the stage and phase picker.
+  ["Menu", {}, 1440, 900],
+  ["R6TabP", { orient: "portrait", overlay: "none", r6: true }, 820, 1180, "Tablet", round6],
+  ["R6PhonePre", { r6: true, preview: true }, 390, 844, "Mobile", round6],
+  ["R6PhoneOpen", { screen: "open", r6: true }, 390, 844, "Mobile", round6],
+  ["R6PhoneStrip", { screen: "strip", r6: true }, 390, 844, "Mobile", round6],
+  ["R6TabPSheet", { layout: "tabletP", state: "panel" }, 820, 1180, "Locator", round6],
+  ["R6PhoneSheet", { layout: "phone", state: "panel" }, 390, 844, "Locator", round6],
+  ["R6PhoneCtl", { layout: "phone", state: "control" }, 390, 844, "Locator", round6],
+  ["R6PhoneL", { layout: "phoneL", state: "panel" }, 844, 390, "Locator", round6],
+  ["StagesPhone", { layout: "phone" }, 390, 844, "StagePicker", round6],
+  ["StagesTabP", { layout: "tabletP" }, 820, 1180, "StagePicker", round6],
+  ["StagesTabL", { layout: "tabletL" }, 1180, 820, "StagePicker", round6],
 ];
 
 async function main() {

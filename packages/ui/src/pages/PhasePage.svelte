@@ -8,8 +8,10 @@ the procedure is done), and buttons to the phases either side. Flow view shows t
 step at a time (lib/FlowView.svelte).
 -->
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import type { Checklist, Detail, FillField, Flight, OpenStep, PhaseView } from "@involo/bindings";
   import OpenStepsPop from "../lib/OpenStepsPop.svelte";
+  import { openSteps } from "../lib/open-steps.svelte";
   import Icon from "../lib/Icon.svelte";
   import ListCard from "../lib/ListCard.svelte";
   import OptionChoices from "../lib/OptionChoices.svelte";
@@ -38,6 +40,8 @@ step at a time (lib/FlowView.svelte).
     onGo,
     onEssentials,
     decisions,
+    inline,
+    inlineStep = null,
   }: {
     index: PackIndex;
     view: PhaseView;
@@ -64,6 +68,9 @@ step at a time (lib/FlowView.svelte).
     onEssentials?: ((id: string, add: boolean) => void) | undefined;
     /** Decision steps and the steps that depend on them (decision 0022). */
     decisions?: Decisions | undefined;
+    /** Below 900 px: the opened step's details, shown in the row of `inlineStep`. */
+    inline?: Snippet | undefined;
+    inlineStep?: string | null;
   } = $props();
   /** The phase's procedure is not done yet: its checklist stays folded (Checklist board). */
   let procedureOpen = $derived(view.lists.some((l) => l.kind === "flow" && !l.complete));
@@ -79,6 +86,9 @@ step at a time (lib/FlowView.svelte).
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     const t = e.target;
     if (t instanceof Element && t.closest("input, textarea, select, button, a, summary, [contenteditable]")) return;
+    // Keys never act on the list under the menu, the stage picker or a sheet.
+    if (t instanceof Element && t.closest('[role="dialog"], #drawer')) return;
+    if (document.querySelector("#drawer.open, .picker") || openSteps.shown) return;
     const at = rows.findIndex((r) => r.id === (selected ?? view.lists.find((l) => l.current)?.current));
     // A decision step that asks takes 1, 2 … and Space (Decision.dc.html).
     const asking = at >= 0 ? index.step(rows[at]?.id ?? "") : undefined;
@@ -134,8 +144,9 @@ step at a time (lib/FlowView.svelte).
   <a class="arrival" href={flightHref("approach")}>Arrival data is in Flight › Approach <Icon name="chevron-right" /></a>
 {/if}
 
-{#each view.lists as list (list.id)}
+{#each view.lists as list, n (list.id)}
   <ListCard
+    next={view.lists[n + 1] ?? null}
     {index}
     {list}
     source={lists.get(list.id)}
@@ -154,6 +165,8 @@ step at a time (lib/FlowView.svelte).
     {onEssentials}
     folded={list.kind === "checklist" && procedureOpen}
     {decisions}
+    {inline}
+    {inlineStep}
   />
 {/each}
 
@@ -203,5 +216,33 @@ step at a time (lib/FlowView.svelte).
     justify-content: space-between;
     gap: var(--space-3);
     margin-top: var(--space-2);
+  }
+  /* Tablet (Tablet board): no crumb, the title at 24. Phone (Mobile board): no title block; the
+     header names the stage and phase, the progress row has "2 open". */
+  @media (max-width: 1439px) {
+    .crumb {
+      display: none;
+    }
+    h1 {
+      font-size: var(--font-size-section-title);
+    }
+    .title {
+      align-items: center;
+    }
+  }
+  /* Phone: the title is for screen readers only; the open-steps sheet stays in this block, so
+     only the heading is clipped. */
+  @media (max-width: 599px) {
+    .title {
+      margin: 0;
+    }
+    .title h1 {
+      position: absolute;
+      width: var(--border-thin);
+      height: var(--border-thin);
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   }
 </style>

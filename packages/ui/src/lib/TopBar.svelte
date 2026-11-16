@@ -4,8 +4,10 @@ SPDX-License-Identifier: MIT
 
 The header (Checklist board, 60 px): menu, the app's name and aircraft, the stage tabs (the
 current one bold and underlined, an amber dot on any stage holding an open step), the Checklist /
-Flow switch and Emergency. Find is hidden until it is built (batch 6, owner). Stage tabs hide in
-narrow windows; the menu has them there.
+Flow switch and Emergency. Find is hidden until it is built (batch 6, owner). Below 1440 px it is
+the compact header (Tablet and Mobile boards, batch 5): no brand and no stage tabs, but a stage
+button (with the phase on phone, and an amber dot when another stage holds an open step) that opens
+the stage and phase picker; phone keeps Checklist / Flow in the menu.
 -->
 <script lang="ts">
   import type { ListView, Rail } from "@involo/bindings";
@@ -20,8 +22,11 @@ narrow windows; the menu has them there.
     view,
     menuOpen,
     open = [],
+    phase = null,
+    pickerOpen = false,
     onMenu,
     onView,
+    onPicker = () => {},
   }: {
     aircraft: string;
     rail: Rail | null;
@@ -32,9 +37,17 @@ narrow windows; the menu has them there.
     menuOpen: boolean;
     /** Phases holding an open step (skipped or missed), for the amber dots. */
     open?: string[];
+    /** The title of the phase on screen, if any (phone's stage button). */
+    phase?: string | null;
+    pickerOpen?: boolean;
     onMenu: () => void;
     onView: (view: ListView) => void;
+    onPicker?: () => void;
   } = $props();
+  /** Open steps in stages other than the one on screen (the stage button's amber dot). */
+  let elsewhere = $derived(
+    rail?.stages.filter((s) => s.title !== stage).some((s) => s.phases.some((p) => open.includes(p.id))) ?? false,
+  );
 
   /** A stage opens on its first phase that still has steps open. */
   const target = (phases: Rail["stages"][number]["phases"]) => (phases.find((p) => !p.complete) ?? phases[0])?.id;
@@ -48,6 +61,23 @@ narrow windows; the menu has them there.
     <span class="name"><span class="mark" aria-hidden="true">{@html headerMark}</span>involo</span>
     <small>{aircraft}</small>
   </div>
+  {#if rail && stage}
+    <button
+      class="pick"
+      type="button"
+      aria-haspopup="dialog"
+      aria-expanded={pickerOpen}
+      aria-label="Stage and phase: {stage}{phase ? `, ${phase}` : ''}. Change"
+      onclick={onPicker}
+    >
+      <span class="st"
+        >{stage}{#if elsewhere}<span class="dot" title="Open step in another stage"></span>{/if}<span class="chev"
+          ><Icon name="chevron-down" /></span
+        ></span
+      >
+      {#if phase}<span class="ph">{phase}<span class="chev"><Icon name="chevron-down" /></span></span>{/if}
+    </button>
+  {/if}
   {#if rail}
     <nav class="stages" aria-label="Stages">
       {#each rail.stages as s (s.title)}
@@ -82,7 +112,7 @@ narrow windows; the menu has them there.
     display: flex;
     align-items: center;
     gap: var(--space-4);
-    height: var(--size-header);
+    height: var(--bar-header);
     padding: 0 var(--space-4);
     border-bottom: var(--border-thin) solid var(--color-line);
     background: var(--color-bg);
@@ -123,12 +153,12 @@ narrow windows; the menu has them there.
   .stages {
     display: flex;
     align-items: stretch;
-    height: var(--size-header);
+    height: var(--bar-header);
   }
   .stages a {
     display: flex;
     align-items: center;
-    gap: calc(var(--space-1) + var(--border-thick) / 2);
+    gap: calc(var(--space-1) + var(--border-thick));
     padding: 0 var(--space-3);
     color: var(--color-text-muted);
     font-size: var(--font-size-body);
@@ -180,6 +210,11 @@ narrow windows; the menu has them there.
     color: var(--color-text-strong);
     font-weight: var(--weight-semibold);
   }
+  /* Keyboard focus shows the app's ring (app.css), over the pressed segment's own outline. */
+  .seg button:focus-visible {
+    outline: var(--border-thick) solid var(--color-accent);
+    outline-offset: var(--border-thick);
+  }
   .emg {
     display: inline-flex;
     align-items: center;
@@ -194,17 +229,101 @@ narrow windows; the menu has them there.
     text-decoration: none;
     white-space: nowrap;
   }
-  @media (max-width: 899px) {
+  .pick {
+    display: none;
+  }
+  .chev {
+    display: flex;
+    color: var(--color-text-muted);
+  }
+  .chev :global(.icon) {
+    width: var(--size-icon-small);
+    height: var(--size-icon-small);
+  }
+
+  /* The compact header, 600 to 1439 px (Tablet board): menu, the stage button, View, Emergency. */
+  @media (max-width: 1439px) {
+    .top {
+      gap: var(--space-2);
+      padding: 0 var(--space-3) 0 calc(var(--space-1) + var(--border-thick));
+    }
+    .brand,
     .stages {
       display: none;
     }
-    .brand {
+    .pick {
+      display: flex;
+      align-items: center;
+      height: var(--size-touch-min);
       margin-right: auto;
+      padding: 0 calc(var(--space-2) + var(--border-thick));
+      border: 0;
+      background: transparent;
+      color: var(--color-text-strong);
+      font: inherit;
+    }
+    .st {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--space-1) + var(--border-thick));
+      font-size: var(--font-size-body);
+      font-weight: var(--weight-semibold);
+    }
+    .ph {
+      display: none;
+    }
+    .end {
+      gap: var(--space-2);
+    }
+    .seg button {
+      padding: 0 calc(var(--space-3) + var(--border-thick));
+    }
+    .emg {
+      padding: 0 var(--space-3);
     }
   }
+
+  /* Phone (Mobile board): 56 high; the stage above the phase, no View switch. */
   @media (max-width: 599px) {
-    .brand {
+    .top {
+      gap: var(--space-1);
+      padding: 0 var(--space-2) 0 var(--space-1);
+    }
+    .pick {
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 0 calc(var(--space-1) + var(--border-thick));
+      line-height: var(--leading-tight);
+    }
+    .st {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-caption);
+      font-weight: var(--weight-regular);
+    }
+    .st .chev {
       display: none;
+    }
+    .st .dot {
+      width: calc(var(--size-dot) - var(--border-thin));
+      height: calc(var(--size-dot) - var(--border-thin));
+    }
+    .ph {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: var(--font-size-body);
+      font-weight: var(--weight-semibold);
+    }
+    .ph .chev :global(.icon) {
+      width: calc(var(--space-3) + var(--border-thick));
+      height: calc(var(--space-3) + var(--border-thick));
+    }
+    .seg {
+      display: none;
+    }
+    .emg {
+      padding: 0 calc(var(--space-2) + var(--border-thick));
     }
   }
 </style>

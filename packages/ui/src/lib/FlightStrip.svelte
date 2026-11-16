@@ -152,6 +152,12 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
   {#if open}
     <div class="scrim" aria-hidden="true"></div>
     <div id="spop" class="panel" role="region" aria-label="Clearance and notes">
+      <!-- Phone (Mobile board, strip screen): a bottom sheet with its own heading and Close. -->
+      <span class="handle" aria-hidden="true"></span>
+      <div class="sheet-head">
+        <div><b>{route}</b><span>Clearance and notes</span></div>
+        <button type="button" class="sheet-close" aria-label="Close the flight strip" onclick={hide}><Icon name="x" /></button>
+      </div>
       <div class="body">
         <div class="clearance">
           <h2>Clearance</h2>
@@ -205,9 +211,11 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
           Notes from ATC
           <textarea id="sp-notes" value={notes} placeholder="Jot down what ATC says: frequency changes, re-clearances, taxi route" oninput={(e) => onNotes(e.currentTarget.value)}></textarea>
         </label>
+        <!-- Phone (Mobile board): Import sits under the notes, the footer's is hidden. -->
+        <button class="btn import below" type="button" onclick={onImport}>Import latest from SimBrief</button>
       </div>
       <div class="foot">
-        <button class="btn import" type="button" onclick={onImport}>Import latest from SimBrief</button>
+        <button class="btn import above" type="button" onclick={onImport}>Import latest from SimBrief</button>
         {#if provenance}<span class="from">{provenance}</span>{/if}
         <span class="fill"></span>
         <button
@@ -228,11 +236,11 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
   /* The closed strip: the page's width, under the phase track. */
   .fstrip {
     position: sticky;
-    top: calc(var(--size-header) + var(--size-phase-row));
+    top: calc(var(--bar-header) + var(--bar-phase));
     z-index: 18;
     display: flex;
     align-items: center;
-    height: var(--size-flight-strip);
+    height: var(--bar-strip);
     padding: 0 var(--space-4);
     border-bottom: var(--border-thin) solid var(--color-line);
     background: var(--color-surface-2);
@@ -314,7 +322,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
   /* The panel drops below the strip over the page, which a scrim dims (StripOpen). */
   .scrim {
     position: fixed;
-    inset: calc(var(--size-header) + var(--size-phase-row) + var(--size-flight-strip)) 0 0;
+    inset: calc(var(--bar-header) + var(--bar-phase) + var(--bar-strip)) 0 0;
     z-index: -1;
     background: var(--color-scrim);
   }
@@ -465,6 +473,10 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
   /* Tablet portrait and phone (batch 5 brings their own boards): the notes go under the
      clearance, the fields wrap three or two to a row, and the footer wraps. */
   @media (max-width: 899px) {
+    /* Open, the strip and its panel sit over the bottom bar (and on phone over the bars). */
+    .fstrip.open {
+      z-index: 42;
+    }
     .body {
       grid-template-columns: minmax(0, 1fr);
       gap: var(--space-4);
@@ -486,13 +498,161 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
       order: 1;
     }
     .panel {
-      max-height: calc(100dvh - var(--size-header) - var(--size-phase-row) - var(--size-flight-strip));
+      max-height: calc(100dvh - var(--bar-header) - var(--bar-phase) - var(--bar-strip));
       overflow-y: auto;
     }
   }
   @media (max-width: 599px) {
     .spf {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .handle,
+  .sheet-head,
+  .import.below {
+    display: none;
+  }
+  /* The closed strip on tablet: Runway, SID, Squawk and the notes (Tablet board). */
+  @media (max-width: 1439px) {
+    .fsline .part:not([data-field="runway"], [data-field="sid"], [data-field="squawk"]) {
+      display: none;
+    }
+  }
+  /* Phone (Mobile board): the strip sits under the header, 44 high; open, its panel is a bottom
+     sheet 40 px below the header over a scrim on the whole page. */
+  @media (max-width: 599px) {
+    /* The closed strip: the route, the squawk and the notes (Mobile board). */
+    .fsline .part:not([data-field="squawk"]) {
+      display: none;
+    }
+    .clearance h2 {
+      display: none;
+    }
+    .fstrip {
+      top: var(--bar-header);
+      padding: 0 var(--space-2) 0 0;
+    }
+    .scrim {
+      inset: 0;
+      z-index: 40;
+    }
+    .panel {
+      position: fixed;
+      top: calc(var(--bar-header) + var(--space-10));
+      bottom: 0;
+      z-index: 41;
+      display: flex;
+      flex-direction: column;
+      max-height: none;
+      overflow-y: auto;
+      border: 0;
+      border-top: var(--border-thin) solid var(--color-border);
+      border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+      background: var(--color-sheet);
+    }
+    .handle {
+      display: block;
+      flex: none;
+      align-self: center;
+      width: var(--space-10);
+      height: var(--space-1);
+      margin-top: var(--space-2);
+      border-radius: var(--border-thick);
+      background: var(--color-border);
+    }
+    /* The sheet's spacing (Mobile board, strip screen): a 52 px head, 10 px between fields, 4 px
+       under each label, and the notes box 80 high with Import under it. */
+    .sheet-head {
+      display: flex;
+      flex: none;
+      align-items: center;
+      height: calc(var(--space-10) + var(--space-3));
+      padding: 0 calc(var(--space-1) + var(--border-thick)) 0 var(--space-4);
+    }
+    .sheet-head div {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      line-height: var(--leading-tight);
+    }
+    .body {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: calc(var(--space-2) + var(--border-thick));
+      padding: var(--space-1) var(--space-4) var(--space-2);
+    }
+    .clearance,
+    .spf {
+      gap: calc(var(--space-2) + var(--border-thick));
+    }
+    .spf label,
+    .notesbox {
+      gap: var(--space-1);
+    }
+    input {
+      font-size: var(--font-size-body);
+    }
+    .notesbox {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-caption);
+      font-weight: var(--weight-regular);
+    }
+    textarea {
+      flex: none;
+      height: calc(2 * var(--space-10));
+      min-height: 0;
+      font-size: var(--font-size-value-mono);
+    }
+    .import.below {
+      display: block;
+      flex: none;
+      height: var(--size-touch-min);
+      border-radius: var(--radius-control);
+      font-size: var(--font-size-value-mono);
+      font-weight: var(--weight-semibold);
+    }
+    .import.above {
+      display: none;
+    }
+    .sheet-head b {
+      font-family: var(--font-mono);
+      font-size: calc(var(--font-size-body) + var(--border-thick));
+      font-weight: var(--weight-semibold);
+    }
+    .sheet-head span {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-caption);
+    }
+    .sheet-close {
+      display: grid;
+      place-items: center;
+      width: var(--size-touch-min);
+      height: var(--size-touch-min);
+      border: 0;
+      background: none;
+      color: var(--color-text-secondary);
+    }
+    .foot {
+      flex: none;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      height: auto;
+      padding: var(--space-2) var(--space-4) calc(var(--space-6) - var(--border-thick));
+    }
+    .foot .reset {
+      order: 2;
+      margin-right: auto;
+      padding: 0 var(--space-2);
+    }
+    /* All flight data as the board's boxed link: 48 high, 14 px in, radius 12. */
+    .all {
+      order: 3;
+      height: calc(var(--size-touch-min) + var(--space-1));
+      padding: 0 calc(var(--space-3) + var(--border-thick));
+      border: var(--border-thin) solid var(--color-border);
+      border-radius: var(--radius-segment);
+      font-size: var(--font-size-value-mono);
     }
   }
 </style>
