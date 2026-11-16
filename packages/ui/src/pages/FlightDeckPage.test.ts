@@ -117,4 +117,30 @@ describe("FlightDeckPage", () => {
     render(FlightDeckPage, { ...base, area: "glareshield", zone: "fuel" });
     expect(location.hash).toBe("#/deck/forward-overhead/fuel");
   });
+
+  it("draws the selected panel fitted to the column, with Full size opening the panel sheet (owner)", async () => {
+    width(1440);
+    const opened: string[] = [];
+    const was = HTMLDialogElement.prototype.showModal;
+    HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+      opened.push(this.getAttribute("aria-label") ?? "");
+      this.setAttribute("open", "");
+    };
+    render(FlightDeckPage, base);
+    const panel = screen.getByRole("complementary", { name: "Fuel panel" });
+    // An overview: no navigator strip, no "See the whole panel larger".
+    expect(within(panel).queryByRole("slider")).toBeNull();
+    expect(within(panel).queryByRole("button", { name: "See the whole panel larger" })).toBeNull();
+    expect(within(panel).getByText("Resting positions. Tap a light for its meaning.")).toBeTruthy();
+    await fireEvent.click(within(panel).getByRole("button", { name: "Full size ›" }));
+    expect(opened).toEqual(["Fuel panel"]);
+    HTMLDialogElement.prototype.showModal = was;
+  });
+
+  it("900 to 1439 px: the slide-out stays the full-size view, with no Full size link", () => {
+    width(1280);
+    render(FlightDeckPage, base);
+    const slide = screen.getByRole("dialog", { name: "Fuel panel" });
+    expect(within(slide).queryByRole("button", { name: "Full size ›" })).toBeNull();
+  });
 });

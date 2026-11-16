@@ -499,6 +499,8 @@ const SHOTS = [
   // The Flight deck (owner; Deck, PhoneDeck): the forward overhead with the fuel panel selected, as
   // the boards show; at 1280 px, the area list and the area, the panel in its slide-out.
   { name: "board-deck", only: ["desktop", "phone", "laptop"], app: { hash: "#/deck/forward-overhead/fuel" } },
+  // The selected panel's "Full size ›": the panel sheet at full size, with its navigator when wider.
+  { name: "board-deck-full", only: ["desktop", "phone"], app: { hash: "#/deck/forward-overhead/fuel", before: [click(".deck-panel .full")] } },
   // The Glossary (owner): desktop at APU as the boards show, the phone's list, and APU on phone.
   { name: "board-glossary", only: ["desktop"], app: { hash: "#/glossary/APU" } },
   { name: "board-glossary-list", only: ["phone"], app: { hash: "#/glossary" } },

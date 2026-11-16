@@ -12,6 +12,8 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
   import type { PackIndex } from "../pack-index";
   import { zoneControls, zoneLights, zoneSections, zoneSteps } from "./deck";
   import PanelNavigator from "./PanelNavigator.svelte";
+  import PanelSchematic from "./PanelSchematic.svelte";
+  import PanelSheet from "./PanelSheet.svelte";
   import PanelTiles from "./PanelTiles.svelte";
   import { phaseHref } from "../route.svelte";
   import { stepTitle } from "./sentence";
@@ -23,6 +25,7 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
     compact = false,
     heading = true,
     drawingOnly = false,
+    fullSize = false,
     onStep,
   }: {
     index: PackIndex;
@@ -33,6 +36,8 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
     heading?: boolean;
     /** Only the drawing, no caption (Around the flight deck's list). */
     drawingOnly?: boolean;
+    /** At full size in place (the 900 to 1439 px slide-out, which is the full-size view). */
+    fullSize?: boolean;
     onStep: (id: string) => void;
   } = $props();
 
@@ -57,10 +62,11 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
     }),
   );
   let controls = $derived(zoneControls(index, zone));
-  /** The drawing's room: the card's width, any height (the page scrolls). A panel wider than that
-   * at the 11 px label floor scrolls sideways under a navigator strip, as the slide-out's does. */
-  let roomWidth = $state(0);
-  let room = $derived(roomWidth ? { width: roomWidth, height: roomWidth * 8 } : undefined);
+  /** Full size, in the panel sheet: the sheet's width, any height; a panel wider than that at the
+   * 11 px label floor scrolls sideways under a navigator strip (owner). */
+  let sheet = $state<PanelSheet | null>(null);
+  let sheetWidth = $state(0);
+  let room = $derived(sheetWidth ? { width: sheetWidth, height: sheetWidth * 8 } : undefined);
   let wider = $state(false);
   let scroller = $state<HTMLDivElement | null>(null);
 </script>
@@ -73,13 +79,34 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
     </div>
   {/if}
   {#if tiles.length}
-    <figure class="drawing" bind:clientWidth={roomWidth}>
-      {#if wider && scroller && tiles.length === 1 && tiles[0]?.kind === "drawn"}
-        <PanelNavigator panel={tiles[0].panel} focus={[tiles[0].id]} targets={[]} {scroller} title={zone.title} />
-      {/if}
-      <PanelTiles {tiles} targets={[]} {index} {room} large bind:wider bind:scroller />
-      {#if !compact && !drawingOnly}<figcaption>Resting positions. Tap a light for its meaning.</figcaption>{/if}
-    </figure>
+    {#snippet full()}
+      <div class="full-room" bind:clientWidth={sheetWidth}>
+        {#if wider && scroller && tiles.length === 1 && tiles[0]?.kind === "drawn"}
+          <PanelNavigator panel={tiles[0].panel} focus={[tiles[0].id]} targets={[]} {scroller} title={zone.title} />
+        {/if}
+        <PanelTiles {tiles} targets={[]} {index} {room} large bind:wider bind:scroller />
+      </div>
+    {/snippet}
+    {#if fullSize}
+      <figure class="drawing">
+        {@render full()}
+        <figcaption><span>Resting positions. Tap a light for its meaning.</span></figcaption>
+      </figure>
+    {:else}
+      <!-- An overview fitted to the column, never scrolling (owner); Full size opens the panel sheet. -->
+      <figure class="drawing">
+        {#each tiles as t (t.id)}
+          {#if t.kind === "drawn"}
+            <PanelSchematic panel={t.panel} focus={[t.id]} targets={[]} {index} overview tile={tiles.length > 1} ownButton={false} />
+          {/if}
+        {/each}
+        <figcaption>
+          {#if !compact && !drawingOnly}<span>Resting positions. Tap a light for its meaning.</span>{/if}
+          <button class="full" type="button" onclick={() => sheet?.open()}>Full size ›</button>
+        </figcaption>
+      </figure>
+      <PanelSheet caption={zone.title} bind:this={sheet}>{@render full()}</PanelSheet>
+    {/if}
   {:else if controls.length && !drawingOnly}
     <div class="listed" role="group" aria-label={zone.title}>
       <ul>
@@ -156,8 +183,28 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
     background: var(--panel-bg);
   }
   figcaption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
     color: var(--panel-label);
     font-size: var(--font-size-caption);
+  }
+  /* "Full size ›": a 44 px link at the caption's end. */
+  .full {
+    min-height: var(--size-touch-min);
+    margin-left: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-link);
+    font: inherit;
+    font-size: var(--font-size-secondary);
+  }
+  .full-room {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
   }
   .listed ul {
     display: flex;

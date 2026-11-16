@@ -107,7 +107,9 @@ electronic panel (P9), the control stand and the aft electronic panel (P8) by it
 names, then "Around the flight deck" last: it has no map region, so its places are a list, each with
 its location line and, where the pack draws it, its drawing, and nothing is lit in the side view.
 The map is the pack's overview, with the batch 6 map rules (a box is named only when its name fits
-with 6 px either side). The slide-out's and Where is this?'s "Whole flight deck" map is gone: "Open
+with 6 px either side). The selected panel is an overview fitted to its column (labels may go below
+11 px there), with "Full size ›" opening it in the panel sheet at the 11 px minimum, under a
+navigator when wider; the 900 to 1439 px slide-out shows it at full size. The slide-out's and Where is this?'s "Whole flight deck" map is gone: "Open
 in Flight deck", as the Locator board draws it, opens the page at that panel.
 
 **Batch 6 panels (owner, 2026-11-15).** `PanelTiles.dc.html` (dark and light) draws a step whose

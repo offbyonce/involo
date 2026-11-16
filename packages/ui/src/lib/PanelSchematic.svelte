@@ -13,6 +13,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
   import type { ItemTarget, Panel, PanelSection as Section } from "@involo/bindings";
   import { drawingScale, K, layoutSection, openingScroll, positionsOf, roomScale, tileScale } from "./panel-layout";
   import PanelSection from "./PanelSection.svelte";
+  import PanelSheet from "./PanelSheet.svelte";
   import Self from "./PanelSchematic.svelte";
   import type { PackIndex } from "../pack-index";
 
@@ -35,6 +36,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     scroller = $bindable(),
     tile = false,
     natural = $bindable(),
+    overview = false,
   }: {
     /** The panel the sections are on. */
     panel: Panel;
@@ -74,6 +76,9 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     wider?: boolean | undefined;
     /** Out: the element that scrolls the drawing, for the navigator. */
     scroller?: HTMLDivElement | null | undefined;
+    /** An overview (the Flight deck page's selected panel, owner): fitted to its width, never
+     * scrolling, its labels smaller than 11 px where they must be; the panel sheet has it at full size. */
+    overview?: boolean | undefined;
     /** One tile among several: the whole section, titled with its name (PanelTiles board). */
     tile?: boolean | undefined;
     /** Out: the drawing's width in pixels at its scale, for laying tiles side by side. */
@@ -171,6 +176,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
   let wrap = $state<HTMLDivElement | null>(null);
   let height = $state(0);
   let scale = $derived.by(() => {
+    if (overview) return { k: width > 0 ? Math.min(width / view.box.w, K * pageScale) : K * pageScale, overflow: false };
     if (!room) {
       const fit = drawingScale(width, view.box.w, pageScale);
       // A tile among several keeps its own size here too (PanelTiles board; the flow's pane).
@@ -228,7 +234,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     el.scrollTop = openingScroll(span.top, span.bottom, el.clientHeight);
   }
 
-  let sheet = $state<HTMLDialogElement | null>(null);
+  let sheetEl = $state<PanelSheet | null>(null);
   $effect(() => {
     enlargeable = !large && (scale.overflow || moreY || !!band);
   });
@@ -238,21 +244,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
    * the drawing resizes in the first half second.
    */
   export function openLarger() {
-    const el = sheet;
-    if (!el) return;
-    el.showModal();
-    const center = () => {
-      const ons = [...el.querySelectorAll("g.item.on")].map((g) => g.getBoundingClientRect());
-      if (!ons.length) return;
-      const top = Math.min(...ons.map((r) => r.top));
-      const bottom = Math.max(...ons.map((r) => r.bottom));
-      const box = el.getBoundingClientRect();
-      el.scrollTop += (top + bottom) / 2 - (box.top + box.height / 2);
-    };
-    requestAnimationFrame(center);
-    const watch = new ResizeObserver(center);
-    for (const svg of el.querySelectorAll("svg")) watch.observe(svg);
-    setTimeout(() => watch.disconnect(), 500);
+    sheetEl?.open();
   }
 
   /** The open control card: the item, its light meaning, and what its control does. */
@@ -309,13 +301,9 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
 {/if}
 {#if (scale.overflow || band) && !large}
   {#if ownButton}<button type="button" class="btn larger" onclick={openLarger}>See the whole panel larger</button>{/if}
-  <dialog class="sheet" bind:this={sheet} aria-label={caption}>
-    <div class="sheet-head">
-      <span>{caption}</span>
-      <button type="button" class="btn" onclick={() => sheet?.close()}>Close</button>
-    </div>
+  <PanelSheet {caption} bind:this={sheetEl}>
     <Self {panel} {focus} {targets} {guardClosed} large />
-  </dialog>
+  </PanelSheet>
 {/if}
 
 <style>
@@ -378,34 +366,4 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     margin-top: var(--space-2);
   }
   /* The full-width view: the whole window across, the drawing scrolling inside if needed. */
-  .sheet {
-    width: 100vw;
-    max-width: 100vw;
-    max-height: 100dvh;
-    margin: auto 0 0;
-    padding: var(--space-4) var(--gutter) var(--space-6);
-    border: 0;
-    border-top: var(--border-thin) solid var(--color-border);
-    border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
-    background: var(--color-sheet);
-    color: var(--color-text);
-  }
-  .sheet::backdrop {
-    background: var(--color-scrim);
-  }
-  /* Stays in view (with Close) when the sheet opens scrolled to the step's controls. */
-  .sheet-head {
-    position: sticky;
-    top: calc(-1 * var(--space-4));
-    z-index: 1;
-    padding: var(--space-2) 0;
-    background: var(--color-sheet);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    margin-bottom: var(--space-3);
-    font-size: var(--font-size-panel-title);
-    font-weight: var(--weight-semibold);
-  }
 </style>

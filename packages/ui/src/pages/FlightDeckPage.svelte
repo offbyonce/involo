@@ -248,7 +248,7 @@ line and, where the pack draws it, its drawing; nothing is lit in the side view 
           <kbd class="esc" aria-hidden="true">Esc</kbd>
           <button class="close" type="button" aria-label="Close" onclick={closeSlide}><Icon name="x" /></button>
         </header>
-        <div class="so-body">{#key chosen.id}<DeckPanel {index} zone={chosen} heading={false} {onStep} />{/key}</div>
+        <div class="so-body">{#key chosen.id}<DeckPanel {index} zone={chosen} heading={false} fullSize {onStep} />{/key}</div>
       </div>
     {/if}
   {:else}
