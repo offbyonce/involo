@@ -59,6 +59,23 @@ describe("the Glossary", () => {
     expect(ids).toContain("ifly-737-max8.landing.speedbrake-lever");
   });
 
+  it("tells apart rows that read the same: by list, or else by the condition in the pack's labels", () => {
+    const apu = all.find((t) => t.term === "APU");
+    const pumps = apu?.steps.filter((s) => s.title === "One left fuel pump") ?? [];
+    expect(pumps.length).toBe(2);
+    expect(pumps.map((s) => apu?.tags[s.id])).toEqual(["Ground power at the gate", "No ground power"]);
+    // Steps repeated for each engine in one list differ in neither: no tag.
+    const egt = all.find((t) => t.term === "EGT");
+    for (const s of egt?.steps.filter((x) => x.title === "Fuel flow and EGT" && x.phase === "engine-start") ??
+      [])
+      expect(egt?.tags[s.id]).toBeUndefined();
+    // Only rows that would read the same carry one.
+    const key = (s: { title: string; phase: string; value: string }) => `${s.title}|${s.phase}|${s.value}`;
+    for (const s of apu?.steps ?? [])
+      if (apu?.tags[s.id])
+        expect((apu?.steps ?? []).filter((x) => key(x) === key(s)).length).toBeGreaterThan(1);
+  });
+
   it("filters by name or expansion", () => {
     expect(filterTerms(all, "auxiliary").map((t) => t.term)).toContain("APU");
     expect(filterTerms(all, "")).toBe(all);

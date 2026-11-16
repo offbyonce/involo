@@ -67,21 +67,6 @@ them (owner).
    * Glossary does not hold opens nothing. */
   let open = $derived(named ?? (wide && !term ? (shown[0] ?? terms[0] ?? null) : null));
 
-  /** The steps of a term whose rows would read the same (title, phase and value): these name
-   * their list too (owner). */
-  let twins = $derived.by(() => {
-    const out = new Set<string>();
-    const seen = new Map<string, string>();
-    for (const s of open?.steps ?? []) {
-      const key = `${s.title}|${s.phase}|${s.value}`;
-      const other = seen.get(key);
-      if (other) {
-        out.add(other);
-        out.add(s.id);
-      } else seen.set(key, s.id);
-    }
-    return out;
-  });
   /** Each phase's stage and title, for a step's "Stage › Phase". */
   let phases = $derived.by(() => {
     const m = new Map<string, string>();
@@ -170,7 +155,7 @@ them (owner).
               }}
               ><span class="txt"
                 ><span class="st">{s.title}</span><span class="sub"
-                  ><span>{phases.get(s.phase) ?? ""}{#if twins.has(s.id) && s.list}{" "}· {s.list}{/if}</span><span class="val">{s.value}</span></span
+                  ><span>{phases.get(s.phase) ?? ""}{#if t.tags[s.id]}{" "}· {t.tags[s.id]}{/if}</span><span class="val">{s.value}</span></span
                 ></span
               ><Icon name="chevron-right" /></a
             >

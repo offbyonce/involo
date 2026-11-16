@@ -38,8 +38,9 @@ const terms: GlossaryTerm[] = [
     expansion: "Widget gate timer",
     definition: "Times the widget gate.",
     steps: [{ id: "s1", title: "Widget gate", value: "OPEN", phase: "p1" }],
+    tags: {},
   },
-  { term: "Zap valve", expansion: null, definition: "A valve that zaps.", steps: [] },
+  { term: "Zap valve", expansion: null, definition: "A valve that zaps.", steps: [], tags: {} },
 ];
 const base = { terms, term: null, rail, backHref: "#/phase/p1", onStep: () => {} };
 /** A phone-sized screen: below 900 px. */
@@ -102,7 +103,10 @@ describe("GlossaryPage", () => {
   it("opens a term with a slash from its address, and opens nothing for a name it does not hold", () => {
     render(GlossaryPage, {
       ...base,
-      terms: [...terms, { term: "TO/GA", expansion: "Takeoff/go-around", definition: "", steps: [] }],
+      terms: [
+        ...terms,
+        { term: "TO/GA", expansion: "Takeoff/go-around", definition: "", steps: [], tags: {} },
+      ],
       term: "TO/GA",
     });
     expect(screen.getByRole("heading", { level: 2, name: "TO/GA" })).toBeTruthy();
@@ -144,7 +148,7 @@ describe("GlossaryPage", () => {
     expect(screen.getByRole("link", { name: "Back to checklist" })).toBeTruthy();
   });
 
-  it("names the list on rows that would read the same, and only on those (owner)", () => {
+  it("shows what tells apart rows that would read the same, and nothing on the others (owner)", () => {
     const twin = { title: "Pump", value: "ON", phase: "p1" };
     render(GlossaryPage, {
       ...base,
@@ -158,6 +162,7 @@ describe("GlossaryPage", () => {
             { id: "b", ...twin, list: "Start checklist" },
             { id: "c", title: "Valve", value: "OPEN", phase: "p1", list: "Start flow" },
           ],
+          tags: { a: "Start flow", b: "Start checklist" },
         },
       ],
       term: "PMP",

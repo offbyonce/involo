@@ -5,6 +5,7 @@
 // when it has one, its definition and the steps that use it. Built from the pack's terms as they
 // are (no pack format change): Where is this? and Related stay out, as the pack has no data for them.
 
+import type { Step } from "@involo/bindings";
 import type { PackIndex } from "../pack-index";
 import type { FindStep } from "./find-index";
 
@@ -16,6 +17,8 @@ export type GlossaryTerm = {
   definition: string;
   /** The steps whose terms name it, in flight order, each once. */
   steps: FindStep[];
+  /** For rows that would read the same: what tells each apart, by step id (see `rowTags`). */
+  tags: Record<string, string>;
 };
 
 /** Terms that meet the rule but whose first sentence reads as a description, not a name: no
@@ -65,8 +68,64 @@ export function buildGlossary(
       users.set(key, [...(users.get(key) ?? []), s]);
     }
   return terms
-    .map((t) => ({ term: t.term, ...split(t.term, t.meaning), steps: users.get(t.term.toLowerCase()) ?? [] }))
+    .map((t) => {
+      const used = users.get(t.term.toLowerCase()) ?? [];
+      return { term: t.term, ...split(t.term, t.meaning), steps: used, tags: rowTags(index, used) };
+    })
     .sort((a, b) => a.term.localeCompare(b.term, "en", { sensitivity: "base", numeric: true }));
+}
+
+type ShowIf = NonNullable<Step["show_if"]>;
+type OptionTest = Exclude<ShowIf, { all_of: unknown } | { any_of: unknown }>;
+
+/** The option values a step shows for, by option ("power" → ["gpu"]). */
+function showsFor(show: ShowIf | null | undefined): Map<string, string[]> {
+  const tests: OptionTest[] = !show
+    ? []
+    : "all_of" in show
+      ? show.all_of
+      : "any_of" in show
+        ? show.any_of
+        : [show];
+  const out = new Map<string, string[]>();
+  for (const t of tests)
+    out.set(t.option, [...(out.get(t.option) ?? []), ...("equals" in t ? [t.equals] : t.one_of)]);
+  return out;
+}
+
+/**
+ * Rows that would read the same (title, phase and value) name what tells them apart (owner): their
+ * lists when those differ; otherwise the condition each shows for, in the pack's own labels for the
+ * option ("Ground power at the gate", "No ground power"); nothing when neither differs.
+ */
+export function rowTags(index: PackIndex, steps: FindStep[]): Record<string, string> {
+  const groups = new Map<string, FindStep[]>();
+  for (const s of steps) {
+    const key = `${s.title}|${s.phase}|${s.value}`;
+    groups.set(key, [...(groups.get(key) ?? []), s]);
+  }
+  const tags: Record<string, string> = {};
+  for (const group of groups.values()) {
+    if (group.length < 2) continue;
+    if (new Set(group.map((s) => s.list)).size === group.length) {
+      for (const s of group) if (s.list) tags[s.id] = s.list;
+      continue;
+    }
+    const shows = group.map((s) => showsFor(index.step(s.id)?.show_if));
+    const option = index.options.find((o) => {
+      const sets = shows.map((m) => m.get(o.id));
+      if (sets.some((v) => !v)) return false;
+      const all = sets.flatMap((v) => v ?? []);
+      return new Set(all).size === all.length;
+    });
+    group.forEach((s, i) => {
+      const values = option ? (shows[i]?.get(option.id) ?? []) : [];
+      const label = values.map((v) => option?.choices?.find((c) => c.value === v)?.label ?? v).join(" or ");
+      // Nothing in the pack tells them apart (a step repeated for each engine): no tag.
+      if (label) tags[s.id] = label;
+    });
+  }
+  return tags;
 }
 
 /** The A to Z heading a term sits under. */
