@@ -1,1578 +1,1642 @@
 {
   "v": 3,
-  "createdOnFiles": {
-    "v": 1,
-    "at": "2026-11-12T22:30:00Z"
-  },
-  "title": "Involo layout review (formerly Chock to Chock)",
-  "launch": {
-    "view": "canvas",
-    "page": "b6"
-  },
-  "pages": [
-    {
-      "id": "rules",
-      "name": "Rules"
-    },
-    {
-      "id": "checklist",
-      "name": "Checklist, desktop"
-    },
-    {
-      "id": "flight",
-      "name": "Flight pages"
-    },
-    {
-      "id": "reference",
-      "name": "Flight deck and menu"
-    },
-    {
-      "id": "views",
-      "name": "Other views"
-    },
-    {
-      "id": "tablet",
-      "name": "Tablet"
-    },
-    {
-      "id": "phone",
-      "name": "Phone"
-    },
-    {
-      "id": "r6",
-      "name": "Round 6: where and the panel"
-    },
-    {
-      "id": "flight2",
-      "name": "Flight sections"
-    },
-    {
-      "id": "sources",
-      "name": "Outside data (SayIntentions, Beta)"
-    },
-    {
-      "id": "b4",
-      "name": "Batch 4 additions"
-    },
-    {
-      "id": "brand",
-      "name": "Involo: logo"
-    },
-    {
-      "id": "b5",
-      "name": "Batch 5 additions"
-    },
-    {
-      "id": "b6",
-      "name": "Batch 6 additions"
-    }
-  ],
+  "attachments": {},
   "boards": {
-    "Main.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 1440,
-      "h": 1340,
-      "title": "Design rules: tokens, type, spacing, sizes, focus",
-      "page": "rules"
-    },
-    "Checklist.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Checklist (dark)",
-      "page": "checklist"
-    },
-    "ChecklistLight.dc.html": {
-      "x": 1520,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Checklist (light)",
-      "page": "checklist"
-    },
-    "OpenSteps.dc.html": {
-      "x": 3040,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Open steps list (dark)",
-      "page": "checklist"
-    },
-    "OpenStepsLight.dc.html": {
-      "x": 4560,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Open steps list (light)",
-      "page": "checklist"
-    },
-    "WherePop.dc.html": {
-      "x": 0,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Where is this? pop-over (dark)",
-      "page": "checklist"
-    },
-    "WherePopLight.dc.html": {
-      "x": 1520,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Where is this? pop-over (light)",
-      "page": "checklist"
-    },
-    "StripOpen.dc.html": {
-      "x": 3040,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight strip opened (dark)",
-      "page": "checklist"
-    },
-    "StripOpenLight.dc.html": {
-      "x": 4560,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight strip opened (light)",
-      "page": "checklist"
-    },
-    "MapHidden.dc.html": {
-      "x": 0,
-      "y": 2040,
-      "w": 1440,
-      "h": 900,
-      "title": "Map hidden (dark)",
-      "page": "checklist"
-    },
-    "MapHiddenLight.dc.html": {
-      "x": 1520,
-      "y": 2040,
-      "w": 1440,
-      "h": 900,
-      "title": "Map hidden (light)",
-      "page": "checklist"
-    },
-    "Wide.dc.html": {
-      "x": 0,
-      "y": 3060,
-      "w": 2560,
-      "h": 1440,
-      "title": "Wide 2560x1440, same layout at 160% (dark)",
-      "page": "checklist"
-    },
-    "WideLight.dc.html": {
-      "x": 2640,
-      "y": 3060,
-      "w": 2560,
-      "h": 1440,
-      "title": "Wide (light)",
-      "page": "checklist"
-    },
-    "Weather.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: Weather (dark)",
-      "page": "flight"
-    },
-    "WeatherLight.dc.html": {
-      "x": 1520,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: Weather (light)",
-      "page": "flight"
-    },
-    "SimBrief.dc.html": {
-      "x": 0,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: SimBrief and offline OFP (dark)",
-      "page": "flight"
-    },
-    "SimBriefLight.dc.html": {
-      "x": 1520,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: SimBrief (light)",
-      "page": "flight"
-    },
-    "Start.dc.html": {
-      "x": 0,
-      "y": 2040,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: Start options (dark)",
-      "page": "flight"
-    },
-    "StartLight.dc.html": {
-      "x": 1520,
-      "y": 2040,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: Start options (light)",
-      "page": "flight"
-    },
-    "Deck.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight deck reference (dark)",
-      "page": "reference"
-    },
-    "DeckLight.dc.html": {
-      "x": 1520,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight deck reference (light)",
-      "page": "reference"
-    },
-    "Menu.dc.html": {
-      "x": 0,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Menu (dark)",
-      "page": "reference"
-    },
-    "MenuLight.dc.html": {
-      "x": 1520,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Menu (light)",
-      "page": "reference"
-    },
-    "Views.dc.html": {
-      "x": 0,
-      "y": 2040,
-      "w": 1440,
-      "h": 900,
-      "title": "Shared source for the views above (switch with the view tweak)",
-      "page": "views"
-    },
-    "Flow.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Flow view (dark)",
-      "page": "views"
-    },
-    "FlowLight.dc.html": {
-      "x": 0,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Flow view (light)",
-      "page": "views"
-    },
-    "Emergency.dc.html": {
-      "x": 1520,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Emergency reference (dark)",
-      "page": "views"
-    },
-    "EmergencyLight.dc.html": {
-      "x": 1520,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Emergency reference (light)",
-      "page": "views"
-    },
-    "Timer.dc.html": {
-      "x": 3040,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Step with a timer (dark)",
-      "page": "views"
-    },
-    "TimerLight.dc.html": {
-      "x": 3040,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Step with a timer (light)",
-      "page": "views"
-    },
-    "Cdu.dc.html": {
-      "x": 4560,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "CDU walkthrough (dark)",
-      "page": "views"
-    },
-    "CduLight.dc.html": {
-      "x": 4560,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "CDU walkthrough (light)",
-      "page": "views"
-    },
     "Briefing.dc.html": {
-      "x": 6080,
-      "y": 0,
-      "w": 1440,
       "h": 900,
+      "page": "views",
       "title": "Briefing in the flow (dark)",
-      "page": "views"
+      "w": 1440,
+      "x": 6080,
+      "y": 0
     },
     "BriefingLight.dc.html": {
-      "x": 6080,
-      "y": 1020,
-      "w": 1440,
       "h": 900,
+      "page": "views",
       "title": "Briefing in the flow (light)",
-      "page": "views"
-    },
-    "Exterior.dc.html": {
-      "x": 7600,
-      "y": 0,
       "w": 1440,
-      "h": 900,
-      "title": "Exterior inspection stage (dark)",
-      "page": "views"
-    },
-    "ExteriorLight.dc.html": {
-      "x": 7600,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Exterior inspection stage (light)",
-      "page": "views"
-    },
-    "Descent.dc.html": {
-      "x": 9120,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Descent: approach type and arrival data (dark) (superseded by Flight: Approach)",
-      "page": "views"
-    },
-    "DescentLight.dc.html": {
-      "x": 9120,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Descent (light) (superseded by Flight: Approach)",
-      "page": "views"
-    },
-    "Log.dc.html": {
-      "x": 10640,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight log (dark)",
-      "page": "views"
-    },
-    "LogLight.dc.html": {
-      "x": 10640,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight log (light)",
-      "page": "views"
-    },
-    "Settings.dc.html": {
-      "x": 12160,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Settings (dark)",
-      "page": "views"
-    },
-    "SettingsLight.dc.html": {
-      "x": 12160,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Settings (light)",
-      "page": "views"
-    },
-    "Tablet.dc.html": {
-      "x": 3600,
-      "y": 940,
-      "w": 1180,
-      "h": 820,
-      "title": "Shared source for tablet boards (tweaks: orientation, overlay, theme)",
-      "page": "tablet"
-    },
-    "Mobile.dc.html": {
-      "x": 3290,
-      "y": 964,
-      "w": 390,
-      "h": 844,
-      "title": "Shared source for phone boards (tweaks: screen, theme)",
-      "page": "phone"
-    },
-    "TabL.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 1180,
-      "h": 820,
-      "title": "Tablet landscape (dark)",
-      "page": "tablet"
-    },
-    "TabLLight.dc.html": {
-      "x": 1260,
-      "y": 0,
-      "w": 1180,
-      "h": 820,
-      "title": "Tablet landscape (light)",
-      "page": "tablet"
-    },
-    "TabWhere.dc.html": {
-      "x": 2520,
-      "y": 0,
-      "w": 1180,
-      "h": 820,
-      "title": "Tablet: Where is this? (dark)",
-      "page": "tablet"
-    },
-    "TabWhereLight.dc.html": {
-      "x": 3780,
-      "y": 0,
-      "w": 1180,
-      "h": 820,
-      "title": "Tablet: Where is this? (light)",
-      "page": "tablet"
-    },
-    "TabStrip.dc.html": {
-      "x": 5040,
-      "y": 0,
-      "w": 1180,
-      "h": 820,
-      "title": "Tablet: Flight strip opened (dark)",
-      "page": "tablet"
-    },
-    "TabStripLight.dc.html": {
-      "x": 6300,
-      "y": 0,
-      "w": 1180,
-      "h": 820,
-      "title": "Tablet: Flight strip opened (light)",
-      "page": "tablet"
-    },
-    "TabP.dc.html": {
-      "x": 0,
-      "y": 940,
-      "w": 820,
-      "h": 1180,
-      "title": "Tablet portrait (dark)",
-      "page": "tablet"
-    },
-    "TabPLight.dc.html": {
-      "x": 900,
-      "y": 940,
-      "w": 820,
-      "h": 1180,
-      "title": "Tablet portrait (light)",
-      "page": "tablet"
-    },
-    "TabMenu.dc.html": {
-      "x": 1800,
-      "y": 940,
-      "w": 820,
-      "h": 1180,
-      "title": "Tablet: menu (dark)",
-      "page": "tablet"
-    },
-    "TabMenuLight.dc.html": {
-      "x": 2700,
-      "y": 940,
-      "w": 820,
-      "h": 1180,
-      "title": "Tablet: menu (light)",
-      "page": "tablet"
-    },
-    "Phone.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: checklist (dark)",
-      "page": "phone"
-    },
-    "PhoneLight.dc.html": {
-      "x": 0,
-      "y": 964,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: checklist (light)",
-      "page": "phone"
-    },
-    "PhoneOpen.dc.html": {
-      "x": 470,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: open steps (dark)",
-      "page": "phone"
-    },
-    "PhoneOpenLight.dc.html": {
-      "x": 470,
-      "y": 964,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: open steps (light)",
-      "page": "phone"
-    },
-    "PhoneWhere.dc.html": {
-      "x": 940,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: Where is this? (dark)",
-      "page": "phone"
-    },
-    "PhoneWhereLight.dc.html": {
-      "x": 940,
-      "y": 964,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: Where is this? (light)",
-      "page": "phone"
-    },
-    "PhoneStrip.dc.html": {
-      "x": 1410,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: Flight strip (dark)",
-      "page": "phone"
-    },
-    "PhoneStripLight.dc.html": {
-      "x": 1410,
-      "y": 964,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: Flight strip (light)",
-      "page": "phone"
-    },
-    "PhoneMenu.dc.html": {
-      "x": 1880,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: menu (dark)",
-      "page": "phone"
-    },
-    "PhoneMenuLight.dc.html": {
-      "x": 1880,
-      "y": 964,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: menu (light)",
-      "page": "phone"
-    },
-    "PhoneFlight.dc.html": {
-      "x": 2350,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: Flight page (dark)",
-      "page": "phone"
-    },
-    "PhoneFlightLight.dc.html": {
-      "x": 2350,
-      "y": 964,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: Flight page (light)",
-      "page": "phone"
-    },
-    "PhoneDeck.dc.html": {
-      "x": 2820,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: Flight deck (dark)",
-      "page": "phone"
-    },
-    "PhoneDeckLight.dc.html": {
-      "x": 2820,
-      "y": 964,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: Flight deck (light)",
-      "page": "phone"
-    },
-    "R6Pane.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Side pane, approved: label-free panel preview (dark)",
-      "page": "r6"
-    },
-    "R6PaneLight.dc.html": {
-      "x": 1520,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Side pane, approved: panel preview (light)",
-      "page": "r6"
-    },
-    "R6Where.dc.html": {
-      "x": 0,
-      "y": 2040,
-      "w": 1440,
-      "h": 900,
-      "title": "Where is this?: same slide-out, Where it is open (dark)",
-      "page": "r6"
-    },
-    "R6WhereLight.dc.html": {
-      "x": 1520,
-      "y": 2040,
-      "w": 1440,
-      "h": 900,
-      "title": "Where is this? (light)",
-      "page": "r6"
-    },
-    "R6Control.dc.html": {
-      "x": 0,
-      "y": 3060,
-      "w": 1440,
-      "h": 900,
-      "title": "A control tapped: its card in place (dark)",
-      "page": "r6"
-    },
-    "R6ControlLight.dc.html": {
-      "x": 1520,
-      "y": 3060,
-      "w": 1440,
-      "h": 900,
-      "title": "A control tapped (light)",
-      "page": "r6"
-    },
-    "Locator.dc.html": {
       "x": 6080,
-      "y": 0,
-      "w": 1440,
+      "y": 1020
+    },
+    "Cdu.dc.html": {
       "h": 900,
-      "title": "Shared source: panel and where it is (tweaks: layout, state, theme)",
-      "page": "r6"
-    },
-    "R6TabL.dc.html": {
-      "x": 0,
-      "y": 4080,
-      "w": 1180,
-      "h": 820,
-      "title": "Tablet landscape: Show panel (dark)",
-      "page": "r6"
-    },
-    "R6TabLLight.dc.html": {
-      "x": 1260,
-      "y": 4080,
-      "w": 1180,
-      "h": 820,
-      "title": "Tablet landscape: Show panel (light)",
-      "page": "r6"
-    },
-    "R6TabP.dc.html": {
-      "x": 2520,
-      "y": 4080,
-      "w": 820,
-      "h": 1180,
-      "title": "Tablet portrait: Show panel sheet (dark)",
-      "page": "r6"
-    },
-    "R6TabPLight.dc.html": {
-      "x": 3420,
-      "y": 4080,
-      "w": 820,
-      "h": 1180,
-      "title": "Tablet portrait: Show panel sheet (light)",
-      "page": "r6"
-    },
-    "R6Phone.dc.html": {
-      "x": 4320,
-      "y": 4080,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: Show panel sheet, outline and controls list (dark)",
-      "page": "r6"
-    },
-    "R6PhoneLight.dc.html": {
-      "x": 4790,
-      "y": 4080,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: outline and controls list (light)",
-      "page": "r6"
-    },
-    "R6PhoneCtl.dc.html": {
-      "x": 5260,
-      "y": 4080,
-      "w": 390,
-      "h": 844,
-      "title": "Phone: a control tapped from the list (dark)",
-      "page": "r6"
-    },
-    "R6PhoneCtlLight.dc.html": {
-      "x": 5730,
-      "y": 4080,
-      "w": 390,
-      "h": 844,
-      "title": "Phone, control tapped (light)",
-      "page": "r6"
-    },
-    "R6Panel.dc.html": {
-      "x": 0,
-      "y": 1020,
+      "page": "views",
+      "title": "CDU walkthrough (dark)",
       "w": 1440,
-      "h": 900,
-      "title": "Show panel: the whole panel, Where it is folded (dark)",
-      "page": "r6"
-    },
-    "R6PanelLight.dc.html": {
-      "x": 1520,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Show panel (light)",
-      "page": "r6"
-    },
-    "R6PanePre.dc.html": {
-      "x": 3040,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Option B (approved, same as top-left) (dark)",
-      "page": "r6"
-    },
-    "R6PanePreLight.dc.html": {
       "x": 4560,
-      "y": 0,
-      "w": 1440,
+      "y": 0
+    },
+    "CduLight.dc.html": {
       "h": 900,
-      "title": "Option B (approved) (light)",
-      "page": "r6"
-    },
-    "R6PhonePre.dc.html": {
-      "x": 6200,
-      "y": 4080,
-      "w": 390,
-      "h": 844,
-      "title": "Phone, option B: panel preview (dark)",
-      "page": "r6"
-    },
-    "R6PhonePreLight.dc.html": {
-      "x": 6670,
-      "y": 4080,
-      "w": 390,
-      "h": 844,
-      "title": "Phone, option B (light)",
-      "page": "r6"
-    },
-    "R6PhoneL.dc.html": {
-      "x": 7140,
-      "y": 4080,
-      "w": 844,
-      "h": 390,
-      "title": "Phone sideways: the labeled panel (dark)",
-      "page": "r6"
-    },
-    "R6PhoneLLight.dc.html": {
-      "x": 7140,
-      "y": 4590,
-      "w": 844,
-      "h": 390,
-      "title": "Phone sideways (light)",
-      "page": "r6"
-    },
-    "R6Flow.dc.html": {
-      "x": 0,
-      "y": 5380,
+      "page": "views",
+      "title": "CDU walkthrough (light)",
       "w": 1440,
-      "h": 900,
-      "title": "Flow: panel preview and Show panel (dark)",
-      "page": "r6"
-    },
-    "R6FlowLight.dc.html": {
-      "x": 1520,
-      "y": 5380,
-      "w": 1440,
-      "h": 900,
-      "title": "Flow (light)",
-      "page": "r6"
-    },
-    "R6Settings.dc.html": {
-      "x": 3040,
-      "y": 5380,
-      "w": 1440,
-      "h": 900,
-      "title": "Settings: Panel preview in steps replaces Map in steps (dark)",
-      "page": "r6"
-    },
-    "R6SettingsLight.dc.html": {
       "x": 4560,
-      "y": 5380,
-      "w": 1440,
+      "y": 1020
+    },
+    "Checklist.dc.html": {
       "h": 900,
-      "title": "Settings (light)",
-      "page": "r6"
-    },
-    "DecUnanswered.dc.html": {
+      "page": "checklist",
+      "title": "Checklist (dark)",
+      "w": 1440,
       "x": 0,
-      "y": 6400,
-      "w": 1120,
-      "h": 560,
-      "title": "1. Unanswered: the current step asks (dark)",
-      "page": "r6"
+      "y": 0
     },
-    "DecUnansweredLight.dc.html": {
-      "x": 1200,
-      "y": 6400,
-      "w": 1120,
-      "h": 560,
-      "title": "1. Unanswered: the current step asks (light)",
-      "page": "r6"
-    },
-    "DecSuggested.dc.html": {
-      "x": 0,
-      "y": 7080,
-      "w": 1120,
-      "h": 560,
-      "title": "2. Suggested from the SimBrief plan, waiting for you to confirm (dark)",
-      "page": "r6"
-    },
-    "DecSuggestedLight.dc.html": {
-      "x": 1200,
-      "y": 7080,
-      "w": 1120,
-      "h": 560,
-      "title": "2. Suggested from the SimBrief plan, waiting for you to confirm (light)",
-      "page": "r6"
+    "ChecklistLight.dc.html": {
+      "h": 900,
+      "page": "checklist",
+      "title": "Checklist (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
     },
     "DecAnswered.dc.html": {
-      "x": 0,
-      "y": 7760,
-      "w": 1120,
       "h": 560,
+      "page": "r6",
       "title": "3. Answered: the fuel step shows the result (dark)",
-      "page": "r6"
+      "w": 1120,
+      "x": 0,
+      "y": 7760
     },
     "DecAnsweredLight.dc.html": {
-      "x": 1200,
-      "y": 7760,
-      "w": 1120,
       "h": 560,
+      "page": "r6",
       "title": "3. Answered: the fuel step shows the result (light)",
-      "page": "r6"
-    },
-    "DecChanging.dc.html": {
-      "x": 0,
-      "y": 8440,
       "w": 1120,
-      "h": 560,
-      "title": "4. Change: choices reopen on the row, in place (dark)",
-      "page": "r6"
-    },
-    "DecChangingLight.dc.html": {
       "x": 1200,
-      "y": 8440,
-      "w": 1120,
-      "h": 560,
-      "title": "4. Change: choices reopen on the row, in place (light)",
-      "page": "r6"
+      "y": 7760
     },
     "DecChanged.dc.html": {
-      "x": 0,
-      "y": 9120,
-      "w": 1120,
       "h": 560,
+      "page": "r6",
       "title": "5. Changed: Undo, and the fuel step updates (dark)",
-      "page": "r6"
+      "w": 1120,
+      "x": 0,
+      "y": 9120
     },
     "DecChangedLight.dc.html": {
-      "x": 1200,
-      "y": 9120,
-      "w": 1120,
       "h": 560,
+      "page": "r6",
       "title": "5. Changed: Undo, and the fuel step updates (light)",
-      "page": "r6"
+      "w": 1120,
+      "x": 1200,
+      "y": 9120
+    },
+    "DecChanging.dc.html": {
+      "h": 560,
+      "page": "r6",
+      "title": "4. Change: choices reopen on the row, in place (dark)",
+      "w": 1120,
+      "x": 0,
+      "y": 8440
+    },
+    "DecChangingLight.dc.html": {
+      "h": 560,
+      "page": "r6",
+      "title": "4. Change: choices reopen on the row, in place (light)",
+      "w": 1120,
+      "x": 1200,
+      "y": 8440
     },
     "DecPhone.dc.html": {
-      "x": 2480,
-      "y": 6400,
-      "w": 390,
       "h": 844,
+      "page": "r6",
       "title": "Phone: decision step, suggested (dark)",
-      "page": "r6"
+      "w": 390,
+      "x": 2480,
+      "y": 6400
     },
     "DecPhoneLight.dc.html": {
-      "x": 2950,
-      "y": 6400,
-      "w": 390,
       "h": 844,
+      "page": "r6",
       "title": "Phone: decision step, suggested (light)",
-      "page": "r6"
+      "w": 390,
+      "x": 2950,
+      "y": 6400
+    },
+    "DecSuggested.dc.html": {
+      "h": 560,
+      "page": "r6",
+      "title": "2. Suggested from the SimBrief plan, waiting for you to confirm (dark)",
+      "w": 1120,
+      "x": 0,
+      "y": 7080
+    },
+    "DecSuggestedLight.dc.html": {
+      "h": 560,
+      "page": "r6",
+      "title": "2. Suggested from the SimBrief plan, waiting for you to confirm (light)",
+      "w": 1120,
+      "x": 1200,
+      "y": 7080
+    },
+    "DecUnanswered.dc.html": {
+      "h": 560,
+      "page": "r6",
+      "title": "1. Unanswered: the current step asks (dark)",
+      "w": 1120,
+      "x": 0,
+      "y": 6400
+    },
+    "DecUnansweredLight.dc.html": {
+      "h": 560,
+      "page": "r6",
+      "title": "1. Unanswered: the current step asks (light)",
+      "w": 1120,
+      "x": 1200,
+      "y": 6400
     },
     "Decision.dc.html": {
-      "x": 3500,
-      "y": 6400,
-      "w": 1120,
       "h": 560,
+      "page": "r6",
       "title": "Shared source: decision step (tweaks: state, theme)",
-      "page": "r6"
+      "w": 1120,
+      "x": 3500,
+      "y": 6400
     },
-    "FSOverview.dc.html": {
+    "Deck.dc.html": {
+      "h": 900,
+      "page": "reference",
+      "title": "Flight deck reference (dark)",
+      "w": 1440,
       "x": 0,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: Overview (dark)",
-      "page": "flight2"
+      "y": 0
     },
-    "FSOverviewLight.dc.html": {
+    "DeckLight.dc.html": {
+      "h": 900,
+      "page": "reference",
+      "title": "Flight deck reference (light)",
+      "w": 1440,
       "x": 1520,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: Overview (light)",
-      "page": "flight2"
+      "y": 0
     },
-    "FSRoute.dc.html": {
-      "x": 0,
-      "y": 1020,
-      "w": 1440,
+    "Descent.dc.html": {
       "h": 900,
-      "title": "Flight: Route (dark)",
-      "page": "flight2"
+      "page": "views",
+      "title": "Descent: approach type and arrival data (dark) (superseded by Flight: Approach)",
+      "w": 1440,
+      "x": 9120,
+      "y": 0
     },
-    "FSRouteLight.dc.html": {
+    "DescentLight.dc.html": {
+      "h": 900,
+      "page": "views",
+      "title": "Descent (light) (superseded by Flight: Approach)",
+      "w": 1440,
+      "x": 9120,
+      "y": 1020
+    },
+    "Emergency.dc.html": {
+      "h": 900,
+      "page": "views",
+      "title": "Emergency reference (dark)",
+      "w": 1440,
       "x": 1520,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: Route (light)",
-      "page": "flight2"
+      "y": 0
     },
-    "FSFuel.dc.html": {
-      "x": 0,
-      "y": 2040,
-      "w": 1440,
+    "EmergencyLight.dc.html": {
       "h": 900,
-      "title": "Flight: Fuel and weights (dark)",
-      "page": "flight2"
-    },
-    "FSFuelLight.dc.html": {
+      "page": "views",
+      "title": "Emergency reference (light)",
+      "w": 1440,
       "x": 1520,
-      "y": 2040,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: Fuel and weights (light)",
-      "page": "flight2"
+      "y": 1020
     },
-    "FSCruise.dc.html": {
-      "x": 0,
-      "y": 3060,
-      "w": 1440,
+    "Exterior.dc.html": {
       "h": 900,
-      "title": "Flight: Cruise and levels (dark)",
-      "page": "flight2"
+      "page": "views",
+      "title": "Exterior inspection stage (dark)",
+      "w": 1440,
+      "x": 7600,
+      "y": 0
     },
-    "FSCruiseLight.dc.html": {
-      "x": 1520,
-      "y": 3060,
-      "w": 1440,
+    "ExteriorLight.dc.html": {
       "h": 900,
-      "title": "Flight: Cruise and levels (light)",
-      "page": "flight2"
-    },
-    "FSClearance.dc.html": {
-      "x": 0,
-      "y": 4080,
+      "page": "views",
+      "title": "Exterior inspection stage (light)",
       "w": 1440,
-      "h": 900,
-      "title": "Flight: Clearance (dark)",
-      "page": "flight2"
-    },
-    "FSClearanceLight.dc.html": {
-      "x": 1520,
-      "y": 4080,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: Clearance (light)",
-      "page": "flight2"
-    },
-    "FSTakeoff.dc.html": {
-      "x": 0,
-      "y": 5100,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: Takeoff (dark)",
-      "page": "flight2"
-    },
-    "FSTakeoffLight.dc.html": {
-      "x": 1520,
-      "y": 5100,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: Takeoff (light)",
-      "page": "flight2"
-    },
-    "FlightSection.dc.html": {
-      "x": 3040,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Shared source: Flight sections (tweaks: section, theme)",
-      "page": "flight2"
-    },
-    "Winds.dc.html": {
-      "x": 0,
-      "y": 6120,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: Weather, en route winds (dark)",
-      "page": "flight2"
-    },
-    "WindsLight.dc.html": {
-      "x": 1520,
-      "y": 6120,
-      "w": 1440,
-      "h": 900,
-      "title": "Flight: Weather, en route winds (light)",
-      "page": "flight2"
+      "x": 7600,
+      "y": 1020
     },
     "FSApproach.dc.html": {
-      "x": 0,
-      "y": 7140,
-      "w": 1440,
       "h": 900,
+      "page": "flight2",
       "title": "Flight: Approach, in the Flight shell (dark)",
-      "page": "flight2"
+      "w": 1440,
+      "x": 0,
+      "y": 7140
     },
     "FSApproachLight.dc.html": {
-      "x": 1520,
-      "y": 7140,
-      "w": 1440,
       "h": 900,
+      "page": "flight2",
       "title": "Flight: Approach, in the Flight shell (light)",
-      "page": "flight2"
-    },
-    "SIStrip.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 1120,
-      "h": 300,
-      "title": "Strip: values from ATC, and a change to re-brief (dark)",
-      "page": "sources"
-    },
-    "SIStripLight.dc.html": {
-      "x": 1200,
-      "y": 0,
-      "w": 1120,
-      "h": 300,
-      "title": "Strip: values from ATC, and a change to re-brief (light)",
-      "page": "sources"
-    },
-    "SIPanel.dc.html": {
-      "x": 0,
-      "y": 420,
-      "w": 1120,
-      "h": 420,
-      "title": "Strip panel: where each value came from (dark)",
-      "page": "sources"
-    },
-    "SIPanelLight.dc.html": {
-      "x": 1200,
-      "y": 420,
-      "w": 1120,
-      "h": 420,
-      "title": "Strip panel: where each value came from (light)",
-      "page": "sources"
-    },
-    "SIBriefing.dc.html": {
-      "x": 0,
-      "y": 960,
-      "w": 1120,
-      "h": 560,
-      "title": "Briefing: changed since you briefed (dark)",
-      "page": "sources"
-    },
-    "SIBriefingLight.dc.html": {
-      "x": 1200,
-      "y": 960,
-      "w": 1120,
-      "h": 560,
-      "title": "Briefing: changed since you briefed (light)",
-      "page": "sources"
-    },
-    "SISettings.dc.html": {
-      "x": 0,
-      "y": 1640,
-      "w": 1120,
-      "h": 480,
-      "title": "Settings: Outside data (dark)",
-      "page": "sources"
-    },
-    "SISettingsLight.dc.html": {
-      "x": 1200,
-      "y": 1640,
-      "w": 1120,
-      "h": 480,
-      "title": "Settings: Outside data (light)",
-      "page": "sources"
-    },
-    "Sources.dc.html": {
-      "x": 2400,
-      "y": 0,
-      "w": 1120,
-      "h": 420,
-      "title": "Shared source: outside data (tweaks: state, theme)",
-      "page": "sources"
-    },
-    "StripFreq.dc.html": {
-      "x": 0,
-      "y": 4080,
       "w": 1440,
-      "h": 900,
-      "title": "Flight strip opened, frequencies open (dark)",
-      "page": "checklist"
-    },
-    "StripFreqLight.dc.html": {
       "x": 1520,
-      "y": 4080,
-      "w": 1440,
+      "y": 7140
+    },
+    "FSClearance.dc.html": {
       "h": 900,
-      "title": "Flight strip opened, frequencies open (light)",
-      "page": "checklist"
-    },
-    "WxTabL.dc.html": {
+      "page": "flight2",
+      "title": "Flight: Clearance (dark)",
+      "w": 1440,
       "x": 0,
-      "y": 0,
-      "w": 1180,
-      "h": 820,
-      "title": "Flight: Weather, tablet landscape (dark)",
-      "page": "b4"
+      "y": 4080
     },
-    "WxTabLLight.dc.html": {
-      "x": 1260,
-      "y": 0,
-      "w": 1180,
-      "h": 820,
-      "title": "Flight: Weather, tablet landscape (light)",
-      "page": "b4"
+    "FSClearanceLight.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Flight: Clearance (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 4080
     },
-    "WindsTabL.dc.html": {
+    "FSCruise.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Flight: Cruise and levels (dark)",
+      "w": 1440,
       "x": 0,
-      "y": 940,
-      "w": 1180,
-      "h": 820,
-      "title": "Flight: en route winds, tablet landscape (dark)",
-      "page": "b4"
+      "y": 3060
     },
-    "WindsTabLLight.dc.html": {
-      "x": 1260,
-      "y": 940,
-      "w": 1180,
-      "h": 820,
-      "title": "Flight: en route winds, tablet landscape (light)",
-      "page": "b4"
+    "FSCruiseLight.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Flight: Cruise and levels (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 3060
     },
-    "FSTakeoffTabL.dc.html": {
+    "FSFuel.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Flight: Fuel and weights (dark)",
+      "w": 1440,
       "x": 0,
-      "y": 1880,
-      "w": 1180,
-      "h": 820,
-      "title": "Flight: Takeoff, tablet landscape (dark)",
-      "page": "b4"
+      "y": 2040
     },
-    "FSTakeoffTabLLight.dc.html": {
-      "x": 1260,
-      "y": 1880,
-      "w": 1180,
-      "h": 820,
-      "title": "Flight: Takeoff, tablet landscape (light)",
-      "page": "b4"
+    "FSFuelLight.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Flight: Fuel and weights (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 2040
     },
     "FSInvalid.dc.html": {
-      "x": 0,
-      "y": 2820,
-      "w": 1440,
       "h": 900,
+      "page": "b4",
       "title": "Flight: a value out of range (dark)",
-      "page": "b4"
+      "w": 1440,
+      "x": 0,
+      "y": 2820
     },
     "FSInvalidLight.dc.html": {
-      "x": 1520,
-      "y": 2820,
-      "w": 1440,
       "h": 900,
+      "page": "b4",
       "title": "Flight: a value out of range (light)",
-      "page": "b4"
-    },
-    "Logo.dc.html": {
-      "x": 0,
-      "y": 15760,
       "w": 1440,
-      "h": 1180,
-      "title": "Involo logo, round 1 (not chosen)",
-      "page": "brand"
+      "x": 1520,
+      "y": 2820
     },
-    "Logo2.dc.html": {
-      "x": 0,
-      "y": 14200,
+    "FSOverview.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Flight: Overview (dark)",
       "w": 1440,
-      "h": 1440,
-      "title": "Involo logo, round 2 (not chosen)",
-      "page": "brand"
-    },
-    "Logo3.dc.html": {
       "x": 0,
-      "y": 13000,
+      "y": 0
+    },
+    "FSOverviewLight.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Flight: Overview (light)",
       "w": 1440,
-      "h": 1080,
-      "title": "Involo: pick a color and a look (chose D and 4)",
-      "page": "brand"
+      "x": 1520,
+      "y": 0
     },
-    "Logo4.dc.html": {
-      "x": 0,
-      "y": 11700,
+    "FSRoute.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Flight: Route (dark)",
       "w": 1440,
-      "h": 1180,
-      "title": "Involo logo, round 3: sky blue, soft and friendly (not chosen)",
-      "page": "brand"
-    },
-    "Logo5.dc.html": {
       "x": 0,
-      "y": 10400,
+      "y": 1020
+    },
+    "FSRouteLight.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Flight: Route (light)",
       "w": 1440,
-      "h": 1180,
-      "title": "Involo logo, round 4: the letters make the airplane (not chosen)",
-      "page": "brand"
+      "x": 1520,
+      "y": 1020
     },
-    "Logo6.dc.html": {
-      "x": 0,
-      "y": 9100,
+    "FSTakeoff.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Flight: Takeoff (dark)",
       "w": 1440,
-      "h": 1180,
-      "title": "Involo logo, round 5: curved wings (not chosen)",
-      "page": "brand"
-    },
-    "Logo7.dc.html": {
       "x": 0,
-      "y": 7800,
+      "y": 5100
+    },
+    "FSTakeoffLight.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Flight: Takeoff (light)",
       "w": 1440,
-      "h": 1180,
-      "title": "Involo logo, round 6: the o's and a natural wing (not chosen)",
-      "page": "brand"
+      "x": 1520,
+      "y": 5100
     },
-    "Logo8.dc.html": {
-      "x": 0,
-      "y": 6500,
-      "w": 1440,
-      "h": 1180,
-      "title": "Involo logo, round 7: a lighter wing (not chosen)",
-      "page": "brand"
-    },
-    "Logo9.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 1440,
-      "h": 1180,
-      "title": "Involo logo: CHOSEN, concept 2, the paper airplane (use the files in involo-brand)",
-      "page": "brand"
-    },
-    "Logo10.dc.html": {
-      "x": 0,
-      "y": 5200,
-      "w": 1440,
-      "h": 1180,
-      "title": "Involo logo, round 9: checkmark and paper airplane (not chosen)",
-      "page": "brand"
-    },
-    "Logo11.dc.html": {
-      "x": 0,
-      "y": 3900,
-      "w": 1440,
-      "h": 1180,
-      "title": "Involo logo, round 10: the plane is the check (not chosen)",
-      "page": "brand"
-    },
-    "Logo12.dc.html": {
-      "x": 0,
-      "y": 2600,
-      "w": 1440,
-      "h": 1180,
-      "title": "Involo logo, round 11: plane over a thin check (not chosen)",
-      "page": "brand"
-    },
-    "Logo13.dc.html": {
-      "x": 0,
-      "y": 1300,
-      "w": 1440,
-      "h": 1180,
-      "title": "Involo logo, round 12: the paper airplane above the checkmark (not chosen)",
-      "page": "brand"
-    },
-    "StagesPhone.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Stage and phase: phone sheet (dark)",
-      "page": "b5"
-    },
-    "StagesPhoneLight.dc.html": {
-      "x": 470,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Stage and phase: phone sheet (light)",
-      "page": "b5"
-    },
-    "StagesTabP.dc.html": {
-      "x": 940,
-      "y": 0,
-      "w": 820,
-      "h": 1180,
-      "title": "Stage and phase: tablet portrait sheet (dark)",
-      "page": "b5"
-    },
-    "StagesTabPLight.dc.html": {
-      "x": 1840,
-      "y": 0,
-      "w": 820,
-      "h": 1180,
-      "title": "Stage and phase: tablet portrait sheet (light)",
-      "page": "b5"
-    },
-    "StagesTabL.dc.html": {
-      "x": 0,
-      "y": 1300,
-      "w": 1180,
+    "FSTakeoffTabL.dc.html": {
       "h": 820,
-      "title": "Stage and phase: tablet landscape and compact desktop pop-over (dark)",
-      "page": "b5"
+      "page": "b4",
+      "title": "Flight: Takeoff, tablet landscape (dark)",
+      "w": 1180,
+      "x": 0,
+      "y": 1880
     },
-    "StagesTabLLight.dc.html": {
+    "FSTakeoffTabLLight.dc.html": {
+      "h": 820,
+      "page": "b4",
+      "title": "Flight: Takeoff, tablet landscape (light)",
+      "w": 1180,
       "x": 1260,
-      "y": 1300,
-      "w": 1180,
-      "h": 820,
-      "title": "Stage and phase: tablet landscape and compact desktop pop-over (light)",
-      "page": "b5"
-    },
-    "StagePicker.dc.html": {
-      "x": 2760,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Shared source: stage and phase picker (tweaks: layout, theme)",
-      "page": "b5"
-    },
-    "FindDesk.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Find, results: desktop and tablet (dark)",
-      "page": "b6"
-    },
-    "FindDeskLight.dc.html": {
-      "x": 1520,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Find, results: desktop and tablet (light)",
-      "page": "b6"
-    },
-    "FindPhone.dc.html": {
-      "x": 3040,
-      "y": 1020,
-      "w": 390,
-      "h": 844,
-      "title": "Find, results: phone (dark)",
-      "page": "b6"
-    },
-    "FindPhoneLight.dc.html": {
-      "x": 3510,
-      "y": 1020,
-      "w": 390,
-      "h": 844,
-      "title": "Find, results: phone (light)",
-      "page": "b6"
-    },
-    "FindDeskNone.dc.html": {
-      "x": 3040,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Find, no match: desktop and tablet (dark)",
-      "page": "b6"
-    },
-    "FindDeskNoneLight.dc.html": {
-      "x": 4560,
-      "y": 0,
-      "w": 1440,
-      "h": 900,
-      "title": "Find, no match: desktop and tablet (light)",
-      "page": "b6"
-    },
-    "FindPhoneNone.dc.html": {
-      "x": 3980,
-      "y": 1020,
-      "w": 390,
-      "h": 844,
-      "title": "Find, no match: phone (dark)",
-      "page": "b6"
-    },
-    "FindPhoneNoneLight.dc.html": {
-      "x": 4450,
-      "y": 1020,
-      "w": 390,
-      "h": 844,
-      "title": "Find, no match: phone (light)",
-      "page": "b6"
-    },
-    "FindDeskStart.dc.html": {
-      "x": 0,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Find, before typing: desktop and tablet (dark)",
-      "page": "b6"
-    },
-    "FindDeskStartLight.dc.html": {
-      "x": 1520,
-      "y": 1020,
-      "w": 1440,
-      "h": 900,
-      "title": "Find, before typing: desktop and tablet (light)",
-      "page": "b6"
-    },
-    "FindPhoneStart.dc.html": {
-      "x": 4920,
-      "y": 1020,
-      "w": 390,
-      "h": 844,
-      "title": "Find, before typing: phone (dark)",
-      "page": "b6"
-    },
-    "FindPhoneStartLight.dc.html": {
-      "x": 5390,
-      "y": 1020,
-      "w": 390,
-      "h": 844,
-      "title": "Find, before typing: phone (light)",
-      "page": "b6"
-    },
-    "MenuWhere.dc.html": {
-      "x": 0,
-      "y": 2040,
-      "w": 1440,
-      "h": 900,
-      "title": "Menu: Where is Flight setup? opened (dark)",
-      "page": "b6"
-    },
-    "MenuWhereLight.dc.html": {
-      "x": 1520,
-      "y": 2040,
-      "w": 1440,
-      "h": 900,
-      "title": "Menu: Where is Flight setup? opened (light)",
-      "page": "b6"
+      "y": 1880
     },
     "Find.dc.html": {
+      "h": 900,
+      "page": "b6",
+      "title": "Shared source: Find (tweaks: layout, state, theme)",
+      "w": 1440,
       "x": 3040,
+      "y": 2040
+    },
+    "FindDesk.dc.html": {
+      "h": 900,
+      "page": "b6",
+      "title": "Find, results: desktop and tablet (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "FindDeskLight.dc.html": {
+      "h": 900,
+      "page": "b6",
+      "title": "Find, results: desktop and tablet (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "FindDeskNone.dc.html": {
+      "h": 900,
+      "page": "b6",
+      "title": "Find, no match: desktop and tablet (dark)",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "FindDeskNoneLight.dc.html": {
+      "h": 900,
+      "page": "b6",
+      "title": "Find, no match: desktop and tablet (light)",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "FindDeskStart.dc.html": {
+      "h": 900,
+      "page": "b6",
+      "title": "Find, before typing: desktop and tablet (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 1020
+    },
+    "FindDeskStartLight.dc.html": {
+      "h": 900,
+      "page": "b6",
+      "title": "Find, before typing: desktop and tablet (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 1020
+    },
+    "FindPhone.dc.html": {
+      "h": 844,
+      "page": "b6",
+      "title": "Find, results: phone (dark)",
+      "w": 390,
+      "x": 3040,
+      "y": 1020
+    },
+    "FindPhoneLight.dc.html": {
+      "h": 844,
+      "page": "b6",
+      "title": "Find, results: phone (light)",
+      "w": 390,
+      "x": 3510,
+      "y": 1020
+    },
+    "FindPhoneNone.dc.html": {
+      "h": 844,
+      "page": "b6",
+      "title": "Find, no match: phone (dark)",
+      "w": 390,
+      "x": 3980,
+      "y": 1020
+    },
+    "FindPhoneNoneLight.dc.html": {
+      "h": 844,
+      "page": "b6",
+      "title": "Find, no match: phone (light)",
+      "w": 390,
+      "x": 4450,
+      "y": 1020
+    },
+    "FindPhoneStart.dc.html": {
+      "h": 844,
+      "page": "b6",
+      "title": "Find, before typing: phone (dark)",
+      "w": 390,
+      "x": 4920,
+      "y": 1020
+    },
+    "FindPhoneStartLight.dc.html": {
+      "h": 844,
+      "page": "b6",
+      "title": "Find, before typing: phone (light)",
+      "w": 390,
+      "x": 5390,
+      "y": 1020
+    },
+    "FlightSection.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Shared source: Flight sections (tweaks: section, theme)",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "Flow.dc.html": {
+      "h": 900,
+      "page": "views",
+      "title": "Flow view (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "FlowLight.dc.html": {
+      "h": 900,
+      "page": "views",
+      "title": "Flow view (light)",
+      "w": 1440,
+      "x": 0,
+      "y": 1020
+    },
+    "Glossary.dc.html": {
+      "h": 900,
+      "page": "b6",
+      "title": "Shared source: Glossary (tweaks: layout, theme)",
+      "w": 1440,
+      "x": 4920,
+      "y": 4260
+    },
+    "GlossaryDesk.dc.html": {
+      "h": 900,
+      "page": "b6",
+      "title": "Glossary: desktop and tablet landscape (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 4260
+    },
+    "GlossaryDeskLight.dc.html": {
+      "h": 900,
+      "page": "b6",
+      "title": "Glossary: desktop and tablet landscape (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 4260
+    },
+    "GlossaryPhone.dc.html": {
+      "h": 844,
+      "page": "b6",
+      "title": "Glossary: phone list (dark)",
+      "w": 390,
+      "x": 3040,
+      "y": 4260
+    },
+    "GlossaryPhoneLight.dc.html": {
+      "h": 844,
+      "page": "b6",
+      "title": "Glossary: phone list (light)",
+      "w": 390,
+      "x": 3510,
+      "y": 4260
+    },
+    "GlossaryPhoneTerm.dc.html": {
+      "h": 844,
+      "page": "b6",
+      "title": "Glossary: phone, one term (dark)",
+      "w": 390,
+      "x": 3980,
+      "y": 4260
+    },
+    "GlossaryPhoneTermLight.dc.html": {
+      "h": 844,
+      "page": "b6",
+      "title": "Glossary: phone, one term (light)",
+      "w": 390,
+      "x": 4450,
+      "y": 4260
+    },
+    "Locator.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "Shared source: panel and where it is (tweaks: layout, state, theme)",
+      "w": 1440,
+      "x": 6080,
+      "y": 0
+    },
+    "Log.dc.html": {
+      "h": 900,
+      "page": "views",
+      "title": "Flight log (dark)",
+      "w": 1440,
+      "x": 10640,
+      "y": 0
+    },
+    "LogLight.dc.html": {
+      "h": 900,
+      "page": "views",
+      "title": "Flight log (light)",
+      "w": 1440,
+      "x": 10640,
+      "y": 1020
+    },
+    "Logo.dc.html": {
+      "h": 1180,
+      "page": "brand",
+      "title": "Involo logo, round 1 (not chosen)",
+      "w": 1440,
+      "x": 0,
+      "y": 15760
+    },
+    "Logo10.dc.html": {
+      "h": 1180,
+      "page": "brand",
+      "title": "Involo logo, round 9: checkmark and paper airplane (not chosen)",
+      "w": 1440,
+      "x": 0,
+      "y": 5200
+    },
+    "Logo11.dc.html": {
+      "h": 1180,
+      "page": "brand",
+      "title": "Involo logo, round 10: the plane is the check (not chosen)",
+      "w": 1440,
+      "x": 0,
+      "y": 3900
+    },
+    "Logo12.dc.html": {
+      "h": 1180,
+      "page": "brand",
+      "title": "Involo logo, round 11: plane over a thin check (not chosen)",
+      "w": 1440,
+      "x": 0,
+      "y": 2600
+    },
+    "Logo13.dc.html": {
+      "h": 1180,
+      "page": "brand",
+      "title": "Involo logo, round 12: the paper airplane above the checkmark (not chosen)",
+      "w": 1440,
+      "x": 0,
+      "y": 1300
+    },
+    "Logo2.dc.html": {
+      "h": 1440,
+      "page": "brand",
+      "title": "Involo logo, round 2 (not chosen)",
+      "w": 1440,
+      "x": 0,
+      "y": 14200
+    },
+    "Logo3.dc.html": {
+      "h": 1080,
+      "page": "brand",
+      "title": "Involo: pick a color and a look (chose D and 4)",
+      "w": 1440,
+      "x": 0,
+      "y": 13000
+    },
+    "Logo4.dc.html": {
+      "h": 1180,
+      "page": "brand",
+      "title": "Involo logo, round 3: sky blue, soft and friendly (not chosen)",
+      "w": 1440,
+      "x": 0,
+      "y": 11700
+    },
+    "Logo5.dc.html": {
+      "h": 1180,
+      "page": "brand",
+      "title": "Involo logo, round 4: the letters make the airplane (not chosen)",
+      "w": 1440,
+      "x": 0,
+      "y": 10400
+    },
+    "Logo6.dc.html": {
+      "h": 1180,
+      "page": "brand",
+      "title": "Involo logo, round 5: curved wings (not chosen)",
+      "w": 1440,
+      "x": 0,
+      "y": 9100
+    },
+    "Logo7.dc.html": {
+      "h": 1180,
+      "page": "brand",
+      "title": "Involo logo, round 6: the o's and a natural wing (not chosen)",
+      "w": 1440,
+      "x": 0,
+      "y": 7800
+    },
+    "Logo8.dc.html": {
+      "h": 1180,
+      "page": "brand",
+      "title": "Involo logo, round 7: a lighter wing (not chosen)",
+      "w": 1440,
+      "x": 0,
+      "y": 6500
+    },
+    "Logo9.dc.html": {
+      "h": 1180,
+      "page": "brand",
+      "title": "Involo logo: CHOSEN, concept 2, the paper airplane (use the files in involo-brand)",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 1340,
+      "page": "rules",
+      "title": "Design rules: tokens, type, spacing, sizes, focus",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "MapHidden.dc.html": {
+      "h": 900,
+      "page": "checklist",
+      "title": "Map hidden (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 2040
+    },
+    "MapHiddenLight.dc.html": {
+      "h": 900,
+      "page": "checklist",
+      "title": "Map hidden (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 2040
+    },
+    "Menu.dc.html": {
+      "h": 900,
+      "page": "reference",
+      "title": "Menu (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 1020
+    },
+    "MenuLight.dc.html": {
+      "h": 900,
+      "page": "reference",
+      "title": "Menu (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 1020
+    },
+    "MenuWhere.dc.html": {
+      "h": 900,
+      "page": "b6",
+      "title": "Menu: Where is Flight setup? opened (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 2040
+    },
+    "MenuWhereLight.dc.html": {
+      "h": 900,
+      "page": "b6",
+      "title": "Menu: Where is Flight setup? opened (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 2040
+    },
+    "Mobile.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Shared source for phone boards (tweaks: screen, theme)",
+      "w": 390,
+      "x": 3290,
+      "y": 964
+    },
+    "OpenSteps.dc.html": {
+      "h": 900,
+      "page": "checklist",
+      "title": "Open steps list (dark)",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "OpenStepsLight.dc.html": {
+      "h": 900,
+      "page": "checklist",
+      "title": "Open steps list (light)",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "PanelTiles.dc.html": {
+      "h": 1100,
+      "page": "b6",
+      "title": "Panel tiles and the deck map: a step on two panels (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 3060
+    },
+    "PanelTilesLight.dc.html": {
+      "h": 1100,
+      "page": "b6",
+      "title": "Panel tiles and the deck map (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 3060
+    },
+    "Phone.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: checklist (dark)",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "PhoneDeck.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: Flight deck (dark)",
+      "w": 390,
+      "x": 2820,
+      "y": 0
+    },
+    "PhoneDeckLight.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: Flight deck (light)",
+      "w": 390,
+      "x": 2820,
+      "y": 964
+    },
+    "PhoneFlight.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: Flight page (dark)",
+      "w": 390,
+      "x": 2350,
+      "y": 0
+    },
+    "PhoneFlightLight.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: Flight page (light)",
+      "w": 390,
+      "x": 2350,
+      "y": 964
+    },
+    "PhoneLight.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: checklist (light)",
+      "w": 390,
+      "x": 0,
+      "y": 964
+    },
+    "PhoneMenu.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: menu (dark)",
+      "w": 390,
+      "x": 1880,
+      "y": 0
+    },
+    "PhoneMenuLight.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: menu (light)",
+      "w": 390,
+      "x": 1880,
+      "y": 964
+    },
+    "PhoneOpen.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: open steps (dark)",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "PhoneOpenLight.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: open steps (light)",
+      "w": 390,
+      "x": 470,
+      "y": 964
+    },
+    "PhoneStrip.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: Flight strip (dark)",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "PhoneStripLight.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: Flight strip (light)",
+      "w": 390,
+      "x": 1410,
+      "y": 964
+    },
+    "PhoneWhere.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: Where is this? (dark)",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "PhoneWhereLight.dc.html": {
+      "h": 844,
+      "page": "phone",
+      "title": "Phone: Where is this? (light)",
+      "w": 390,
+      "x": 940,
+      "y": 964
+    },
+    "R6Control.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "A control tapped: its card in place (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 3060
+    },
+    "R6ControlLight.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "A control tapped (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 3060
+    },
+    "R6Flow.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "Flow: panel preview and Show panel (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 5380
+    },
+    "R6FlowLight.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "Flow (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 5380
+    },
+    "R6Pane.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "Side pane, approved: label-free panel preview (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "R6PaneLight.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "Side pane, approved: panel preview (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "R6PanePre.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "Option B (approved, same as top-left) (dark)",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "R6PanePreLight.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "Option B (approved) (light)",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "R6Panel.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "Show panel: the whole panel, Where it is folded (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 1020
+    },
+    "R6PanelLight.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "Show panel (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 1020
+    },
+    "R6Phone.dc.html": {
+      "h": 844,
+      "page": "r6",
+      "title": "Phone: Show panel sheet, outline and controls list (dark)",
+      "w": 390,
+      "x": 4320,
+      "y": 4080
+    },
+    "R6PhoneCtl.dc.html": {
+      "h": 844,
+      "page": "r6",
+      "title": "Phone: a control tapped from the list (dark)",
+      "w": 390,
+      "x": 5260,
+      "y": 4080
+    },
+    "R6PhoneCtlLight.dc.html": {
+      "h": 844,
+      "page": "r6",
+      "title": "Phone, control tapped (light)",
+      "w": 390,
+      "x": 5730,
+      "y": 4080
+    },
+    "R6PhoneL.dc.html": {
+      "h": 390,
+      "page": "r6",
+      "title": "Phone sideways: the labeled panel (dark)",
+      "w": 844,
+      "x": 7140,
+      "y": 4080
+    },
+    "R6PhoneLLight.dc.html": {
+      "h": 390,
+      "page": "r6",
+      "title": "Phone sideways (light)",
+      "w": 844,
+      "x": 7140,
+      "y": 4590
+    },
+    "R6PhoneLight.dc.html": {
+      "h": 844,
+      "page": "r6",
+      "title": "Phone: outline and controls list (light)",
+      "w": 390,
+      "x": 4790,
+      "y": 4080
+    },
+    "R6PhonePre.dc.html": {
+      "h": 844,
+      "page": "r6",
+      "title": "Phone, option B: panel preview (dark)",
+      "w": 390,
+      "x": 6200,
+      "y": 4080
+    },
+    "R6PhonePreLight.dc.html": {
+      "h": 844,
+      "page": "r6",
+      "title": "Phone, option B (light)",
+      "w": 390,
+      "x": 6670,
+      "y": 4080
+    },
+    "R6Settings.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "Settings: Panel preview in steps replaces Map in steps (dark)",
+      "w": 1440,
+      "x": 3040,
+      "y": 5380
+    },
+    "R6SettingsLight.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "Settings (light)",
+      "w": 1440,
+      "x": 4560,
+      "y": 5380
+    },
+    "R6TabL.dc.html": {
+      "h": 820,
+      "page": "r6",
+      "title": "Tablet landscape: Show panel (dark)",
+      "w": 1180,
+      "x": 0,
+      "y": 4080
+    },
+    "R6TabLLight.dc.html": {
+      "h": 820,
+      "page": "r6",
+      "title": "Tablet landscape: Show panel (light)",
+      "w": 1180,
+      "x": 1260,
+      "y": 4080
+    },
+    "R6TabP.dc.html": {
+      "h": 1180,
+      "page": "r6",
+      "title": "Tablet portrait: Show panel sheet (dark)",
+      "w": 820,
+      "x": 2520,
+      "y": 4080
+    },
+    "R6TabPLight.dc.html": {
+      "h": 1180,
+      "page": "r6",
+      "title": "Tablet portrait: Show panel sheet (light)",
+      "w": 820,
+      "x": 3420,
+      "y": 4080
+    },
+    "R6Where.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "Where is this?: same slide-out, Where it is open (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 2040
+    },
+    "R6WhereLight.dc.html": {
+      "h": 900,
+      "page": "r6",
+      "title": "Where is this? (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 2040
+    },
+    "SIBriefing.dc.html": {
+      "h": 560,
+      "page": "sources",
+      "title": "Briefing: changed since you briefed (dark)",
+      "w": 1120,
+      "x": 0,
+      "y": 960
+    },
+    "SIBriefingLight.dc.html": {
+      "h": 560,
+      "page": "sources",
+      "title": "Briefing: changed since you briefed (light)",
+      "w": 1120,
+      "x": 1200,
+      "y": 960
+    },
+    "SIPanel.dc.html": {
+      "h": 420,
+      "page": "sources",
+      "title": "Strip panel: where each value came from (dark)",
+      "w": 1120,
+      "x": 0,
+      "y": 420
+    },
+    "SIPanelLight.dc.html": {
+      "h": 420,
+      "page": "sources",
+      "title": "Strip panel: where each value came from (light)",
+      "w": 1120,
+      "x": 1200,
+      "y": 420
+    },
+    "SISettings.dc.html": {
+      "h": 480,
+      "page": "sources",
+      "title": "Settings: Outside data (dark)",
+      "w": 1120,
+      "x": 0,
+      "y": 1640
+    },
+    "SISettingsLight.dc.html": {
+      "h": 480,
+      "page": "sources",
+      "title": "Settings: Outside data (light)",
+      "w": 1120,
+      "x": 1200,
+      "y": 1640
+    },
+    "SIStrip.dc.html": {
+      "h": 300,
+      "page": "sources",
+      "title": "Strip: values from ATC, and a change to re-brief (dark)",
+      "w": 1120,
+      "x": 0,
+      "y": 0
+    },
+    "SIStripLight.dc.html": {
+      "h": 300,
+      "page": "sources",
+      "title": "Strip: values from ATC, and a change to re-brief (light)",
+      "w": 1120,
+      "x": 1200,
+      "y": 0
+    },
+    "Settings.dc.html": {
+      "h": 900,
+      "page": "views",
+      "title": "Settings (dark)",
+      "w": 1440,
+      "x": 12160,
+      "y": 0
+    },
+    "SettingsLight.dc.html": {
+      "h": 900,
+      "page": "views",
+      "title": "Settings (light)",
+      "w": 1440,
+      "x": 12160,
+      "y": 1020
+    },
+    "SimBrief.dc.html": {
+      "h": 900,
+      "page": "flight",
+      "title": "Flight: SimBrief and offline OFP (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 1020
+    },
+    "SimBriefLight.dc.html": {
+      "h": 900,
+      "page": "flight",
+      "title": "Flight: SimBrief (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 1020
+    },
+    "Sources.dc.html": {
+      "h": 420,
+      "page": "sources",
+      "title": "Shared source: outside data (tweaks: state, theme)",
+      "w": 1120,
+      "x": 2400,
+      "y": 0
+    },
+    "StagePicker.dc.html": {
+      "h": 844,
+      "page": "b5",
+      "title": "Shared source: stage and phase picker (tweaks: layout, theme)",
+      "w": 390,
+      "x": 2760,
+      "y": 0
+    },
+    "StagesPhone.dc.html": {
+      "h": 844,
+      "page": "b5",
+      "title": "Stage and phase: phone sheet (dark)",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "StagesPhoneLight.dc.html": {
+      "h": 844,
+      "page": "b5",
+      "title": "Stage and phase: phone sheet (light)",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "StagesTabL.dc.html": {
+      "h": 820,
+      "page": "b5",
+      "title": "Stage and phase: tablet landscape and compact desktop pop-over (dark)",
+      "w": 1180,
+      "x": 0,
+      "y": 1300
+    },
+    "StagesTabLLight.dc.html": {
+      "h": 820,
+      "page": "b5",
+      "title": "Stage and phase: tablet landscape and compact desktop pop-over (light)",
+      "w": 1180,
+      "x": 1260,
+      "y": 1300
+    },
+    "StagesTabP.dc.html": {
+      "h": 1180,
+      "page": "b5",
+      "title": "Stage and phase: tablet portrait sheet (dark)",
+      "w": 820,
+      "x": 940,
+      "y": 0
+    },
+    "StagesTabPLight.dc.html": {
+      "h": 1180,
+      "page": "b5",
+      "title": "Stage and phase: tablet portrait sheet (light)",
+      "w": 820,
+      "x": 1840,
+      "y": 0
+    },
+    "Start.dc.html": {
+      "h": 900,
+      "page": "flight",
+      "title": "Flight: Start options (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 2040
+    },
+    "StartLight.dc.html": {
+      "h": 900,
+      "page": "flight",
+      "title": "Flight: Start options (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 2040
+    },
+    "StripFreq.dc.html": {
+      "h": 900,
+      "page": "checklist",
+      "title": "Flight strip opened, frequencies open (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 4080
+    },
+    "StripFreqLight.dc.html": {
+      "h": 900,
+      "page": "checklist",
+      "title": "Flight strip opened, frequencies open (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 4080
+    },
+    "StripOpen.dc.html": {
+      "h": 900,
+      "page": "checklist",
+      "title": "Flight strip opened (dark)",
+      "w": 1440,
+      "x": 3040,
+      "y": 1020
+    },
+    "StripOpenLight.dc.html": {
+      "h": 900,
+      "page": "checklist",
+      "title": "Flight strip opened (light)",
+      "w": 1440,
+      "x": 4560,
+      "y": 1020
+    },
+    "TabL.dc.html": {
+      "h": 820,
+      "page": "tablet",
+      "title": "Tablet landscape (dark)",
+      "w": 1180,
+      "x": 0,
+      "y": 0
+    },
+    "TabLLight.dc.html": {
+      "h": 820,
+      "page": "tablet",
+      "title": "Tablet landscape (light)",
+      "w": 1180,
+      "x": 1260,
+      "y": 0
+    },
+    "TabMenu.dc.html": {
+      "h": 1180,
+      "page": "tablet",
+      "title": "Tablet: menu (dark)",
+      "w": 820,
+      "x": 1800,
+      "y": 940
+    },
+    "TabMenuLight.dc.html": {
+      "h": 1180,
+      "page": "tablet",
+      "title": "Tablet: menu (light)",
+      "w": 820,
+      "x": 2700,
+      "y": 940
+    },
+    "TabP.dc.html": {
+      "h": 1180,
+      "page": "tablet",
+      "title": "Tablet portrait (dark)",
+      "w": 820,
+      "x": 0,
+      "y": 940
+    },
+    "TabPLight.dc.html": {
+      "h": 1180,
+      "page": "tablet",
+      "title": "Tablet portrait (light)",
+      "w": 820,
+      "x": 900,
+      "y": 940
+    },
+    "TabStrip.dc.html": {
+      "h": 820,
+      "page": "tablet",
+      "title": "Tablet: Flight strip opened (dark)",
+      "w": 1180,
+      "x": 5040,
+      "y": 0
+    },
+    "TabStripLight.dc.html": {
+      "h": 820,
+      "page": "tablet",
+      "title": "Tablet: Flight strip opened (light)",
+      "w": 1180,
+      "x": 6300,
+      "y": 0
+    },
+    "TabWhere.dc.html": {
+      "h": 820,
+      "page": "tablet",
+      "title": "Tablet: Where is this? (dark)",
+      "w": 1180,
+      "x": 2520,
+      "y": 0
+    },
+    "TabWhereLight.dc.html": {
+      "h": 820,
+      "page": "tablet",
+      "title": "Tablet: Where is this? (light)",
+      "w": 1180,
+      "x": 3780,
+      "y": 0
+    },
+    "Tablet.dc.html": {
+      "h": 820,
+      "page": "tablet",
+      "title": "Shared source for tablet boards (tweaks: orientation, overlay, theme)",
+      "w": 1180,
+      "x": 3600,
+      "y": 940
+    },
+    "Timer.dc.html": {
+      "h": 900,
+      "page": "views",
+      "title": "Step with a timer (dark)",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "TimerLight.dc.html": {
+      "h": 900,
+      "page": "views",
+      "title": "Step with a timer (light)",
+      "w": 1440,
+      "x": 3040,
+      "y": 1020
+    },
+    "Views.dc.html": {
+      "h": 900,
+      "page": "views",
+      "title": "Shared source for the views above (switch with the view tweak)",
+      "w": 1440,
+      "x": 0,
+      "y": 2040
+    },
+    "Weather.dc.html": {
+      "h": 900,
+      "page": "flight",
+      "title": "Flight: Weather (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "WeatherLight.dc.html": {
+      "h": 900,
+      "page": "flight",
+      "title": "Flight: Weather (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "WherePop.dc.html": {
+      "h": 900,
+      "page": "checklist",
+      "title": "Where is this? pop-over (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 1020
+    },
+    "WherePopLight.dc.html": {
+      "h": 900,
+      "page": "checklist",
+      "title": "Where is this? pop-over (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 1020
+    },
+    "Wide.dc.html": {
+      "h": 1440,
+      "page": "checklist",
+      "title": "Wide 2560x1440, same layout at 160% (dark)",
+      "w": 2560,
+      "x": 0,
+      "y": 3060
+    },
+    "WideLight.dc.html": {
+      "h": 1440,
+      "page": "checklist",
+      "title": "Wide (light)",
+      "w": 2560,
+      "x": 2640,
+      "y": 3060
+    },
+    "Winds.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Flight: Weather, en route winds (dark)",
+      "w": 1440,
+      "x": 0,
+      "y": 6120
+    },
+    "WindsLight.dc.html": {
+      "h": 900,
+      "page": "flight2",
+      "title": "Flight: Weather, en route winds (light)",
+      "w": 1440,
+      "x": 1520,
+      "y": 6120
+    },
+    "WindsTabL.dc.html": {
+      "h": 820,
+      "page": "b4",
+      "title": "Flight: en route winds, tablet landscape (dark)",
+      "w": 1180,
+      "x": 0,
+      "y": 940
+    },
+    "WindsTabLLight.dc.html": {
+      "h": 820,
+      "page": "b4",
+      "title": "Flight: en route winds, tablet landscape (light)",
+      "w": 1180,
+      "x": 1260,
+      "y": 940
+    },
+    "WxTabL.dc.html": {
+      "h": 820,
+      "page": "b4",
+      "title": "Flight: Weather, tablet landscape (dark)",
+      "w": 1180,
+      "x": 0,
+      "y": 0
+    },
+    "WxTabLLight.dc.html": {
+      "h": 820,
+      "page": "b4",
+      "title": "Flight: Weather, tablet landscape (light)",
+      "w": 1180,
+      "x": 1260,
+      "y": 0
+    },
+    "PracticeHome.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Practice, home and test builder: desktop (dark)",
+      "page": "b7"
+    },
+    "PracticeHomeLight.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Practice, home and test builder: desktop (light)",
+      "page": "b7"
+    },
+    "PracticeQuestion.dc.html": {
+      "x": 0,
+      "y": 1020,
+      "w": 1440,
+      "h": 900,
+      "title": "Practice, a question, answered wrong: desktop (dark)",
+      "page": "b7"
+    },
+    "PracticeQuestionLight.dc.html": {
+      "x": 1520,
+      "y": 1020,
+      "w": 1440,
+      "h": 900,
+      "title": "Practice, a question, answered wrong: desktop (light)",
+      "page": "b7"
+    },
+    "PracticeOrder.dc.html": {
+      "x": 0,
       "y": 2040,
       "w": 1440,
       "h": 900,
-      "title": "Shared source: Find (tweaks: layout, state, theme)",
-      "page": "b6"
+      "title": "Practice, a step order question: desktop (dark)",
+      "page": "b7"
     },
-    "PanelTiles.dc.html": {
+    "PracticeOrderLight.dc.html": {
+      "x": 1520,
+      "y": 2040,
+      "w": 1440,
+      "h": 900,
+      "title": "Practice, a step order question: desktop (light)",
+      "page": "b7"
+    },
+    "PracticeResults.dc.html": {
       "x": 0,
       "y": 3060,
       "w": 1440,
-      "h": 1100,
-      "title": "Panel tiles and the deck map: a step on two panels (dark)",
-      "page": "b6"
+      "h": 900,
+      "title": "Practice, results: desktop (dark)",
+      "page": "b7"
     },
-    "PanelTilesLight.dc.html": {
+    "PracticeResultsLight.dc.html": {
       "x": 1520,
       "y": 3060,
       "w": 1440,
-      "h": 1100,
-      "title": "Panel tiles and the deck map (light)",
-      "page": "b6"
+      "h": 900,
+      "title": "Practice, results: desktop (light)",
+      "page": "b7"
     },
-    "GlossaryDesk.dc.html": {
-      "x": 0,
-      "y": 4260,
+    "PracticeHomePhone.dc.html": {
+      "x": 3120,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Practice, home and test builder: phone (dark)",
+      "page": "b7"
+    },
+    "PracticeHomePhoneLight.dc.html": {
+      "x": 3590,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Practice, home and test builder: phone (light)",
+      "page": "b7"
+    },
+    "PracticeQuestionPhone.dc.html": {
+      "x": 4060,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Practice, a question, answered wrong: phone (dark)",
+      "page": "b7"
+    },
+    "PracticeQuestionPhoneLight.dc.html": {
+      "x": 4530,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Practice, a question, answered wrong: phone (light)",
+      "page": "b7"
+    },
+    "PracticeResultsPhone.dc.html": {
+      "x": 5000,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Practice, results: phone (dark)",
+      "page": "b7"
+    },
+    "PracticeResultsPhoneLight.dc.html": {
+      "x": 5470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Practice, results: phone (light)",
+      "page": "b7"
+    },
+    "Practice.dc.html": {
+      "x": 3120,
+      "y": 1020,
       "w": 1440,
       "h": 900,
-      "title": "Glossary: desktop and tablet landscape (dark)",
-      "page": "b6"
-    },
-    "GlossaryDeskLight.dc.html": {
-      "x": 1520,
-      "y": 4260,
-      "w": 1440,
-      "h": 900,
-      "title": "Glossary: desktop and tablet landscape (light)",
-      "page": "b6"
-    },
-    "GlossaryPhone.dc.html": {
-      "x": 3040,
-      "y": 4260,
-      "w": 390,
-      "h": 844,
-      "title": "Glossary: phone list (dark)",
-      "page": "b6"
-    },
-    "GlossaryPhoneLight.dc.html": {
-      "x": 3510,
-      "y": 4260,
-      "w": 390,
-      "h": 844,
-      "title": "Glossary: phone list (light)",
-      "page": "b6"
-    },
-    "GlossaryPhoneTerm.dc.html": {
-      "x": 3980,
-      "y": 4260,
-      "w": 390,
-      "h": 844,
-      "title": "Glossary: phone, one term (dark)",
-      "page": "b6"
-    },
-    "GlossaryPhoneTermLight.dc.html": {
-      "x": 4450,
-      "y": 4260,
-      "w": 390,
-      "h": 844,
-      "title": "Glossary: phone, one term (light)",
-      "page": "b6"
-    },
-    "Glossary.dc.html": {
-      "x": 4920,
-      "y": 4260,
-      "w": 1440,
-      "h": 900,
-      "title": "Shared source: Glossary (tweaks: layout, theme)",
-      "page": "b6"
+      "title": "Shared source: Practice (tweaks: layout, state, theme)",
+      "page": "b7"
     }
   },
+  "createdOnFiles": {
+    "at": "2026-11-12T22:30:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "page": "b7",
+    "view": "canvas"
+  },
+  "notes": {},
   "order": [
     "Main.dc.html",
     "Checklist.dc.html",
@@ -1737,8 +1801,108 @@
     "StagesTabPLight.dc.html",
     "StagesTabL.dc.html",
     "StagesTabLLight.dc.html",
-    "StagePicker.dc.html"
+    "StagePicker.dc.html",
+    "FindDesk.dc.html",
+    "FindDeskLight.dc.html",
+    "FindPhone.dc.html",
+    "FindPhoneLight.dc.html",
+    "FindDeskNone.dc.html",
+    "FindDeskNoneLight.dc.html",
+    "FindPhoneNone.dc.html",
+    "FindPhoneNoneLight.dc.html",
+    "FindDeskStart.dc.html",
+    "FindDeskStartLight.dc.html",
+    "FindPhoneStart.dc.html",
+    "FindPhoneStartLight.dc.html",
+    "MenuWhere.dc.html",
+    "MenuWhereLight.dc.html",
+    "Find.dc.html",
+    "PanelTiles.dc.html",
+    "PanelTilesLight.dc.html",
+    "GlossaryDesk.dc.html",
+    "GlossaryDeskLight.dc.html",
+    "GlossaryPhone.dc.html",
+    "GlossaryPhoneLight.dc.html",
+    "GlossaryPhoneTerm.dc.html",
+    "GlossaryPhoneTermLight.dc.html",
+    "Glossary.dc.html",
+    "PracticeHome.dc.html",
+    "PracticeHomeLight.dc.html",
+    "PracticeQuestion.dc.html",
+    "PracticeQuestionLight.dc.html",
+    "PracticeOrder.dc.html",
+    "PracticeOrderLight.dc.html",
+    "PracticeResults.dc.html",
+    "PracticeResultsLight.dc.html",
+    "PracticeHomePhone.dc.html",
+    "PracticeHomePhoneLight.dc.html",
+    "PracticeQuestionPhone.dc.html",
+    "PracticeQuestionPhoneLight.dc.html",
+    "PracticeResultsPhone.dc.html",
+    "PracticeResultsPhoneLight.dc.html",
+    "Practice.dc.html"
   ],
-  "notes": {},
-  "designSystems": []
+  "pages": [
+    {
+      "id": "rules",
+      "name": "Rules"
+    },
+    {
+      "id": "checklist",
+      "name": "Checklist, desktop"
+    },
+    {
+      "id": "flight",
+      "name": "Flight pages"
+    },
+    {
+      "id": "reference",
+      "name": "Flight deck and menu"
+    },
+    {
+      "id": "views",
+      "name": "Other views"
+    },
+    {
+      "id": "tablet",
+      "name": "Tablet"
+    },
+    {
+      "id": "phone",
+      "name": "Phone"
+    },
+    {
+      "id": "r6",
+      "name": "Round 6: where and the panel"
+    },
+    {
+      "id": "flight2",
+      "name": "Flight sections"
+    },
+    {
+      "id": "sources",
+      "name": "Outside data (SayIntentions, Beta)"
+    },
+    {
+      "id": "b4",
+      "name": "Batch 4 additions"
+    },
+    {
+      "id": "brand",
+      "name": "Involo: logo"
+    },
+    {
+      "id": "b5",
+      "name": "Batch 5 additions"
+    },
+    {
+      "id": "b6",
+      "name": "Batch 6 additions"
+    },
+    {
+      "id": "b7",
+      "name": "Practice"
+    }
+  ],
+  "title": "Involo layout review (formerly Chock to Chock)"
 }

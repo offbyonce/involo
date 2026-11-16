@@ -13,6 +13,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     type AppInfo,
     type Checklist,
     type FillField,
+    type FlatPack,
     type Flight,
     isAppError,
     type ListView,
@@ -50,6 +51,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import { buildGlossary, glossaryHref } from "./lib/glossary";
   import GlossaryPage from "./pages/GlossaryPage.svelte";
   import FlightDeckPage from "./pages/FlightDeckPage.svelte";
+  import PracticePage from "./pages/PracticePage.svelte";
   import { currentRoute, flightHref, phaseHref } from "./route.svelte";
   import { applyPalette, applyScale } from "./theme/tokens";
 
@@ -128,6 +130,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let cursor = $state<string | null>(null);
   /** Find (batch 6): its index, built once per pack, and whether it is open. */
   let findIndex = $state<FindIndex | null>(null);
+  /** The loaded pack, for Practice's question generator. */
+  let flatPack = $state.raw<FlatPack | null>(null);
   /** The Glossary (owner): every term A to Z, with the steps that use it. */
   let glossary = $derived(index && findIndex ? buildGlossary(index, findIndex.terms, findIndex.steps) : []);
   let findOpen = $state(false);
@@ -187,6 +191,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       packId = aircraft.id;
       index = indexPack(pack);
       findIndex = buildFind(pack, index);
+      flatPack = pack;
       lists = new Map(pack.lists.map((l) => [l.id, l]));
       intros = new Map((pack.content.phases?.phases ?? []).map((p) => [p.id, p.intro ?? []]));
       // What is saved on this device, if anything; what cannot be used is kept, never dropped.
@@ -311,7 +316,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let current = $derived(view?.lists.find((l) => l.current)?.current ?? null);
   /** The step the context panel shows, its row, and the steps after it. */
   let pane = $derived.by(() => {
-    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck") return null;
+    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck" || screen === "practice") return null;
     const id = flow ? (cursor ?? current) : (selected ?? (screen === "reference" ? null : current));
     const rows = view.lists.flatMap((l) => l.steps);
     const at = rows.findIndex((r) => r.id === id);
@@ -668,6 +673,10 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
 {#if route.value.screen === "glossary" && index}
   <div class="flightwrap">
     <GlossaryPage terms={glossary} term={route.value.term} {rail} backHref={lastPhase ? phaseHref(lastPhase) : "#/"} onStep={goToStep} />
+  </div>
+{:else if route.value.screen === "practice" && index && flatPack}
+  <div class="flightwrap">
+    <PracticePage pack={flatPack} {index} options={flight?.options ?? {}} backHref={lastPhase ? phaseHref(lastPhase) : "#/"} onStep={goToStep} />
   </div>
 {:else if route.value.screen === "deck" && index}
   <div class="flightwrap">

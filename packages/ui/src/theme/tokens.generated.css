@@ -96,6 +96,7 @@
   --color-link: #7fb0ff;
   --color-done: #3fb67a;
   --color-on-done: #08140e;
+  --color-done-soft: #12261b;
   --color-track: #2a323e;
   --color-todo-ring: #6b7482;
   --color-open-text: #f2bd5c;
@@ -172,6 +173,7 @@
     --color-link: #1d4fd8;
     --color-done: #1f8a55;
     --color-on-done: #ffffff;
+    --color-done-soft: #e3f3ea;
     --color-track: #d3d9e1;
     --color-todo-ring: #7a8391;
     --color-open-text: #8a5a00;

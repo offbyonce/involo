@@ -35,6 +35,30 @@ const VIEWPORTS = {
 const THEMES = { dark: 0, light: 1 };
 
 const click = (selector, n = 0) => `document.querySelectorAll(${JSON.stringify(selector)})[${n}].click(); true`;
+/** Practice (owner's boards): plays tests until the screen is in a board's state. "light": a light
+ * meaning answered wrong with feedback after each; "order": a step order question with its second
+ * step picked up; "results": a custom test without memory items, every question answered;
+ * "earlier": the Lights test finished, back home with "Earlier this visit". */
+const practice = (goal) =>
+  `(async () => { const wait = (ms) => new Promise((go) => setTimeout(go, ms)); const one = (s) => document.querySelector(s); const all = (s) => [...document.querySelectorAll(s)]; const btn = (t) => all("button").find((b) => b.textContent.trim().startsWith(t)); const goal = ${JSON.stringify(goal)};
+  for (let attempt = 0; attempt < 40; attempt++) {
+    if (btn("New test")) { btn("New test").click(); await wait(250); }
+    if (goal === "earlier") { all("button.ready")[1].click(); await wait(300); }
+    else if (btn("Start test")) { if (goal === "results") { const m = all("button.chip").find((b) => b.textContent.startsWith("Memory items")); if (m && m.getAttribute("aria-pressed") === "true") { m.click(); await wait(150); } } btn("Start test").click(); await wait(300); }
+    for (let n = 0; n < 45; n++) {
+      if (!one(".tag")) break;
+      const tag = one(".tag").textContent; const h = one(".question h2").textContent;
+      if (goal === "order" && one("ol.order") && !one("ol.checked")) { const li = all("ol.order li")[1]; li.focus(); li.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true })); await wait(250); return true; }
+      if (one("ol.order")) { btn("Check order")?.click(); await wait(120); }
+      else if (goal === "light" && tag === "Light meanings" && h.startsWith("What does this light mean")) { all(".opt")[2].click(); await wait(200); if (one(".opt.wrong")) return true; }
+      else { all(".opt")[n % 5 === 0 ? 1 : 0]?.click(); await wait(100); }
+      (btn("Next question") || btn("See results"))?.click(); await wait(150);
+      if (one(".results")) { if (goal === "results") return true; if (goal === "earlier") { btn("New test").click(); await wait(300); return true; } break; }
+    }
+    if (one(".results") && goal === "results") return true;
+    btn("End test")?.click(); await wait(250);
+  }
+  return true; })()`;
 /** Clicks `part` (".row" or ".chev") of the list step whose text contains `title`. */
 const stepNamed = (title, part) =>
   `[...document.querySelectorAll(".it")].find((it) => it.textContent.trim().toUpperCase().includes(${JSON.stringify(title)})).querySelector(${JSON.stringify(part)}).click(); true`;
@@ -501,6 +525,13 @@ const SHOTS = [
   { name: "board-deck", only: ["desktop", "phone", "laptop"], app: { hash: "#/deck/forward-overhead/fuel" } },
   // The selected panel's "Full size ›": the panel sheet at full size, with its navigator when wider.
   { name: "board-deck-full", only: ["desktop", "phone"], app: { hash: "#/deck/forward-overhead/fuel", before: [click(".deck-panel .full")] } },
+  // Practice (owner; PracticeHome, PracticeQuestion, PracticeOrder, PracticeResults), each in its
+  // board's state; the desktop home after a finished test shows "Earlier this visit", as PracticeHome.
+  { name: "board-practice-home", only: ["desktop"], app: { hash: "#/practice", before: [practice("earlier")] } },
+  { name: "board-practice-home-phone", only: ["phone"], app: { hash: "#/practice" } },
+  { name: "board-practice-question", only: ["desktop", "phone"], app: { hash: "#/practice", before: [practice("light")] } },
+  { name: "board-practice-order", only: ["desktop"], app: { hash: "#/practice", before: [practice("order")] } },
+  { name: "board-practice-results", only: ["desktop", "phone"], app: { hash: "#/practice", before: [practice("results")] } },
   // The Glossary (owner): desktop at APU as the boards show, the phone's list, and APU on phone.
   { name: "board-glossary", only: ["desktop"], app: { hash: "#/glossary/APU" } },
   { name: "board-glossary-list", only: ["phone"], app: { hash: "#/glossary" } },

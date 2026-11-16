@@ -112,6 +112,26 @@ with 6 px either side). The selected panel is an overview fitted to its column (
 navigator when wider; the 900 to 1439 px slide-out shows it at full size. The slide-out's and Where is this?'s "Whole flight deck" map is gone: "Open
 in Flight deck", as the Locator board draws it, opens the page at that panel.
 
+**Practice (owner, 2026-11-16).** Built from `Practice.dc.html` (in `round6/boards`):
+`PracticeHome` and `PracticeHomePhone` (the ready-made tests, Build a test, "Earlier this visit"),
+`PracticeQuestion` and `PracticeQuestionPhone` (a choice answered wrong, with feedback),
+`PracticeOrder` (a step order question) and `PracticeResults` and `PracticeResultsPhone`, each in
+dark and light. 900 px and up take the desktop layout (tablet landscape too); below, the phone
+layout. Every question is generated from the pack (`lib/practice.ts`) under the owner's README:
+exactly one correct answer, three real neighbors as wrong options and never an invented one (a
+question that cannot find three is skipped), every question linked to its source. The owner's
+answers: faults take the flight deck area as their system; mnemonics ask which mnemonic an item
+belongs to, the next item and the order (no letter questions); terms take the system of the
+controls of the steps that use them (the others stay in the Glossary only); a control's panel takes
+the nearest area's panels when its own area has fewer than four, and every control also asks for
+its Flight deck area; Step values only where the control's own positions give a wrong option.
+Topics tied to steps follow the chosen stages and the flight's options; memory items count for any
+stage; a light, control or term no step uses counts only with every stage. Right and wrong use
+color.done, the new color.done-soft, and color.danger, danger-text and danger-soft. The boards set
+no line height (the browser's normal one, as the page does) and draw the question at 1.3; the
+widths 1100, 820 and 1240 are the column's content inside its padding. Results last only for the
+visit.
+
 **Batch 6 panels (owner, 2026-11-15).** `PanelTiles.dc.html` (dark and light) draws a step whose
 controls are on two panels, and the Whole flight deck map (replaced by the Flight deck page). A step draws only the panels that hold
 its controls or the lights its Check names, nothing between them; each is its own tile at its own

@@ -22,6 +22,8 @@ control around them carries the words.
   import search from "../icons/tabler/search.svg?raw";
   import settings from "../icons/tabler/settings.svg?raw";
   import x from "../icons/tabler/x.svg?raw";
+  import answerRight from "../icons/board/answer-right.svg?raw";
+  import answerWrong from "../icons/board/answer-wrong.svg?raw";
   import decision from "../icons/board/decision.svg?raw";
   import fieldAlert from "../icons/board/field-alert.svg?raw";
   import fileUpload from "../icons/board/file-upload.svg?raw";
@@ -32,12 +34,15 @@ control around them carries the words.
   import findTodo from "../icons/board/find-todo.svg?raw";
   import findTerm from "../icons/board/find-term.svg?raw";
   import globe from "../icons/board/globe.svg?raw";
+  import grip from "../icons/board/grip.svg?raw";
   import notice from "../icons/board/notice.svg?raw";
   import panel from "../icons/board/panel.svg?raw";
   import pin from "../icons/board/pin.svg?raw";
 
   const ICONS = {
     "alert-triangle": alertTriangle,
+    "answer-right": answerRight,
+    "answer-wrong": answerWrong,
     "arrow-left": arrowLeft,
     "arrow-right": arrowRight,
     check,
@@ -54,6 +59,7 @@ control around them carries the words.
     "find-todo": findTodo,
     "find-term": findTerm,
     globe,
+    grip,
     "map-pin": mapPin,
     notice,
     panel,

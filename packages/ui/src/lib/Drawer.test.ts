@@ -33,12 +33,13 @@ describe("Drawer", () => {
     expect(container.querySelector(".who small")?.textContent).toBe("Test Jet · saved 10:14 · 41/366");
   });
 
-  it("hides the items whose page does not exist yet, and their empty groups; Glossary has its page", () => {
+  it("hides the items whose page does not exist yet; Practice, the Flight deck and the Glossary have theirs", () => {
     render(Drawer, base);
-    for (const name of ["Practice", "How procedures work", "References", "Flight log", "Take the tour"]) {
+    for (const name of ["How procedures work", "References", "Flight log", "Take the tour"]) {
       expect(screen.queryByRole("link", { name })).toBeNull();
     }
-    expect(screen.queryByText("Learn")).toBeNull();
+    expect(screen.getByText("Learn")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Practice" }).getAttribute("href")).toBe("#/practice");
     expect(screen.getByText("Reference")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Glossary" }).getAttribute("href")).toBe("#/glossary");
     expect(screen.getByRole("link", { name: /^Flight deck/ }).getAttribute("href")).toBe("#/deck");
