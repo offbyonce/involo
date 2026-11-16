@@ -4,7 +4,7 @@ SPDX-License-Identifier: MIT
 
 Practice (the owner's Practice boards and README): a test engine whose questions are generated
 from the pack (lib/practice.ts). Home: the ready-made tests, Build a test (topics with their counts,
-stages, 10, 20 or 40 questions, feedback after each or at the end) and "Earlier this visit". A test:
+stages, 10, 20 or 40 questions, feedback after each or at the end) and the last result. A test:
 the progress row (question N of M, the bar, the running score), a multiple-choice question (keys 1
 to 4; locked once chosen; right in green, "Your answer" in red with the right one in green and a
 feedback box with the source's own words and links to it) or a step order question (drag, the ↑
@@ -12,15 +12,17 @@ and ↓ buttons, or Space to pick a step up and the arrow keys to move it; Check
 (exam mode) a choice moves straight on, with no marking until the results. Results: the score, by
 topic, every missed question with its source, and Retry the missed, Same test again or New test.
 900 px and up take the desktop layout (tablet landscape too); below, the phone layout (tablet
-portrait too). Results last only for this visit.
+portrait too). Each finished test's score goes in the Flight log (decision 0026), and home shows
+the latest; a test's questions and answers last only for this visit.
 -->
 <script lang="ts">
-  import type { FlatPack } from "@involo/bindings";
+  import type { FlatPack, PracticeResult } from "@involo/bindings";
   import { tick } from "svelte";
   import Icon from "../lib/Icon.svelte";
   import { available, bank, beforeEngineStart, deal, type Link, orderMiss, type Question, random, type Seed, sourcesIn, phasesOf, stepShows, TOPICS, type Topic, topicTitle } from "../lib/practice";
   import { correct, type Feedback, type Test, visit } from "../lib/practice-visit.svelte";
   import type { PackIndex } from "../pack-index";
+  import { dayLabel } from "../lib/flight-log";
 
   let {
     pack,
@@ -28,6 +30,8 @@ portrait too). Results last only for this visit.
     options,
     backHref,
     onStep,
+    latest = null,
+    onResult,
   }: {
     pack: FlatPack;
     index: PackIndex;
@@ -35,6 +39,10 @@ portrait too). Results last only for this visit.
     options: Record<string, string>;
     backHref: string;
     onStep: (id: string) => void;
+    /** The latest result saved in the Flight log (decision 0026), shown on the home page. */
+    latest?: PracticeResult | null;
+    /** A test was finished: it goes in the Flight log's Practice results. */
+    onResult?: (result: { title: string; score: number; total: number; at: number }) => void;
   } = $props();
 
   /** 900 px and up: the desktop layout (tablet landscape too). */
@@ -110,6 +118,12 @@ portrait too). Results last only for this visit.
     }
     t.ended = Date.now();
     visit.last = t;
+    onResult?.({
+      title: t.custom ? `${t.title} · ${t.topics.length} ${t.topics.length === 1 ? "topic" : "topics"}` : t.title,
+      score: t.questions.filter((x, i) => correct(x, t.answers[i])).length,
+      total: t.answers.filter((a) => a !== null).length,
+      at: t.ended,
+    });
     showAll = false;
     focusTop();
   }
@@ -352,7 +366,16 @@ portrait too). Results last only for this visit.
         </span>
       </div>
     </section>
-    {#if visit.last}
+    {#if latest}
+      <!-- The latest saved result (Flight log), in place of "Earlier this visit"; Retry stays while
+           its questions are still here, this visit. -->
+      {@const l = visit.last && visit.last.ended === latest.at ? visit.last : null}
+      {@const missed = l ? missedOf(l).length : 0}
+      <div class="earlier">
+        <span>Last result, {dayLabel(latest.at)}: <span class="t">{latest.title}</span>, {latest.score} of {latest.total}</span>
+        {#if l && missed}<button class="link" type="button" onclick={() => retry(l)}>Retry the {missed} missed <Icon name="chevron-right" /></button>{/if}
+      </div>
+    {:else if visit.last}
       {@const l = visit.last}
       {@const missed = missedOf(l).length}
       <div class="earlier">

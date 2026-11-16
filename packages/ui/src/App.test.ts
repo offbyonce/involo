@@ -167,7 +167,51 @@ function host(overrides: Partial<Host> = {}): Host {
     savePlan: async () => {},
     decodeMetar: async () => ({ station: null, time: null, groups: [], rows: [] }),
     decodeTaf: async () => ({ station: null, time: null, groups: [], rows: [] }),
+    ...fakeLog(),
     ...overrides,
+  };
+}
+
+/** The Flight log's host calls, with the log's rules reduced to what these tests need (the real
+ * ones are Rust's, tested there): entries newest first, added or deleted by id. */
+function fakeLog(): Pick<Host, "newLog" | "loadLog" | "saveLog" | "logEntry" | "editLog" | "logCsv"> {
+  return {
+    newLog: async () => ({ format: 1, flights: [], practice: [] }),
+    loadLog: async () => null,
+    saveLog: async () => true,
+    logEntry: async (pack, flight, _settings, plan, at) => ({
+      id: `${pack}@${at}`,
+      loggedAt: at,
+      pack,
+      packVersion: "0.1.0",
+      aircraft: "Demo",
+      origin: flight.values.origin ?? "",
+      destination: flight.values.destination ?? "",
+      offBlocks: Object.values(flight.session.done)[0] ?? null,
+      onBlocks: Object.values(flight.session.done).at(-1) ?? null,
+      stages: [],
+      done: Object.keys(flight.session.done).length,
+      total: 4,
+      skipped: [],
+      plan,
+      finished: false,
+      ticks: Object.entries(flight.session.done).map(([step, at]) => ({ at, step, text: step, value: "ON" })),
+    }),
+    editLog: async (log, edit) => {
+      const next = { ...log, flights: [...log.flights], practice: [...log.practice] };
+      if (edit.type === "addFlight") next.flights.unshift(edit.flight);
+      if (edit.type === "addPractice") next.practice.unshift(edit.result);
+      if (edit.type === "deleteFlight") next.flights = next.flights.filter((f) => f.id !== edit.id);
+      return {
+        log: next,
+        addedFlights: 0,
+        addedPractice: 0,
+        already: 0,
+        droppedFlights: 0,
+        droppedPractice: 0,
+      };
+    },
+    logCsv: async () => "",
   };
 }
 
@@ -1015,5 +1059,233 @@ describe("App", () => {
       expect(screen.queryByRole("dialog", { name: /step 2 of 7/ })).toBeNull();
       await waitFor(() => expect(document.activeElement).toBe(screen.getByRole("button", { name: "Menu" })));
     });
+  });
+});
+
+describe("the Flight log (decision 0026)", () => {
+  /** A flight with one tick, so there is something to log. */
+  const ticked = () =>
+    ({
+      pack: "demo",
+      options: { power: "gpu" },
+      session: { done: { battery: 1_000 }, skipped: {} },
+      values: { origin: "KSEA", destination: "KSFO" },
+    }) as unknown as Flight;
+
+  it("Log flight and start new saves the flight in the log on this device, asking once to keep it, then starts a new flight", async () => {
+    const actions: Action[] = [];
+    const saved: [unknown, boolean | undefined][] = [];
+    window.location.hash = "#/log";
+    const h = host({
+      loadSaved: async () => ({
+        flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
+        settings: null,
+      }),
+      apply: async (_pack, flight, action) => {
+        actions.push(action);
+        return action.type === "clear"
+          ? ({ ...flight, session: { done: {}, skipped: {} }, values: {} } as Flight)
+          : flight;
+      },
+      saveLog: async (log, keep) => {
+        saved.push([log, keep]);
+        return true;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    const go = await screen.findByRole("button", { name: "Log flight and start new" });
+    await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false));
+    await fireEvent.click(go);
+    await waitFor(() => expect(actions.at(-1)).toEqual({ type: "clear" }));
+    expect(saved).toHaveLength(1);
+    const [log, keep] = saved[0] as [
+      { flights: { origin: string; destination: string; plan: string }[] },
+      boolean,
+    ];
+    expect(keep).toBe(true);
+    expect(log.flights[0]).toMatchObject({ origin: "KSEA", destination: "KSFO", plan: "manual" });
+    // The flight is in Earlier flights, This flight starts again, and no Undo is offered.
+    await waitFor(() =>
+      expect(document.querySelector(".earlier h2")?.textContent).toBe("Earlier flights · 1"),
+    );
+    expect(screen.queryByRole("button", { name: "Undo" })).toBeNull();
+  });
+
+  it("keeps a saved log this version can't read as it is, and saves nothing over it", async () => {
+    const saved: unknown[] = [];
+    window.location.hash = "#/log";
+    const h = host({
+      loadSaved: async () => ({
+        flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
+        settings: null,
+      }),
+      loadLog: async () => ({ loaded: { state: "newer", format: 7 }, text: '{"format":7}' }),
+      saveLog: async (log) => {
+        saved.push(log);
+        return true;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    expect(await screen.findByText(/from a newer version of Involo/)).toBeTruthy();
+    const go = screen.getByRole("button", { name: "Log flight and start new" }) as HTMLButtonElement;
+    expect(go.disabled).toBe(true);
+    expect(saved).toEqual([]);
+  });
+
+  it("offers once, in place, to log the flight when its last phase is done", async () => {
+    let finished = false;
+    const last = () => ({
+      ...rail,
+      stages: rail.stages.map((s, i) =>
+        i === rail.stages.length - 1 ? { ...s, phases: [phase("taxi", "Taxi", finished ? 9 : 8, 0, 9)] } : s,
+      ),
+    });
+    window.location.hash = "#/phase/taxi";
+    const h = host({
+      loadSaved: async () => ({
+        flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
+        settings: null,
+      }),
+      rail: async () => last(),
+      apply: async (_pack, flight, action) => {
+        if (action.type === "tick") finished = true;
+        if (action.type === "untick") finished = false;
+        return flight;
+      },
+      phaseView: async () => view(["done", "current"]),
+    });
+    render(App, { context: hostContext(h) });
+    await waitFor(() => expect(document.querySelector(".it.current")).toBeTruthy());
+    expect(screen.queryByText("Flight complete. Log it and start new?")).toBeNull();
+    await fireEvent.click(document.querySelector(".it.current .done, .it.current button") as HTMLElement);
+    expect(await screen.findByText("Flight complete. Log it and start new?")).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "Not now" }));
+    expect(screen.queryByText("Flight complete. Log it and start new?")).toBeNull();
+  });
+
+  it("keeps the flight when the log can't be saved, and says so (review)", async () => {
+    const actions: Action[] = [];
+    window.location.hash = "#/log";
+    const h = host({
+      loadSaved: async () => ({
+        flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
+        settings: null,
+      }),
+      apply: async (_pack, flight, action) => {
+        actions.push(action);
+        return flight;
+      },
+      saveLog: async () => false,
+    });
+    render(App, { context: hostContext(h) });
+    const go = await screen.findByRole("button", { name: "Log flight and start new" });
+    await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false));
+    await fireEvent.click(go);
+    expect(await screen.findByText(/The log couldn’t be saved on this device/)).toBeTruthy();
+    expect(actions.some((a) => a.type === "clear")).toBe(false);
+    expect(document.querySelector(".earlier h2")?.textContent).toBe("Earlier flights");
+  });
+
+  it("starts each change from the log as saved, so another tab's flights are kept (review)", async () => {
+    const other = {
+      id: "other@1",
+      loggedAt: 1,
+      pack: "demo",
+      packVersion: "0.1.0",
+      aircraft: "Demo",
+      origin: "EGLL",
+      destination: "LFPG",
+      offBlocks: null,
+      onBlocks: null,
+      stages: [],
+      done: 0,
+      total: 4,
+      skipped: [],
+      plan: "manual" as const,
+      finished: false,
+      ticks: [],
+    };
+    let stored: { format: number; flights: (typeof other)[]; practice: [] } | null = null;
+    window.location.hash = "#/log";
+    const h = host({
+      loadSaved: async () => ({
+        flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
+        settings: null,
+      }),
+      // Opened empty; by the time this tab logs, another tab has saved a flight.
+      loadLog: async () =>
+        stored ? { loaded: { state: "ready", value: stored, migratedFrom: null }, text: "" } : null,
+      saveLog: async (log) => {
+        stored = log as typeof stored;
+        return true;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    const go = await screen.findByRole("button", { name: "Log flight and start new" });
+    await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false));
+    stored = { format: 1, flights: [other], practice: [] };
+    await fireEvent.click(go);
+    await waitFor(() =>
+      expect(document.querySelector(".earlier h2")?.textContent).toBe("Earlier flights · 2"),
+    );
+    expect((stored as unknown as { flights: { id: string }[] }).flights.map((f) => f.id)).toContain(
+      "other@1",
+    );
+  });
+
+  it("doesn't offer to log a flight that was already finished when it loaded (review)", async () => {
+    const done = {
+      ...rail,
+      stages: rail.stages.map((s, i) =>
+        i === rail.stages.length - 1 ? { ...s, phases: [phase("taxi", "Taxi", 9, 0, 9)] } : s,
+      ),
+    };
+    window.location.hash = "#/phase/taxi";
+    const h = host({
+      loadSaved: async () => ({
+        flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
+        settings: null,
+      }),
+      rail: async () => done,
+      phaseView: async () => view(["done", "current"]),
+    });
+    render(App, { context: hostContext(h) });
+    await waitFor(() => expect(document.querySelector(".it.current")).toBeTruthy());
+    expect(screen.queryByText("Flight complete. Log it and start new?")).toBeNull();
+  });
+
+  it("shows on Practice home only this aircraft's latest saved result (review)", async () => {
+    window.location.hash = "#/practice";
+    const result = (pack: string, title: string, at: number) => ({
+      id: `${pack}@${at}`,
+      pack,
+      at,
+      title,
+      score: 3,
+      total: 4,
+    });
+    const h = host({
+      loadLog: async () => ({
+        loaded: {
+          state: "ready",
+          value: {
+            format: 1,
+            flights: [],
+            practice: [result("other", "Other jet test", 9), result("demo", "Memory items", 5)],
+          },
+          migratedFrom: null,
+        },
+        text: "",
+      }),
+    });
+    render(App, { context: hostContext(h) });
+    expect((await screen.findByText(/^Last result, /)).textContent).toMatch(/Memory items, 3 of 4$/);
+  });
+
+  it("puts Flight log in the menu, first under This flight and the app", async () => {
+    render(App, { context: hostContext(host()) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    expect(screen.getByRole("link", { name: "Flight log" }).getAttribute("href")).toBe("#/log");
   });
 });

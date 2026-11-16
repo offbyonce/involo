@@ -13,9 +13,14 @@ import type {
   FlatPack,
   Flight,
   Loaded,
+  Log,
+  LogChange,
+  LogEdit,
+  LoggedFlight,
   OpenStep,
   PackSummary,
   PhaseView,
+  PlanSource,
   PlanValues,
   Rail,
   SavedPlan,
@@ -66,6 +71,28 @@ export interface Host {
   /** A METAR or TAF decoded from the code table. */
   decodeMetar(text: string): Promise<Decoded>;
   decodeTaf(text: string): Promise<Decoded>;
+  /** An empty flight log (decision 0026). */
+  newLog(): Promise<Log>;
+  /**
+   * The flight log saved on this device, read by Rust as ready (migrated if older), newer or
+   * unreadable, with the saved text so nothing is lost. Null when none. Never sent anywhere.
+   */
+  loadLog(): Promise<SavedItem<Log>>;
+  /** Saves the log on this device; resolves false if the device refused. With `keep` (a flight was
+   * just logged), the host asks once to keep its data from being cleared on its own. */
+  saveLog(log: Log, keep?: boolean): Promise<boolean>;
+  /** The flight as a log entry, logged at `at`. */
+  logEntry(
+    pack: string,
+    flight: Flight,
+    settings: Settings,
+    plan: PlanSource,
+    at: number,
+  ): Promise<LoggedFlight>;
+  /** Applies an edit to the log: add a flight or a practice result, delete a flight, merge a file. */
+  editLog(log: Log, edit: LogEdit): Promise<LogChange>;
+  /** The log's flights as CSV, one row per flight. */
+  logCsv(log: Log): Promise<string>;
   /** The pilot's theme changed (or the app started): a host with a browser tab sets the favicon
    * and theme-color to match (BRAND.md). Optional: a host without one leaves it out. */
   themeChanged?(theme: Theme): void;

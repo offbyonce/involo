@@ -20,6 +20,9 @@ pub enum AppError {
     /// The interface asked for a change the flight cannot make (a bug, not a pilot error).
     #[error("{0}")]
     InvalidAction(String),
+    /// A log file the pilot chose could not be loaded (decision 0026): the message says why.
+    #[error("{0}")]
+    LogFile(String),
 }
 
 impl From<pack::LoadError> for AppError {

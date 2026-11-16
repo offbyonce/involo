@@ -14,9 +14,14 @@ import {
   decodeMetar,
   decodeTaf,
   defaultSettings,
+  editLog,
+  loadLog,
   loadPack,
   loadPlan,
+  logCsv,
+  logEntry,
   newFlight,
+  newLog,
   openSteps,
   parsePlan,
   phaseView,
@@ -25,10 +30,14 @@ import {
   planValues,
   rail,
 } from "./core";
+import { readLog, writeLog } from "./log-store.js";
 import { loadSaved, save, setAside } from "./saved";
 import { storageKey } from "./storage-keys.js";
 
 const planKey = (pack: string) => storageKey(`plan.${pack}`);
+
+/** Whether the browser has been asked this visit to keep the log (decision 0026). */
+let keepAsked = false;
 
 /** The compact plan from a SimBrief reply or a saved file (decision 0019): the raw text is dropped. */
 async function compact(text: string): Promise<SavedPlan> {
@@ -83,4 +92,31 @@ export const webHost: Host = {
   },
   decodeMetar,
   decodeTaf,
+  newLog,
+  loadLog: async () => {
+    let text: string | null;
+    try {
+      text = await readLog();
+    } catch (e) {
+      // Kept as unreadable, so nothing is saved over a log that may be there.
+      return {
+        loaded: { state: "unreadable", reason: e instanceof Error ? e.message : String(e) },
+        text: "",
+      };
+    }
+    return text === null ? null : { loaded: await loadLog(text), text };
+  },
+  saveLog: async (log, keep) => {
+    const saved = await writeLog(JSON.stringify(log));
+    // The first time a flight is logged, ask the browser not to clear the log on its own. If it
+    // refuses, nothing changes: the log page's note says to export now and then.
+    if (keep && !keepAsked) {
+      keepAsked = true;
+      void navigator.storage?.persist?.().catch(() => false);
+    }
+    return saved;
+  },
+  logEntry,
+  editLog,
+  logCsv,
 };

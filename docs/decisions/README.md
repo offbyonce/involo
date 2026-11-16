@@ -34,5 +34,6 @@ Never rewrite an accepted record; add a new one that supersedes it.
 | [0023](0023-side-and-seat-views.md) | Side and seat views from pack data | Accepted |
 | [0024](0024-outside-flight-data.md) | Outside flight data, starting with SayIntentions (Beta) | Accepted; a phase after step 7, not started |
 | [0025](0025-rename-to-involo.md) | The app is renamed Involo | Accepted |
+| [0026](0026-flight-log-on-the-device.md) | The flight log is saved on the device, never sent | Accepted |
 
 Template: Context, Decision, Consequences. Keep it under a page.

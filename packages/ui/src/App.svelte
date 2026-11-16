@@ -17,7 +17,10 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     type Flight,
     isAppError,
     type ListView,
+    type Log,
+    type LoggedFlight,
     type PhaseView,
+    type PlanSource,
     type Progress,
     type Rail,
     type OpenStep,
@@ -53,6 +56,9 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import FlightDeckPage from "./pages/FlightDeckPage.svelte";
   import HowPage from "./pages/HowPage.svelte";
   import PracticePage from "./pages/PracticePage.svelte";
+  import LogPage from "./pages/LogPage.svelte";
+  import { download, fileDate, htmlCopy } from "./lib/flight-log";
+  import { sentence } from "./lib/sentence";
   import Tour from "./lib/Tour.svelte";
   import { tour } from "./lib/tour-state.svelte";
   import { currentRoute, flightHref, phaseHref } from "./route.svelte";
@@ -124,6 +130,9 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   /** The SimBrief plan kept on this device (decision 0019), and the values it fills. */
   let plan = $state<SavedPlan | null>(null);
   let planFills = $state<Partial<Record<FillField, string>>>({});
+  /** The flight log (decision 0026), and why it can't be changed when the saved one is kept as is. */
+  let log = $state<Log | null>(null);
+  let logBlocked = $state<string | null>(null);
   let kept = $state<{ what: "flight" | "settings"; state: "newer" | "unreadable"; text: string }[]>([]);
   let view = $state<PhaseView | null>(null);
   /** In Essentials, the same phase in Full, for "Show N more steps from Full". */
@@ -215,6 +224,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       const savedFlight = usable("flight", saved.flight);
       flight = savedFlight && savedFlight.pack === aircraft.id ? savedFlight : await host.newFlight(aircraft.id);
       plan = await host.loadPlan(aircraft.id);
+      await loadLog();
       await refresh();
     } catch (e) {
       fail(e);
@@ -325,7 +335,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let current = $derived(view?.lists.find((l) => l.current)?.current ?? null);
   /** The step the context panel shows, its row, and the steps after it. */
   let pane = $derived.by(() => {
-    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck" || screen === "practice" || screen === "how") return null;
+    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck" || screen === "practice" || screen === "how" || screen === "log") return null;
     const id = flow ? (cursor ?? current) : (selected ?? (screen === "reference" ? null : current));
     const rows = view.lists.flatMap((l) => l.steps);
     const at = rows.findIndex((r) => r.id === id);
@@ -458,6 +468,162 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     const before = flight;
     await act({ type: "clear" });
     offerUndo("Flight plan reset.", before);
+  }
+  /**
+   * The flight log (decision 0026), on this device only. A saved log this version can't use (newer
+   * or unreadable, or a read that failed) is kept as it is: the page says so, Export JSON saves its
+   * text as it was, and nothing saves over it.
+   */
+  async function loadLog(): Promise<void> {
+    const saved = await host.loadLog();
+    if (saved?.loaded.state === "ready") {
+      log = saved.loaded.value;
+      return;
+    }
+    if (saved?.loaded.state === "newer") logBlocked = "The log saved on this device is from a newer version of Involo. It’s kept as it is; update the app to see it and add to it. Export JSON saves a copy of it.";
+    else if (saved) logBlocked = "The log saved on this device couldn’t be read. It’s kept as it is, and nothing is saved over it. Export JSON saves a copy of it.";
+    logKept = saved?.text || null;
+    log = await host.newLog();
+  }
+  /** The saved text of a log this version can't use, for Export JSON. */
+  let logKept = $state<string | null>(null);
+  /** Why the last change to the log wasn't saved, for the page. */
+  let logProblem = $state<string | null>(null);
+  const NOT_SAVED = "The log couldn’t be saved on this device, so nothing changed. Check that this browser allows saving site data, then try again.";
+  /**
+   * Changes the log and saves it; with `keep`, a flight was just logged. The change starts from the
+   * log as saved now, so another tab's entries are kept (each change is saved at once, so the saved
+   * log holds this tab's too). Resolves with the change, or null when it wasn't saved: then the log
+   * stays as it was and the page says why.
+   */
+  async function changeLog(edit: Parameters<typeof host.editLog>[1], keep = false) {
+    if (!log || logBlocked) return null;
+    const saved = await host.loadLog();
+    if (saved && saved.loaded.state !== "ready") {
+      await loadLog();
+      return null;
+    }
+    const base = saved?.loaded.state === "ready" ? saved.loaded.value : log;
+    const change = await host.editLog(base, edit);
+    if (!(await host.saveLog(change.log, keep))) {
+      logProblem = NOT_SAVED;
+      return null;
+    }
+    logProblem = null;
+    log = change.log;
+    return change;
+  }
+  /** Where the flight's plan came from: SimBrief when the kept plan filled any of its values. */
+  let planSource = $derived.by((): PlanSource => {
+    const values = (flight?.values ?? {}) as Partial<Record<FillField, string>>;
+    return plan && Object.entries(planFills).some(([f, v]) => v && values[f as FillField] === v) ? "simbrief" : "manual";
+  });
+  /** This flight as it would be logged now, for the log page; null before anything is ticked. */
+  let currentEntry = $state<LoggedFlight | null>(null);
+  $effect(() => {
+    const f = flight;
+    const s = settings;
+    const p = planSource;
+    if (screen !== "log" || !f || !s || !packId) return;
+    let stale = false;
+    host.logEntry(packId, f, s, p, Date.now()).then((e) => {
+      if (!stale) currentEntry = e.ticks.length || e.skipped.length ? e : null;
+    }, fail);
+    return () => {
+      stale = true;
+    };
+  });
+  /** Log flight and start new: the flight goes in the log, then a new flight starts as Reset flight
+   * plan starts one (without its Undo: the flight is in the log). If the log couldn't be saved, the
+   * flight stays as it is. */
+  async function logFlight(): Promise<void> {
+    if (!flight || !settings || logBlocked) return;
+    try {
+      const entry = await host.logEntry(packId, flight, settings, planSource, Date.now());
+      if (!(await changeLog({ type: "addFlight", flight: entry }, true))) return;
+      offer = false;
+      undo = null;
+      await act({ type: "clear" });
+      currentEntry = null;
+    } catch (e) {
+      fail(e);
+    }
+  }
+  /** Whether this flight's last phase is done (the last Post-flight phase). */
+  let finished = $derived(!![...(rail?.stages ?? [])].reverse().find((s) => s.phases.length)?.phases.at(-1)?.complete);
+  /**
+   * "Flight complete. Log it and start new?": offered in place when a tick finishes the flight, once
+   * per flight this visit. Loading a finished flight, Undo or a change of steps shown never offers it.
+   */
+  let offer = $state(false);
+  let offered = false;
+  async function tickAndOffer(action: Action): Promise<void> {
+    const before = finished;
+    await act(action);
+    if (action.type === "tick" && !before && finished && !offered && !logBlocked) {
+      offered = true;
+      offer = true;
+    }
+  }
+  $effect(() => {
+    // A new flight (nothing ticked) can be offered again when it finishes.
+    if (flight && Object.keys(flight.session.done).length === 0) offered = false;
+    if (!finished) offer = false;
+  });
+  /** A step's name as the app shows it; a step no longer in the pack, from its own text. */
+  const logName = (text: string, id: string) => {
+    const st = index?.step(id);
+    return index ? (st ? stepTitle(index, st) : sentence(index, text)) : text;
+  };
+  const stamp = () => fileDate(Date.now());
+  function saveLogCopy(): void {
+    if (log) download(`involo-log-${stamp()}.html`, htmlCopy(log, Date.now(), logName), "text/html");
+  }
+  async function exportCsv(): Promise<void> {
+    if (log) download(`involo-log-${stamp()}.csv`, await host.logCsv(log), "text/csv");
+  }
+  function exportJson(): void {
+    if (logBlocked && logKept !== null) download(`involo-log-kept-${stamp()}.json`, logKept, "application/json");
+    else if (log && !logBlocked) download(`involo-log-${stamp()}.json`, `${JSON.stringify(log, null, 2)}\n`, "application/json");
+  }
+  async function importLog(text: string): Promise<string> {
+    try {
+      const c = await changeLog({ type: "merge", text });
+      if (!c) return logProblem ?? logBlocked ?? "";
+      const n = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`;
+      const added = [c.addedFlights ? n(c.addedFlights, "flight", "flights") : "", c.addedPractice ? n(c.addedPractice, "practice result", "practice results") : ""].filter(Boolean);
+      const parts = [added.length ? `Added ${added.join(" and ")}.` : "Nothing new to add."];
+      if (c.already) parts.push(`${n(c.already, "entry was", "entries were")} already in the log.`);
+      if (c.droppedFlights + c.droppedPractice) parts.push(`The oldest ${n(c.droppedFlights + c.droppedPractice, "entry", "entries")} made way, to keep the newest 500.`);
+      return parts.join(" ");
+    } catch (e) {
+      return isAppError(e) ? e.message : String(e);
+    }
+  }
+  /** Deletes a flight, or brings a deleted one back (Undo). */
+  async function deleteLogged(id: string): Promise<boolean> {
+    try {
+      return !!(await changeLog({ type: "deleteFlight", id }));
+    } catch (e) {
+      fail(e);
+      return false;
+    }
+  }
+  async function restoreLogged(f: LoggedFlight): Promise<void> {
+    try {
+      const c = await changeLog({ type: "addFlight", flight: f });
+      if (c?.droppedFlights) logProblem = "That flight was the oldest in a full log, so it couldn’t come back.";
+    } catch (e) {
+      fail(e);
+    }
+  }
+  /** A finished practice test goes in the log (Practice results). */
+  async function savePractice(r: { title: string; score: number; total: number; at: number }): Promise<void> {
+    try {
+      await changeLog({ type: "addPractice", result: { id: `${packId}@${r.at}`, pack: packId, ...r } });
+    } catch (e) {
+      fail(e);
+    }
   }
   /** Adds a step to Essentials or takes it out (the row menu), as the pilot's own change. */
   function toggleEssentials(id: string, add: boolean): void {
@@ -644,14 +810,14 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     await persist(what);
   }
 
-  const tick = (id: string, done: boolean) => act(done ? { type: "untick", step: id } : { type: "tick", step: id, at: Date.now() });
+  const tick = (id: string, done: boolean) => tickAndOffer(done ? { type: "untick", step: id } : { type: "tick", step: id, at: Date.now() });
   const skip = (id: string) => {
     cursor = null;
     return act({ type: "skip", step: id, at: Date.now() });
   };
   const confirm = (id: string) => {
     cursor = null;
-    return act({ type: "tick", step: id, at: Date.now() });
+    return tickAndOffer({ type: "tick", step: id, at: Date.now() });
   };
   const changeView = (v: ListView) => {
     if (settings) void changeSettings({ ...settings, listView: v });
@@ -768,7 +934,36 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   </div>
 {:else if route.value.screen === "practice" && index && flatPack}
   <div class="flightwrap">
-    <PracticePage pack={flatPack} {index} options={flight?.options ?? {}} backHref={lastPhase ? phaseHref(lastPhase) : "#/"} onStep={goToStep} />
+    <PracticePage
+      pack={flatPack}
+      {index}
+      options={flight?.options ?? {}}
+      backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
+      onStep={goToStep}
+      latest={log?.practice.find((r) => r.pack === packId) ?? null}
+      onResult={(r) => void savePractice(r)}
+    />
+  </div>
+{:else if route.value.screen === "log" && log}
+  <div class="flightwrap">
+    <LogPage
+      {log}
+      current={currentEntry}
+      entry={route.value.entry}
+      name={logName}
+      canGo={(id) => !!index?.step(id)}
+      backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
+      blocked={logBlocked}
+      onLog={logFlight}
+      problem={logProblem}
+      onDelete={deleteLogged}
+      onRestore={restoreLogged}
+      onImport={importLog}
+      onSaveCopy={saveLogCopy}
+      onCsv={() => void exportCsv()}
+      onJson={exportJson}
+      onStep={goToStep}
+    />
   </div>
 {:else if route.value.screen === "how" && rail}
   <div class="flightwrap">
@@ -952,6 +1147,15 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
           {:else}
             <p class="msg">That phase is not in this flight.</p>
           {/if}
+          {#if offer && (screen === "phase" || screen === "start")}
+            <div class="offer" role="status">
+              <span>{logProblem ?? "Flight complete. Log it and start new?"}</span>
+              <div class="offer-btns">
+                <button class="offer-go" type="button" onclick={() => void logFlight()}>Log flight and start new</button>
+                <button class="offer-no" type="button" onclick={() => (offer = false)}>Not now</button>
+              </div>
+            </div>
+          {/if}
           {#if undo}
             {#key undo}
               <Toast text={undo.text} onUndo={() => void takeBack()} onExpire={() => (undo = null)} />
@@ -1096,6 +1300,49 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     background: linear-gradient(0deg, var(--color-bg), transparent);
   }
   /* 3.0's toast: dark on light (light on dark), centered at the bottom. */
+  /* The offer to log a finished flight, in place under the steps (owner's Log README). */
+  .offer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-thin) solid var(--color-border);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface);
+    color: var(--color-text-strong);
+    font-size: var(--font-size-body);
+    font-weight: var(--weight-semibold);
+  }
+  .offer-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .offer-go,
+  .offer-no {
+    height: var(--size-touch-min);
+    padding: 0 calc(var(--space-3) + var(--border-thick));
+    border-radius: var(--radius-control);
+    font: inherit;
+    font-size: var(--font-size-secondary);
+    cursor: pointer;
+  }
+  .offer-go {
+    border: 0;
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    font-weight: var(--weight-bold);
+  }
+  .offer-no {
+    border: var(--border-thin) solid var(--color-border);
+    background: var(--color-button-bg);
+    box-shadow: var(--color-button-shadow);
+    color: var(--color-text);
+    font-weight: var(--weight-regular);
+  }
   .msg {
     padding: var(--space-6);
   }

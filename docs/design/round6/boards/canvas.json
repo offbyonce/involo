@@ -1769,6 +1769,62 @@
       "h": 900,
       "title": "Shared source: How procedures work (tweaks: layout, theme)",
       "page": "b9"
+    },
+    "LogDesk.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1100,
+      "title": "Flight log: desktop and tablet (dark)",
+      "page": "b10"
+    },
+    "LogDeskLight.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 1100,
+      "title": "Flight log: desktop and tablet (light)",
+      "page": "b10"
+    },
+    "LogPhone.dc.html": {
+      "x": 3120,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Flight log: phone, the log (dark)",
+      "page": "b10"
+    },
+    "LogPhoneLight.dc.html": {
+      "x": 3590,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Flight log: phone, the log (light)",
+      "page": "b10"
+    },
+    "LogPhoneFlight.dc.html": {
+      "x": 4060,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Flight log: phone, one flight (dark)",
+      "page": "b10"
+    },
+    "LogPhoneFlightLight.dc.html": {
+      "x": 4530,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Flight log: phone, one flight (light)",
+      "page": "b10"
+    },
+    "FlightLog.dc.html": {
+      "x": 0,
+      "y": 1220,
+      "w": 1440,
+      "h": 1100,
+      "title": "Shared source: Flight log (tweaks: layout, theme)",
+      "page": "b10"
     }
   },
   "createdOnFiles": {
@@ -1777,7 +1833,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b9",
+    "page": "b10",
     "view": "canvas"
   },
   "notes": {},
@@ -2002,7 +2058,14 @@
     "HowDeskLight.dc.html",
     "HowPhone.dc.html",
     "HowPhoneLight.dc.html",
-    "HowItWorks.dc.html"
+    "HowItWorks.dc.html",
+    "LogDesk.dc.html",
+    "LogDeskLight.dc.html",
+    "LogPhone.dc.html",
+    "LogPhoneLight.dc.html",
+    "LogPhoneFlight.dc.html",
+    "LogPhoneFlightLight.dc.html",
+    "FlightLog.dc.html"
   ],
   "pages": [
     {
@@ -2072,6 +2135,10 @@
     {
       "id": "b9",
       "name": "How procedures work"
+    },
+    {
+      "id": "b10",
+      "name": "Flight log"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"

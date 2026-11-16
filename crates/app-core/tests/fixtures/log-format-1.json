@@ -1,0 +1,69 @@
+{
+  "format": 1,
+  "flights": [
+    {
+      "id": "trainer@1763120000000",
+      "loggedAt": 1763120000000,
+      "pack": "trainer",
+      "packVersion": "0.1.0",
+      "aircraft": "Trainer",
+      "origin": "KSEA",
+      "destination": "KSFO",
+      "offBlocks": 1763110080000,
+      "onBlocks": 1763119740000,
+      "stages": [{ "title": "Preflight", "ms": 2280000 }, { "title": "Departure", "ms": 7380000 }],
+      "done": 3,
+      "total": 10,
+      "skipped": [
+        {
+          "step": "trainer.before-start.terr",
+          "text": "TERR",
+          "value": "ON",
+          "stage": "Departure",
+          "phase": "before-start",
+          "phaseTitle": "Before start"
+        }
+      ],
+      "plan": "simbrief",
+      "finished": false,
+      "ticks": [
+        { "at": 1763110080000, "step": "trainer.preflight.battery", "text": "BATTERY SWITCH", "value": "ON" },
+        { "at": 1763112360000, "step": "trainer.before-start.qnh", "text": "ALTIMETERS", "value": "29.92" },
+        {
+          "at": 1763119740000,
+          "step": "trainer.before-start.doors",
+          "text": "DOOR LIGHTS",
+          "value": "ALL OUT"
+        }
+      ]
+    },
+    {
+      "id": "trainer@1763000000000",
+      "loggedAt": 1763000000000,
+      "pack": "trainer",
+      "packVersion": "0.1.0",
+      "aircraft": "Trainer",
+      "origin": "",
+      "destination": "",
+      "offBlocks": null,
+      "onBlocks": null,
+      "stages": [],
+      "done": 0,
+      "total": 10,
+      "skipped": [],
+      "plan": "manual",
+      "finished": false,
+      "ticks": []
+    }
+  ],
+  "practice": [
+    {
+      "id": "trainer@1763100000000",
+      "at": 1763100000000,
+      "pack": "trainer",
+      "title": "Memory items",
+      "score": 9,
+      "total": 10
+    }
+  ]
+}

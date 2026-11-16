@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from "vitest";
-import { howHref, parseRoute } from "./route.svelte";
+import { howHref, logHref, parseRoute } from "./route.svelte";
 
 describe("parseRoute", () => {
   it("reads the Flight deck's area and place, and the Glossary's term", () => {
@@ -24,5 +24,15 @@ describe("parseRoute", () => {
     expect(parseRoute("#/how/2")).toEqual({ screen: "how", part: 2 });
     expect(parseRoute("#/how/x")).toEqual({ screen: "how", part: null });
     expect(howHref(3)).toBe("#/how/3");
+  });
+
+  it("reads the Flight log and the flight it opens; a flight's id goes in and comes back whole", () => {
+    expect(parseRoute("#/log")).toEqual({ screen: "log", entry: null });
+    expect(parseRoute("#/log/current")).toEqual({ screen: "log", entry: "current" });
+    expect(parseRoute(logHref("ifly-737-max8@1763120000000"))).toEqual({
+      screen: "log",
+      entry: "ifly-737-max8@1763120000000",
+    });
+    expect(logHref()).toBe("#/log");
   });
 });

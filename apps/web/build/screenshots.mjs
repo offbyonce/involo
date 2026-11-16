@@ -232,6 +232,42 @@ const takeTour = (n = 0) => [
   `[...document.querySelectorAll("#drawer button")].find((b) => b.textContent.trim() === "Take the tour").click(); true`,
   `new Promise((done) => setTimeout(() => { for (let i = 0; i < ${n}; i++) window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })); setTimeout(() => done(true), 600); }, 400))`,
 ];
+/**
+ * The Log boards' stand-in log (LogDesk, LogPhone): three earlier flights and three practice
+ * results, written to the app's IndexedDB as a logged log would be, then the page reloads to read
+ * it. Times are the boards', in the browser's time zone.
+ */
+const seedLog = (() => {
+  const P = "ifly-737-max8";
+  const flight = (id, at, from, to, minutes, done, finished, skipped) => `(() => {
+    const off = ${at}; const mins = ${JSON.stringify(minutes)}; let t = off; const stages = [];
+    const names = ["Preflight", "Departure", "Enroute", "Arrival", "Post-flight"];
+    mins.forEach((m, i) => { stages.push({ title: names[i], ms: m * 60000 }); t += m * 60000; });
+    return { id: "${P}@" + ${id}, loggedAt: t + 60000, pack: "${P}", packVersion: "0.1.0", aircraft: "iFly 737 MAX 8",
+      origin: "${from}", destination: "${to}", offBlocks: off, onBlocks: t, stages, done: ${done}, total: 366,
+      skipped: ${JSON.stringify(skipped)}, plan: "simbrief", finished: ${finished},
+      ticks: [{ at: off, step: "${P}.before-start.door-lights", text: "DOOR LIGHTS", value: "ALL OUT" }, { at: t, step: "${P}.secure.parking-brake", text: "PARKING BRAKE", value: "SET" }] };
+  })()`;
+  const terr = { step: `${P}.before-start.terr-efis-control-panel`, text: "TERR (EFIS CONTROL PANEL)", value: "ON", stage: "Departure", phase: "before-start", phaseTitle: "Before start" };
+  const oxy = { step: `${P}.preflight.crew-oxygen`, text: "CREW OXYGEN", value: "VERIFY", stage: "Preflight", phase: "preflight", phaseTitle: "Preflight" };
+  const day = (d, h, m) => `new Date(2026, 10, ${d}, ${h}, ${m}).getTime()`;
+  const result = (d, h, title, score, total) => `{ id: "${P}@" + ${day(d, h, 0)}, at: ${day(d, h, 0)}, pack: "${P}", title: ${JSON.stringify(title)}, score: ${score}, total: ${total} }`;
+  const log = `{ format: 1, flights: [
+    ${flight(1, day(15, 14, 10), "KSFO", "KSEA", [30, 35, 40, 15, 5], 366, true, [])},
+    ${flight(2, day(14, 9, 48), "KSEA", "KSFO", [38, 41, 52, 24, 6], 359, true, [terr, oxy])},
+    ${flight(3, day(12, 7, 30), "KPDX", "KSEA", [20, 28], 118, false, [oxy])}],
+    practice: [${result(15, 18, "Lights of the flight deck", 17, 20)}, ${result(15, 17, "Custom test · 5 topics", 16, 20)}, ${result(13, 12, "Memory items", 9, 10)}] }`;
+  return [
+    `new Promise((done) => { const r = indexedDB.open("involo", 1); r.onupgradeneeded = () => r.result.createObjectStore("log");
+      r.onsuccess = () => { const db = r.result; const tx = db.transaction("log", "readwrite"); tx.objectStore("log").put(JSON.stringify(${log}), "log");
+        tx.oncomplete = () => { db.close(); window.seeding = true; setTimeout(() => location.reload(), 50); done(true); }; }; })`,
+    // Until the reloaded page (which has no "seeding" mark) is ready.
+    `new Promise((done) => { let n = 0; const t = setInterval(() => { if ((!window.seeding && document.querySelector("[data-app-ready]")) || ++n > 100) { clearInterval(t); setTimeout(() => done(true), 300); } }, 100); })`,
+  ];
+})();
+/** The id of the stand-in flight the LogDesk board opens (Sat 14 Nov). */
+const LOG_OPEN = "ifly-737-max8@2";
+
 const TOUR_STATE = [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE];
 
 const SHOTS = [
@@ -568,6 +604,12 @@ const SHOTS = [
   // part at desktop.
   // From Before start, the boards' phase, so the In Involo links name it.
   { name: "board-how", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go("#/how/2")] } },
+  // The Flight log (owner; LogDesk, LogPhone, LogPhoneFlight): the board's flight ticked as the
+  // boards show it, the stand-in log, the Sat 14 Nov flight opened on desktop and on its own page on
+  // phone; and an empty log (round 6's Log view).
+  { name: "board-log", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLog, go(`#/log/${LOG_OPEN}`)] } },
+  { name: "board-log-list", full: true, only: ["phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLog, go("#/log")] } },
+  { name: "board-log-empty", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/log")] } },
   ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ name: `how-part-${n}`, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go(`#/how/${n}`)] } })),
   // The phone list with its fold opened: each later list starts with its label row (owner, batch 6).
   { name: "board-phone-fold", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("button.after"), click("button.card.folded"), `(() => { [...document.querySelectorAll("section.card > p.label")].find((p) => p.offsetParent)?.scrollIntoView({ block: "center" }); return true; })()`] } },
@@ -673,7 +715,7 @@ async function shootWhole(browser, file) {
   // body on narrow screens), or How procedures work's reading column or phone page, sliced top to
   // bottom.
   const sel = await js(
-    `["aside.pane", "main.fmain", ".flight .cols", ".how main.read", ".how main.page"].find((s) => { const e = document.querySelector(s); return e && e.clientHeight > 0 && (s === "aside.pane" || e.scrollHeight > e.clientHeight + 1); }) ?? null`,
+    `["aside.pane", "main.fmain", ".flight .cols", ".how main.read", ".how main.page", ".log .body", ".log main.list", ".log main.page"].find((s) => { const e = document.querySelector(s); return e && e.clientHeight > 0 && (s === "aside.pane" || e.scrollHeight > e.clientHeight + 1); }) ?? null`,
   );
   if (!sel) return;
   const q = JSON.stringify(sel);
@@ -762,7 +804,8 @@ async function main() {
       ready: "!!document.querySelector('[data-app-ready]')",
       dir: out,
       // The app saves progress on the device: each screen starts from nothing saved.
-      reset: "localStorage.clear(); sessionStorage.clear(); true",
+      // The Flight log lives in IndexedDB: removed too.
+      reset: `localStorage.clear(); sessionStorage.clear(); new Promise((done) => { const r = indexedDB.deleteDatabase("involo"); r.onsuccess = r.onerror = r.onblocked = () => done(true); })`,
     },
   ];
   if (baseline) {
