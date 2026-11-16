@@ -81,8 +81,9 @@ type Base = {
   source: string;
   why: string | null;
   links: Link[];
-  /** The stages it belongs to: null for any stage (memory items), [] for every stage only. */
-  stages: string[] | null;
+  /** The phases it comes from (its steps', its briefing's, or those of the steps that use its
+   * light, control or term): null for any stage (memory items), [] for every stage only. */
+  phases: string[] | null;
   /** The steps it is built from: it is skipped when one of them does not show on this flight. */
   steps: string[];
 };
@@ -194,8 +195,6 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
   const phaseOfList = new Map<string, string>();
   for (const p of phases?.phases ?? []) for (const l of p.lists) phaseOfList.set(l, p.id);
   const phaseTitle = (id: string | undefined) => phases?.phases.find((p) => p.id === id)?.title ?? "";
-  const stagesOfPhase = (id: string | undefined): string[] =>
-    (phases?.stages ?? []).filter((s) => s.phases.some((p) => p.phase === id)).map((s) => s.title);
   const zones = new Map(index.zones.map((z) => [z.id, z]));
   const zoneOf = (s: Step) =>
     (s.controls ?? []).map((c) => index.control(c)?.zone).find((z) => !!z && zones.has(z));
@@ -208,7 +207,10 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       step: s.id,
     };
   };
-  const stepStages = (s: Step) => stagesOfPhase(index.phaseOf(s.id));
+  const stepPhases = (s: Step): string[] => {
+    const p = index.phaseOf(s.id);
+    return p ? [p] : [];
+  };
   const union = (xs: string[][]) => [...new Set(xs.flat())];
 
   // Memory items.
@@ -233,7 +235,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         source: `step:${next.id}`,
         why: next.why ?? null,
         links: [stepLink(next)],
-        stages: null,
+        phases: null,
         steps: [s.id, next.id],
         answer: item(next),
         tiers: [
@@ -298,8 +300,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         : []),
       ...l.users.slice(0, 1).map(stepLink),
     ];
-    const stages = union(l.users.map(stepStages));
-    const base = { stages, steps: [], links, source: `light:${l.locator}` };
+    const phases = union(l.users.map(stepPhases));
+    const base = { phases, steps: [], links, source: `light:${l.locator}` };
     const label = `${l.label}${l.zone ? ` (${l.zone.short_title.toLowerCase()})` : ""}`;
     out.push({
       ...base,
@@ -351,7 +353,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       topic: "faults" as const,
       kind: "choice" as const,
       stem,
-      stages: stepStages(f.step),
+      phases: stepPhases(f.step),
       steps: [f.step.id],
       links: [stepLink(f.step)],
     };
@@ -390,8 +392,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
   const word = (i: { lead: string; rest: string }) => `${i.lead}${i.rest}`;
   for (const b of briefings) {
     const link: Link = { label: `${b.title} · ${phaseTitle(b.phase)}`, href: phaseHref(b.phase) };
-    const stages = stagesOfPhase(b.phase);
-    const base = { topic: "mnemonics" as const, stages, steps: [], links: [link] };
+    const phases = [b.phase];
+    const base = { topic: "mnemonics" as const, phases, steps: [], links: [link] };
     b.items.forEach((it, i) => {
       out.push({
         ...base,
@@ -437,7 +439,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
           b.items.map(word),
           null,
           [link],
-          stages,
+          phases,
           [],
         ),
       );
@@ -455,7 +457,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
   for (const list of pack.lists) {
     if (memory.has(list.id)) continue;
     const phase = phaseOfList.get(list.id);
-    const stages = stagesOfPhase(phase);
+    const phases = phase ? [phase] : [];
     // Step values (owner): only where the control's own positions give a wrong option.
     list.steps.forEach((s, i) => {
       if (!s.expect) return;
@@ -494,7 +496,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         source: `value:${norm(s.text)}:${norm(s.expect)}`,
         why: s.why ?? null,
         links: [stepLink(s)],
-        stages,
+        phases,
         steps: [s.id],
         answer: s.expect,
         tiers,
@@ -512,7 +514,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
           w.map(title),
           list.why ?? null,
           w[0] ? [stepLink(w[0])] : [],
-          stages,
+          phases,
           w.map((s) => s.id),
         ),
       );
@@ -530,7 +532,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         source: `next:${next.id}`,
         why: next.why ?? null,
         links: [stepLink(next)],
-        stages,
+        phases,
         steps: [s.id, next.id],
         answer: title(next),
         tiers: [{ items: list.steps.filter((x) => x !== s && x !== next).map(title), shuffle: true }],
@@ -550,7 +552,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
           source: `challenge:${s.id}`,
           why: s.why ?? null,
           links: [stepLink(s)],
-          stages,
+          phases,
           steps: [s.id],
           answer: s.expect,
           tiers: [{ items: list.steps.filter((x) => x !== s).map((x) => x.expect), shuffle: true }],
@@ -578,7 +580,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
     const zone = c.zone ? zones.get(c.zone) : undefined;
     if (!zone) continue;
     const own = boxes.get(zone.id) ?? [];
-    const stages = union(usersOf(c.id).map(stepStages));
+    const phases = union(usersOf(c.id).map(stepPhases));
     const area = areaOf(areas, zone.id);
     const links: Link[] = area
       ? [{ label: `${zone.title} on the Flight deck`, href: deckHref(area.id, zone.id) }]
@@ -586,7 +588,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
     const base = {
       topic: "where" as const,
       kind: "choice" as const,
-      stages,
+      phases,
       steps: [],
       links,
       why: c.location,
@@ -671,7 +673,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
     const base = {
       topic: "terms" as const,
       kind: "choice" as const,
-      stages: union(termUsers(t.term).map(stepStages)),
+      phases: union(termUsers(t.term).map(stepPhases)),
       steps: [],
       links: [{ label: `${t.term} in the Glossary`, href: glossaryHref(t.term) }],
       source: `term:${t.term}`,
@@ -723,7 +725,7 @@ function orderSeed(
   items: string[],
   why: string | null,
   links: Link[],
-  stages: string[] | null,
+  phases: string[] | null,
   steps: string[],
 ): OrderSeed {
   return {
@@ -736,7 +738,7 @@ function orderSeed(
     source: id,
     why,
     links,
-    stages,
+    phases,
     steps,
     items,
   };
@@ -749,23 +751,43 @@ function deckAreasOnce(index: PackIndex) {
   return areasCache.areas;
 }
 
-/** What a test is drawn from: the topics, the stages (all of them: every question) and the
- * flight's options. */
-export type Choice = {
-  topics: Topic[];
-  stages: string[];
-  allStages: boolean;
-  options: Record<string, string>;
-};
+/** What a test is drawn from: the topics, the phases (null: every stage, so every question) and
+ * the flight's options. */
+export type Choice = { topics: Topic[]; phases: string[] | null; options: Record<string, string> };
 
-/** The questions a choice can draw on: its topics, the steps this flight shows, its stages. */
+/** The questions a choice can draw on: its topics, the steps this flight shows, its phases. */
 export function available(all: Seed[], choice: Choice, shows: (step: string) => boolean): Seed[] {
+  const want = choice.phases;
   return all.filter(
     (q) =>
       choice.topics.includes(q.topic) &&
       q.steps.every(shows) &&
-      (q.stages === null || choice.allStages || q.stages.some((s) => choice.stages.includes(s))),
+      (q.phases === null || want === null || q.phases.some((p) => want.includes(p))),
   );
+}
+
+/** The phases of some stages, by title, in the pack's order. */
+export function phasesOf(pack: FlatPack, stages: string[]): string[] {
+  return [
+    ...new Set(
+      (pack.content.phases?.stages ?? [])
+        .filter((s) => stages.includes(s.title))
+        .flatMap((s) => s.phases.map((p) => p.phase)),
+    ),
+  ];
+}
+
+/** "Before engine start" (owner): every phase of the stage holding the phase `preflight`, then the
+ * phases of the stage holding `engine-start`, up to and including it. By the pack's phase ids. */
+export function beforeEngineStart(pack: FlatPack): { stages: string[]; phases: string[] } {
+  const all = pack.content.phases?.stages ?? [];
+  const pre = all.find((s) => s.phases.some((p) => p.phase === "preflight"));
+  const dep = all.find((s) => s.phases.some((p) => p.phase === "engine-start"));
+  const upTo = dep ? dep.phases.slice(0, dep.phases.findIndex((p) => p.phase === "engine-start") + 1) : [];
+  return {
+    stages: [pre?.title, dep?.title].filter((t): t is string => !!t),
+    phases: [...new Set([...(pre?.phases ?? []), ...upTo].map((p) => p.phase))],
+  };
 }
 
 /** Whether a step shows on this flight: its own condition, and its phase's in a stage. */

@@ -8,10 +8,12 @@ import { parseRoute } from "../route.svelte";
 import { deckAreas } from "./deck";
 import {
   available,
+  beforeEngineStart,
   deal,
   dealOne,
   holds,
   orderMiss,
+  phasesOf,
   pickWrong,
   random,
   type Seed,
@@ -141,10 +143,11 @@ describe("the question generator", () => {
     expect(gated).toBeTruthy();
     const step = gated?.steps.map((s) => index.step(s)).find((s) => s?.show_if);
     const off = stepShows(pack, {});
-    const choice = { topics: TOPICS.map((t) => t.id), stages: [], allStages: true, options: {} };
+    const choice = { topics: TOPICS.map((t) => t.id), phases: null, options: {} };
     if (step && !off(step.id)) expect(available(all, choice, off)).not.toContain(gated);
-    const preflight = available(all, { ...choice, allStages: false, stages: ["Preflight"] }, () => true);
-    expect(preflight.every((q) => q.stages === null || q.stages.includes("Preflight"))).toBe(true);
+    const pre = phasesOf(pack, ["Preflight"]);
+    const preflight = available(all, { ...choice, phases: pre }, () => true);
+    expect(preflight.every((q) => q.phases === null || q.phases.some((p) => pre.includes(p)))).toBe(true);
     expect(preflight.some((q) => q.topic === "memory")).toBe(true);
     expect(holds({ option: "x", equals: "a" }, {})).toBe(false);
     expect(
@@ -163,7 +166,7 @@ describe("the question generator", () => {
   it("deals a test across the topics, one question per source", () => {
     const pool = available(
       all,
-      { topics: ["lights", "values", "order", "where"], stages: [], allStages: true, options: {} },
+      { topics: ["lights", "values", "order", "where"], phases: null, options: {} },
       () => true,
     );
     const test = deal(pool, 20, random(1));
@@ -172,6 +175,24 @@ describe("the question generator", () => {
     expect(new Set(test.map((q) => q.topic)).size).toBe(4);
     const few = pool.filter((q) => q.topic === "faults" || q.id.startsWith("lights:meaning:oh/fuel"));
     expect(deal(few, 40, random(2))).toHaveLength(sourcesIn(few));
+  });
+
+  it("Before engine start: the Preflight stage, then Departure up to and including Engine start, by phase id (owner)", () => {
+    const b = beforeEngineStart(pack);
+    expect(b.stages).toEqual(["Preflight", "Departure"]);
+    expect(b.phases).toContain("preflight");
+    expect(b.phases.at(-1)).toBe("engine-start");
+    for (const later of ["before-taxi", "taxi", "before-takeoff", "takeoff"])
+      expect(b.phases).not.toContain(later);
+    const pool = available(
+      all,
+      { topics: ["values", "order", "where"], phases: b.phases, options: {} },
+      () => true,
+    );
+    expect(
+      pool.some((q) => q.phases?.includes("before-taxi") && !q.phases.some((p) => b.phases.includes(p))),
+    ).toBe(false);
+    expect(pool.some((q) => q.phases?.includes("engine-start"))).toBe(true);
   });
 
   it("splits a list into order questions of 4 to 6", () => {

@@ -38,9 +38,11 @@ const click = (selector, n = 0) => `document.querySelectorAll(${JSON.stringify(s
 /** Practice (owner's boards): plays tests until the screen is in a board's state. "light": a light
  * meaning answered wrong with feedback after each; "order": a step order question with its second
  * step picked up; "results": a custom test without memory items, every question answered;
- * "earlier": the Lights test finished, back home with "Earlier this visit". */
+ * "earlier": the Lights test finished, back home with "Earlier this visit"; "engine": the Before
+ * engine start test's first choice question, answered (option C). */
 const practice = (goal) =>
   `(async () => { const wait = (ms) => new Promise((go) => setTimeout(go, ms)); const one = (s) => document.querySelector(s); const all = (s) => [...document.querySelectorAll(s)]; const btn = (t) => all("button").find((b) => b.textContent.trim().startsWith(t)); const goal = ${JSON.stringify(goal)};
+  if (goal === "engine") { all("button.ready")[2].click(); await wait(300); for (let n = 0; n < 20 && one("ol.order"); n++) { btn("Check order").click(); await wait(120); btn("Next question").click(); await wait(150); } all(".opt")[2]?.click(); await wait(200); return true; }
   for (let attempt = 0; attempt < 40; attempt++) {
     if (btn("New test")) { btn("New test").click(); await wait(250); }
     if (goal === "earlier") { all("button.ready")[1].click(); await wait(300); }
@@ -532,6 +534,8 @@ const SHOTS = [
   { name: "board-practice-question", only: ["desktop", "phone"], app: { hash: "#/practice", before: [practice("light")] } },
   { name: "board-practice-order", only: ["desktop"], app: { hash: "#/practice", before: [practice("order")] } },
   { name: "board-practice-results", only: ["desktop", "phone"], app: { hash: "#/practice", before: [practice("results")] } },
+  // Before engine start: Preflight and Departure up to and including Engine start (owner).
+  { name: "practice-engine-start", only: ["desktop"], app: { hash: "#/practice", before: [practice("engine")] } },
   // The Glossary (owner): desktop at APU as the boards show, the phone's list, and APU on phone.
   { name: "board-glossary", only: ["desktop"], app: { hash: "#/glossary/APU" } },
   { name: "board-glossary-list", only: ["phone"], app: { hash: "#/glossary" } },

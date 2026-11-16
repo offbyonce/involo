@@ -4,7 +4,7 @@
 import type { FlatPack } from "@involo/bindings";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { dealOne, random, seeds } from "../lib/practice";
+import { available, dealOne, phasesOf, random, seeds, sourcesIn, stepShows } from "../lib/practice";
 import { visit } from "../lib/practice-visit.svelte";
 import { indexPack } from "../pack-index";
 import PracticePage from "./PracticePage.svelte";
@@ -64,6 +64,12 @@ describe("PracticePage", () => {
     const memory = screen.getByRole("button", { name: /^Memory items[\d,]+$/ });
     expect(memory.getAttribute("aria-pressed")).toBe("true");
     expect(screen.getByText(/^20 questions from [\d,]+ in these topics and stages$/)).toBeTruthy();
+    // Chips count sources, what a test can draw (owner): a light's meaning and its reverse are one.
+    const phases = phasesOf(pack, ["Preflight", "Departure"]);
+    const lights = sourcesIn(
+      available(seeds(pack, index), { topics: ["lights"], phases, options: {} }, stepShows(pack, {})),
+    );
+    expect(screen.getByRole("button", { name: new RegExp(`^Light meanings${lights}$`) })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Preflight" }).getAttribute("aria-pressed")).toBe("true");
     expect(screen.queryByText(/Earlier this visit/)).toBeNull();
   });

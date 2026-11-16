@@ -18,7 +18,7 @@ portrait too). Results last only for this visit.
   import type { FlatPack } from "@involo/bindings";
   import { tick } from "svelte";
   import Icon from "../lib/Icon.svelte";
-  import { available, deal, type Link, orderMiss, type Question, random, type Seed, seeds, sourcesIn, stepShows, TOPICS, type Topic, topicTitle } from "../lib/practice";
+  import { available, beforeEngineStart, deal, type Link, orderMiss, type Question, random, type Seed, seeds, sourcesIn, phasesOf, stepShows, TOPICS, type Topic, topicTitle } from "../lib/practice";
   import { correct, type Feedback, type Test, visit } from "../lib/practice-visit.svelte";
   import type { PackIndex } from "../pack-index";
 
@@ -57,7 +57,11 @@ portrait too). Results last only for this visit.
   let picked = $derived(chosenStages ?? stages.slice(0, 2));
   let count = $state(20);
   let feedback = $state<Feedback>("each");
-  const pool = (t: Topic[], s: string[]) => available(all, { topics: t, stages: s, allStages: s.length === stages.length, options }, shows);
+  /** The questions some topics can draw on, in some stages (every stage: every question), or in
+   * the given phases. */
+  const pool = (t: Topic[], s: string[], phases?: string[]) =>
+    available(all, { topics: t, phases: phases ?? (s.length === stages.length ? null : phasesOf(pack, s)), options }, shows);
+  let engineStart = $derived(beforeEngineStart(pack));
   let poolNow = $derived(pool(topics, picked));
   let room = $derived(sourcesIn(poolNow));
 
@@ -68,7 +72,8 @@ portrait too). Results last only for this visit.
   let ready = $derived([
     { title: "Memory items", sub: `${memoryLists} lists · every item, in order`, topics: ["memory"] as Topic[], stages, count: 10, feedback: "each" as Feedback },
     { title: "Lights of the flight deck", sub: `${fmt(lightCount)} lights and what they mean`, topics: ["lights"] as Topic[], stages, count: 20, feedback: "each" as Feedback },
-    { title: "Before engine start", sub: `${andList(stages.slice(0, 2))}: values, order, locations`, topics: ["values", "order", "where"] as Topic[], stages: stages.slice(0, 2), count: 20, feedback: "each" as Feedback },
+    // Preflight, and Departure up to and including Engine start, by the pack's phase ids (owner).
+    { title: "Before engine start", sub: `${andList(engineStart.stages)}: values, order, locations`, topics: ["values", "order", "where"] as Topic[], stages: engineStart.stages, phases: engineStart.phases, count: 20, feedback: "each" as Feedback },
     { title: "Check ride", sub: "Every topic, every stage", topics: TOPICS.map((t) => t.id), stages, count: 40, feedback: "end" as Feedback },
   ]);
 
@@ -77,8 +82,8 @@ portrait too). Results last only for this visit.
     return `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`;
   }
 
-  function start(title: string, custom: boolean, t: Topic[], s: string[], n: number, fb: Feedback, from?: Seed[]): void {
-    const questions = deal(from ?? pool(t, s), n, random(Math.floor(Math.random() * 2 ** 31)));
+  function start(title: string, custom: boolean, t: Topic[], s: string[], n: number, fb: Feedback, from?: Seed[], phases?: string[]): void {
+    const questions = deal(from ?? pool(t, s, phases), n, random(Math.floor(Math.random() * 2 ** 31)));
     if (!questions.length) return;
     visit.test = { title, custom, topics: t, stages: s, allStages: s.length === stages.length, count: n, feedback: fb, questions, answers: questions.map(() => null), at: 0, started: Date.now(), ended: null };
     order = null;
@@ -291,7 +296,7 @@ portrait too). Results last only for this visit.
       <span class="label">Ready-made tests</span>
       <div class="cards">
         {#each ready as r (r.title)}
-          <button class="ready" type="button" onclick={() => start(r.title, false, r.topics, r.stages, r.count, r.feedback)}>
+          <button class="ready" type="button" onclick={() => start(r.title, false, r.topics, r.stages, r.count, r.feedback, undefined, "phases" in r ? r.phases : undefined)}>
             <span class="c-title">{r.title}</span>
             <span class="c-sub">{r.sub}</span>
             <span class="fill"></span>
@@ -309,7 +314,7 @@ portrait too). Results last only for this visit.
         <span class="label">Topics · {topics.length} chosen</span>
         <div class="chips">
           {#each TOPICS as t (t.id)}
-            {@render chip(topics.includes(t.id), t.title, fmt(pool([t.id], picked).length), () => (topics = topics.includes(t.id) ? topics.filter((x) => x !== t.id) : TOPICS.map((x) => x.id).filter((x) => x === t.id || topics.includes(x))))}
+            {@render chip(topics.includes(t.id), t.title, fmt(sourcesIn(pool([t.id], picked))), () => (topics = topics.includes(t.id) ? topics.filter((x) => x !== t.id) : TOPICS.map((x) => x.id).filter((x) => x === t.id || topics.includes(x))))}
           {/each}
         </div>
       </div>
@@ -343,7 +348,7 @@ portrait too). Results last only for this visit.
           {#if !topics.length}Choose a topic to start
           {:else if !room}No questions in these topics and stages
           {:else if room < count}Only {fmt(room)} questions in these topics and stages: the test uses all of them
-          {:else}{count} questions from {fmt(poolNow.length)} in these topics and stages{/if}
+          {:else}{count} questions from {fmt(room)} in these topics and stages{/if}
         </span>
       </div>
     </section>
