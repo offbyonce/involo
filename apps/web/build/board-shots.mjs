@@ -207,6 +207,13 @@ const SHOTS = [
   ["PracticeOrder", { layout: "desktop", state: "order" }, 1440, 900, "Practice", round6],
   ["PracticeResults", { layout: "desktop", state: "results" }, 1440, 900, "Practice", round6],
   ["PracticeResultsPhone", { layout: "phone", state: "results" }, 390, 844, "Practice", round6],
+  // The tour (owner): the welcome card, a step, the last step.
+  ["TourWelcome", { layout: "desktop", state: "welcome" }, 1440, 900, "Tour", round6],
+  ["TourWelcomePhone", { layout: "phone", state: "welcome" }, 390, 844, "Tour", round6],
+  ["TourStep", { layout: "desktop", state: "step" }, 1440, 900, "Tour", round6],
+  ["TourStepPhone", { layout: "phone", state: "step" }, 390, 844, "Tour", round6],
+  ["TourEnd", { layout: "desktop", state: "end" }, 1440, 900, "Tour", round6],
+  ["TourEndPhone", { layout: "phone", state: "end" }, 390, 844, "Tour", round6],
 ];
 
 async function main() {

@@ -5,7 +5,7 @@ The menu drawer, at every size (boards: Menu at 1440, Tablet's menu overlay from
 Mobile's menu screen below 600 px). Its header holds the small mark, "involo", a sub-line
 (aircraft, the time of the last save this visit, and on tablet the overall count) and Close. Then
 the step settings, the menu groups and Reset flight plan. Items whose page does not exist yet
-(How procedures work, References, Flight log, Take the tour) stay
+(How procedures work, References, Flight log) stay
 hidden until that page is built, with any group heading left empty (owner, batch 5). The version
 line lives at the foot of Settings.
 -->
@@ -28,6 +28,7 @@ line lives at the foot of Settings.
     onReset,
     clear = null,
     onClearTicks = () => {},
+    onTour = () => {},
     onClose,
   }: {
     open: boolean;
@@ -47,6 +48,8 @@ line lives at the foot of Settings.
      * procedure's header), with its tick count; null when nothing is ticked. */
     clear?: { title: string; ticks: number } | null;
     onClearTicks?: () => void;
+    /** Take the tour: from step 2, at any time (owner's Tour README). */
+    onTour?: () => void;
     onClose: () => void;
   } = $props();
   /** The desktop menu's "Where is Flight setup?", folded until asked. */
@@ -118,6 +121,15 @@ line lives at the foot of Settings.
     <div class="group">
       <span class="label">This flight and the app</span>
       <a href="#/settings" onclick={onClose}>Settings</a>
+      <!-- Take the tour (Menu, Tablet and Mobile boards): the last item of this group. -->
+      <button
+        class="tour"
+        type="button"
+        onclick={() => {
+          onClose();
+          onTour();
+        }}>Take the tour</button
+      >
     </div>
     <div class="fill"></div>
     <div class="rule"></div>
@@ -289,7 +301,8 @@ line lives at the foot of Settings.
     display: flex;
     flex-direction: column;
   }
-  .group a {
+  .group a,
+  .group .tour {
     display: flex;
     align-items: center;
     height: var(--size-touch-min);
@@ -297,6 +310,13 @@ line lives at the foot of Settings.
     color: var(--color-text);
     font-size: var(--font-size-body);
     text-decoration: none;
+  }
+  .group .tour {
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
   }
   /* Flight deck (Menu board): "Panels and lights" at the right, 12 px muted. */
   .group a.deck {
@@ -431,7 +451,8 @@ line lives at the foot of Settings.
     .label {
       padding: 0 calc(var(--space-2) + var(--border-thick)) var(--border-thick);
     }
-    .group a {
+    .group a,
+    .group .tour {
       padding: 0 calc(var(--space-2) + var(--border-thick));
     }
     .reset {

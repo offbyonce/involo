@@ -1625,6 +1625,110 @@
       "h": 900,
       "title": "Shared source: Practice (tweaks: layout, state, theme)",
       "page": "b7"
+    },
+    "TourWelcome.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Tour, welcome: desktop (dark)",
+      "page": "b8"
+    },
+    "TourWelcomeLight.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Tour, welcome: desktop (light)",
+      "page": "b8"
+    },
+    "TourWelcomePhone.dc.html": {
+      "x": 3120,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Tour, welcome: phone (dark)",
+      "page": "b8"
+    },
+    "TourWelcomePhoneLight.dc.html": {
+      "x": 3590,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Tour, welcome: phone (light)",
+      "page": "b8"
+    },
+    "TourStep.dc.html": {
+      "x": 0,
+      "y": 1020,
+      "w": 1440,
+      "h": 900,
+      "title": "Tour, a step, spotlighting its part of the screen: desktop (dark)",
+      "page": "b8"
+    },
+    "TourStepLight.dc.html": {
+      "x": 1520,
+      "y": 1020,
+      "w": 1440,
+      "h": 900,
+      "title": "Tour, a step, spotlighting its part of the screen: desktop (light)",
+      "page": "b8"
+    },
+    "TourStepPhone.dc.html": {
+      "x": 4060,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Tour, a step, spotlighting its part of the screen: phone (dark)",
+      "page": "b8"
+    },
+    "TourStepPhoneLight.dc.html": {
+      "x": 4530,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Tour, a step, spotlighting its part of the screen: phone (light)",
+      "page": "b8"
+    },
+    "TourEnd.dc.html": {
+      "x": 0,
+      "y": 2040,
+      "w": 1440,
+      "h": 900,
+      "title": "Tour, the last step: desktop (dark)",
+      "page": "b8"
+    },
+    "TourEndLight.dc.html": {
+      "x": 1520,
+      "y": 2040,
+      "w": 1440,
+      "h": 900,
+      "title": "Tour, the last step: desktop (light)",
+      "page": "b8"
+    },
+    "TourEndPhone.dc.html": {
+      "x": 5000,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Tour, the last step: phone (dark)",
+      "page": "b8"
+    },
+    "TourEndPhoneLight.dc.html": {
+      "x": 5470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Tour, the last step: phone (light)",
+      "page": "b8"
+    },
+    "Tour.dc.html": {
+      "x": 3120,
+      "y": 1020,
+      "w": 1440,
+      "h": 900,
+      "title": "Shared source: Tour (tweaks: layout, state, theme)",
+      "page": "b8"
     }
   },
   "createdOnFiles": {
@@ -1633,7 +1737,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b7",
+    "page": "b8",
     "view": "canvas"
   },
   "notes": {},
@@ -1840,7 +1944,20 @@
     "PracticeQuestionPhoneLight.dc.html",
     "PracticeResultsPhone.dc.html",
     "PracticeResultsPhoneLight.dc.html",
-    "Practice.dc.html"
+    "Practice.dc.html",
+    "TourWelcome.dc.html",
+    "TourWelcomeLight.dc.html",
+    "TourWelcomePhone.dc.html",
+    "TourWelcomePhoneLight.dc.html",
+    "TourStep.dc.html",
+    "TourStepLight.dc.html",
+    "TourStepPhone.dc.html",
+    "TourStepPhoneLight.dc.html",
+    "TourEnd.dc.html",
+    "TourEndLight.dc.html",
+    "TourEndPhone.dc.html",
+    "TourEndPhoneLight.dc.html",
+    "Tour.dc.html"
   ],
   "pages": [
     {
@@ -1902,6 +2019,10 @@
     {
       "id": "b7",
       "name": "Practice"
+    },
+    {
+      "id": "b8",
+      "name": "Tour"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"

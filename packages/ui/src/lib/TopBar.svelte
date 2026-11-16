@@ -70,6 +70,7 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
   {#if rail && stage}
     <button
       class="pick"
+      data-tour="stage-button"
       type="button"
       aria-haspopup="dialog"
       aria-expanded={pickerOpen}
@@ -85,7 +86,7 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
     </button>
   {/if}
   {#if rail}
-    <nav class="stages" aria-label="Stages">
+    <nav class="stages" aria-label="Stages" data-tour="stages">
       {#each rail.stages as s (s.title)}
         {@const id = target(s.phases)}
         <!-- The dot marks other stages holding an open step; the current stage's own show on its
@@ -103,7 +104,7 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
     {#if onFind}
       <!-- Find (Checklist, Tablet and Mobile boards): the word and its shortcut on desktop, the
            icon alone below 1440 px. -->
-      <button class="find" type="button" aria-label="Find a step, control or term" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" onclick={onFind}
+      <button class="find" data-tour="find" type="button" aria-label="Find a step, control or term" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" onclick={onFind}
         ><Icon name="find" /><span class="fw">Find</span><span class="fk">{findKey}</span></button
       >
     {/if}

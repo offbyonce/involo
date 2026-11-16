@@ -232,8 +232,11 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       Then Practice (owner, 2026-11-16, Practice boards): a test engine with every question
       generated from the pack (one correct answer, real neighbors as wrong options, each linked
       to its source), the ready-made tests, Build a test and the results, for this visit only.
+      Then the tour (owner, 2026-11-16, Tour boards): seven steps, the welcome on a first visit
+      and "Take the tour" in the menu, each step lighting up the real element; it stores only
+      whether the welcome has been seen (Settings format 6) and never changes the flight.
       Flight log waits for the owner's decision on saving past flights (and saved Practice
-      results with it); How procedures work, References and the tour wait for their boards.
+      results with it); How procedures work and References wait for their boards.
       First, from batch 5 (owner, 2026-11-15), once the boards show them: the procedure header
       hidden at tablet and phone, with Clear ticks in the menu as a row just above Reset flight
       plan (same style, same Undo toast); and the desktop menu's "Where is Flight setup?", which

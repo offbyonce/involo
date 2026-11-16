@@ -218,6 +218,22 @@ const press = (key) => `window.dispatchEvent(new KeyboardEvent("keydown", { key:
 /** The Flow view button in the top bar. */
 const toFlow = `[...document.querySelectorAll("header.top .seg button")].find((b) => b.textContent.trim() === "Flow").click(); true`;
 
+/** The tour's welcome opens on a first visit (each shot starts from nothing saved): it is closed
+ * before every step, so the steps reach the page. */
+const closeWelcome = `sessionStorage.getItem("tour-shot") || document.querySelector('[role="dialog"][aria-label="Welcome to Involo"] button.secondary')?.click(); true`;
+/** Opens the welcome again over the current state, as on a first visit: marks it unseen, reloads. */
+const reopenWelcome = [
+  `(() => { sessionStorage.setItem("tour-shot", "1"); const k = Object.keys(localStorage).find((x) => /settings$/.test(x)); const s = JSON.parse(localStorage.getItem(k)); s.tourSeen = false; localStorage.setItem(k, JSON.stringify(s)); setTimeout(() => location.reload(), 50); return true; })()`,
+  `new Promise((done) => { let n = 0; const t = setInterval(() => { if (document.querySelector('[aria-label="Welcome to Involo"]') || ++n > 80) { clearInterval(t); setTimeout(() => done(true), 300); } }, 100); })`,
+];
+/** Take the tour from the menu, then → `n` times. */
+const takeTour = (n = 0) => [
+  `document.querySelector("header.top .menu").click(); true`,
+  `[...document.querySelectorAll("#drawer button")].find((b) => b.textContent.trim() === "Take the tour").click(); true`,
+  `new Promise((done) => setTimeout(() => { for (let i = 0; i < ${n}; i++) window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })); setTimeout(() => done(true), 600); }, 400))`,
+];
+const TOUR_STATE = [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE];
+
 const SHOTS = [
   { name: "phase", app: { hash: "" }, base: { hash: "#cold-dark" } },
   {
@@ -536,6 +552,12 @@ const SHOTS = [
   { name: "board-practice-order", only: ["desktop"], app: { hash: "#/practice", before: [practice("order")] } },
   { name: "board-practice-results", only: ["desktop", "phone"], app: { hash: "#/practice", before: [practice("results")] } },
   // Before engine start: Preflight and Departure up to and including Engine start (owner).
+  // The tour (Tour boards): the welcome over the Checklist board's state, step 2, the end; and steps
+  // 3 to 6 at desktop.
+  { name: "board-tour-welcome", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenWelcome] } },
+  { name: "board-tour-step", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(0)] } },
+  { name: "board-tour-end", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(5)] } },
+  ...[3, 4, 5, 6].map((n) => ({ name: `tour-step-${n}`, tour: true, only: n <= 4 ? ["desktop", "phone"] : ["desktop"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(n - 2)] } })),
   { name: "practice-paired-light", only: ["desktop"], app: { hash: "#/practice", before: [practice("pair")] } },
   { name: "practice-engine-start", only: ["desktop"], app: { hash: "#/practice", before: [practice("engine")] } },
   // The Glossary (owner): desktop at APU as the boards show, the phone's list, and APU on phone.
@@ -601,13 +623,14 @@ async function visit(browser, url, ready) {
   await browser.until(ready, "the page to be ready");
 }
 
-async function shoot(browser, url, ready, steps, file, full = false) {
+async function shoot(browser, url, ready, steps, file, full = false, tour = false) {
   const { send, js, until, context } = browser;
   await send("browsingContext.navigate", { context, url, wait: "complete" });
   await until(ready, "the page to be ready");
   await js("document.fonts.ready.then(() => true)");
   await sleep(300);
   for (const step of steps ?? []) {
+    await js(closeWelcome).catch(() => true);
     // A step is a script, or { keys } pressed as real keys (WebDriver BiDi input), so keyboard
     // focus shows as it does for a pilot.
     if (typeof step === "object") {
@@ -620,6 +643,7 @@ async function shoot(browser, url, ready, steps, file, full = false) {
     } else await js(step);
     await sleep(350);
   }
+  if (!tour) await js(closeWelcome).catch(() => true);
   await sleep(300);
   if (await js("!!document.getElementById('update-ready')")) process.stderr.write(`update offer showing: ${file}\n`);
   // SCREENSHOTS_IF: keep only the shots where this selector matches (a wide tile among several, say).
@@ -732,7 +756,7 @@ async function main() {
       ready: "!!document.querySelector('[data-app-ready]')",
       dir: out,
       // The app saves progress on the device: each screen starts from nothing saved.
-      reset: "localStorage.clear(); true",
+      reset: "localStorage.clear(); sessionStorage.clear(); true",
     },
   ];
   if (baseline) {
@@ -765,6 +789,18 @@ async function main() {
           if (!shots.length) continue;
           const profile = path.join(work, `profile-${target.side}-${theme}-${size}`);
           const { firefox, browser } = await openAt(profile, prefs, { width: viewport.width, height: viewport.height }, target.url(""));
+          // The settings a pilot has after answering the tour's welcome ("Not now"), saved once per
+          // browser: each shot starts from them, so no shot shows the welcome or a fresh save time.
+          let seen = "";
+          if (target.side === "app") {
+            await visit(browser, target.url(""), target.ready);
+            await browser.js(`localStorage.clear(); sessionStorage.clear(); true`);
+            await visit(browser, target.url(""), target.ready);
+            await browser.until(`!!document.querySelector('[aria-label="Welcome to Involo"]')`, "the welcome").catch(() => {});
+            await browser.js(closeWelcome);
+            await sleep(500);
+            seen = await browser.js(`JSON.stringify(Object.entries(localStorage).filter(([k]) => /settings$/.test(k)))`);
+          }
           try {
             for (const shot of shots) {
               if (!shot[target.side]) continue;
@@ -777,10 +813,11 @@ async function main() {
                   if (target.reset) {
                     await visit(browser, target.url(hash), target.ready);
                     await browser.js(target.reset);
+                    if (seen) await browser.js(`for (const [k, v] of ${seen}) localStorage.setItem(k, v); true`);
                   }
                   // A design gallery page (with the theme in its query) instead of the app.
                   const at = page ? `http://localhost:${target.port}/${page.replace("{theme}", theme)}` : target.url(hash);
-                  await shoot(browser, at, page ? "document.readyState === 'complete'" : target.ready, before, path.join(target.dir, `${key}.png`), full);
+                  await shoot(browser, at, page ? "document.readyState === 'complete'" : target.ready, before, path.join(target.dir, `${key}.png`), full, !!shot.tour);
                   break;
                 } catch (e) {
                   if (attempt === 2) throw e;

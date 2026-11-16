@@ -115,7 +115,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
 
 <svelte:document onpointerdown={outside} onkeydown={key} />
 
-<section class="fstrip" class:open bind:this={strip} aria-label="Flight strip">
+<section class="fstrip" data-tour="strip" class:open bind:this={strip} aria-label="Flight strip">
   <button
     type="button"
     class="fsline"

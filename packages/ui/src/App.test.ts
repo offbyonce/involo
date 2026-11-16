@@ -155,7 +155,7 @@ function host(overrides: Partial<Host> = {}): Host {
     save: async () => 0,
     setAside: async () => {},
     defaultSettings: async () =>
-      ({ theme: "dark", dimming: 0, detail: "expanded", listView: "checklist" }) as Settings,
+      ({ theme: "dark", dimming: 0, detail: "expanded", listView: "checklist", tourSeen: true }) as Settings,
     fetchPlan: async () => {
       throw new Error("no network in tests");
     },
@@ -757,5 +757,201 @@ describe("App", () => {
     expect(screen.getByText("Earlier · Earlier flow")).toBeTruthy();
     await fireEvent.click(screen.getByRole("button", { name: "Go to step" }));
     expect(screen.queryByRole("dialog", { name: "1 open step" })).toBeNull();
+  });
+
+  describe("the tour (Tour boards)", () => {
+    afterEach(() => vi.restoreAllMocks());
+    const firstVisit = (more: Partial<Host> = {}) =>
+      host({
+        defaultSettings: async () =>
+          ({
+            theme: "dark",
+            dimming: 0,
+            detail: "expanded",
+            listView: "checklist",
+            tourSeen: false,
+          }) as Settings,
+        ...more,
+      });
+
+    it("opens the welcome on a first visit once the checklist has loaded; Not now remembers it", async () => {
+      const saved: Settings[] = [];
+      const h = firstVisit({
+        save: async (_p, what, value) => {
+          if (what === "settings") saved.push(value as Settings);
+          return 0;
+        },
+      });
+      render(App, { context: hostContext(h) });
+      const welcome = await screen.findByRole("dialog", { name: "Welcome to Involo" });
+      expect(within(welcome).getByRole("button", { name: "Take the tour" })).toBeTruthy();
+      await fireEvent.click(within(welcome).getByRole("button", { name: "Not now" }));
+      expect(screen.queryByRole("dialog", { name: "Welcome to Involo" })).toBeNull();
+      await waitFor(() => expect(saved.at(-1)?.tourSeen).toBe(true));
+    });
+
+    it("doesn't open the welcome once it has been seen", async () => {
+      render(App, { context: hostContext(host()) });
+      await screen.findByRole("heading", { level: 1, name: "Power up" });
+      await new Promise((r) => setTimeout(r, 50));
+      expect(screen.queryByRole("dialog", { name: "Welcome to Involo" })).toBeNull();
+    });
+
+    it("never ticks or skips while open, whatever is pressed; Esc ends it", async () => {
+      const actions: Action[] = [];
+      const h = firstVisit({
+        apply: async (_pack, flight, action) => {
+          actions.push(action);
+          return { ...flight };
+        },
+      });
+      render(App, { context: hostContext(h) });
+      await screen.findByRole("dialog", { name: "Welcome to Involo" });
+      for (const key of [" ", "s", "S", "w", "p", "ArrowUp", "Enter"])
+        await fireEvent.keyDown(window, { key });
+      await fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+      expect(actions).toEqual([]);
+      expect(screen.queryByRole("dialog", { name: /Find/ })).toBeNull();
+      // The page is inert underneath, so not even a screen reader can press Done.
+      expect((document.querySelector(".shell") as HTMLElement).inert).toBe(true);
+      await fireEvent.keyDown(window, { key: "Escape" });
+      expect(screen.queryByRole("dialog", { name: "Welcome to Involo" })).toBeNull();
+      expect((document.querySelector(".shell") as HTMLElement).inert).toBe(false);
+    });
+
+    it("doesn't open the welcome when a flight was saved before (settings are saved only once changed)", async () => {
+      const saved = host();
+      const flight = await saved.newFlight("demo");
+      render(App, {
+        context: hostContext(
+          firstVisit({
+            loadSaved: async () =>
+              ({
+                flight: { loaded: { state: "ready", value: flight }, text: "{}" },
+                settings: null,
+              }) as never,
+          }),
+        ),
+      });
+      await screen.findByRole("heading", { level: 1, name: "Power up" });
+      await new Promise((r) => setTimeout(r, 50));
+      expect(screen.queryByRole("dialog", { name: "Welcome to Involo" })).toBeNull();
+    });
+
+    it("lights the current step with its card; ← and → move; steps with nothing on screen are skipped", async () => {
+      // Only the current row is laid out (jsdom draws nothing): steps 2, 4, 5 and 6 are skipped.
+      vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
+        const on = this.matches("li.it.current");
+        return {
+          top: 100,
+          left: 20,
+          bottom: on ? 200 : 100,
+          right: on ? 600 : 20,
+          width: on ? 580 : 0,
+          height: on ? 100 : 0,
+          x: 20,
+          y: 100,
+          toJSON: () => ({}),
+        } as DOMRect;
+      });
+      const actions: Action[] = [];
+      render(App, {
+        context: hostContext(
+          firstVisit({
+            apply: async (_pack, flight, action) => {
+              actions.push(action);
+              return { ...flight };
+            },
+          }),
+        ),
+      });
+      const welcome = await screen.findByRole("dialog", { name: "Welcome to Involo" });
+      await fireEvent.click(within(welcome).getByRole("button", { name: "Take the tour" }));
+      const step3 = await screen.findByRole(
+        "dialog",
+        { name: "Tour, step 3 of 7: The current step" },
+        { timeout: 2000 },
+      );
+      expect(within(step3).getByText("Step 3 of 7")).toBeTruthy();
+      expect(within(step3).getByRole("button", { name: "End tour" })).toBeTruthy();
+      expect(within(step3).getByRole("button", { name: "Back" })).toBeTruthy();
+      // Space and S on a lit step: still nothing reaches the flight.
+      for (const key of [" ", "s"]) await fireEvent.keyDown(window, { key });
+      expect(actions).toEqual([]);
+      // → skips 4, 5 and 6, which aren't on screen, to "You're set".
+      await fireEvent.keyDown(window, { key: "ArrowRight" });
+      const end = await screen.findByRole("dialog", { name: "You’re set" }, { timeout: 3000 });
+      expect(within(end).getByRole("button", { name: "Start the checklist" })).toBeTruthy();
+      // ← goes back, skipping again, to the current step.
+      await fireEvent.keyDown(window, { key: "ArrowLeft" });
+      expect(await screen.findByRole("dialog", { name: /step 3 of 7/ }, { timeout: 3000 })).toBeTruthy();
+      await fireEvent.click(screen.getByRole("button", { name: "End tour" }));
+      expect(screen.queryByRole("dialog", { name: /step 3 of 7/ })).toBeNull();
+    });
+
+    it("from another page, opens the checklist where the pilot left it, or at the first phase with steps to do, resetting nothing", async () => {
+      const actions: Action[] = [];
+      const h = host({
+        apply: async (_pack, flight, action) => {
+          actions.push(action);
+          return { ...flight };
+        },
+      });
+      const take = async () => {
+        await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+        await fireEvent.click(screen.getByRole("button", { name: "Take the tour" }));
+      };
+      // Straight to Settings on this visit: the first phase with steps still to do.
+      window.location.hash = "#/settings";
+      render(App, { context: hostContext(h) });
+      await screen.findByRole("button", { name: "Menu" });
+      await waitFor(() => expect(screen.getByRole("button", { name: "Take the tour" })).toBeTruthy());
+      await take();
+      await waitFor(() => expect(window.location.hash).toBe("#/phase/power-up"));
+      await fireEvent.keyDown(window, { key: "Escape" });
+      // After Taxi, from Settings: back to Taxi.
+      window.location.hash = "#/phase/taxi";
+      await waitFor(() => expect(window.location.hash).toBe("#/phase/taxi"));
+      await new Promise((r) => setTimeout(r, 20));
+      window.location.hash = "#/settings";
+      await screen.findByRole("heading", { level: 1, name: "Settings" });
+      await take();
+      await waitFor(() => expect(window.location.hash).toBe("#/phase/taxi"));
+      expect(actions).toEqual([]);
+    });
+
+    it("starts from the menu's Take the tour, the last item of This flight and the app, and gives focus back to the menu button", async () => {
+      vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
+        const on = this.matches('[data-tour="stage-button"], [data-tour="stages"]');
+        return {
+          top: 4,
+          left: 4,
+          bottom: on ? 52 : 4,
+          right: on ? 300 : 4,
+          width: on ? 296 : 0,
+          height: on ? 48 : 0,
+          x: 4,
+          y: 4,
+          toJSON: () => ({}),
+        } as DOMRect;
+      });
+      render(App, { context: hostContext(host()) });
+      await screen.findByRole("heading", { level: 1, name: "Power up" });
+      await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+      const group = screen.getByText("This flight and the app").parentElement as HTMLElement;
+      const items = [...group.querySelectorAll("a, button")].map((e) => e.textContent?.trim());
+      expect(items.at(-1)).toBe("Take the tour");
+      expect(items.at(-2)).toBe("Settings");
+      await fireEvent.click(within(group).getByRole("button", { name: "Take the tour" }));
+      const step2 = await screen.findByRole(
+        "dialog",
+        { name: /step 2 of 7: Stages and phases/ },
+        { timeout: 2000 },
+      );
+      await waitFor(() => expect(step2.contains(document.activeElement)).toBe(true));
+      await fireEvent.keyDown(window, { key: "Escape" });
+      expect(screen.queryByRole("dialog", { name: /step 2 of 7/ })).toBeNull();
+      await waitFor(() => expect(document.activeElement).toBe(screen.getByRole("button", { name: "Menu" })));
+    });
   });
 });
