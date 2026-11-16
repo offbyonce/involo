@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { STEPS, stepText, targetOf } from "./tour.svelte";
+import { STEPS, stepText, targetOf } from "./tour-state.svelte";
 
 /** Lays out the elements matching `shownSel` with a size; every other element is zero-sized. */
 function layout(shownSel: string) {

@@ -53,7 +53,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import FlightDeckPage from "./pages/FlightDeckPage.svelte";
   import PracticePage from "./pages/PracticePage.svelte";
   import Tour from "./lib/Tour.svelte";
-  import { tour } from "./lib/tour.svelte";
+  import { tour } from "./lib/tour-state.svelte";
   import { currentRoute, flightHref, phaseHref } from "./route.svelte";
   import { applyPalette, applyScale } from "./theme/tokens";
 

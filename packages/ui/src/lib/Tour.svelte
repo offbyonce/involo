@@ -14,7 +14,7 @@ ticks, skips or changes anything in the flight.
 <script lang="ts">
   import { tick } from "svelte";
   import headerMark from "../icons/brand/header-mark.svg?raw";
-  import { type Box, STEPS, stepText, type Target, targetOf, tour, union } from "./tour.svelte";
+  import { type Box, STEPS, stepText, type Target, targetOf, tour, union } from "./tour-state.svelte";
 
   let {
     stages,
