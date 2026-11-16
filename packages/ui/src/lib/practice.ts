@@ -29,7 +29,7 @@ import type { PackIndex } from "../pack-index";
 import { phaseHref } from "../route.svelte";
 import { areaOf, deckAreas, deckHref, zoneSections } from "./deck";
 import { glossaryHref, split } from "./glossary";
-import { stepTitle } from "./sentence";
+import { stepTitle as titleOfStep } from "./sentence";
 
 /** A show_if condition, as the pack declares it. */
 type ShowIf = NonNullable<Step["show_if"]>;
@@ -115,11 +115,35 @@ export function sameMeaning(a: string, b: string): boolean {
 }
 /** How many different items a list has. */
 const distinct = (xs: string[]) => new Set(xs.map((x) => norm(x))).size;
-const norm = (s: string) =>
-  s
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, " ")
-    .trim();
+/** A step's title, remembered per pack index: the generator asks for the same step's many times. */
+const titles = new WeakMap<PackIndex, Map<Step, string>>();
+function stepTitle(index: PackIndex, step: Step): string {
+  let known = titles.get(index);
+  if (!known) {
+    known = new Map();
+    titles.set(index, known);
+  }
+  let t = known.get(step);
+  if (t === undefined) {
+    t = titleOfStep(index, step);
+    known.set(step, t);
+  }
+  return t;
+}
+
+/** Upper case, words only; remembered, as the generator compares the same texts many times. */
+const norms = new Map<string, string>();
+const norm = (s: string) => {
+  let n = norms.get(s);
+  if (n === undefined) {
+    n = s
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, " ")
+      .trim();
+    norms.set(s, n);
+  }
+  return n;
+};
 
 /** A text with its engine number, side or seat taken out ("ENGINE # FUEL VALVE"), so twins
  * ("engine 1" and "engine 2", left and right, captain and F/O) read the same; null when nothing but
@@ -164,24 +188,37 @@ export function pickWrong(
   tiers: { items: string[]; shuffle: boolean; sides?: boolean }[],
   rng?: () => number,
 ): string[] {
+  // Every tier is shuffled first, so a seeded deal draws the same numbers; the valid options are
+  // then found only as far as needed.
+  const order = tiers.map((tier) => ({
+    tier,
+    items: rng && tier.shuffle ? shuffled(tier.items, rng) : tier.items,
+  }));
   const valid: string[] = [];
-  for (const tier of tiers) {
-    const items = rng && tier.shuffle ? shuffled(tier.items, rng) : tier.items;
-    for (const x of items) {
-      // Never the answer's twin, and never two wrong options that differ only by engine or side
-      // (owner).
-      const pair = (o: string) => !tier.sides && twins(o, x);
-      if (!x || sameMeaning(x, answer) || pair(answer)) continue;
-      if (valid.some((o) => sameMeaning(o, x) || pair(o))) continue;
-      valid.push(x);
-    }
+  function* candidates() {
+    for (const { tier, items } of order)
+      for (const x of items) {
+        // Never the answer's twin, and never two wrong options that differ only by engine or side
+        // (owner).
+        const pair = (o: string) => !tier.sides && twins(o, x);
+        if (!x || sameMeaning(x, answer) || pair(answer)) continue;
+        if (valid.some((o) => sameMeaning(o, x) || pair(o))) continue;
+        valid.push(x);
+        yield x;
+      }
   }
+  const more = candidates();
+  const upTo = (n: number) => {
+    while (valid.length < n && !more.next().done);
+    return valid.length >= n;
+  };
+  upTo(3);
   const out = valid.slice(0, 3);
   if (out.length < 3 || !standsOut(answer, out)) return out;
   for (const keep of [2, 1, 0]) {
     const others = out.filter((_, i) => i !== keep);
-    for (const x of valid.slice(3)) {
-      const tried = [...others.slice(0, keep), x, ...others.slice(keep)];
+    for (let i = 3; upTo(i + 1); i++) {
+      const tried = [...others.slice(0, keep), valid[i] as string, ...others.slice(keep)];
       if (!standsOut(answer, tried)) return tried;
     }
   }
@@ -241,6 +278,18 @@ export function orderMiss(items: string[], yours: string[]): { yours: string; ri
 }
 
 /** Every question the pack can produce, before the flight's options and stages filter them. */
+/** The question bank, built once per pack on first use and kept: the home counts, the "available"
+ * line and every test read from it. */
+const banks = new WeakMap<FlatPack, { index: PackIndex; seeds: Seed[] }>();
+export function bank(pack: FlatPack, index: PackIndex): Seed[] {
+  const known = banks.get(pack);
+  if (known && known.index === index) return known.seeds;
+  const built = seeds(pack, index);
+  banks.set(pack, { index, seeds: built });
+  return built;
+}
+
+/** Every question the pack can produce (`bank` keeps them). */
 export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
   const out: Seed[] = [];
   const phases = pack.content.phases;
@@ -359,18 +408,19 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       /\b(?:captain|first officer)\b/i.exec(meaning);
     return m ? lowerFirst(m[0]) : "";
   };
-  const which = (l: (typeof lights)[number]) => {
-    const side = sideIn(l.meaning);
-    const paired = lights.some(
-      (x) =>
-        x !== l &&
-        x.section === l.section &&
-        x.label === l.label &&
-        sideIn(x.meaning) &&
-        sideIn(x.meaning) !== side,
-    );
-    return side && paired ? side : "";
-  };
+  const sides = new Map(lights.map((l) => [l, sideIn(l.meaning)]));
+  const pairs = new Map(
+    lights.map((l) => {
+      const side = sides.get(l) ?? "";
+      const paired = lights.some(
+        (x) =>
+          x !== l && x.section === l.section && x.label === l.label && sides.get(x) && sides.get(x) !== side,
+      );
+      return [l, side && paired ? side : ""];
+    }),
+  );
+  const which = (l: (typeof lights)[number]) => pairs.get(l) ?? "";
+
   for (const l of lights) {
     // The same light again, meaning the same word for word, with nothing to say which it is: asked
     // once.

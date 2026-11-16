@@ -18,7 +18,7 @@ portrait too). Results last only for this visit.
   import type { FlatPack } from "@involo/bindings";
   import { tick } from "svelte";
   import Icon from "../lib/Icon.svelte";
-  import { available, beforeEngineStart, deal, type Link, orderMiss, type Question, random, type Seed, seeds, sourcesIn, phasesOf, stepShows, TOPICS, type Topic, topicTitle } from "../lib/practice";
+  import { available, bank, beforeEngineStart, deal, type Link, orderMiss, type Question, random, type Seed, sourcesIn, phasesOf, stepShows, TOPICS, type Topic, topicTitle } from "../lib/practice";
   import { correct, type Feedback, type Test, visit } from "../lib/practice-visit.svelte";
   import type { PackIndex } from "../pack-index";
 
@@ -47,7 +47,7 @@ portrait too). Results last only for this visit.
     return () => mq.removeEventListener("change", set);
   });
 
-  let all = $derived(seeds(pack, index));
+  let all = $derived(bank(pack, index));
   let shows = $derived(stepShows(pack, options));
   let stages = $derived((pack.content.phases?.stages ?? []).map((s) => s.title));
 

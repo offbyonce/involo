@@ -8,6 +8,7 @@ import { parseRoute } from "../route.svelte";
 import { deckAreas } from "./deck";
 import {
   available,
+  bank,
   beforeEngineStart,
   deal,
   dealOne,
@@ -288,7 +289,7 @@ describe("the question generator", () => {
         expect(right.length > long && right.length > long * 1.4, `${q.id}: ${right}`).toBe(false);
       }
     }
-  });
+  }, 30_000); // Walks every question (owner: the exhaustive tests may take longer).
 
   it("shows no pack id in any question or option (owner: GEN OFF BUS named its panel by a short title)", () => {
     // Every id in the pack that is not also an ordinary word of its own text.
@@ -379,6 +380,12 @@ describe("the question generator", () => {
     }
   });
 
+  it("builds the question bank once per pack and keeps it", () => {
+    const first = bank(pack, index);
+    expect(bank(pack, index)).toBe(first);
+    expect(first.length).toBe(all.length);
+  });
+
   it("keeps every seed's id unique", () => {
     const ids = all.map((q: Seed) => q.id);
     expect(new Set(ids).size).toBe(ids.length);
@@ -420,7 +427,7 @@ describe("the question generator", () => {
     expect(pickWrong("IGN L", [{ items: ["IGN R", "BOTH", "OFF"], shuffle: false, sides: true }])).toContain(
       "IGN R",
     );
-  });
+  }, 30_000); // Walks every question (owner: the exhaustive tests may take longer).
 
   it("starts each line after its colon in lowercase, unless it starts with a name (owner)", () => {
     const light = all.find((q) => q.id === "lights:meaning:oh/fuel/FILTER BYPASS/1");
