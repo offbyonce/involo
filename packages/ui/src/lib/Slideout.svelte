@@ -62,7 +62,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   let dependent = $derived(decisions?.dependent(step) ?? null);
 
   // svelte-ignore state_referenced_locally
-  let whereOpen = $state(opening.entry === "where");
+  let whereOpen = $state(opening.entry === "where" || !!opening.where);
   // svelte-ignore state_referenced_locally
   let picked = $state<{ section: string; item: number } | null>(opening.entry === "control" ? (opening.control ?? null) : null);
   let deck = $state(false);

@@ -442,6 +442,21 @@ const SHOTS = [
   // The decision step on phone (DecPhone), from the design gallery's invented fixture (the pack has
   // no decision step yet).
   { name: "board-decision", only: ["phone"], app: { hash: "", page: "design/?view=decision&state=phone&theme={theme}" } },
+  // Batch 6: Find (results for "fuel", no match, before typing) over the boards' state, opened
+  // from the header; the desktop menu's "Where is Flight setup?" opened.
+  ...[
+    ["board-find", "fuel"],
+    ["board-find-none", "trimm"],
+    ["board-find-start", null],
+  ].map(([name, word]) => ({
+    name,
+    only: ["desktop", "phone"],
+    app: {
+      hash: "#/phase/before-start",
+      before: [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE, click("header.top .find"), ...(word ? [typeInto(".find .field input", word)] : [])],
+    },
+  })),
+  { name: "board-menu-where", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click('[aria-controls="drawer"]'), click("#drawer .wlink")] } },
   { name: "board-phone-open", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click(".prow .open")] } },
   // Round 6's slide-out: Show panel (P), Where is this? (W), and a control's card (tap CTR L).
   { name: "board-panel", full: true, only: ["desktop", "wide", "tablet-landscape"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("p")] } },

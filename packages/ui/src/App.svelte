@@ -31,6 +31,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import { stepTitle } from "./lib/sentence";
   import StepPane from "./lib/StepPane.svelte";
   import Drawer from "./lib/Drawer.svelte";
+  import Find from "./lib/Find.svelte";
+  import { buildFind, type FindControl, type FindIndex } from "./lib/find-index";
   import ProgressRow from "./lib/ProgressRow.svelte";
   import StagePicker from "./lib/StagePicker.svelte";
   import { openSteps } from "./lib/open-steps.svelte";
@@ -121,6 +123,36 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let selected = $state<string | null>(null);
   /** The step Flow view shows; null follows the current step. */
   let cursor = $state<string | null>(null);
+  /** Find (batch 6): its index, built once per pack, and whether it is open. */
+  let findIndex = $state<FindIndex | null>(null);
+  let findOpen = $state(false);
+  let findOpener: HTMLElement | null = null;
+  const findKey = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "⌘K" : "Ctrl K";
+  function openFind(): void {
+    if (findOpen || !findIndex) return;
+    findOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    menuOpen = false;
+    pickerOpen = false;
+    findOpen = true;
+  }
+  function closeFind(back = true): void {
+    findOpen = false;
+    if (back) findOpener?.focus();
+    findOpener = null;
+  }
+  /** A slide-out to open once its step is on screen (a control chosen in Find). */
+  let pendingSlide: { step: string; opening: Opening } | null = null;
+  function findControl(c: FindControl): void {
+    closeFind(false);
+    if (!c.step) return;
+    const opening: Opening = c.at ? { entry: "control", control: c.at, where: true } : { entry: "where" };
+    if (pane?.step.id === c.step) {
+      openSlide(opening);
+      return;
+    }
+    pendingSlide = { step: c.step, opening };
+    goToStep(c.step);
+  }
 
   function fail(e: unknown): void {
     error = isAppError(e) ? `${e.kind}: ${e.message}` : String(e);
@@ -134,6 +166,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       const pack = await host.loadPack(aircraft.id);
       packId = aircraft.id;
       index = indexPack(pack);
+      findIndex = buildFind(pack, index);
       lists = new Map(pack.lists.map((l) => [l.id, l]));
       intros = new Map((pack.content.phases?.phases ?? []).map((p) => [p.id, p.intro ?? []]));
       // What is saved on this device, if anything; what cannot be used is kept, never dropped.
@@ -295,6 +328,13 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   }
   function slideKeys(e: KeyboardEvent): void {
     const t = e.target instanceof Element ? e.target : null;
+    // Ctrl K (⌘K) opens Find from any page (Find boards).
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === "k" || e.key === "K")) {
+      e.preventDefault();
+      openFind();
+      return;
+    }
+    if (findOpen) return;
     if (t?.closest("input, textarea, select, [contenteditable]") || e.ctrlKey || e.metaKey || e.altKey) return;
     // Not under the menu, the stage picker or the open-steps list.
     if (menuOpen || pickerOpen || openSteps.shown) return;
@@ -325,6 +365,10 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     if (id !== slideStep) {
       slideStep = id;
       slide = null;
+      if (id && pendingSlide?.step === id) {
+        slide = pendingSlide.opening;
+        pendingSlide = null;
+      }
     }
   });
 
@@ -530,6 +574,13 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     if (r.screen === "phase") lastPhase = r.id;
   });
 
+  /** The menu's Clear ticks (tablet and phone): the ticked list holding the current step, else the
+   * last ticked list on screen. */
+  let clearList = $derived.by(() => {
+    if (!view || (screen !== "phase" && screen !== "start")) return null;
+    const ticked = view.lists.filter((l) => l.progress.done + l.progress.skipped > 0);
+    return ticked.find((l) => l.current !== null) ?? ticked.at(-1) ?? null;
+  });
   /** Clear ticks on one list (its card header), with Undo instead of asking first (owner). */
   async function clearTicks(list: string): Promise<void> {
     if (!flight) return;
@@ -569,6 +620,22 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
 </script>
 
 <svelte:window onkeydown={slideKeys} />
+{#if findOpen && findIndex}
+  <Find
+    find={findIndex}
+    {rail}
+    done={flight?.session.done ?? {}}
+    {current}
+    phase={phaseId}
+    {findKey}
+    onStep={(id) => {
+      closeFind(false);
+      goToStep(id);
+    }}
+    onControl={findControl}
+    onClose={() => closeFind()}
+  />
+{/if}
 {#if route.value.screen === "flight" && settings && flight && index && rail}
   {@const r = route.value}
   {@const s = settings}
@@ -627,6 +694,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     onMenu={() => (menuOpen = !menuOpen)}
     onView={changeView}
     onPicker={() => (pickerOpen = !pickerOpen)}
+    onFind={findIndex ? openFind : undefined}
+    {findKey}
   />
   {#if error}
     <p class="msg" role="alert">{error}</p>
@@ -646,6 +715,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       onDetail={(d) => void changeSettings({ ...settings!, detail: d })}
       onEssentials={(on) => void changeSettings({ ...settings!, essentials: on })}
       onReset={() => void clearFlight()}
+      clear={clearList ? { title: clearList.title, ticks: clearList.progress.done } : null}
+      onClearTicks={() => clearList && void clearTicks(clearList.id)}
       onClose={() => (menuOpen = false)}
     />
     {#if pickerOpen && rail}

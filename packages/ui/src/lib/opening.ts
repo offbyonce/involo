@@ -11,4 +11,6 @@ export type Opening = {
   panel?: string;
   /** The control whose card opens. */
   control?: { section: string; item: number };
+  /** Where it is open too (a control chosen in Find opens its Where is this?). */
+  where?: boolean;
 };

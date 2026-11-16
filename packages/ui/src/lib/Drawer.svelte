@@ -26,6 +26,8 @@ line lives at the foot of Settings.
     onDetail,
     onEssentials,
     onReset,
+    clear = null,
+    onClearTicks = () => {},
     onClose,
   }: {
     open: boolean;
@@ -41,8 +43,14 @@ line lives at the foot of Settings.
     onDetail: (detail: Detail) => void;
     onEssentials: (on: boolean) => void;
     onReset: () => void;
+    /** The procedure whose ticks Clear ticks clears (tablet and phone; desktop has it in the
+     * procedure's header), with its tick count; null when nothing is ticked. */
+    clear?: { title: string; ticks: number } | null;
+    onClearTicks?: () => void;
     onClose: () => void;
   } = $props();
+  /** The desktop menu's "Where is Flight setup?", folded until asked. */
+  let whereOpen = $state(false);
   let saved = $derived(
     savedAt === null ? null : new Date(savedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
   );
@@ -102,6 +110,21 @@ line lives at the foot of Settings.
     </div>
     <div class="fill"></div>
     <div class="rule"></div>
+    {#if clear}
+      <!-- Tablet and phone (Tablet and Mobile boards): Clear ticks above Reset flight plan, the same
+           Undo toast. -->
+      <button
+        class="reset clear"
+        type="button"
+        onclick={() => {
+          onClose();
+          onClearTicks();
+        }}
+        ><b>Clear ticks</b><small class="long">{clear.title}: {clear.ticks} {clear.ticks === 1 ? "tick" : "ticks"}. Undo right after.</small><small
+          class="short">{clear.title} · Undo right after</small
+        ></button
+      >
+    {/if}
     <button
       class="reset"
       type="button"
@@ -113,6 +136,18 @@ line lives at the foot of Settings.
         >Undo right after</small
       ></button
     >
+    <!-- Desktop (Menu board, MenuWhere): where the old Flight setup went. -->
+    <div class="where">
+      <button class="wlink" type="button" aria-expanded={whereOpen} aria-controls="drawer-where" onclick={() => (whereOpen = !whereOpen)}
+        >Where is Flight setup? {whereOpen ? "⌃" : "⌄"}</button
+      >
+      {#if whereOpen}
+        <div id="drawer-where">
+          <p>Flight setup is now the Flight pages. Open them from the flight strip, or from any step that needs a flight value.</p>
+          <a href="#/flight/overview" onclick={onClose}>Open Flight ›</a>
+        </div>
+      {/if}
+    </div>
   </div>
 </nav>
 
@@ -273,6 +308,9 @@ line lives at the foot of Settings.
     font: inherit;
     text-align: left;
   }
+  .reset.clear {
+    color: var(--color-text);
+  }
   .reset b {
     font-size: var(--font-size-body);
     font-weight: var(--weight-semibold);
@@ -285,8 +323,44 @@ line lives at the foot of Settings.
     display: none;
   }
 
+  .where {
+    display: none;
+  }
   /* Desktop (1440 px and wider): the Menu board. */
   @media (min-width: 1440px) {
+    /* Desktop clears ticks from the procedure's header (Checklist board). */
+    .reset.clear {
+      display: none;
+    }
+    .where {
+      display: flex;
+      flex-direction: column;
+    }
+    .wlink,
+    .where a {
+      display: flex;
+      align-items: center;
+      min-height: var(--size-touch-min);
+      padding: 0 var(--space-3);
+      border: 0;
+      background: none;
+      color: var(--color-link);
+      font: inherit;
+      font-size: var(--font-size-caption);
+      text-align: left;
+      text-decoration: none;
+    }
+    .where p {
+      margin: 0;
+      padding: 0 var(--space-3) calc(var(--space-1) + var(--border-thick));
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-secondary);
+      line-height: var(--leading-snug);
+    }
+    .where a {
+      font-size: var(--font-size-secondary);
+      font-weight: var(--weight-semibold);
+    }
     nav {
       background: var(--color-surface);
       box-shadow: var(--color-overlay-shadow);

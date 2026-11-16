@@ -147,6 +147,8 @@ row in place. A step that depends on the answer links back to it.
   <div class="value" class:asking class:answered={!!decision && decision.answer !== null && !asking} class:dep={!!dependent}>
     {#if decision && asking}
       <span class="val">{step.expect}</span>
+      <!-- Phone (DecPhone): the plan's suggestion under the value; elsewhere under the title. -->
+      {#if suggested && current}<span class="suggest under">Suggested from your SimBrief plan: {decision?.suggestion?.amount}</span>{/if}
       {#if !decision.changing && decision.option.description}<span class="prompt">{decision.option.description}</span>{/if}
       {#each options as c, n (c.value)}
         <button class="choice" type="button" aria-pressed={ringed === c.value} aria-keyshortcuts={String(n + 1)} onclick={() => decisions?.answer(row.id, c.value)}>
@@ -541,6 +543,9 @@ row in place. A step that depends on the answer links back to it.
     font-size: var(--font-size-secondary);
     line-height: var(--leading-tight);
   }
+  .suggest.under {
+    display: none;
+  }
   .src {
     color: var(--color-text-muted);
     font-size: var(--font-size-secondary);
@@ -824,8 +829,12 @@ row in place. A step that depends on the answer links back to it.
     .it.current .namecol,
     .it.current .value {
       grid-column: 1;
+      padding-top: 0;
     }
+    /* The menu's 44 px target reaches above and below the title line, so the value sits right
+       under the title (Mobile board, DecPhone). */
     .it.current .end {
+      margin: calc((var(--font-size-body) + var(--border-thick)) * var(--leading-tight) / 2 - var(--size-touch-min) / 2) 0;
       grid-row: 1;
       grid-column: 2;
     }
@@ -848,6 +857,12 @@ row in place. A step that depends on the answer links back to it.
     }
     .fornow {
       display: none;
+    }
+    .namecol .suggest {
+      display: none;
+    }
+    .suggest.under {
+      display: block;
     }
   }
 </style>

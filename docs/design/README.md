@@ -70,6 +70,16 @@ its stage tabs and does not use it. The stages and phases come from the pack, in
 whose page does not exist yet stay hidden, with any group heading left empty, until that page is
 built (owner, 2026-11-15).
 
+**Batch 6 additions (approved 2026-11-15).** `Find.dc.html` with twelve wrapper boards (`FindDesk`,
+`FindDeskNone`, `FindDeskStart`, `FindPhone`, `FindPhoneNone`, `FindPhoneStart`, dark and light)
+draws Find: a 640 px dialog 88 px from the top on the pop-over tokens over `color.scrim` from 900 px,
+a full-screen sheet below it. It searches every step, control and term in the pack, in sections
+(Steps, Controls, Terms) with counts and "Show all N"; the sample results are stand-ins. Ctrl K (⌘K)
+opens it from any page. `Tablet.dc.html` and `Mobile.dc.html` add Clear ticks to the menu above
+Reset flight plan, and draw no procedure header. `Menu.dc.html` (with `MenuWhere`, in `boards/`)
+opens "Where is Flight setup?" on desktop. `StagePicker.dc.html` and `Mobile.dc.html` correct the
+dark scrim to 0.55, and `Decision.dc.html` redraws DecPhone to the Mobile board's rules.
+
 ## Read in this order
 
 1. `rules.md`: what the tokens mean and the rules every screen follows.

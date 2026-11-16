@@ -113,7 +113,7 @@ folded to one line with its count until the phase's procedure is done.
     <span class="fd">{list.progress.done} of {list.progress.total} ⌄</span>
   </button>
 {:else}
-<section class="card" aria-labelledby="list-{list.id}">
+<section class="card" class:large aria-labelledby="list-{list.id}">
   <header>
     <h2 id="list-{list.id}">{list.title}</h2>
     <span class="count">{counts}</span>
@@ -313,6 +313,22 @@ folded to one line with its count until the phase's procedure is done.
   }
   .after {
     display: none;
+  }
+  /* Tablet and phone (Tablet and Mobile boards): no procedure header; the header names the phase,
+     the menu has Clear ticks. The list keeps its name for screen readers. An emergency list keeps
+     its header. */
+  @media (max-width: 1439px) {
+    section.card:not(.large) > header {
+      position: absolute;
+      width: var(--border-thin);
+      height: var(--border-thin);
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    section.card:not(.large) > header :is(.count, .clear) {
+      display: none;
+    }
   }
   /* Phone (Mobile board): no card frame, rows edge to edge, the steps after the current one folded. */
   @media (max-width: 599px) {

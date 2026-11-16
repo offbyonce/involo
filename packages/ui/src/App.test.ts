@@ -602,6 +602,39 @@ describe("App", () => {
     expect(await screen.findByRole("button", { name: "Undo" })).toBeTruthy();
   });
 
+  it("clears the ticked list from the menu too (tablet and phone), with the same Undo", async () => {
+    const actions: Action[] = [];
+    const h = host({
+      apply: async (_pack, flight, action) => {
+        actions.push(action);
+        return { ...flight };
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.click(screen.getByRole("button", { name: /^Clear ticks\s*Power up flow: \d+ ticks?\./ }));
+    expect(actions).toEqual([{ type: "clearList", list: "power-up-flow" }]);
+    expect(await screen.findByRole("button", { name: "Undo" })).toBeTruthy();
+  });
+
+  it("opens Find from the header and with Ctrl K, finds a control, and gives focus back on Esc", async () => {
+    render(App, { context: hostContext(host()) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    const button = screen.getByRole("button", { name: "Find a step or term" });
+    button.focus();
+    await fireEvent.click(button);
+    const field = await screen.findByRole("combobox", { name: "Find a step, control or term" });
+    await fireEvent.input(field, { target: { value: "standby" } });
+    expect(screen.getByRole("option", { name: /Standby power switch/ }).textContent).toContain(
+      "Forward overhead · Electrical",
+    );
+    await fireEvent.keyDown(field, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Find" })).toBeNull();
+    expect(document.activeElement).toBe(button);
+    await fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+    expect(await screen.findByRole("dialog", { name: "Find" })).toBeTruthy();
+  });
+
   it("lists open steps and puts one back to do", async () => {
     window.location.hash = "#/open";
     const actions: Action[] = [];
