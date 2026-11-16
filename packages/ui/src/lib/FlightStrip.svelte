@@ -211,9 +211,11 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
           Notes from ATC
           <textarea id="sp-notes" value={notes} placeholder="Jot down what ATC says: frequency changes, re-clearances, taxi route" oninput={(e) => onNotes(e.currentTarget.value)}></textarea>
         </label>
+        <!-- Phone (Mobile board): Import sits under the notes, the footer's is hidden. -->
+        <button class="btn import below" type="button" onclick={onImport}>Import latest from SimBrief</button>
       </div>
       <div class="foot">
-        <button class="btn import" type="button" onclick={onImport}>Import latest from SimBrief</button>
+        <button class="btn import above" type="button" onclick={onImport}>Import latest from SimBrief</button>
         {#if provenance}<span class="from">{provenance}</span>{/if}
         <span class="fill"></span>
         <button
@@ -506,7 +508,8 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
     }
   }
   .handle,
-  .sheet-head {
+  .sheet-head,
+  .import.below {
     display: none;
   }
   /* The closed strip on tablet: Runway, SID, Squawk and the notes (Tablet board). */
@@ -557,15 +560,60 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
       border-radius: var(--border-thick);
       background: var(--color-border);
     }
+    /* The sheet's spacing (Mobile board, strip screen): a 52 px head, 10 px between fields, 4 px
+       under each label, and the notes box 80 high with Import under it. */
     .sheet-head {
       display: flex;
-      align-items: flex-start;
-      padding: var(--space-2) var(--space-2) 0 var(--space-4);
+      flex: none;
+      align-items: center;
+      height: calc(var(--space-10) + var(--space-3));
+      padding: 0 calc(var(--space-1) + var(--border-thick)) 0 var(--space-4);
     }
     .sheet-head div {
       display: flex;
       flex: 1;
       flex-direction: column;
+      line-height: var(--leading-tight);
+    }
+    .body {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: calc(var(--space-2) + var(--border-thick));
+      padding: var(--space-1) var(--space-4) var(--space-2);
+    }
+    .clearance,
+    .spf {
+      gap: calc(var(--space-2) + var(--border-thick));
+    }
+    .spf label,
+    .notesbox {
+      gap: var(--space-1);
+    }
+    input {
+      font-size: var(--font-size-body);
+    }
+    .notesbox {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-caption);
+      font-weight: var(--weight-regular);
+    }
+    textarea {
+      flex: none;
+      height: calc(2 * var(--space-10));
+      min-height: 0;
+      font-size: var(--font-size-value-mono);
+    }
+    .import.below {
+      display: block;
+      flex: none;
+      height: var(--size-touch-min);
+      border-radius: var(--radius-control);
+      font-size: var(--font-size-value-mono);
+      font-weight: var(--weight-semibold);
+    }
+    .import.above {
+      display: none;
     }
     .sheet-head b {
       font-family: var(--font-mono);
@@ -586,20 +634,25 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
       color: var(--color-text-secondary);
     }
     .foot {
+      flex: none;
       flex-wrap: wrap;
+      gap: var(--space-2);
       height: auto;
-      margin-top: auto;
-      padding: var(--space-3) var(--space-4) calc(var(--space-4) + var(--space-1));
-    }
-    .import {
-      flex-basis: 100%;
+      padding: var(--space-2) var(--space-4) calc(var(--space-6) - var(--border-thick));
     }
     .foot .reset {
       order: 2;
       margin-right: auto;
+      padding: 0 var(--space-2);
     }
+    /* All flight data as the board's boxed link: 48 high, 14 px in, radius 12. */
     .all {
       order: 3;
+      height: calc(var(--size-touch-min) + var(--space-1));
+      padding: 0 calc(var(--space-3) + var(--border-thick));
+      border: var(--border-thin) solid var(--color-border);
+      border-radius: var(--radius-segment);
+      font-size: var(--font-size-value-mono);
     }
   }
 </style>

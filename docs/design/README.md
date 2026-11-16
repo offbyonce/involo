@@ -126,4 +126,4 @@ widths, line heights and eight sizes (icons, the tablet side pane, the drawer, t
 status icons, the progress bar and the Flow button). Each names its source board in a `$sources`
 entry. Approved the same day for batch 2: `radius.popover`, `color.popover-border` and
 `color.overlay-shadow` (WherePop's values, for every pop-over, sheet and drawer) and
-`size.map-figure` (280, the side pane's map figure on the Checklist and WherePop boards). Round 6 (2026-11-13), from `round6/boards/Locator.dc.html`: `size.slideout` (840), `size.slideout-tablet` (700) and `color.slideout-scrim`. New tokens are proposed to the owner with their source first, never added on their own.
+`size.map-figure` (280, the side pane's map figure on the Checklist and WherePop boards). Round 6 (2026-11-13), from `round6/boards/Locator.dc.html`: `size.slideout` (840), `size.slideout-tablet` (700) and `color.slideout-scrim`. Batch 5 (2026-11-15), from `round6/boards/StagePicker.dc.html`: `color.scrim-light`, the pop-over picker's scrim from 900 to 1439 px. New tokens are proposed to the owner with their source first, never added on their own.

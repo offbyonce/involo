@@ -200,7 +200,8 @@ row in place. A step that depends on the answer links back to it.
           {@const value = decision.suggestion.value}
           <button class="donebtn confirm" type="button" onclick={() => decisions?.answer(row.id, value)}>Confirm: {shortLabel(labelOf(decision.option, value))}</button>
         {/if}
-        <button class="skipb" type="button" onclick={onSkip}>Skip for now</button>
+        <!-- DecPhone: "Skip" on phone. -->
+        <button class="skipb" type="button" aria-label="Skip for now" onclick={onSkip}>Skip<span class="fornow">{" for now"}</span></button>
         <span class="fill"></span>
         <span class="keys">{suggested ? "Space confirm · " : ""}{numbers} answer · S skip</span>
       {:else}
@@ -686,6 +687,10 @@ row in place. A step that depends on the answer links back to it.
     .name:has(.pill) {
       flex-wrap: nowrap;
     }
+    /* The name takes the row, so "Skipped" sits right beside the value (Tablet board). */
+    .it.skipped .row {
+      flex: 1 1 auto;
+    }
     .do-now {
       display: none;
     }
@@ -836,13 +841,13 @@ row in place. A step that depends on the answer links back to it.
     .it.skipped .value {
       display: none;
     }
-    /* On phone the choices take the row's width (DecPhone), until batch 5's layout. */
-    .value.asking {
+    /* On phone the choices take the row's width under the title, the menu at the top right
+       (DecPhone); the decision's bar says "Skip". */
+    .it.current .value.asking {
       grid-column: 1 / -1;
     }
-    .it:has(.value.asking) .end {
-      grid-row: 1;
-      grid-column: 3;
+    .fornow {
+      display: none;
     }
   }
 </style>

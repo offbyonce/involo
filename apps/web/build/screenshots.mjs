@@ -26,6 +26,8 @@ const VIEWPORTS = {
   "tablet-landscape": { width: 1180, height: 820 },
   desktop: { width: 1440, height: 900 },
   wide: { width: 2560, height: 1440 },
+  // A phone held sideways (R6PhoneL); shot only by the screens that name it.
+  "phone-sideways": { width: 844, height: 390, named: true },
 };
 // layout.css.prefers-color-scheme.content-override: 0 dark, 1 light.
 const THEMES = { dark: 0, light: 1 };
@@ -415,6 +417,11 @@ const SHOTS = [
   { name: "focus-done", only: ["tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, { keys: ["\uE008"] }, `document.querySelector(".actions .donebtn").focus(); true`] } },
   { name: "focus-menu", only: ["tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click('[aria-controls="drawer"]'), `document.querySelector("#drawer .close").focus(); true`, { keys: ["\uE004"] }] } },
   { name: "focus-stages", only: ["tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("header.top .pick"), `document.querySelector(".picker .close").focus(); true`, { keys: ["\uE004"] }] } },
+  // The phone held sideways: the panel sheet with its labels and no pinned Check (R6PhoneL).
+  { name: "board-sheet", only: ["phone-sideways"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("p")] } },
+  // The decision step on phone (DecPhone), from the design gallery's invented fixture (the pack has
+  // no decision step yet).
+  { name: "board-decision", only: ["phone"], app: { hash: "", page: "design/?view=decision&state=phone&theme={theme}" } },
   { name: "board-phone-open", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click(".prow .open")] } },
   // Round 6's slide-out: Show panel (P), Where is this? (W), and a control's card (tap CTR L).
   { name: "board-panel", full: true, only: ["desktop", "wide", "tablet-landscape"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("p")] } },
@@ -626,15 +633,15 @@ async function main() {
           const prefs = { "layout.css.prefers-color-scheme.content-override": override };
           const only = (process.env.SCREENSHOTS_ONLY ?? "").split(",").filter(Boolean);
           const wanted = (key) => !only.length || only.some((o) => key.startsWith(o) || `${theme}-${size}`.endsWith(o));
-          const fits = (s) => !s.only || [s.only].flat().includes(size);
+          const fits = (s) => (!s.only ? !viewport.named : [s.only].flat().includes(size));
           const shots = SHOTS.filter((s) => fits(s) && wanted(`${s.name}-${size}-${theme}`));
           if (!shots.length) continue;
           const profile = path.join(work, `profile-${target.side}-${theme}-${size}`);
-          const { firefox, browser } = await openAt(profile, prefs, viewport, target.url(""));
+          const { firefox, browser } = await openAt(profile, prefs, { width: viewport.width, height: viewport.height }, target.url(""));
           try {
             for (const shot of shots) {
               if (!shot[target.side]) continue;
-              const { hash, before } = shot[target.side];
+              const { hash, before, page } = shot[target.side];
               const full = target.side === "app" && !!shot.full;
               const key = `${shot.name}-${size}-${theme}`;
               // One retry, in case a page stalls once.
@@ -644,7 +651,9 @@ async function main() {
                     await visit(browser, target.url(hash), target.ready);
                     await browser.js(target.reset);
                   }
-                  await shoot(browser, target.url(hash), target.ready, before, path.join(target.dir, `${key}.png`), full);
+                  // A design gallery page (with the theme in its query) instead of the app.
+                  const at = page ? `http://localhost:${target.port}/${page.replace("{theme}", theme)}` : target.url(hash);
+                  await shoot(browser, at, page ? "document.readyState === 'complete'" : target.ready, before, path.join(target.dir, `${key}.png`), full);
                   break;
                 } catch (e) {
                   if (attempt === 2) throw e;

@@ -341,7 +341,7 @@ come from the pack, in pack order. Picking a phase goes to it (its first open st
   @media (min-width: 900px) {
     .scrim {
       top: var(--bar-header);
-      background: var(--color-slideout-scrim);
+      background: var(--color-scrim-light);
     }
     .picker {
       top: calc(var(--bar-header) + var(--space-1));
