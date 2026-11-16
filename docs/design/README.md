@@ -86,8 +86,12 @@ its controls or the lights its Check names, nothing between them; each is its ow
 scale, side by side when they fit at full size, otherwise stacked, 16 px apart, centered, never
 the deck's gaps. The side pane's preview card uses the same tiles at thumbnail size. A panel the
 pack has no drawing for is a tile with its name and the step's controls on it. The sheet's title
-names one panel, or a left and right pair as one ("L and R wiper panels"); otherwise the main
-control's panel, with "Also: …" in the sub-line; names follow the pack, in sentence case. The map
+names one panel, or a left and right pair as one ("L and R wiper panels"); otherwise the panel
+with the control the step sets (never one holding only lights its Check names), with "Also: …" in
+the sub-line. Names are the pack's as they are, in sentence case, with "panel" added only when the
+name does not end in a thing ("Control stand", "Captain and first officer displays", "Fuel
+panel"). A panel too wide for the sheet keeps its navigator strip, drawn like the Locator board's
+figure with "Scroll sideways for the rest of the panel →" beside it. The map
 has no line above it; area labels sit above their area, 8 px clear of the outline and 16 px under
 the area before; the dashed outline runs 6 px outside the area's panels; a marked box is labeled
 only when the label fits with 6 px either side.

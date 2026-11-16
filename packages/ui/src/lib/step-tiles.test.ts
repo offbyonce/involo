@@ -22,7 +22,16 @@ function targetsOf(id: string): ItemTarget[] {
     const item = items.findIndex((it) => it.label === label && ++seen === Number(n));
     return item < 0
       ? []
-      : [{ section: section ?? "", item, position: null, lit: false, open: false, resolved: false }];
+      : [
+          {
+            section: section ?? "",
+            item,
+            position: t.set ? 0 : null,
+            lit: t.light === "on",
+            open: false,
+            resolved: false,
+          },
+        ];
   });
 }
 const tiles = (id: string) => {
@@ -55,5 +64,25 @@ describe("stepTiles (owner, batch 6)", () => {
   it("never lists a control whose panel is drawn under another id (the fire test switch on the fire panel)", () => {
     const t = tiles("apu-power.fire-switch-and-overheat-detector");
     expect(t.every((x) => x.kind === "drawn")).toBe(true);
+  });
+
+  it("titles the panel with the control the step sets, never one holding only a light its Check names", () => {
+    // The speedbrake lever's ARMED light is on the captain's lights; the lever is on the control stand.
+    expect(tilesTitle(tiles("landing.speedbrake-lever"))).toEqual({
+      title: "Control stand",
+      also: "Captain lights panel",
+    });
+    expect(tilesTitle(tiles("landing.speedbrake-lever-before-landing"))).toEqual({
+      title: "Control stand",
+      also: "Captain lights panel",
+    });
+  });
+
+  it("counts a light the Check expects out as a check too", () => {
+    const step = index.step("ifly-737-max8.landing.speedbrake-lever");
+    if (!step) throw new Error("step");
+    // The same step, its light expected out (lit false, no position): still not the main panel.
+    const out = targetsOf(step.id).map((t) => (t.section === "cl" ? { ...t, lit: false } : t));
+    expect(tilesTitle(stepTiles(index, step, out)).title).toBe("Control stand");
   });
 });

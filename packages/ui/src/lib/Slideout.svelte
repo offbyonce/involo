@@ -40,7 +40,6 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
     number,
     targets,
     opening,
-    panel: chosen = $bindable(),
     onClose,
     onGo,
     decisions,
@@ -52,8 +51,6 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
     targets: ItemTarget[];
     /** How it opened: which section shows first. */
     opening: Opening;
-    /** The panel shown, by id, when the step's controls are on several. */
-    panel?: string | undefined;
     onClose: () => void;
     /** Goes to a step (the control card's Used in links). */
     onGo: (stepId: string) => void;
@@ -68,7 +65,6 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   let picked = $state<{ section: string; item: number } | null>(opening.entry === "control" ? (opening.control ?? null) : null);
   let deck = $state(false);
   // svelte-ignore state_referenced_locally
-  if (opening.panel && !chosen) chosen = opening.panel;
 
   let place = $derived(index.place(step));
   /** The step's panels as tiles (owner, batch 6): only those holding its controls or the lights
@@ -276,6 +272,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
       {#if wider && scroller && single}
         <div class="nav" bind:clientHeight={navHeight}>
           <PanelNavigator panel={single.panel} focus={[single.id]} {targets} {scroller} title={caption} />
+          <span class="sideways">Scroll sideways for the rest of the panel →</span>
         </div>
       {/if}
       {#if tiles.length}
@@ -303,10 +300,10 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
           {/if}
           <p class="turn">Turn your phone sideways to see the panel with its labels.</p>
         </div>
-        <figure class="figure" bind:this={figure}>
+        <figure class="figure" class:tiled={!single} bind:this={figure}>
           <PanelTiles {tiles} {targets} {index} large ownCard={false} {room} bind:picked bind:wider bind:scroller />
           <figcaption bind:clientHeight={legendHeight}>
-            Blue: set by this step{#if targets.some((t) => t.open)}{" "}· dashed: only if the step's condition applies{/if}{#if decided}{" "}· ◆ set by your {decided.toLowerCase()} answer{/if} · lights drawn unlit · tap a control for details
+            Blue: set by this step{#if targets.some((t) => t.open)}{" "}· dashed: only if the step's condition applies{/if}{#if decided}{" "}· ◆ set by your {decided.toLowerCase()} answer{/if}{#if single}{" "}· lights drawn unlit · tap a control for details{/if}
           </figcaption>
         </figure>
       {/if}
@@ -386,6 +383,22 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
 </div>
 
 <style>
+  /* The navigator's strip, drawn as the Locator board draws a wide panel's figure: the panel's
+     background and frame, the whole panel, and "Scroll sideways for the rest of the panel →" beside it. */
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-2) calc(var(--space-2) + var(--border-thick));
+    border: var(--border-thin) solid var(--panel-frame);
+    border-radius: var(--radius-control);
+    background: var(--panel-bg);
+  }
+  .sideways {
+    color: var(--panel-label);
+    font-size: var(--font-size-caption);
+  }
   /* Locator.dc.html: the pop-over tokens; square except the top left corner. */
   .slideout {
     box-sizing: border-box;
@@ -499,6 +512,15 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
     border: var(--border-thin) solid var(--panel-frame);
     border-radius: var(--radius-control);
     background: var(--panel-bg);
+  }
+  /* Several tiles (PanelTiles board): the card's padding, radius and gap, and its muted caption. */
+  .figure.tiled {
+    gap: var(--space-3);
+    padding: calc(var(--space-4) + var(--space-1)) var(--space-4) calc(var(--space-3) + var(--border-thick));
+    border-radius: var(--radius-panel);
+  }
+  .figure.tiled figcaption {
+    color: var(--color-text-muted);
   }
   figcaption {
     color: var(--panel-label);

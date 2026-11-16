@@ -162,7 +162,7 @@ and a caution note under If not. A step with no control shows the steps coming u
     </button>
     {#if preview}
       {#if tiles.length}
-        <button class="preview" type="button" aria-label="Show the whole {cardName}" onclick={() => onOpen({ entry: "panel" })}>
+        <button class="preview" type="button" aria-label="Show the whole {[cardName, tilesTitle(tiles).also].filter(Boolean).join(", ")}" onclick={() => onOpen({ entry: "panel" })}>
           {#if drawnTiles[0]}
             <PanelPreview panel={drawnTiles[0].panel} focus={[]} tiles={drawnTiles.map((d) => d.section)} {targets} {guardClosed} label="The whole {cardName}" />
           {/if}

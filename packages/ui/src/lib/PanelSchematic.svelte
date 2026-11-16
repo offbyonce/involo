@@ -11,7 +11,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
 <script lang="ts">
   import { panelCaption } from "./panel-name";
   import type { ItemTarget, Panel, PanelSection as Section } from "@involo/bindings";
-  import { drawingScale, K, layoutSection, openingScroll, positionsOf, roomScale } from "./panel-layout";
+  import { drawingScale, K, layoutSection, openingScroll, positionsOf, roomScale, tileScale } from "./panel-layout";
   import PanelSection from "./PanelSection.svelte";
   import Self from "./PanelSchematic.svelte";
   import type { PackIndex } from "../pack-index";
@@ -166,13 +166,19 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     window.addEventListener("resize", read);
     return () => window.removeEventListener("resize", read);
   });
+  /** A tile's corner radius on screen, in pixels (PanelTiles board). */
+  const TILE_RADIUS = 8;
   let wrap = $state<HTMLDivElement | null>(null);
   let height = $state(0);
   let scale = $derived.by(() => {
-    if (!room) return drawingScale(width, view.box.w, pageScale);
+    if (!room) {
+      const fit = drawingScale(width, view.box.w, pageScale);
+      // A tile among several keeps its own size here too (PanelTiles board; the flow's pane).
+      return tile ? { ...fit, k: tileScale(fit.k, pageScale) } : fit;
+    }
     const fit = roomScale(room.width, room.height, view.box, pageScale);
     // A tile among several keeps its drawing's own size, smaller only to fit (PanelTiles board).
-    const k = tile ? Math.min(fit.k, K * pageScale) : fit.k;
+    const k = tile ? tileScale(fit.k, pageScale) : fit.k;
     return { k, overflow: fit.wider, wider: fit.wider };
   });
   $effect(() => {
@@ -269,8 +275,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
       .filter(Boolean)
       .join("; "),
   );
-  let title = $derived(panelCaption(focused.map((s) => s.title)));
-  /** The larger view's title: the pane card's caption ("Fuel panel"). */
+  /** The drawing's name, and the larger view's title: the pane card's caption ("Fuel panel"). */
   let caption = $derived(panelCaption(focused.map((s) => s.title)));
 </script>
 
@@ -284,10 +289,10 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     viewBox="{view.box.x} {view.box.y} {view.box.w} {view.box.h}"
     style:width="{Math.floor(view.box.w * scale.k)}px"
     role="img"
-    aria-label="{title}, schematic.{described ? ` This step: ${described}.` : ''}"
+    aria-label="{caption}, schematic.{described ? ` This step: ${described}.` : ''}"
   >
     {#each drawn as s (s.id)}
-      <PanelSection section={s} {targets} {guardClosed} band={bandOf(s)} frame={view.frames.get(s.id)} titled={view.titled} framed={large || !around || view.titled} k={K} hit={index ? (44 * pageScale) / scale.k : 0} onPick={index ? (section, item) => (picked = { section, item }) : undefined} selected={picked?.section === s.id ? picked.item : null} />
+      <PanelSection section={s} {targets} {guardClosed} band={bandOf(s)} frame={view.frames.get(s.id)} titled={view.titled} tileRx={tile ? TILE_RADIUS / scale.k : null} framed={large || !around || view.titled} k={K} hit={index ? (44 * pageScale) / scale.k : 0} onPick={index ? (section, item) => (picked = { section, item }) : undefined} selected={picked?.section === s.id ? picked.item : null} />
     {/each}
   </svg>
 </div>

@@ -36,13 +36,6 @@ while the labeled panel stays at 11 px labels or more.
   let marker = $state({ x0: 0, y0: 0, x1: 1, y1: 1 });
 
   const drawing = () => scroller.querySelector("svg");
-  /** Every section inside the labeled view (it draws the sections between the step's too). */
-  let shownIds = $derived.by(() => {
-    if (!view) return focus;
-    const v = view;
-    const inside = panel.sections.filter((s) => s.x < v.x + v.w && s.x + s.width > v.x && s.y < v.y + v.h && s.y + s.height > v.y);
-    return inside.length ? inside.map((s) => s.id) : focus;
-  });
   function read() {
     const d = drawing();
     if (!d) return;
@@ -120,20 +113,20 @@ while the labeled panel stays at 11 px labels or more.
   onpointercancel={up}
   onkeydown={key}
 >
-  <PanelPreview {panel} focus={shownIds} {targets} {guardClosed} label="The whole {title}" {view} {marker} bind:svg />
+  <PanelPreview {panel} {focus} {targets} {guardClosed} label="The whole {title}" {view} {marker} bind:svg />
 </div>
 
 <style>
   .navigator {
-    padding: var(--space-1);
-    border: var(--border-thin) solid var(--panel-frame);
-    border-radius: var(--radius-control);
-    background: var(--panel-bg);
+    flex: 0 1 auto;
+    min-width: 0;
     cursor: grab;
     touch-action: none;
   }
   /* The navigator is smaller than a preview (size.navigator-max). */
   .navigator :global(.preview) {
-    max-height: var(--size-navigator-max);
+    width: auto;
+    max-width: 100%;
+    height: var(--size-navigator-max);
   }
 </style>

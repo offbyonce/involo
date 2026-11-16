@@ -17,7 +17,6 @@ describe("panel names (owner, batch 6)", () => {
     expect(panelTitle(["Captain EFIS", "First officer EFIS"]).title).toBe(
       "Captain and first officer EFIS panels",
     );
-    expect(panelTitle(["Left CDU", "Right CDU"]).title).toBe("Left and right CDU panels");
   });
 
   it("otherwise names the main panel and adds the others as Also, never chained with 'and'", () => {
@@ -26,5 +25,17 @@ describe("panel names (owner, batch 6)", () => {
       title: "Ground power and generators panel",
       also: "Electrical meters panel, L wiper panel",
     });
+  });
+
+  it("adds panel only when the name does not already end in a thing", () => {
+    expect(panelName("Control stand")).toBe("Control stand");
+    expect(panelName("Captain displays")).toBe("Captain displays");
+    expect(panelName("Parking brake and start levers")).toBe("Parking brake and start levers");
+    expect(panelName("Captain lights")).toBe("Captain lights panel");
+    expect(panelTitle(["Captain displays", "First officer displays"]).title).toBe(
+      "Captain and first officer displays",
+    );
+    expect(panelTitle(["Left annunciators", "Right annunciators"]).title).toBe("Left and right annunciators");
+    expect(panelTitle(["Left CDU", "Right CDU"]).title).toBe("Left and right CDUs");
   });
 });

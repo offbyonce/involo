@@ -50,16 +50,25 @@ gate review), and centered in it; it is never cropped or stretched.
 
   let sections = $derived(tiles ?? panel.sections.filter((s) => focus.includes(s.id)));
   let cardWidth = $state(0);
+  let cardHeight = $state(0);
   /** Where each tile goes, in panel units: side by side or stacked, whichever draws larger in the
    * card (its width, and at most size.preview-max tall), a 16 px gap between them. */
+  /** The root font size against 16 px: size.preview-max and space-4 are rem, so the math follows. */
+  let page = $state(1);
+  $effect(() => {
+    const read = () => (page = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) / 16 || 1);
+    read();
+    window.addEventListener("resize", read);
+    return () => window.removeEventListener("resize", read);
+  });
   let packed = $derived.by(() => {
     if (!tiles || tiles.length < 2) return null;
-    const W = cardWidth || 320;
-    const H = 240;
+    const W = cardWidth || 320 * page;
+    const H = 240 * page;
     const ws = tiles.map((t) => t.width + 4);
     const hs = tiles.map((t) => t.height + 4);
     const sum = (a: number[]) => a.reduce((n, x) => n + x, 0);
-    const gapPx = 16;
+    const gapPx = 16 * page;
     const n = tiles.length;
     const kRow = Math.min((W - gapPx * (n - 1)) / sum(ws), H / Math.max(...hs));
     const kCol = Math.min(W / Math.max(...ws), (H - gapPx * (n - 1)) / sum(hs));
@@ -90,6 +99,16 @@ gate review), and centered in it; it is never cropped or stretched.
     const y1 = Math.max(...sections.map((s) => s.y + s.height)) + 2;
     return { x, y, w: x1 - x, h: y1 - y };
   });
+  /** The marker inside the strip: half its 2 px stroke in from each edge, in view box units. */
+  let inset = $derived(cardWidth && cardHeight ? Math.max(box.w / cardWidth, box.h / cardHeight) : 0);
+  let mark = $derived.by(() => {
+    if (!marker) return null;
+    const x0 = Math.max(box.x + marker.x0 * box.w, box.x + inset);
+    const y0 = Math.max(box.y + marker.y0 * box.h, box.y + inset);
+    const x1 = Math.min(box.x + marker.x1 * box.w, box.x + box.w - inset);
+    const y1 = Math.min(box.y + marker.y1 * box.h, box.y + box.h - inset);
+    return { x: x0, y: y0, width: Math.max(0, x1 - x0), height: Math.max(0, y1 - y0) };
+  });
   const whole = (s: { width: number; height: number }) => ({ x0: 0, y0: 0, x1: s.width, y1: s.height });
 </script>
 
@@ -97,7 +116,7 @@ gate review), and centered in it; it is never cropped or stretched.
   <PanelSection section={s} {targets} {guardClosed} band={whole(s)} frame={whole(s)} titled={false} textless halo k={K} ringed={ringed ? (ringed.section === s.id ? ringed.item : -1) : null} />
 {/snippet}
 
-<svg class="preview" viewBox="{box.x} {box.y} {box.w} {box.h}" role="img" aria-label={label} bind:this={svg} bind:clientWidth={cardWidth}>
+<svg class="preview" viewBox="{box.x} {box.y} {box.w} {box.h}" role="img" aria-label={label} bind:this={svg} bind:clientWidth={cardWidth} bind:clientHeight={cardHeight}>
   {#each sections as s, i (s.id)}
     {#if packed}
       <g transform="translate({packed.at[i]?.dx ?? 0} {packed.at[i]?.dy ?? 0})">{@render one(s)}</g>
@@ -105,15 +124,8 @@ gate review), and centered in it; it is never cropped or stretched.
       {@render one(s)}
     {/if}
   {/each}
-  {#if marker}
-    <rect
-      class="marker"
-      x={box.x + marker.x0 * box.w}
-      y={box.y + marker.y0 * box.h}
-      width={(marker.x1 - marker.x0) * box.w}
-      height={(marker.y1 - marker.y0) * box.h}
-      rx="3"
-    />
+  {#if mark}
+    <rect class="marker" x={mark.x} y={mark.y} width={mark.width} height={mark.height} rx="3" />
   {/if}
 </svg>
 
@@ -128,6 +140,7 @@ gate review), and centered in it; it is never cropped or stretched.
   }
   .preview {
     display: block;
+    overflow: hidden;
     width: 100%;
     height: auto;
     max-height: var(--size-preview-max);

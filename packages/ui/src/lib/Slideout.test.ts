@@ -147,6 +147,8 @@ describe("Slideout", () => {
     expect(title).not.toMatch(/ and .* and /);
     expect(document.querySelector(".head .where")?.textContent).toMatch(/Also: /);
     // The panel the pack does not draw is a tile naming the step's control on it.
-    expect(document.querySelector(".figure .listed")?.textContent).toMatch(/panel/);
+    expect(document.querySelector(".figure .listed")?.textContent).toMatch(
+      /^Electronic flight bag(?! panel)/,
+    );
   });
 });

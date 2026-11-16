@@ -36,7 +36,7 @@ describe("WholeDeck (owner, batch 6)", () => {
       expect(base + 3 <= top - 8 || base - 9 >= bottom).toBe(true);
       // 16 px under any area above the label.
       for (const a of areas.filter((x) => x.bottom <= base))
-        expect(base - 9 - a.bottom >= 16 || a.bottom > base - 9).toBe(true);
+        expect(base - 9 - a.bottom).toBeGreaterThanOrEqual(16);
     }
   });
 

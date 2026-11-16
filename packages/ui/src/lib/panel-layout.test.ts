@@ -21,6 +21,7 @@ import {
   PX,
   roomScale,
   TOGGLE,
+  tileScale,
 } from "./panel-layout";
 import { em, widest } from "./text-width";
 
@@ -346,5 +347,16 @@ describe("roomScale", () => {
     expect(fuel).toEqual({ k: MIN_SCALE, wider: false, taller: true });
     // The captain lights are wide: a navigator.
     expect(roomScale(792, 466, { w: 918, h: 109 })).toMatchObject({ wider: true, taller: false });
+  });
+});
+
+describe("tileScale (PanelTiles board)", () => {
+  it("never stretches a tile past its own size, even in a wide card with no room (the flow's pane)", () => {
+    // A 100 unit wide panel in an 800 px card: drawingScale stretches it, a tile keeps K.
+    expect(drawingScale(800, 100).k).toBeGreaterThan(K);
+    expect(tileScale(drawingScale(800, 100).k)).toBe(K);
+    expect(tileScale(drawingScale(800, 100, 1.25).k, 1.25)).toBe(K * 1.25);
+    // Smaller only to fit.
+    expect(tileScale(K / 2)).toBe(K / 2);
   });
 });

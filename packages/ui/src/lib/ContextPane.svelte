@@ -55,7 +55,6 @@ the list on wide screens and inside the step on narrow ones.
     const many = (region.code ?? "").includes("·");
     return [region.name, many ? (code ?? name) : (region.code ?? code)];
   });
-  // One drawing per panel, starting with the control's own section; up to three, as 3.0 shows.
   /** The step's panels as tiles (owner, batch 6). */
   let tiles = $derived(stepTiles(index, step, targets));
   let cardName = $derived(tilesTitle(tiles).title);

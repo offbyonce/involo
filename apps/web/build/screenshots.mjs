@@ -136,6 +136,9 @@ const finishSkippingLast = (id) =>
 /** Goes to a phase (or emergency reference list) and opens step `id` there, its folded list first. */
 const openStep = (kind, phase, id) =>
   `(async () => { const wait = (ms) => new Promise((go) => setTimeout(go, ms)); location.hash = ${JSON.stringify(kind === "reference" ? "#/reference/" : "#/phase/")} + ${JSON.stringify(phase)}; await wait(700); for (const b of document.querySelectorAll("button.card.folded")) b.click(); await wait(300); const row = document.querySelector('[data-step="' + ${JSON.stringify(id)} + '"] button.row'); if (!row) { const b = document.createElement("div"); b.textContent = "Not on screen for this flight: " + ${JSON.stringify(id)}; b.setAttribute("style", "position:fixed;top:0;left:0;right:0;z-index:99;background:#b00;color:#fff;font:16px sans-serif;padding:8px"); document.body.append(b); return true; } row.click(); await wait(400); return true; })()`;
+/** Picks the option choice labeled `label` on the phase page that asks it. */
+const pickChoice = (phase, label) =>
+  `(async () => { const wait = (ms) => new Promise((go) => setTimeout(go, ms)); location.hash = "#/phase/" + ${JSON.stringify(phase)}; await wait(700); [...document.querySelectorAll('[role="radiogroup"] button, .cards button')].find((b) => b.textContent.trim().startsWith(${JSON.stringify(label)}))?.click(); await wait(300); return true; })()`;
 function stepShots() {
   const file = process.env.INVOLO_STEPS;
   if (!file) return [];
@@ -144,12 +147,17 @@ function stepShots() {
     .split("\n")
     .filter(Boolean)
     .flatMap((line, n) => {
-      const [kind, phase, id] = line.split("\t");
-      const open = [openStep(kind, phase, id), press("p")];
-      const tag = String(n + 1).padStart(2, "0");
+      // An optional fourth column numbers the shot (to retake some of a list under their numbers).
+      // A fifth, "<phase>|<choice>", first picks an option asked in that phase (a step shown only for
+      // a visual approach, say).
+      const [kind, phase, id, number, choose] = line.split("\t");
+      const [askedIn, choice] = (choose ?? "").split("|");
+      const open = [...(choice ? [pickChoice(askedIn, choice)] : []), openStep(kind, phase, id), press("p")];
+      const at = number ? Number(number) - 1 : n;
+      const tag = String(at + 1).padStart(2, "0");
       return [
         { name: `tiles-${tag}`, only: ["desktop"], app: { hash: "#/", before: open } },
-        ...(n < 3 ? [{ name: `tiles-map-${tag}`, only: ["desktop"], app: { hash: "#/", before: [...open, click(".slide-box .deck-toggle")] } }] : []),
+        ...(at < 3 ? [{ name: `tiles-map-${tag}`, only: ["desktop"], app: { hash: "#/", before: [...open, click(".slide-box .deck-toggle")] } }] : []),
       ];
     });
 }
@@ -463,7 +471,7 @@ const SHOTS = [
   // no decision step yet).
   { name: "board-decision", only: ["phone"], app: { hash: "", page: "design/?view=decision&state=phone&theme={theme}" } },
   // Batch 6 panels (owner): a step's sheet and side-pane preview card, opened by P, for each step in
-  // INVOLO_STEPS (a local file of "phase|reference <tab> phase id <tab> step id" lines), named
+  // INVOLO_STEPS (a local file of "phase|reference <tab> phase id <tab> step id [<tab> number]" lines), named
   // tiles-<n>; with its map open, tiles-map-<n>, for the first three.
   ...stepShots(),
   // The PanelTiles board's step: the wiper selectors, their sheet and the deck map open.

@@ -67,6 +67,10 @@ export function drawingScale(room: number, boxWidth: number, page = 1): { k: num
   return { k, overflow: k > fit + 1e-6 };
 }
 
+/** A tile among several keeps its drawing's own size, smaller only to fit (PanelTiles board): with
+ * or without a room (the slide-out's, or the flow's pane card), never stretched past K. */
+export const tileScale = (k: number, page = 1): number => Math.min(k, K * page);
+
 /** Line height for labels under a control, as a multiple of the text size. */
 const LINE = 1.15;
 

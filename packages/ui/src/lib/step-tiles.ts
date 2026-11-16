@@ -14,12 +14,13 @@ export type DrawnTile = { kind: "drawn"; id: string; panel: Panel; section: Pane
 export type ListedTile = { kind: "listed"; id: string; title: string; controls: string[] };
 export type Tile = DrawnTile | ListedTile;
 
-/** The step's tiles, the one with its main control (its first) first, then in the step's order. */
+/** The step's tiles: the one with the first control it sets first (the main panel), then in the
+ * step's order, with panels that only hold lights its Check names last (owner, batch 6). */
 export function stepTiles(index: PackIndex, step: Step, targets: ItemTarget[]): Tile[] {
   const controls = step.controls ?? [];
   const rank = (ids: readonly string[]) =>
     Math.min(...ids.map((c) => controls.indexOf(c)).filter((n) => n >= 0), Number.POSITIVE_INFINITY);
-  const tiles: { tile: Tile; rank: number; at: number }[] = [];
+  const tiles: { tile: Tile; checks: boolean; rank: number; at: number }[] = [];
   const drawnControls = new Set<string>();
   for (const id of [...new Set(targets.map((t) => t.section))]) {
     const section = index.section(id);
@@ -27,8 +28,14 @@ export function stepTiles(index: PackIndex, step: Step, targets: ItemTarget[]): 
     if (!section || !panel) continue;
     const ids = targets.filter((t) => t.section === id).flatMap((t) => section.items[t.item]?.controls ?? []);
     for (const c of ids) drawnControls.add(c);
+    // Only lights the Check names: never the main panel while another tile has a control it sets.
+    // A light expected out is a check too (lit false, no position).
+    const checks = targets
+      .filter((t) => t.section === id)
+      .every((t) => t.position == null && !t.open && (t.lit || section.items[t.item]?.kind === "light"));
     tiles.push({
       tile: { kind: "drawn", id, panel, section, title: section.title },
+      checks,
       rank: rank(ids),
       at: tiles.length,
     });
@@ -48,10 +55,13 @@ export function stepTiles(index: PackIndex, step: Step, targets: ItemTarget[]): 
   for (const [id, e] of listed)
     tiles.push({
       tile: { kind: "listed", id, title: e.title, controls: e.controls },
+      checks: false,
       rank: rank(e.ids),
       at: tiles.length,
     });
-  return tiles.sort((a, b) => a.rank - b.rank || a.at - b.at).map((t) => t.tile);
+  return tiles
+    .sort((a, b) => Number(a.checks) - Number(b.checks) || a.rank - b.rank || a.at - b.at)
+    .map((t) => t.tile);
 }
 
 /** The sheet's title and "Also:" line for the step's tiles. */

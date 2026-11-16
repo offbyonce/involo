@@ -30,6 +30,7 @@ What the step asks for, never the simulator's state (decision 0006).
     band,
     frame,
     titled = true,
+    tileRx = null,
     framed = true,
     textless = false,
     halo = false,
@@ -48,6 +49,9 @@ What the step asks for, never the simulator's state (decision 0006).
     frame?: { y0: number; y1: number; x0: number; x1: number } | undefined;
     /** The section's title is drawn; a later part of a divided section continues without it. */
     titled?: boolean;
+    /** One tile among several (PanelTiles board): the panel's fill, a thin frame, and this radius
+     * (8 px on screen, in drawing units). */
+    tileRx?: number | null;
     /** Its outline is drawn; the side pane's card is the outline of a drawing of one section, as
      * on the boards, so a cut frame never shows as stray lines across it. */
     framed?: boolean;
@@ -126,7 +130,7 @@ What the step asks for, never the simulator's state (decision 0006).
 </script>
 
 <g class:textless transform="translate({section.x} {section.y})">
-  <rect class="frame" class:bare={!framed} x={left} y={top} width={right - left} height={frameBottom - top} rx="3" />
+  <rect class="frame" class:bare={!framed} class:tile={tileRx != null} x={left} y={top} width={right - left} height={frameBottom - top} rx={tileRx ?? 3} />
   {#if titled}<text class="title" x={left + 8} y={top + 13} style:font-size={fs(PX.title * layout.scale)}>{section.title.toUpperCase()}</text>{/if}
   {#each shown as { item, i } (i)}
     {@const on = byItem.has(i)}
@@ -333,6 +337,11 @@ What the step asks for, never the simulator's state (decision 0006).
     fill: var(--panel-bg);
     stroke: var(--panel-stroke);
     stroke-width: 1;
+  }
+  .frame.tile {
+    fill: var(--panel-fill);
+    stroke: var(--panel-frame);
+    vector-effect: non-scaling-stroke;
   }
   .frame.bare {
     stroke: none;

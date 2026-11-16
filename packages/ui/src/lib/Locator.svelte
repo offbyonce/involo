@@ -40,7 +40,6 @@ deck" until the Flight deck page exists (batch 6). All from the pack, in the pan
   let map = $derived(index.region(zone));
   let region = $derived(map?.region ?? null);
   let overview = $derived(index.overview);
-  let byId = $derived(new Map(index.zones.map((z) => [z.id, z])));
   let title = $derived((phone ? region?.short_title : region?.title) ?? region?.title ?? "Where is this?");
 
   function show() {
@@ -266,6 +265,4 @@ deck" until the Flight deck page exists (batch 6). All from the pack, in the pan
   .deck-toggle[aria-expanded="true"] :global(.icon) {
     transform: rotate(180deg);
   }
-  /* The whole flight deck, on the panel palette. */
-  /* Map units, about one to a pixel here: 11 or more. */
 </style>

@@ -41,7 +41,15 @@ on it, as a list. One drawn panel alone is drawn as before.
     scroller?: HTMLDivElement | null | undefined;
   } = $props();
 
-  const GAP = 16;
+  /** 16 px (space-4) at the default text size, scaled with the root font size as the CSS gap is. */
+  let page = $state(1);
+  $effect(() => {
+    const read = () => (page = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) / 16 || 1);
+    read();
+    window.addEventListener("resize", read);
+    return () => window.removeEventListener("resize", read);
+  });
+  let GAP = $derived(16 * page);
   let single = $derived(tiles.length === 1 && tiles[0]?.kind === "drawn" ? tiles[0] : null);
   let naturals = $state<Record<string, number>>({});
   let width = $state(0);
