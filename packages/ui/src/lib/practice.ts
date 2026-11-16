@@ -92,13 +92,16 @@ export type ChoiceSeed = Base & {
   kind: "choice";
   answer: string;
   tiers: { items: string[]; shuffle: boolean }[];
+  /** What each wrong option really is, for the feedback ("That’s the VALVE OPEN light…"); `why`
+   * then says the right one, as the board's feedback does (owner). */
+  about: Record<string, string>;
 };
 export type OrderSeed = Base & { kind: "order"; items: string[] };
 export type Seed = ChoiceSeed | OrderSeed;
 
 /** A question as dealt into a test: four options A to D in random order, or steps to order. */
 export type Question =
-  | (Base & { kind: "choice"; options: string[]; answer: number })
+  | (Base & { kind: "choice"; options: string[]; answer: number; about: Record<string, string> })
   | (Base & { kind: "order"; items: string[]; shown: number[] });
 
 /** "No two options that mean the same thing": the same words, or one inside the other. */
@@ -116,23 +119,43 @@ const norm = (s: string) =>
     .replace(/[^A-Z0-9]+/g, " ")
     .trim();
 
+/** Whether the right option's length gives it away (owner): it is the only shortest or the only
+ * longest, by more than 40%. */
+export function standsOut(answer: string, wrong: string[]): boolean {
+  const a = answer.length;
+  const lengths = wrong.map((w) => w.length);
+  const shortest = Math.min(...lengths);
+  const longest = Math.max(...lengths);
+  return (a < shortest && shortest > a * 1.4) || (a > longest && a > longest * 1.4);
+}
+
 /** The three wrong options: from each tier in turn, skipping any that means the answer or an option
- * already taken. Fewer than three means the question is skipped. */
+ * already taken. When the right option's length would stand out, the last one taken gives way to
+ * the nearest valid option of a length like the answer's. Fewer than three means the question is
+ * skipped. */
 export function pickWrong(
   answer: string,
   tiers: { items: string[]; shuffle: boolean }[],
   rng?: () => number,
 ): string[] {
-  const out: string[] = [];
+  const valid: string[] = [];
   for (const tier of tiers) {
     const items = rng && tier.shuffle ? shuffled(tier.items, rng) : tier.items;
     for (const x of items) {
-      if (out.length === 3) return out;
-      if (!x || sameMeaning(x, answer) || out.some((o) => sameMeaning(o, x))) continue;
-      out.push(x);
+      if (!x || sameMeaning(x, answer) || valid.some((o) => sameMeaning(o, x))) continue;
+      valid.push(x);
     }
   }
-  return out;
+  const out = valid.slice(0, 3);
+  if (out.length < 3 || !standsOut(answer, out)) return out;
+  for (const keep of [2, 1, 0]) {
+    const others = out.filter((_, i) => i !== keep);
+    for (const x of valid.slice(3)) {
+      const tried = [...others.slice(0, keep), x, ...others.slice(keep)];
+      if (!standsOut(answer, tried)) return tried;
+    }
+  }
+  return out.slice(0, 2);
 }
 
 /** A seeded random number generator (mulberry32), so a test can be dealt again the same way. */
@@ -212,6 +235,12 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
     return p ? [p] : [];
   };
   const union = (xs: string[][]) => [...new Set(xs.flat())];
+  /** What each option is, first come first kept, for the feedback. */
+  const tell = (pairs: [string, string][]) => {
+    const m: Record<string, string> = {};
+    for (const [k, v] of pairs) if (!(k in m)) m[k] = v;
+    return m;
+  };
 
   // Memory items.
   const memLists = [...memory].flatMap((id) => lists.get(id) ?? []);
@@ -233,7 +262,13 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         stem: { kind: "card", title: list.title, body: item(s) },
         short: `${list.title}: after ${s.text}`,
         source: `step:${next.id}`,
-        why: next.why ?? null,
+        why: `After ${s.text} comes ${next.text}.`,
+        about: tell([
+          ...list.steps.map((x, k): [string, string] => [item(x), `That’s item ${k + 1} of ${list.title}.`]),
+          ...memLists
+            .filter((l) => l !== list)
+            .flatMap((l) => l.steps.map((x): [string, string] => [item(x), `That’s from ${l.title}.`])),
+        ]),
         links: [stepLink(next)],
         phases: null,
         steps: [s.id, next.id],
@@ -302,7 +337,9 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
     ];
     const phases = union(l.users.map(stepPhases));
     const base = { phases, steps: [], links, source: `light:${l.locator}` };
-    const label = `${l.label}${l.zone ? ` (${l.zone.short_title.toLowerCase()})` : ""}`;
+    // The light and its panel by name, never by an id or short title (owner).
+    const label = `${l.label}${l.zone ? `, on the ${l.zone.title}` : ""}`;
+    const on = (x: (typeof lights)[number]) => (x.zone ? `, on the ${x.zone.title}` : "");
     out.push({
       ...base,
       id: `lights:meaning:${l.locator}`,
@@ -311,7 +348,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       prompt: "What does this light mean when it’s lit?",
       stem: { kind: "light", label: l.label, color: l.color, caption: where },
       short: `What does this light mean when it’s lit? ${label}`,
-      why: [l.when, l.action].filter(Boolean).join(" "),
+      why: `${l.label} means: ${l.meaning}`,
+      about: tell(o.map((x) => [x.meaning, `That’s the ${x.label} light${on(x)}: ${x.meaning}`])),
       answer: l.meaning,
       tiers: groups.map((g) => ({ items: g.map((x) => x.meaning), shuffle: true })),
     });
@@ -324,7 +362,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         prompt: "Which light means this when it’s lit?",
         stem: { kind: "card", title: where, body: l.meaning },
         short: `Which light means this? ${l.meaning}`,
-        why: [l.when, l.action].filter(Boolean).join(" "),
+        why: `${l.label} means: ${l.meaning}`,
+        about: tell(o.map((x) => [x.label, `${x.label}${on(x)} means: ${x.meaning}`])),
         answer: l.label,
         tiers: groups.map((g) => ({
           items: g.filter((x) => !sameMeaning(x.meaning, l.meaning)).map((x) => x.label),
@@ -340,6 +379,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
     const zone = zoneOf(step);
     return [{ ...f, step, area: zone ? zones.get(zone)?.area : undefined }];
   });
+  /** A fault's step and what it shows ("Ground power switch, GRD POWER AVAILABLE out"). */
+  const symptom = (x: Step) => `${stepTitle(index, x)}${x.if_not ? `, ${x.if_not}` : ""}`;
   for (const f of faults) {
     if (!f.step.if_not || !f.area) continue;
     const o = faults.filter((x) => x !== f && x.area === f.area);
@@ -363,8 +404,9 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       prompt: "What should you do?",
       short: `${title}: ${f.step.if_not}. What should you do?`,
       source: `fault:${f.step.id}:action`,
-      // The step's own why: a cause or the action would give away the fault's other question.
-      why: f.step.why ?? null,
+      // The action only: a cause would give away the fault's cause question.
+      why: `${title}, ${f.step.if_not}. What to do: ${f.action}.`,
+      about: tell(o.map((x) => [x.action, `That’s what to do for ${symptom(x.step)}.`])),
       answer: f.action,
       tiers: [{ items: o.map((x) => x.action), shuffle: true }],
     });
@@ -375,7 +417,12 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         prompt: "What is a likely cause?",
         short: `${title}: ${f.step.if_not}. What is a likely cause?`,
         source: `fault:${f.step.id}:cause`,
-        why: f.step.why ?? null,
+        why: `${title}, ${f.step.if_not}. Likely cause: ${cause}.`,
+        about: tell(
+          o.flatMap((x) =>
+            x.causes.map((c): [string, string] => [c, `That’s a likely cause for ${symptom(x.step)}.`]),
+          ),
+        ),
         answer: cause,
         tiers: [
           {
@@ -403,7 +450,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         stem: { kind: "card", title: "Briefing item", body: word(it) },
         short: `Which mnemonic does ${word(it)} belong to?`,
         source: `brief:${it.id}`,
-        why: it.detail ?? `${b.mnemonic}: the ${b.title} briefing.`,
+        why: `${word(it)} is part of ${b.mnemonic}, the ${b.title} briefing.`,
+        about: tell(briefings.map((x) => [x.mnemonic, `${x.mnemonic} is the ${x.title} briefing.`])),
         answer: b.mnemonic,
         // A mnemonic that also has this item would be right too: never an option (review).
         tiers: [
@@ -425,7 +473,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
           stem: { kind: "card", title: `${b.mnemonic} · ${b.title}`, body: word(it) },
           short: `${b.mnemonic}: after ${word(it)}`,
           source: `brief:${next.id}`,
-          why: next.detail ?? null,
+          why: `In ${b.mnemonic}, after ${word(it)} comes ${word(next)}.`,
+          about: tell(b.items.map((x, k) => [word(x), `That’s item ${k + 1} of ${b.mnemonic}.`])),
           answer: word(next),
           tiers: [{ items: b.items.filter((x) => x !== it && x !== next).map(word), shuffle: true }],
         });
@@ -475,11 +524,12 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         )
       )
         return;
-      const near = list.steps
+      const nearSteps = list.steps
         .map((x, j) => ({ x, d: Math.abs(j - i) }))
         .filter((o) => o.x !== s && o.x.expect)
         .sort((a, b) => a.d - b.d)
-        .map((o) => o.x.expect);
+        .map((o) => o.x);
+      const near = nearSteps.map((x) => x.expect);
       const tiers = [
         { items: own, shuffle: true },
         { items: near, shuffle: false },
@@ -494,7 +544,14 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         stem: { kind: "card", title, body: list.title },
         short: `${title}, ${phaseTitle(phase) || list.title}`,
         source: `value:${norm(s.text)}:${norm(s.expect)}`,
-        why: s.why ?? null,
+        why: `In the ${list.title}, the ${title}: ${s.expect}.`,
+        about: tell([
+          ...own.map((p): [string, string] => [p, `${p} is another position of the ${title}.`]),
+          ...nearSteps.map((x): [string, string] => [
+            x.expect,
+            `That’s the value for the ${stepTitle(index, x)}.`,
+          ]),
+        ]),
         links: [stepLink(s)],
         phases,
         steps: [s.id],
@@ -530,7 +587,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         stem: { kind: "card", title: list.title, body: `After: ${title(s)}` },
         short: `${list.title}: after ${title(s)}`,
         source: `next:${next.id}`,
-        why: next.why ?? null,
+        why: `After ${title(s)} comes ${title(next)}.`,
+        about: tell(list.steps.map((x, k) => [title(x), `That’s step ${k + 1} of the ${list.title}.`])),
         links: [stepLink(next)],
         phases,
         steps: [s.id, next.id],
@@ -550,7 +608,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
           stem: { kind: "card", title: list.title, body: s.text },
           short: `${list.title}: ${s.text}`,
           source: `challenge:${s.id}`,
-          why: s.why ?? null,
+          why: `${s.text}: ${s.expect}.`,
+          about: tell(list.steps.map((x) => [x.expect, `That’s the response to ${x.text}.`])),
           links: [stepLink(s)],
           phases,
           steps: [s.id],
@@ -585,16 +644,11 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
     const links: Link[] = area
       ? [{ label: `${zone.title} on the Flight deck`, href: deckHref(area.id, zone.id) }]
       : [];
-    const base = {
-      topic: "where" as const,
-      kind: "choice" as const,
-      phases,
-      steps: [],
-      links,
-      why: c.location,
-    };
-    const name = c.name.charAt(0).toLowerCase() + c.name.slice(1);
-    const prompt = `Where is the ${/^[A-Z0-9/]{2,}\b/.test(c.name) ? c.name : name}?`;
+    const base = { topic: "where" as const, kind: "choice" as const, phases, steps: [], links };
+    const name = /^[A-Z0-9/]{2,}\b/.test(c.name) ? c.name : c.name.charAt(0).toLowerCase() + c.name.slice(1);
+    // "Where are" for a plural name (owner).
+    const plural = /[^su]s$/i.test(c.name.split(/\s+/).at(-1) ?? "");
+    const prompt = `Where ${plural ? "are" : "is"} the ${name}?`;
     // Its panel: the area's other panels, nearest first; then the nearest area's panels.
     const byGap = (zs: typeof index.zones) =>
       [...zs].sort((a, b) => gap(own, boxes.get(a.id) ?? []) - gap(own, boxes.get(b.id) ?? []));
@@ -605,22 +659,31 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       .map((x) => ({ ...x, d: Math.min(...x.zs.map((z) => gap(own, boxes.get(z.id) ?? []))) }))
       .filter((x) => Number.isFinite(x.d))
       .sort((p, q) => p.d - q.d);
-    out.push({
-      ...base,
-      id: `where:panel:${c.id}`,
-      prompt,
-      stem: null,
-      short: prompt,
-      source: `where:${c.id}:panel`,
-      answer: zone.title,
-      tiers: [
-        { items: same.map((z) => z.title), shuffle: false },
-        ...otherAreas.map((x) => ({ items: byGap(x.zs).map((z) => z.title), shuffle: false })),
-      ],
-    });
+    // A panel whose name shares a word with the control's gives it away: no panel question (owner).
+    if (!sharesWord(c.name, zone.title))
+      out.push({
+        ...base,
+        id: `where:panel:${c.id}`,
+        prompt,
+        stem: null,
+        short: prompt,
+        source: `where:${c.id}:panel`,
+        why: `The ${name} ${plural ? "are" : "is"} on the ${zone.title}: ${c.location}`,
+        about: tell(
+          index.zones.map((z) => [
+            z.title,
+            `The ${z.title} is on the ${z.area}${z.position ? `, ${lowerFirst(z.position)}` : ""}.`,
+          ]),
+        ),
+        answer: zone.title,
+        tiers: [
+          { items: same.map((z) => z.title), shuffle: false },
+          ...otherAreas.map((x) => ({ items: byGap(x.zs).map((z) => z.title), shuffle: false })),
+        ],
+      });
     // Its Flight deck area: the other areas, nearest first (by the map; in the page's order
     // where a place has no box on it).
-    if (area) {
+    if (area && !sharesWord(c.name, areaName(area))) {
       const at = areas.indexOf(area);
       const ranked = areas
         .filter((a) => a !== area)
@@ -640,6 +703,13 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         stem: null,
         short: prompt,
         source: `where:${c.id}:area`,
+        why: `The ${name} ${plural ? "are" : "is"} in the ${areaName(area)}, on the ${zone.title}.`,
+        about: tell(
+          areas.map((a) => [
+            areaName(a),
+            `That’s the ${areaName(a)}${a.locate ? `: ${lowerFirst(a.locate)}` : "."}`,
+          ]),
+        ),
         answer: areaName(area),
         tiers: [{ items: ranked, shuffle: false }],
       });
@@ -677,7 +747,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       steps: [],
       links: [{ label: `${t.term} in the Glossary`, href: glossaryHref(t.term) }],
       source: `term:${t.term}`,
-      why: `${t.term}: ${t.meaning}`,
+      why: `${t.term} means: ${t.meaning}`,
     };
     out.push({
       ...base,
@@ -686,6 +756,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       stem: null,
       short: `What does ${t.term} mean?`,
       answer: t.meaning,
+      about: tell(o.map((x) => [x.meaning, `That’s what ${x.term} means.`])),
       tiers: [{ items: o.map((x) => x.meaning), shuffle: true }],
     });
     const definition = split(t.term, t.meaning).definition || t.meaning;
@@ -697,6 +768,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         stem: { kind: "card", title: "Definition", body: definition },
         short: `Which term means this? ${definition}`,
         answer: t.term,
+        about: tell(o.map((x) => [x.term, `${x.term} means: ${x.meaning}`])),
         tiers: [
           { items: o.filter((x) => !sameMeaning(x.meaning, t.meaning)).map((x) => x.term), shuffle: true },
         ],
@@ -705,6 +777,39 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
 
   // The rules: exactly one correct answer and three real wrong options, or the question is skipped.
   return out.filter((q) => q.kind === "order" || pickWrong(q.answer, q.tiers).length === 3);
+}
+
+const lowerFirst = (s: string) => (/^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s);
+
+/** Words that say nothing about where a control is. */
+const PLAIN = new Set([
+  "AND",
+  "THE",
+  "OF",
+  "FOR",
+  "WITH",
+  "ON",
+  "IN",
+  "TO",
+  "PANEL",
+  "PANELS",
+  "SWITCH",
+  "SWITCHES",
+  "SELECTOR",
+  "SELECTORS",
+]);
+/** Whether two names share a meaningful word ("Fuel pump switches" and "Fuel panel"), singular or
+ * plural (owner). */
+export function sharesWord(a: string, b: string): boolean {
+  const words = (s: string) =>
+    new Set(
+      norm(s)
+        .split(" ")
+        .filter((w) => w.length >= 3 && !PLAIN.has(w))
+        .map((w) => w.replace(/(?<=[^S])S$/, "")),
+    );
+  const x = words(a);
+  return [...words(b)].some((w) => x.has(w));
 }
 
 /** Whether a definition gives its term away: it holds the term ("BARO" in "Barometric"), or its first

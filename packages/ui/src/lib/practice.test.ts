@@ -19,6 +19,7 @@ import {
   type Seed,
   sameMeaning,
   seeds,
+  sharesWord,
   sourcesIn,
   spellsOut,
   stepShows,
@@ -106,25 +107,25 @@ describe("the question generator", () => {
   it("produces the counts from today's pack (2026-11-16; reported to the owner, then refined as the generator applies the rules)", () => {
     expect(count("memory", "next")).toBe(20);
     expect(count("memory", "order")).toBe(5);
-    expect(count("lights", "meaning")).toBe(163);
-    expect(count("lights", "light")).toBe(130);
+    expect(count("lights", "meaning")).toBe(155);
+    expect(count("lights", "light")).toBe(126);
     expect(count("faults", "action")).toBe(9);
-    expect(count("faults", "cause")).toBe(24);
-    // 256: 8 steps whose other drawn positions all mean the value, and 17 whose list has a second
-    // step of the same title with another value, are left out.
-    expect(count("values")).toBe(256);
-    expect(count("order", "next")).toBe(365);
+    expect(count("faults", "cause")).toBe(23);
+    // Left out: steps whose other drawn positions all mean the value, steps whose list has a second
+    // step of the same title with another value, and those whose right value's length stands out.
+    expect(count("values")).toBe(225);
+    expect(count("order", "next")).toBe(337);
     expect(all.filter((q) => q.topic === "order" && q.kind === "order").length).toBe(80);
-    expect(count("challenge")).toBe(55);
-    expect(count("terms", "meaning")).toBe(103);
-    expect(count("terms", "term")).toBe(84);
-    expect(count("where", "area")).toBe(151);
-    expect(count("where", "panel")).toBe(151);
+    expect(count("challenge")).toBe(43);
+    expect(count("terms", "meaning")).toBe(100);
+    expect(count("terms", "term")).toBe(80);
+    expect(count("where", "area")).toBe(148);
+    expect(count("where", "panel")).toBe(64);
   });
 
   it("asks which mnemonic an item belongs to, its next item and its order, with no letter questions (owner)", () => {
     expect(count("mnemonics", "which")).toBe(24);
-    expect(count("mnemonics", "next")).toBe(8);
+    expect(count("mnemonics", "next")).toBe(6);
     expect(count("mnemonics", "order")).toBe(5);
   });
 
@@ -270,6 +271,94 @@ describe("the question generator", () => {
     for (const q of all.filter((x) => x.id.startsWith("terms:term:")))
       if (q.kind === "choice" && q.stem?.kind === "card")
         expect(spellsOut(q.answer, q.stem.body ?? ""), q.id).toBe(false);
+  });
+
+  it("never lets the right option's length stand out: not the only shortest or longest by more than 40% (owner)", () => {
+    for (const seed of all) {
+      if (seed.kind !== "choice") continue;
+      for (const n of [1, 2, 3]) {
+        const q = dealOne(seed, random(n));
+        if (q.kind !== "choice") continue;
+        const right = q.options[q.answer] ?? "";
+        const wrong = q.options.filter((_, i) => i !== q.answer);
+        const short = Math.min(...wrong.map((w) => w.length));
+        const long = Math.max(...wrong.map((w) => w.length));
+        expect(right.length < short && short > right.length * 1.4, `${q.id}: ${right}`).toBe(false);
+        expect(right.length > long && right.length > long * 1.4, `${q.id}: ${right}`).toBe(false);
+      }
+    }
+  });
+
+  it("shows no pack id in any question or option (owner: GEN OFF BUS named its panel by a short title)", () => {
+    // Every id in the pack that is not also an ordinary word of its own text.
+    const words = new Set(
+      [
+        ...index.zones.flatMap((z) => [z.title, z.area]),
+        ...index.controls.flatMap((c) => [c.name, c.location]),
+        ...pack.lists.flatMap((l) => [l.title, ...l.steps.flatMap((x) => [x.text, x.expect, x.why ?? ""])]),
+        ...(pack.content.glossary?.terms ?? []).map((t) => t.meaning),
+      ]
+        .join(" ")
+        .toLowerCase()
+        .split(/[^a-z0-9]+/),
+    );
+    const ids = [
+      ...index.zones.map((z) => z.id),
+      ...index.controls.map((c) => c.id),
+      ...index.panels.flatMap((p) => [p.id, ...p.sections.map((x) => x.id)]),
+      ...pack.lists.flatMap((l) => [l.id, ...l.steps.map((x) => x.id)]),
+      ...(pack.content.phases?.phases ?? []).map((p) => p.id),
+      ...(pack.content.briefings?.briefings ?? []).flatMap((b) => [b.id, ...b.items.map((i) => i.id)]),
+    ].filter((id) => id.length >= 3 && !words.has(id));
+    const shortTitles = index.zones.map((z) => `(${z.short_title.toLowerCase()})`);
+    const idSet = new Set(ids);
+    const found: string[] = [];
+    for (const seed of all) {
+      const texts = [
+        seed.prompt,
+        seed.short,
+        seed.stem?.kind === "card"
+          ? `${seed.stem.title} ${seed.stem.body ?? ""}`
+          : (seed.stem?.caption ?? ""),
+      ];
+      if (seed.kind === "choice") texts.push(seed.answer, ...seed.tiers.flatMap((t) => t.items));
+      else texts.push(...seed.items);
+      for (const text of texts) {
+        for (const token of text.split(/[^A-Za-z0-9.-]+/))
+          if (idSet.has(token)) found.push(`${seed.id}: "${token}" in ${text}`);
+        for (const t of shortTitles) if (text.includes(t)) found.push(`${seed.id}: ${t}`);
+      }
+    }
+    expect([...new Set(found)].slice(0, 10)).toEqual([]);
+  });
+
+  it("explains every wrong option, then the right one, never with a raw action line (owner)", () => {
+    const actions = new Set((pack.content.lights?.lights ?? []).map((l) => l.action));
+    for (const seed of all) {
+      if (seed.kind !== "choice") continue;
+      expect(seed.why, seed.id).toBeTruthy();
+      expect(actions.has(seed.why ?? ""), seed.id).toBe(false);
+      for (const w of pickWrong(seed.answer, seed.tiers))
+        expect(seed.about[w], `${seed.id}: ${w}`).toBeTruthy();
+    }
+    const light = all.find((q) => q.id === "lights:meaning:oh/fuel/LOW PRESSURE/1");
+    if (light?.kind === "choice") {
+      expect(light.why).toMatch(/^LOW PRESSURE means: /);
+      expect(Object.values(light.about).every((a) => /^That’s the .+ light/.test(a))).toBe(true);
+    }
+  });
+
+  it("Where controls are: no panel or area that shares a word with the control; Where are for plurals (owner)", () => {
+    expect(sharesWord("Fuel pump switches", "Fuel panel")).toBe(true);
+    expect(sharesWord("Flight deck windows", "Windows and oxygen masks")).toBe(true);
+    expect(sharesWord("Battery switch", "Electrical panel, upper section")).toBe(false);
+    for (const q of all.filter((x) => x.topic === "where")) {
+      if (q.kind !== "choice") continue;
+      const name = q.prompt.replace(/^Where (is|are) the /, "").replace(/\?$/, "");
+      expect(sharesWord(name, q.answer), q.id).toBe(false);
+      if (/[^su]s$/i.test(name.split(" ").at(-1) ?? ""))
+        expect(q.prompt.startsWith("Where are"), q.id).toBe(true);
+    }
   });
 
   it("keeps every seed's id unique", () => {

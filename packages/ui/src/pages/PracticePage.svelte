@@ -411,7 +411,8 @@ portrait too). Results last only for this visit.
   {#if locked && t.feedback === "each" && answer !== x.answer}
     <div class="fb" role="status">
       <span class="fb-title">Not this one</span>
-      {#if x.why}<span class="fb-why">{x.why}</span>{/if}
+      <!-- What the chosen option really is, then the right one (the board's feedback; owner). -->
+      <span class="fb-why">{[x.about[x.options[answer as number] ?? ""], x.why].filter(Boolean).join(" ")}</span>
       {@render links(x.links)}
     </div>
   {/if}
@@ -1313,6 +1314,21 @@ portrait too). Results last only for this visit.
     gap: calc(var(--space-3) + var(--border-thick));
     max-width: none;
     padding: calc(var(--space-3) + var(--border-thick)) var(--space-4);
+  }
+  /* Phone: "Your answer" and "Correct answer" on their own line under the text, which keeps the
+     full width (owner). */
+  .practice:not(.wide) .opt {
+    display: grid;
+    grid-template-columns: var(--space-8) minmax(0, 1fr);
+    column-gap: var(--space-3);
+    row-gap: var(--space-1);
+  }
+  .practice:not(.wide) .opt .letter {
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+  .practice:not(.wide) .opt .mark {
+    grid-column: 2;
   }
   .practice:not(.wide) .question h2 {
     font-size: var(--font-size-panel-title);
