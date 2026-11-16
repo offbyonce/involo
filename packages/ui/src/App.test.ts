@@ -661,6 +661,68 @@ describe("App", () => {
     expect(screen.getByRole("link", { name: "Glossary" }).getAttribute("href")).toBe("#/glossary");
   });
 
+  it("opens How procedures work from the menu, with the pack's counts and links to the pilot's phase and step (How README)", async () => {
+    const lists = (id: string, n: number) => ({
+      id,
+      title: id,
+      reference: true,
+      lists: Array.from({ length: n }, (_, i) => `${id}-${i}`),
+    });
+    const withRef = {
+      ...pack,
+      content: {
+        ...pack.content,
+        phases: {
+          ...pack.content.phases,
+          phases: [
+            { id: "power-up", title: "Power up", lists: ["power-up-flow"] },
+            lists("memory", 2),
+            lists("qrh", 3),
+            lists("nnc", 4),
+          ],
+        },
+      },
+    } as unknown as FlatPack;
+    const refRail = {
+      ...rail,
+      reference: [
+        phase("memory", "Memory items", 0, 0, 2),
+        phase("qrh", "Quick reference", 0, 0, 3),
+        phase("nnc", "Non-normal", 0, 0, 4),
+      ],
+    };
+    render(App, { context: hostContext(host({ loadPack: async () => withRef, rail: async () => refRail })) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    const link = screen.getByRole("link", { name: "How procedures work" });
+    expect(link.getAttribute("href")).toBe("#/how");
+    location.hash = "#/how";
+    expect(await screen.findByRole("heading", { level: 1, name: "How procedures work" })).toBeTruthy();
+    const text = document.querySelector("article")?.textContent ?? "";
+    expect(text).toContain("Involo splits a flight into 2 stages:");
+    expect(text).toContain("Involo has 2 memory-item lists, 3 quick reference lists and 4 procedures,");
+    // The current phase: the phase last open (Power up), and its current step.
+    const inv = () => [...document.querySelectorAll(".inv a")];
+    expect(inv()[0]?.textContent).toBe("Power up ›");
+    expect(inv()[0]?.getAttribute("href")).toBe("#/phase/power-up");
+    await waitFor(() => expect(inv()[2]?.textContent).not.toBe("Power up ›"));
+    await fireEvent.click(inv()[2] as HTMLElement);
+    await waitFor(() => expect(location.hash).toBe("#/phase/power-up"));
+  });
+
+  it("How procedures work's current phase is the phase last open, over the first with steps to do (review)", async () => {
+    render(App, { context: hostContext(host()) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    location.hash = "#/phase/taxi";
+    // The hashchange event comes after the address changes.
+    await new Promise((r) => setTimeout(r, 50));
+    location.hash = "#/how";
+    await screen.findByRole("heading", { level: 1, name: "How procedures work" });
+    const first = document.querySelector(".inv a");
+    expect(first?.textContent).toBe("Taxi ›");
+    expect(first?.getAttribute("href")).toBe("#/phase/taxi");
+  });
+
   it("closes Find on the system back, as any full-screen sheet", async () => {
     render(App, { context: hostContext(host()) });
     await screen.findByRole("heading", { level: 1, name: "Power up" });

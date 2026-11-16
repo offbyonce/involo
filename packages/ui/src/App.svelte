@@ -51,6 +51,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import { buildGlossary, glossaryHref } from "./lib/glossary";
   import GlossaryPage from "./pages/GlossaryPage.svelte";
   import FlightDeckPage from "./pages/FlightDeckPage.svelte";
+  import HowPage from "./pages/HowPage.svelte";
   import PracticePage from "./pages/PracticePage.svelte";
   import Tour from "./lib/Tour.svelte";
   import { tour } from "./lib/tour-state.svelte";
@@ -324,7 +325,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let current = $derived(view?.lists.find((l) => l.current)?.current ?? null);
   /** The step the context panel shows, its row, and the steps after it. */
   let pane = $derived.by(() => {
-    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck" || screen === "practice") return null;
+    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck" || screen === "practice" || screen === "how") return null;
     const id = flow ? (cursor ?? current) : (selected ?? (screen === "reference" ? null : current));
     const rows = view.lists.flatMap((l) => l.steps);
     const at = rows.findIndex((r) => r.id === id);
@@ -697,6 +698,43 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       else (row ?? document.querySelector<HTMLElement>("main"))?.focus();
     });
   }
+  // How procedures work (owner's How README). Its "In Involo" links go to the pilot's current phase,
+  // found as Take the tour finds it, and that phase's current step.
+  let howPhase = $derived.by(() => {
+    const phases = rail?.stages.flatMap((s) => s.phases) ?? [];
+    const p = phases.find((x) => x.id === lastPhase) ?? phases.find((x) => x.progress.toDo > 0) ?? phases[0];
+    return p ? { id: p.id, title: p.title } : null;
+  });
+  let howStep = $state<{ id: string; title: string } | null>(null);
+  $effect(() => {
+    const id = howPhase?.id;
+    const f = flight;
+    const s = settings;
+    howStep = null;
+    if (screen !== "how" || !id || !f || !s) return;
+    let stale = false;
+    host.phaseView(packId, f, s, id).then(
+      (v) => {
+        const c = v.lists.find((l) => l.current)?.current ?? null;
+        const st = c ? index?.step(c) : undefined;
+        const title = st && index ? stepTitle(index, st) : undefined;
+        if (!stale) howStep = c && title ? { id: c, title } : null;
+      },
+      () => {
+        if (!stale) howStep = null;
+      },
+    );
+    return () => {
+      stale = true;
+    };
+  });
+  /** The counts the page names: the stages, and the lists in each Emergency tab (memory items, quick
+   * reference and non-normal procedures, in the pack's order). */
+  let howCounts = $derived.by(() => {
+    const lists = new Map((flatPack?.content.phases?.phases ?? []).map((p) => [p.id, p.lists.length]));
+    const ref = (rail?.reference ?? []).map((p) => lists.get(p.id) ?? 0);
+    return { stages: rail?.stages.length ?? 0, memory: ref[0] ?? 0, qrh: ref[1] ?? 0, procedures: ref[2] ?? 0 };
+  });
   let tourStages = $derived<[string, string]>([rail?.stages[0]?.title ?? "", rail?.stages.at(-1)?.title ?? ""]);
 </script>
 
@@ -731,6 +769,17 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
 {:else if route.value.screen === "practice" && index && flatPack}
   <div class="flightwrap">
     <PracticePage pack={flatPack} {index} options={flight?.options ?? {}} backHref={lastPhase ? phaseHref(lastPhase) : "#/"} onStep={goToStep} />
+  </div>
+{:else if route.value.screen === "how" && rail}
+  <div class="flightwrap">
+    <HowPage
+      part={route.value.part}
+      counts={howCounts}
+      phase={howPhase}
+      step={howStep}
+      backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
+      onStep={goToStep}
+    />
   </div>
 {:else if route.value.screen === "deck" && index}
   <div class="flightwrap">

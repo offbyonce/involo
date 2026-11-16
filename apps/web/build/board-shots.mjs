@@ -214,6 +214,9 @@ const SHOTS = [
   ["TourStepPhone", { layout: "phone", state: "step" }, 390, 844, "Tour", round6],
   ["TourEnd", { layout: "desktop", state: "end" }, 1440, 900, "Tour", round6],
   ["TourEndPhone", { layout: "phone", state: "end" }, 390, 844, "Tour", round6],
+  // How procedures work (owner): part 2, desktop and phone.
+  ["HowDesk", { layout: "desktop" }, 1440, 900, "HowItWorks", round6],
+  ["HowPhone", { layout: "phone" }, 390, 844, "HowItWorks", round6],
 ];
 
 async function main() {

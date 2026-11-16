@@ -564,6 +564,11 @@ const SHOTS = [
   { name: "board-glossary", only: ["desktop"], app: { hash: "#/glossary/APU" } },
   { name: "board-glossary-list", only: ["phone"], app: { hash: "#/glossary" } },
   { name: "board-glossary-term", only: ["phone"], app: { hash: "#/glossary/APU" } },
+  // How procedures work (owner; HowDesk, HowPhone): part 2 as the boards show it, whole; and each
+  // part at desktop.
+  // From Before start, the boards' phase, so the In Involo links name it.
+  { name: "board-how", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go("#/how/2")] } },
+  ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ name: `how-part-${n}`, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go(`#/how/${n}`)] } })),
   // The phone list with its fold opened: each later list starts with its label row (owner, batch 6).
   { name: "board-phone-fold", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("button.after"), click("button.card.folded"), `(() => { [...document.querySelectorAll("section.card > p.label")].find((p) => p.offsetParent)?.scrollIntoView({ block: "center" }); return true; })()`] } },
   { name: "board-phone-open", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click(".prow .open")] } },
@@ -665,9 +670,10 @@ async function shootWhole(browser, file) {
   const page = await send("browsingContext.captureScreenshot", { context, origin: "document" });
   fs.writeFileSync(`${base}-page.png`, Buffer.from(page.data, "base64"));
   // What scrolls on its own: the side pane, or on the Flight pages the section column (the whole
-  // body on narrow screens), sliced top to bottom.
+  // body on narrow screens), or How procedures work's reading column or phone page, sliced top to
+  // bottom.
   const sel = await js(
-    `["aside.pane", "main.fmain", ".flight .cols"].find((s) => { const e = document.querySelector(s); return e && e.clientHeight > 0 && (s === "aside.pane" || e.scrollHeight > e.clientHeight + 1); }) ?? null`,
+    `["aside.pane", "main.fmain", ".flight .cols", ".how main.read", ".how main.page"].find((s) => { const e = document.querySelector(s); return e && e.clientHeight > 0 && (s === "aside.pane" || e.scrollHeight > e.clientHeight + 1); }) ?? null`,
   );
   if (!sel) return;
   const q = JSON.stringify(sel);

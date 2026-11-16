@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from "vitest";
-import { parseRoute } from "./route.svelte";
+import { howHref, parseRoute } from "./route.svelte";
 
 describe("parseRoute", () => {
   it("reads the Flight deck's area and place, and the Glossary's term", () => {
@@ -17,5 +17,12 @@ describe("parseRoute", () => {
 
   it("reads Practice", () => {
     expect(parseRoute("#/practice")).toEqual({ screen: "practice" });
+  });
+
+  it("reads How procedures work and its part (the address carries the part, How README)", () => {
+    expect(parseRoute("#/how")).toEqual({ screen: "how", part: null });
+    expect(parseRoute("#/how/2")).toEqual({ screen: "how", part: 2 });
+    expect(parseRoute("#/how/x")).toEqual({ screen: "how", part: null });
+    expect(howHref(3)).toBe("#/how/3");
   });
 });
