@@ -52,6 +52,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import GlossaryPage from "./pages/GlossaryPage.svelte";
   import FlightDeckPage from "./pages/FlightDeckPage.svelte";
   import PracticePage from "./pages/PracticePage.svelte";
+  import Tour from "./lib/Tour.svelte";
+  import { tour } from "./lib/tour.svelte";
   import { currentRoute, flightHref, phaseHref } from "./route.svelte";
   import { applyPalette, applyScale } from "./theme/tokens";
 
@@ -108,6 +110,9 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let lists = $state(new Map<string, Checklist>());
   let intros = $state(new Map<string, { heading?: string | null; text: string }[]>());
   let settings = $state<Settings | null>(null);
+  /** Whether a flight was saved on this device before this visit (the tour's welcome is for a first
+   * visit). */
+  let hadFlight = false;
   let flight = $state<Flight | null>(null);
   let rail = $state<Rail | null>(null);
   let open = $state<OpenStep[]>([]);
@@ -202,6 +207,9 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
         kept = [...kept, { what, state: item.loaded.state, text: item.text }];
         return null;
       };
+      // A flight saved with no settings: settings are saved only once changed, so this pilot has been
+      // here before (review). Saved settings say for themselves.
+      hadFlight = !!saved.flight && !saved.settings;
       settings = usable("settings", saved.settings) ?? (await host.defaultSettings());
       const savedFlight = usable("flight", saved.flight);
       flight = savedFlight && savedFlight.pack === aircraft.id ? savedFlight : await host.newFlight(aircraft.id);
@@ -647,9 +655,49 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   const changeView = (v: ListView) => {
     if (settings) void changeSettings({ ...settings, listView: v });
   };
+
+  // The tour (owner's Tour README). The welcome opens on the first visit, once the checklist has
+  // loaded; answering it is remembered in Settings, the only thing the tour stores.
+  let welcomeAsked = false;
+  $effect(() => {
+    if (welcomeAsked || !settings || !rail || !view || (screen !== "phase" && screen !== "start")) return;
+    welcomeAsked = true;
+    // Not a first visit: a flight saved before settings were (settings are only saved once changed),
+    // or saved settings set aside, which can't take the answer until they are resolved (review).
+    if (!settings.tourSeen && !hadFlight && !kept.some((k) => k.what === "settings")) {
+      tour.dir = 1;
+      tour.step = 1;
+    }
+  });
+  /** Where focus goes back to when the tour ends: the menu button, after Take the tour. */
+  let tourFrom: HTMLElement | null = null;
+  function takeTour(): void {
+    tourFrom = document.querySelector<HTMLElement>("header.top .menu");
+    if (screen !== "phase" && screen !== "start") location.hash = "#/";
+    tour.dir = 1;
+    tour.step = 2;
+  }
+  function tourSeen(): void {
+    if (settings && !settings.tourSeen) void changeSettings({ ...settings, tourSeen: true });
+  }
+  function tourEnded(start: boolean): void {
+    const from = tourFrom;
+    tourFrom = null;
+    // Back to the menu button after Take the tour; otherwise to the page, on the current step.
+    // Once the tour has gone and the page is no longer inert.
+    requestAnimationFrame(() => {
+      const row = document.querySelector<HTMLElement>("li.it.current .row");
+      if (!start && from?.isConnected) from.focus();
+      else (row ?? document.querySelector<HTMLElement>("main"))?.focus();
+    });
+  }
+  let tourStages = $derived<[string, string]>([rail?.stages[0]?.title ?? "", rail?.stages.at(-1)?.title ?? ""]);
 </script>
 
 <svelte:window onkeydown={slideKeys} onpopstate={() => findOpen && !history.state?.find && closeFind(true, true)} />
+{#if tour.step !== null && rail}
+  <Tour stages={tourStages} {findKey} onSeen={tourSeen} onEnd={tourEnded} />
+{/if}
 {#if findOpen && findIndex}
   <Find
     find={findIndex}
@@ -763,6 +811,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       onReset={() => void clearFlight()}
       clear={clearList ? { title: clearList.title, ticks: clearList.progress.done } : null}
       onClearTicks={() => clearList && void clearTicks(clearList.id)}
+      onTour={takeTour}
       onClose={() => (menuOpen = false)}
     />
     {#if pickerOpen && rail}

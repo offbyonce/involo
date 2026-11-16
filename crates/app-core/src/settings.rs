@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// The saved format of [`Settings`]. Raise it, with a migration and tests, when the shape changes.
-pub const SETTINGS_FORMAT: u32 = 5;
+pub const SETTINGS_FORMAT: u32 = 6;
 
 /// The highest dimming step; 0 is full brightness.
 pub const MAX_DIMMING: u8 = 4;
@@ -109,6 +109,9 @@ pub struct Settings {
     pub chime: bool,
     pub simbrief_user: Option<String>,
     pub load_plan_on_open: bool,
+    /// Whether the tour's welcome card has been seen (the tour, 2026-11-16): the only thing the
+    /// tour stores. Not flight data.
+    pub tour_seen: bool,
 }
 
 impl Default for Settings {
@@ -127,6 +130,7 @@ impl Default for Settings {
             chime: true,
             simbrief_user: None,
             load_plan_on_open: false,
+            tour_seen: false,
         }
     }
 }

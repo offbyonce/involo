@@ -112,6 +112,20 @@ with 6 px either side). The selected panel is an overview fitted to its column (
 navigator when wider; the 900 to 1439 px slide-out shows it at full size. The slide-out's and Where is this?'s "Whole flight deck" map is gone: "Open
 in Flight deck", as the Locator board draws it, opens the page at that panel.
 
+**The tour (owner, 2026-11-16).** Built from `Tour.dc.html` (in `round6/boards`): `TourWelcome`,
+`TourStep` and `TourEnd`, with their Phone versions, each in dark and light. Seven steps: the welcome
+(step 1) and "You're set" (step 7) are centered cards over color.scrim; steps 2 to 6 light up one
+real element with a 2 px accent ring 8 px outside it and color.scrim over the rest, the card beside
+it (below by default, otherwise wherever fits) with its arrow. Below 900 px the card is a bottom
+sheet, except step 3, which lights the Done / Skip for now bar with the card just above it (owner).
+The desktop board's whole-header ring is a stand-in for the stage tabs (owner): the tabs at 1440 px,
+the stage button below that, and a step with neither on screen is skipped. The welcome opens on a
+first visit once the checklist has loaded; "Take the tour" is the last item of "This flight and the
+app", as the Menu boards draw it (owner), and starts at step 2. Only whether the welcome has been
+seen is stored (Settings.tourSeen; settings saved before format 6 count as seen). The step dots use
+color.toggle-off (owner: the board's own grays were an error). While the tour is open no key or click
+reaches the page, so it never ticks, skips or changes the flight.
+
 **Practice (owner, 2026-11-16).** Built from `Practice.dc.html` (in `round6/boards`):
 `PracticeHome` and `PracticeHomePhone` (the ready-made tests, Build a test, "Earlier this visit"),
 `PracticeQuestion` and `PracticeQuestionPhone` (a choice answered wrong, with feedback),

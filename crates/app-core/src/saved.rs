@@ -51,7 +51,16 @@ const SETTINGS_MIGRATIONS: &[Migration] = &[
     settings_2_to_3,
     settings_3_to_4,
     settings_4_to_5,
+    settings_5_to_6,
 ];
+
+/// Format 6 adds whether the tour's welcome card has been seen. Settings saved before it come from
+/// someone who has used the app already, so it counts as seen: the welcome is for a first visit.
+fn settings_5_to_6(mut value: Value) -> Result<Value, String> {
+    let object = value.as_object_mut().ok_or("settings are not an object")?;
+    object.insert("tourSeen".into(), Value::from(true));
+    Ok(value)
+}
 
 /// Format 5 adds the Flight pages' Descriptions On/Off, On to start with.
 fn settings_4_to_5(mut value: Value) -> Result<Value, String> {
@@ -287,6 +296,24 @@ mod tests {
         };
         assert_eq!(migrated_from, Some(4));
         assert!(value.descriptions);
+    }
+
+    #[test]
+    fn settings_from_format_5_count_the_welcome_as_seen() {
+        let mut old = serde_json::to_value(Settings::default()).unwrap();
+        old["format"] = json!(5);
+        old.as_object_mut().unwrap().remove("tourSeen");
+        let Loaded::Ready {
+            value,
+            migrated_from,
+        } = load_settings(&old.to_string())
+        else {
+            panic!("not ready");
+        };
+        assert_eq!(migrated_from, Some(5));
+        assert!(value.tour_seen);
+        // A first visit has no saved settings: the defaults have not seen it.
+        assert!(!Settings::default().tour_seen);
     }
 
     #[test]

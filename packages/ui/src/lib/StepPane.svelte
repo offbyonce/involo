@@ -160,14 +160,14 @@ and a caution note under If not. A step with no control shows the steps coming u
   {/if}
 
   {#if place}
-    <button class="line" class:flow type="button" onclick={() => onOpen({ entry: "where" })}>
+    <button class="line" data-tour="where" class:flow type="button" onclick={() => onOpen({ entry: "where" })}>
       {#if !flow}<span class="pin"><Icon name="pin" /></span>{/if}
       <span class="area">{where} · {place.zone.title}</span>
       <span class="lk">Where is this?</span>
     </button>
     {#if preview}
       {#if tiles.length}
-        <button class="preview" type="button" aria-label="Show the whole {[cardName, tilesTitle(tiles).also].filter(Boolean).join(", ")}" onclick={() => onOpen({ entry: "panel" })}>
+        <button class="preview" data-tour="where" type="button" aria-label="Show the whole {[cardName, tilesTitle(tiles).also].filter(Boolean).join(", ")}" onclick={() => onOpen({ entry: "panel" })}>
           {#if drawnTiles[0]}
             <PanelPreview panel={drawnTiles[0].panel} focus={[]} tiles={drawnTiles.map((d) => d.section)} {targets} {guardClosed} label="The whole {cardName}" />
           {/if}

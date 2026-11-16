@@ -28,4 +28,9 @@ panelPreview: boolean,
  * Off keeps the label, the value and the chip; ? keeps the longer note. Set only from the
  * Flight header.
  */
-descriptions: boolean, chime: boolean, simbriefUser: string | null, loadPlanOnOpen: boolean, };
+descriptions: boolean, chime: boolean, simbriefUser: string | null, loadPlanOnOpen: boolean, 
+/**
+ * Whether the tour's welcome card has been seen (the tour, 2026-11-16): the only thing the
+ * tour stores. Not flight data.
+ */
+tourSeen: boolean, };
