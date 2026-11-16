@@ -59,6 +59,15 @@ const base = {
 };
 
 describe("Find", () => {
+  it("marks the match in a step's value and a term's definition too (owner, batch 6)", async () => {
+    render(Find, base);
+    const field = screen.getByRole("combobox", { name: "Find a step, control or term" });
+    await fireEvent.input(field, { target: { value: "light" } });
+    expect([...document.querySelectorAll(".val mark")].map((m) => m.textContent)).toEqual(["LIGHT"]);
+    await fireEvent.input(field, { target: { value: "explained" } });
+    expect(document.querySelector(".mean mark")?.textContent).toBe("explained");
+  });
+
   it("before typing: the help line and the Try chips; a chip fills the field (FindDeskStart)", async () => {
     render(Find, base);
     const field = screen.getByRole("combobox", { name: "Find a step, control or term" });

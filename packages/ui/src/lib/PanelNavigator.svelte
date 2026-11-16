@@ -100,6 +100,7 @@ while the labeled panel stays at 11 px labels or more.
   }
 </script>
 
+<div class="nav">
 <div
   class="navigator"
   role="slider"
@@ -115,8 +116,26 @@ while the labeled panel stays at 11 px labels or more.
 >
   <PanelPreview {panel} {focus} {targets} {guardClosed} label="The whole {title}" {view} {marker} bind:svg />
 </div>
+<span class="sideways">Scroll sideways for the rest of the panel →</span>
+</div>
 
 <style>
+  /* The navigator's strip, drawn as the Locator board draws a wide panel's figure: the panel's
+     background and frame, the whole panel, and "Scroll sideways for the rest of the panel →" beside it. */
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-2) calc(var(--space-2) + var(--border-thick));
+    border: var(--border-thin) solid var(--panel-frame);
+    border-radius: var(--radius-control);
+    background: var(--panel-bg);
+  }
+  .sideways {
+    color: var(--panel-label);
+    font-size: var(--font-size-caption);
+  }
   .navigator {
     flex: 0 1 auto;
     min-width: 0;

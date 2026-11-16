@@ -119,6 +119,8 @@ folded to one line with its count until the phase's procedure is done.
     <span class="count">{counts}</span>
     {#if touched}<button class="clear" type="button" onclick={() => onClear(list.id)}>Clear ticks</button>{/if}
   </header>
+  <!-- Tablet and phone: a later list starts with a plain label, the fold's text (owner, batch 6). -->
+  <p class="label" aria-hidden="true">{list.title} · {list.progress.done} of {list.progress.total}</p>
   {#if source?.when || source?.why}
     <div class="when">
       {#if source?.when}<p><b>When</b> · {source.when}</p>{/if}
@@ -329,6 +331,20 @@ folded to one line with its count until the phase's procedure is done.
     section.card:not(.large) > header :is(.count, .clear) {
       display: none;
     }
+    /* A list after the first starts with a plain label row: 32 px, 12 px semibold, muted. */
+    :global(.card) ~ section.card:not(.large) > .label {
+      display: flex;
+    }
+  }
+  .label {
+    display: none;
+    align-items: center;
+    min-height: var(--space-8);
+    margin: 0;
+    padding: 0 calc(var(--space-3) + var(--border-thick));
+    color: var(--color-text-muted);
+    font-size: var(--font-size-caption);
+    font-weight: var(--weight-semibold);
   }
   /* Phone (Mobile board): no card frame, rows edge to edge, the steps after the current one folded. */
   @media (max-width: 599px) {

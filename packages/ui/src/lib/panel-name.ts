@@ -42,6 +42,7 @@ export function panelName(title: string): string {
 
 const LEFT = /^(L|Left|Captain)\s+(.+)$/i;
 const RIGHT = /^(R|Right|First officer|F\/O)\s+(.+)$/i;
+const NUMBERED = /^(.+?)\s+(\d+)$/;
 
 /** A pair's shared name in the plural: "wiper panels", "displays", "CDUs". */
 function plural(name: string): string {
@@ -51,23 +52,38 @@ function plural(name: string): string {
   return last.endsWith("s") ? name : `${name}s`;
 }
 
-/** One title for a step's panels, main panel first, with the others as an "Also:" line. */
+/** Two panels named as one: a left and right pair ("L and R wiper panels") or a numbered pair
+ * ("Radio 1 and 2 panels"); null when they are not a pair. */
+function pairName(a: string, b: string): string | null {
+  const l = LEFT.exec(a) ?? LEFT.exec(b);
+  const r = RIGHT.exec(a === l?.[0] ? b : a);
+  if (l && r && l[2]?.toLowerCase() === r[2]?.toLowerCase()) {
+    // An abbreviation keeps its capitals ("L and R"); a word takes sentence case ("left and right").
+    const side = (w: string) => (w.length <= 3 ? w : w.toLowerCase());
+    return `${sentence(l[1] ?? "")} and ${side(r[1] ?? "")} ${plural(l[2] ?? "")}`;
+  }
+  const na = NUMBERED.exec(a);
+  const nb = NUMBERED.exec(b);
+  if (na && nb && na[1] === nb[1] && Number(nb[2]) === Number(na[2]) + 1)
+    return plural(`${sentence(na[1] ?? "")} ${na[2]} and ${nb[2]}`);
+  return null;
+}
+
+/** One title for a step's panels, main panel first, with the others as an "Also:" line; pairs
+ * side by side in the list are named as one, in the title and in the Also line. */
 export function panelTitle(titles: string[]): { title: string; also: string | null } {
   const names = titles.map((t) => t.trim());
-  const [first, second] = names;
-  if (names.length === 2 && first && second) {
-    const l = LEFT.exec(first) ?? LEFT.exec(second);
-    const r = RIGHT.exec(first === l?.[0] ? second : first);
-    if (l && r && l[2]?.toLowerCase() === r[2]?.toLowerCase()) {
-      // An abbreviation keeps its capitals ("L and R"); a word takes sentence case ("left and right").
-      const side = (w: string) => (w.length <= 3 ? w : w.toLowerCase());
-      return { title: `${sentence(l[1] ?? "")} and ${side(r[1] ?? "")} ${plural(l[2] ?? "")}`, also: null };
-    }
+  const groups: string[] = [];
+  for (let i = 0; i < names.length; i++) {
+    const a = names[i] ?? "";
+    const b = names[i + 1];
+    const pair = b !== undefined ? pairName(a, b) : null;
+    if (pair) {
+      groups.push(pair);
+      i++;
+    } else groups.push(panelName(a));
   }
-  return {
-    title: first !== undefined ? panelName(first) : "",
-    also: names.length > 1 ? names.slice(1).map(panelName).join(", ") : null,
-  };
+  return { title: groups[0] ?? "", also: groups.length > 1 ? groups.slice(1).join(", ") : null };
 }
 
 /** The title alone (card captions and labels). */

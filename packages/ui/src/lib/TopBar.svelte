@@ -103,7 +103,7 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
     {#if onFind}
       <!-- Find (Checklist, Tablet and Mobile boards): the word and its shortcut on desktop, the
            icon alone below 1440 px. -->
-      <button class="find" type="button" aria-label="Find a step or term" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" onclick={onFind}
+      <button class="find" type="button" aria-label="Find a step, control or term" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" onclick={onFind}
         ><Icon name="find" /><span class="fw">Find</span><span class="fk">{findKey}</span></button
       >
     {/if}

@@ -139,9 +139,18 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     openSteps.shown = false;
     slide = null;
     findOpen = true;
+    // An entry of its own, so the system back closes Find as it closes any full-screen sheet.
+    history.pushState({ ...(history.state ?? {}), find: true }, "");
   }
-  function closeFind(back = true): void {
+  /** `back`: closed in place (Esc, the back arrow, the scrim), focus going back to the opener;
+   * otherwise a step or control was chosen and the page moves on. `popped`: the system back. */
+  function closeFind(back = true, popped = false): void {
+    if (!findOpen) return;
     findOpen = false;
+    if (!popped && history.state?.find) {
+      if (back) history.back();
+      else history.replaceState({ ...history.state, find: false }, "");
+    }
     if (back) (findOpener?.isConnected ? findOpener : document.querySelector<HTMLElement>("header.top .find"))?.focus();
     findOpener = null;
   }
@@ -630,7 +639,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   };
 </script>
 
-<svelte:window onkeydown={slideKeys} />
+<svelte:window onkeydown={slideKeys} onpopstate={() => findOpen && !history.state?.find && closeFind(true, true)} />
 {#if findOpen && findIndex}
   <Find
     find={findIndex}

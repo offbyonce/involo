@@ -12,6 +12,7 @@ on it, as a list. One drawn panel alone is drawn as before.
   import type { ItemTarget } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import { panelName } from "./panel-name";
+  import PanelNavigator from "./PanelNavigator.svelte";
   import PanelSchematic from "./PanelSchematic.svelte";
   import type { Tile } from "./step-tiles";
 
@@ -52,6 +53,10 @@ on it, as a list. One drawn panel alone is drawn as before.
   let GAP = $derived(16 * page);
   let single = $derived(tiles.length === 1 && tiles[0]?.kind === "drawn" ? tiles[0] : null);
   let naturals = $state<Record<string, number>>({});
+  /** Each tile wider than its room, and the element that scrolls it: a navigator strip above it
+   * (owner, batch 6: every wide panel, on single and multi-panel sheets alike). */
+  let wides = $state<Record<string, boolean>>({});
+  let scrollers = $state<Record<string, HTMLDivElement | null>>({});
   let width = $state(0);
   /** Side by side when every tile fits at its own full size; stacked otherwise. */
   let row = $derived.by(() => {
@@ -71,7 +76,9 @@ on it, as a list. One drawn panel alone is drawn as before.
   <div class="tiles" class:row bind:clientWidth={width}>
     {#each tiles as t (t.id)}
       {#if t.kind === "drawn"}
+        {@const strip = wides[t.id] ? scrollers[t.id] : null}
         <div class="tile" style:width={row ? `${naturals[t.id] ?? 0}px` : undefined}>
+          {#if strip}<PanelNavigator panel={t.panel} focus={[t.id]} {targets} {guardClosed} scroller={strip} title={panelName(t.title)} />{/if}
           <PanelSchematic
             panel={t.panel}
             focus={[t.id]}
@@ -84,6 +91,8 @@ on it, as a list. One drawn panel alone is drawn as before.
             tile
             bind:picked
             bind:natural={() => naturals[t.id], (v) => (naturals[t.id] = v ?? 0)}
+            bind:wider={() => wides[t.id], (v) => (wides[t.id] = v ?? false)}
+            bind:scroller={() => scrollers[t.id], (v) => (scrollers[t.id] = v ?? null)}
           />
         </div>
       {:else}
@@ -112,6 +121,9 @@ on it, as a list. One drawn panel alone is drawn as before.
     align-items: flex-start;
   }
   .tile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
     max-width: 100%;
   }
   .tiles:not(.row) .tile {

@@ -38,4 +38,19 @@ describe("panel names (owner, batch 6)", () => {
     expect(panelTitle(["Left annunciators", "Right annunciators"]).title).toBe("Left and right annunciators");
     expect(panelTitle(["Left CDU", "Right CDU"]).title).toBe("Left and right CDUs");
   });
+
+  it("names a numbered pair as one, and pairs in the Also line too", () => {
+    expect(panelTitle(["Radio 1", "Radio 2"])).toEqual({ title: "Radio 1 and 2 panels", also: null });
+    expect(panelTitle(["NAV 1", "NAV 2"]).title).toBe("NAV 1 and 2 panels");
+    expect(panelTitle(["Oxygen mask", "Audio 1", "Audio 2"])).toEqual({
+      title: "Oxygen mask",
+      also: "Audio 1 and 2 panels",
+    });
+    expect(panelTitle(["Left CDU", "Right CDU", "Captain EFIS", "First officer EFIS"])).toEqual({
+      title: "Left and right CDUs",
+      also: "Captain and first officer EFIS panels",
+    });
+    // Not consecutive numbers: not a pair.
+    expect(panelTitle(["Radio 1", "Radio 3"]).also).toBe("Radio 3 panel");
+  });
 });

@@ -78,7 +78,12 @@ a full-screen sheet below it. It searches every step, control and term in the pa
 opens it from any page. `Tablet.dc.html` and `Mobile.dc.html` add Clear ticks to the menu above
 Reset flight plan, and draw no procedure header. `Menu.dc.html` (with `MenuWhere`, in `boards/`)
 opens "Where is Flight setup?" on desktop. `StagePicker.dc.html` and `Mobile.dc.html` correct the
-dark scrim to 0.55, and `Decision.dc.html` redraws DecPhone to the Mobile board's rules.
+dark scrim to 0.55, and `Decision.dc.html` redraws DecPhone to the Mobile board's rules. The owner's
+answers: matches are marked in a step's value and a term's definition too, values clamp to two
+lines, the header button is named "Find a step, control or term", and the system back closes Find;
+Try chips keep the 44 px touch size. At tablet and phone each list after the first starts with a
+plain label row (32 px, 12 px semibold, `color.muted`, "Before start checklist · 0 of 6"), with no
+Clear ticks.
 
 **Batch 6 panels (owner, 2026-11-15).** `PanelTiles.dc.html` (dark and light) draws a step whose
 controls are on two panels, and the Whole flight deck map. A step draws only the panels that hold
@@ -90,8 +95,11 @@ names one panel, or a left and right pair as one ("L and R wiper panels"); other
 with the control the step sets (never one holding only lights its Check names), with "Also: …" in
 the sub-line. Names are the pack's as they are, in sentence case, with "panel" added only when the
 name does not end in a thing ("Control stand", "Captain and first officer displays", "Fuel
-panel"). A panel too wide for the sheet keeps its navigator strip, drawn like the Locator board's
-figure with "Scroll sideways for the rest of the panel →" beside it. The map
+panel"). A left and right or numbered pair is named as one ("Radio 1 and 2 panels"), in the title
+and in the "Also:" line. Every panel too wide for its room keeps a navigator strip, on single and
+multi-panel sheets alike, drawn like the Locator board's figure with "Scroll sideways for the rest
+of the panel →" beside it. A step's control the pack does not draw is listed the way a panel with
+no drawing is. The map
 has no line above it; area labels sit above their area, 8 px clear of the outline and 16 px under
 the area before; the dashed outline runs 6 px outside the area's panels; a marked box is labeled
 only when the label fits with 6 px either side.

@@ -36,6 +36,7 @@ steps:
       - speedt
     targets:
       - at: "con/st/FLAP LEVER/1"
+      - at: "mn/cd/OUTBOARD DU: PFD/1"
     quick: always
     why: "Retract one step at a time, at or above each flap mark on the speed tape. Retracting early loses lift"
     how: flapup

@@ -20,7 +20,7 @@ export function stepTiles(index: PackIndex, step: Step, targets: ItemTarget[]): 
   const controls = step.controls ?? [];
   const rank = (ids: readonly string[]) =>
     Math.min(...ids.map((c) => controls.indexOf(c)).filter((n) => n >= 0), Number.POSITIVE_INFINITY);
-  const tiles: { tile: Tile; checks: boolean; rank: number; at: number }[] = [];
+  const tiles: { tile: Tile; level: number; rank: number; at: number }[] = [];
   const drawnControls = new Set<string>();
   for (const id of [...new Set(targets.map((t) => t.section))]) {
     const section = index.section(id);
@@ -29,13 +29,15 @@ export function stepTiles(index: PackIndex, step: Step, targets: ItemTarget[]): 
     const ids = targets.filter((t) => t.section === id).flatMap((t) => section.items[t.item]?.controls ?? []);
     for (const c of ids) drawnControls.add(c);
     // Only lights the Check names: never the main panel while another tile has a control it sets.
-    // A light expected out is a check too (lit false, no position).
-    const checks = targets
-      .filter((t) => t.section === id)
-      .every((t) => t.position == null && !t.open && (t.lit || section.items[t.item]?.kind === "light"));
+    const mine = targets.filter((t) => t.section === id);
+    const checks = mine.every(
+      (t) => t.position == null && !t.open && (t.lit || section.items[t.item]?.kind === "light"),
+    );
+    // A panel with a control the step sets comes first, then the others it uses, then its lights.
+    const level = mine.some((t) => t.position != null || t.open) ? 0 : checks ? 2 : 1;
     tiles.push({
       tile: { kind: "drawn", id, panel, section, title: section.title },
-      checks,
+      level,
       rank: rank(ids),
       at: tiles.length,
     });
@@ -45,7 +47,8 @@ export function stepTiles(index: PackIndex, step: Step, targets: ItemTarget[]): 
   for (const c of controls) {
     if (drawnControls.has(c)) continue;
     const control = index.control(c);
-    if (!control?.zone || index.zoneDrawn(control.zone)) continue;
+    // Drawn on a panel the step does not target: the pack's targets name it (owner, batch 6).
+    if (!control?.zone || index.controlDrawn(c)) continue;
     const zone = index.zones.find((z) => z.id === control.zone);
     const entry = listed.get(control.zone) ?? { title: zone?.title ?? control.name, controls: [], ids: [] };
     entry.controls.push(control.name);
@@ -55,13 +58,11 @@ export function stepTiles(index: PackIndex, step: Step, targets: ItemTarget[]): 
   for (const [id, e] of listed)
     tiles.push({
       tile: { kind: "listed", id, title: e.title, controls: e.controls },
-      checks: false,
+      level: 1,
       rank: rank(e.ids),
       at: tiles.length,
     });
-  return tiles
-    .sort((a, b) => Number(a.checks) - Number(b.checks) || a.rank - b.rank || a.at - b.at)
-    .map((t) => t.tile);
+  return tiles.sort((a, b) => a.level - b.level || a.rank - b.rank || a.at - b.at).map((t) => t.tile);
 }
 
 /** The sheet's title and "Also:" line for the step's tiles. */

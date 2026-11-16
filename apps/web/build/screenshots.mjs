@@ -495,6 +495,8 @@ const SHOTS = [
     },
   })),
   { name: "board-menu-where", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click('[aria-controls="drawer"]'), click("#drawer .wlink")] } },
+  // The phone list with its fold opened: each later list starts with its label row (owner, batch 6).
+  { name: "board-phone-fold", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("button.after"), click("button.card.folded"), `(() => { [...document.querySelectorAll("section.card > p.label")].find((p) => p.offsetParent)?.scrollIntoView({ block: "center" }); return true; })()`] } },
   { name: "board-phone-open", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click(".prow .open")] } },
   // Round 6's slide-out: Show panel (P), Where is this? (W), and a control's card (tap CTR L).
   { name: "board-panel", full: true, only: ["desktop", "wide", "tablet-landscape"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("p")] } },
@@ -573,6 +575,9 @@ async function shoot(browser, url, ready, steps, file, full = false) {
   }
   await sleep(300);
   if (await js("!!document.getElementById('update-ready')")) process.stderr.write(`update offer showing: ${file}\n`);
+  // SCREENSHOTS_IF: keep only the shots where this selector matches (a wide tile among several, say).
+  const only = process.env.SCREENSHOTS_IF;
+  if (only && !(await js(`!!document.querySelector(${JSON.stringify(only)})`))) return;
   const { data } = await send("browsingContext.captureScreenshot", { context });
   fs.writeFileSync(file, Buffer.from(data, "base64"));
   if (full) await shootWhole(browser, file);

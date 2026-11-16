@@ -130,6 +130,7 @@ matches “…”". Esc, the scrim and the back button close it.
 
 <svelte:window onkeydown={onKey} />
 
+<!-- The match marked in a title, a step's value or a term's definition (owner, batch 6). -->
 {#snippet title(text: string)}
   {@const m = marked(text, query)}
   {#if m}{m[0]}<mark>{m[1]}</mark>{m[2]}{:else}{text}{/if}
@@ -193,7 +194,7 @@ matches “…”". Esc, the scrim and the back button close it.
               >
               <span class="txt"
                 ><span class="t">{@render title(s.title)}</span><span class="sub"
-                  ><span>{s.stage} › {s.phaseTitle}</span><span class="val">{s.value}</span></span
+                  ><span>{s.stage} › {s.phaseTitle}</span><span class="val">{@render title(s.value)}</span></span
                 ></span
               >
               <span class="end">{#if st === "current"}<span class="now">Current</span>{/if}<Icon name="chevron-right" /></span>
@@ -249,7 +250,7 @@ matches “…”". Esc, the scrim and the back button close it.
               onclick={() => choose({ kind: "term", t })}
             >
               <span class="ic kind"><Icon name="find-term" /></span>
-              <span class="txt"><span class="t">{@render title(t.term)}</span><span class="sub mean">{t.meaning}</span></span>
+              <span class="txt"><span class="t">{@render title(t.term)}</span><span class="sub mean">{@render title(t.meaning)}</span></span>
               <span class="end"><Icon name="chevron-right" /></span>
             </div>
           {/each}
@@ -460,7 +461,13 @@ matches “…”". Esc, the scrim and the back button close it.
     color: var(--color-text-muted);
     font-size: calc(var(--font-size-caption) + var(--border-thin));
   }
+  /* A long value clamps to two lines (owner, batch 6). */
   .val {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     color: var(--color-text-secondary);
     font-family: var(--font-mono);
     font-size: var(--font-size-caption);

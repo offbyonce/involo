@@ -59,6 +59,8 @@ export type PackIndex = {
   usedIn(panel: string, section: string, item: number): { step: Step; phase: string }[];
   /** Whether the pack draws a zone's panel: a section carries its id, or one of its controls. */
   zoneDrawn(zone: string): boolean;
+  /** Whether any drawn item carries the control. */
+  controlDrawn(control: string): boolean;
 };
 
 export type MapRegion = { region: OverviewRegion | null; areas: OverviewArea[] };
@@ -95,9 +97,11 @@ export function indexPack(pack: FlatPack): PackIndex {
 
   // The zones whose panel the pack draws (a section with the zone's id, or a drawn control in it).
   const drawnZones = new Set<string>(sections.keys());
+  const drawnControls = new Set<string>();
   for (const s of sections.values())
     for (const it of s.items)
       for (const c of it.controls ?? []) {
+        drawnControls.add(c);
         const z = controls.get(c)?.zone;
         if (z) drawnZones.add(z);
       }
@@ -175,6 +179,7 @@ export function indexPack(pack: FlatPack): PackIndex {
     section: (id) => sections.get(id),
     panelOf: (id) => panels.get(id),
     zoneDrawn: (zone) => drawnZones.has(zone),
+    controlDrawn: (control) => drawnControls.has(control),
     how: (id) => pack.content.notes?.how?.find((n) => n.id === id)?.steps,
     explain: (id) => pack.content.notes?.explain?.find((n) => n.id === id),
     region(zone) {

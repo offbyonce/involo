@@ -31,6 +31,7 @@ steps:
     targets:
       - at: "con/a1/AUDIO PANEL 1/1"
       - at: "con/a2/AUDIO PANEL 2/1"
+      - at: "seat/side/MASK STOWAGE/1"
   - id: ifly-737-max8.memory.pressurization-mode-selector
     number: 3
     text: PRESSURIZATION MODE SELECTOR

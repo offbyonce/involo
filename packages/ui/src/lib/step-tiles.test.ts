@@ -85,4 +85,14 @@ describe("stepTiles (owner, batch 6)", () => {
     const out = targetsOf(step.id).map((t) => (t.section === "cl" ? { ...t, lit: false } : t));
     expect(tilesTitle(stepTiles(index, step, out)).title).toBe("Control stand");
   });
+
+  it("draws a control the pack targets on its panel, and lists one with no drawing (owner, batch 6)", () => {
+    // The oxygen mask is drawn on the side panel, now a target of crew communications.
+    expect(tiles("memory.crew-communications").map((t) => t.id)).toContain("side");
+    // The fuel pumps are set, so the fuel panel leads; the display it reads comes after.
+    expect(tilesTitle(tiles("before-start.fuel")).title).toBe("Fuel panel");
+    // The control column has no drawing: a listed tile, though its zone is drawn.
+    const column = tiles("memory.control-column").find((t) => t.kind === "listed");
+    expect(column?.kind === "listed" && column.controls.length).toBeTruthy();
+  });
 });
