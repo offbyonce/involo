@@ -25,6 +25,7 @@ import {
   stepShows,
   TOPICS,
   type Topic,
+  twins,
   windows,
 } from "./practice";
 
@@ -107,8 +108,8 @@ describe("the question generator", () => {
   it("produces the counts from today's pack (2026-11-16; reported to the owner, then refined as the generator applies the rules)", () => {
     expect(count("memory", "next")).toBe(20);
     expect(count("memory", "order")).toBe(5);
-    expect(count("lights", "meaning")).toBe(155);
-    expect(count("lights", "light")).toBe(126);
+    expect(count("lights", "meaning")).toBe(148);
+    expect(count("lights", "light")).toBe(127);
     expect(count("faults", "action")).toBe(9);
     expect(count("faults", "cause")).toBe(23);
     // Left out: steps whose other drawn positions all mean the value, steps whose list has a second
@@ -381,5 +382,56 @@ describe("the question generator", () => {
   it("keeps every seed's id unique", () => {
     const ids = all.map((q: Seed) => q.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("says which one of a pair, and never offers its twin or two twins (owner)", () => {
+    expect(twins("Engine 1 start switch", "Engine 2 start switch")).toBe(true);
+    expect(twins("L ELEV PITOT", "R ELEV PITOT")).toBe(true);
+    expect(twins("The captain’s pitot probe", "The first officer’s pitot probe")).toBe(true);
+    expect(twins("L", "R"), "nothing but the side").toBe(false);
+    expect(twins("FLAPS 1", "FLAPS 2"), "a flap setting is not a side").toBe(false);
+    const light = all.find((q) => q.id === "lights:meaning:oh/fuel/FILTER BYPASS/1");
+    expect(light?.short).toBe(
+      "What does this light mean when it’s lit? FILTER BYPASS, engine 1, on the Fuel panel",
+    );
+    if (light?.stem?.kind === "light") expect(light.stem.caption).toMatch(/^Engine 1 · Fuel panel/);
+    // Every light that shares its label with another on the same panel, for another engine or side,
+    // says which.
+    for (const id of [
+      "oh/elecl/GEN OFF BUS/2",
+      "aft/irs/ALIGN/1",
+      "oh/hyd/LOW PRESSURE/4",
+      "oh/heat/OVERHEAT/2",
+    ]) {
+      const q = all.find((x) => x.id === `lights:meaning:${id}`);
+      expect(q?.short, id).toMatch(/, (engine 2|left IRS|left forward), on the /);
+    }
+    for (const rng of [random(1), random(2), random(3)])
+      for (const seed of all) {
+        if (seed.kind !== "choice") continue;
+        const q = dealOne(seed, rng);
+        if (q.kind !== "choice" || q.topic === "values") continue;
+        const wrong = q.options.filter((_, i) => i !== q.answer);
+        for (const w of wrong) expect(twins(w, seed.answer), `${q.id}: ${w}`).toBe(false);
+        for (const [i, a] of wrong.entries())
+          for (const b of wrong.slice(i + 1)) expect(twins(a, b), `${q.id}: ${a} / ${b}`).toBe(false);
+      }
+    // A control's own positions keep their sides: IGN L against IGN R is the question.
+    expect(pickWrong("IGN L", [{ items: ["IGN R", "BOTH", "OFF"], shuffle: false, sides: true }])).toContain(
+      "IGN R",
+    );
+  });
+
+  it("starts each line after its colon in lowercase, unless it starts with a name (owner)", () => {
+    const light = all.find((q) => q.id === "lights:meaning:oh/fuel/FILTER BYPASS/1");
+    expect(light?.why).toBe(
+      "FILTER BYPASS, engine 1 means: the engine 1 fuel filter is clogging, often from contamination or ice, and fuel may soon go around it.",
+    );
+    for (const q of all) {
+      if (q.kind !== "choice") continue;
+      for (const line of [q.why ?? "", ...Object.values(q.about)])
+        for (const m of line.matchAll(/(?:means|on the [^:]+|light[^:]*): ([A-Z][a-z]+) ([a-z]\w*)/g))
+          expect.soft(`${m[1]} ${m[2]}`, `${q.id}: ${line}`).toBe("");
+    }
   });
 });

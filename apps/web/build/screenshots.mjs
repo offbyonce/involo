@@ -45,13 +45,14 @@ const practice = (goal) =>
   if (goal === "engine") { all("button.ready")[2].click(); await wait(300); for (let n = 0; n < 20 && one("ol.order"); n++) { btn("Check order").click(); await wait(120); btn("Next question").click(); await wait(150); } all(".opt")[2]?.click(); await wait(200); return true; }
   for (let attempt = 0; attempt < 40; attempt++) {
     if (btn("New test")) { btn("New test").click(); await wait(250); }
-    if (goal === "earlier") { all("button.ready")[1].click(); await wait(300); }
+    if (goal === "earlier" || goal === "pair") { all("button.ready")[1].click(); await wait(300); }
     else if (btn("Start test")) { if (goal === "results") { const m = all("button.chip").find((b) => b.textContent.startsWith("Memory items")); if (m && m.getAttribute("aria-pressed") === "true") { m.click(); await wait(150); } } btn("Start test").click(); await wait(300); }
     for (let n = 0; n < 45; n++) {
       if (!one(".tag")) break;
       const tag = one(".tag").textContent; const h = one(".question h2").textContent;
       if (goal === "order" && one("ol.order") && !one("ol.checked")) { const li = all("ol.order li")[1]; li.focus(); li.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true })); await wait(250); return true; }
       if (one("ol.order")) { btn("Check order")?.click(); await wait(120); }
+      else if (goal === "pair" && h.startsWith("What does this light mean") && (one(".light figcaption")?.textContent ?? "").split("·").length === 3) { all(".opt")[2].click(); await wait(200); if (one(".opt.wrong")) return true; }
       else if (goal === "light" && tag === "Light meanings" && h.startsWith("What does this light mean")) { all(".opt")[2].click(); await wait(200); if (one(".opt.wrong")) return true; }
       else { all(".opt")[n % 5 === 0 ? 1 : 0]?.click(); await wait(100); }
       (btn("Next question") || btn("See results"))?.click(); await wait(150);
@@ -535,6 +536,7 @@ const SHOTS = [
   { name: "board-practice-order", only: ["desktop"], app: { hash: "#/practice", before: [practice("order")] } },
   { name: "board-practice-results", only: ["desktop", "phone"], app: { hash: "#/practice", before: [practice("results")] } },
   // Before engine start: Preflight and Departure up to and including Engine start (owner).
+  { name: "practice-paired-light", only: ["desktop"], app: { hash: "#/practice", before: [practice("pair")] } },
   { name: "practice-engine-start", only: ["desktop"], app: { hash: "#/practice", before: [practice("engine")] } },
   // The Glossary (owner): desktop at APU as the boards show, the phone's list, and APU on phone.
   { name: "board-glossary", only: ["desktop"], app: { hash: "#/glossary/APU" } },

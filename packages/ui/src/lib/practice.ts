@@ -91,7 +91,9 @@ type Base = {
 export type ChoiceSeed = Base & {
   kind: "choice";
   answer: string;
-  tiers: { items: string[]; shuffle: boolean }[];
+  /** `sides`: a control's own positions, where the side is what is asked (IGN L or IGN R), so the
+   * pair rule doesn't apply. */
+  tiers: { items: string[]; shuffle: boolean; sides?: boolean }[];
   /** What each wrong option really is, for the feedback ("That’s the VALVE OPEN light…"); `why`
    * then says the right one, as the board's feedback does (owner). */
   about: Record<string, string>;
@@ -119,6 +121,30 @@ const norm = (s: string) =>
     .replace(/[^A-Z0-9]+/g, " ")
     .trim();
 
+/** A text with its engine number, side or seat taken out ("ENGINE # FUEL VALVE"), so twins
+ * ("engine 1" and "engine 2", left and right, captain and F/O) read the same; null when nothing but
+ * the side is left ("L", "R"). */
+const twinKeys = new Map<string, string | null>();
+export function twinKey(text: string): string | null {
+  const known = twinKeys.get(text);
+  if (known !== undefined) return known;
+  const key = norm(text)
+    .replace(
+      /\b(ENGINE|ENG|GENERATOR|GEN|BUS|TANK|PUMP|BLEED|EEC|IRS|PACK|IDG|FMC|CDU|NAV|VHF|ADF|DME|START) [12]\b/g,
+      "$1 #",
+    )
+    .replace(/\b(LEFT|RIGHT|L|R)\b/g, "SIDE")
+    .replace(/\b(CAPTAIN|CAPT|FIRST OFFICER|F O|FO)\b/g, "SEAT");
+  const out = /^(?:SIDE|SEAT|#| )*$/.test(key) ? null : key;
+  twinKeys.set(text, out);
+  return out;
+}
+/** Whether two texts are the same item for another engine, side or seat (owner). */
+export function twins(a: string, b: string): boolean {
+  const k = twinKey(a);
+  return k !== null && a !== b && k === twinKey(b) && norm(a) !== norm(b);
+}
+
 /** Whether the right option's length gives it away (owner): it is the only shortest or the only
  * longest, by more than 40%. */
 export function standsOut(answer: string, wrong: string[]): boolean {
@@ -135,14 +161,18 @@ export function standsOut(answer: string, wrong: string[]): boolean {
  * skipped. */
 export function pickWrong(
   answer: string,
-  tiers: { items: string[]; shuffle: boolean }[],
+  tiers: { items: string[]; shuffle: boolean; sides?: boolean }[],
   rng?: () => number,
 ): string[] {
   const valid: string[] = [];
   for (const tier of tiers) {
     const items = rng && tier.shuffle ? shuffled(tier.items, rng) : tier.items;
     for (const x of items) {
-      if (!x || sameMeaning(x, answer) || valid.some((o) => sameMeaning(o, x))) continue;
+      // Never the answer's twin, and never two wrong options that differ only by engine or side
+      // (owner).
+      const pair = (o: string) => !tier.sides && twins(o, x);
+      if (!x || sameMeaning(x, answer) || pair(answer)) continue;
+      if (valid.some((o) => sameMeaning(o, x) || pair(o))) continue;
       valid.push(x);
     }
   }
@@ -319,7 +349,41 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       { ...l, panel, section, label, zone, area: zone?.area ?? panel, color: drawn?.color ?? "amber", users },
     ];
   });
+  // Which one of a pair (owner): the engine, side, seat or system its meaning names, where another
+  // light with its label on the same panel names a different one.
+  const sideIn = (meaning: string) => {
+    const m =
+      /\b(?:transfer bus|engine|generator|tank|electric hydraulic pump|pump|IRS|bus) [12]\b/i.exec(meaning) ??
+      /\bsystem [AB]\b/i.exec(meaning) ??
+      /\b(?:left|right)(?: (?:side|forward|IRS|engine))?\b/i.exec(meaning) ??
+      /\b(?:captain|first officer)\b/i.exec(meaning);
+    return m ? lowerFirst(m[0]) : "";
+  };
+  const which = (l: (typeof lights)[number]) => {
+    const side = sideIn(l.meaning);
+    const paired = lights.some(
+      (x) =>
+        x !== l &&
+        x.section === l.section &&
+        x.label === l.label &&
+        sideIn(x.meaning) &&
+        sideIn(x.meaning) !== side,
+    );
+    return side && paired ? side : "";
+  };
   for (const l of lights) {
+    // The same light again, meaning the same word for word, with nothing to say which it is: asked
+    // once.
+    if (
+      lights.some(
+        (x) =>
+          lights.indexOf(x) < lights.indexOf(l) &&
+          x.section === l.section &&
+          x.label === l.label &&
+          norm(x.meaning) === norm(l.meaning),
+      )
+    )
+      continue;
     // Another light with the same label could be the one meant: never an option (review).
     const o = lights.filter((x) => x !== l && !sameMeaning(x.label, l.label));
     const groups = [
@@ -327,7 +391,9 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       o.filter((x) => x.section !== l.section && x.panel === l.panel && x.area === l.area),
       o.filter((x) => x.area === l.area && x.panel !== l.panel),
     ];
-    const where = l.zone ? `${l.zone.title} · ${l.zone.area}` : (index.panelOf(l.section)?.title ?? "");
+    const side = which(l);
+    const place = l.zone ? `${l.zone.title} · ${l.zone.area}` : (index.panelOf(l.section)?.title ?? "");
+    const where = side ? `${side.charAt(0).toUpperCase()}${side.slice(1)} · ${place}` : place;
     const area = l.zone ? areaOf(deckAreasOnce(index), l.zone.id) : undefined;
     const links: Link[] = [
       ...(l.zone && area
@@ -338,8 +404,10 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
     const phases = union(l.users.map(stepPhases));
     const base = { phases, steps: [], links, source: `light:${l.locator}` };
     // The light and its panel by name, never by an id or short title (owner).
-    const label = `${l.label}${l.zone ? `, on the ${l.zone.title}` : ""}`;
-    const on = (x: (typeof lights)[number]) => (x.zone ? `, on the ${x.zone.title}` : "");
+    const named = (x: (typeof lights)[number]) => `${x.label}${which(x) ? `, ${which(x)}` : ""}`;
+    const label = `${named(l)}${l.zone ? `, on the ${l.zone.title}` : ""}`;
+    const on = (x: (typeof lights)[number]) =>
+      `${which(x) ? `, ${which(x)}` : ""}${x.zone ? `, on the ${x.zone.title}` : ""}`;
     out.push({
       ...base,
       id: `lights:meaning:${l.locator}`,
@@ -348,8 +416,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       prompt: "What does this light mean when it’s lit?",
       stem: { kind: "light", label: l.label, color: l.color, caption: where },
       short: `What does this light mean when it’s lit? ${label}`,
-      why: `${l.label} means: ${l.meaning}`,
-      about: tell(o.map((x) => [x.meaning, `That’s the ${x.label} light${on(x)}: ${x.meaning}`])),
+      why: `${named(l)} means: ${afterColon(l.meaning)}`,
+      about: tell(o.map((x) => [x.meaning, `That’s the ${x.label} light${on(x)}: ${afterColon(x.meaning)}`])),
       answer: l.meaning,
       tiers: groups.map((g) => ({ items: g.map((x) => x.meaning), shuffle: true })),
     });
@@ -362,8 +430,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         prompt: "Which light means this when it’s lit?",
         stem: { kind: "card", title: where, body: l.meaning },
         short: `Which light means this? ${l.meaning}`,
-        why: `${l.label} means: ${l.meaning}`,
-        about: tell(o.map((x) => [x.label, `${x.label}${on(x)} means: ${x.meaning}`])),
+        why: `${named(l)} means: ${afterColon(l.meaning)}`,
+        about: tell(o.map((x) => [x.label, `${x.label}${on(x)} means: ${afterColon(x.meaning)}`])),
         answer: l.label,
         tiers: groups.map((g) => ({
           items: g.filter((x) => !sameMeaning(x.meaning, l.meaning)).map((x) => x.label),
@@ -405,7 +473,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       short: `${title}: ${f.step.if_not}. What should you do?`,
       source: `fault:${f.step.id}:action`,
       // The action only: a cause would give away the fault's cause question.
-      why: `${title}, ${f.step.if_not}. What to do: ${f.action}.`,
+      why: `${title}, ${f.step.if_not}. What to do: ${afterColon(f.action)}.`,
       about: tell(o.map((x) => [x.action, `That’s what to do for ${symptom(x.step)}.`])),
       answer: f.action,
       tiers: [{ items: o.map((x) => x.action), shuffle: true }],
@@ -417,7 +485,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         prompt: "What is a likely cause?",
         short: `${title}: ${f.step.if_not}. What is a likely cause?`,
         source: `fault:${f.step.id}:cause`,
-        why: `${title}, ${f.step.if_not}. Likely cause: ${cause}.`,
+        why: `${title}, ${f.step.if_not}. Likely cause: ${afterColon(cause)}.`,
         about: tell(
           o.flatMap((x) =>
             x.causes.map((c): [string, string] => [c, `That’s a likely cause for ${symptom(x.step)}.`]),
@@ -531,7 +599,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         .map((o) => o.x);
       const near = nearSteps.map((x) => x.expect);
       const tiers = [
-        { items: own, shuffle: true },
+        { items: own, shuffle: true, sides: true },
         { items: near, shuffle: false },
       ];
       const wrong = pickWrong(s.expect, tiers);
@@ -544,7 +612,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         stem: { kind: "card", title, body: list.title },
         short: `${title}, ${phaseTitle(phase) || list.title}`,
         source: `value:${norm(s.text)}:${norm(s.expect)}`,
-        why: `In the ${list.title}, the ${title}: ${s.expect}.`,
+        why: `In the ${list.title}, the ${title}: ${afterColon(s.expect)}.`,
         about: tell([
           ...own.map((p): [string, string] => [p, `${p} is another position of the ${title}.`]),
           ...nearSteps.map((x): [string, string] => [
@@ -608,7 +676,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
           stem: { kind: "card", title: list.title, body: s.text },
           short: `${list.title}: ${s.text}`,
           source: `challenge:${s.id}`,
-          why: `${s.text}: ${s.expect}.`,
+          why: `${s.text}: ${afterColon(s.expect)}.`,
           about: tell(list.steps.map((x) => [x.expect, `That’s the response to ${x.text}.`])),
           links: [stepLink(s)],
           phases,
@@ -668,7 +736,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         stem: null,
         short: prompt,
         source: `where:${c.id}:panel`,
-        why: `The ${name} ${plural ? "are" : "is"} on the ${zone.title}: ${c.location}`,
+        why: `The ${name} ${plural ? "are" : "is"} on the ${zone.title}: ${afterColon(c.location)}`,
         about: tell(
           index.zones.map((z) => [
             z.title,
@@ -707,7 +775,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         about: tell(
           areas.map((a) => [
             areaName(a),
-            `That’s the ${areaName(a)}${a.locate ? `: ${lowerFirst(a.locate)}` : "."}`,
+            `That’s the ${areaName(a)}${a.locate ? `: ${afterColon(a.locate)}` : "."}`,
           ]),
         ),
         answer: areaName(area),
@@ -747,7 +815,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       steps: [],
       links: [{ label: `${t.term} in the Glossary`, href: glossaryHref(t.term) }],
       source: `term:${t.term}`,
-      why: `${t.term} means: ${t.meaning}`,
+      why: `${t.term} means: ${afterColon(t.meaning)}`,
     };
     out.push({
       ...base,
@@ -768,7 +836,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         stem: { kind: "card", title: "Definition", body: definition },
         short: `Which term means this? ${definition}`,
         answer: t.term,
-        about: tell(o.map((x) => [x.term, `${x.term} means: ${x.meaning}`])),
+        about: tell(o.map((x) => [x.term, `${x.term} means: ${afterColon(x.meaning)}`])),
         tiers: [
           { items: o.filter((x) => !sameMeaning(x.meaning, t.meaning)).map((x) => x.term), shuffle: true },
         ],
@@ -779,6 +847,10 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
   return out.filter((q) => q.kind === "order" || pickWrong(q.answer, q.tiers).length === 3);
 }
 
+/** A sentence after a colon starts in lowercase, unless it starts with a name ("Hydraulic system A"
+ * → "hydraulic system A", but "APU", "Federal Aviation Administration") (owner). */
+const afterColon = (s: string) =>
+  /^(?:A|[A-Z][a-z]+)(?:[\s,]+[a-z0-9("“]|[.,]?$)/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s;
 const lowerFirst = (s: string) => (/^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s);
 
 /** Words that say nothing about where a control is, and words found on panels all over the deck

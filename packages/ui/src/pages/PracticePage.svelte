@@ -412,7 +412,8 @@ portrait too). Results last only for this visit.
     <div class="fb" role="status">
       <span class="fb-title">Not this one</span>
       <!-- What the chosen option really is, then the right one (the board's feedback; owner). -->
-      <span class="fb-why">{[x.about[x.options[answer as number] ?? ""], x.why].filter(Boolean).join(" ")}</span>
+      <!-- Each on its own line (owner). -->
+      {#each [x.about[x.options[answer as number] ?? ""], x.why].filter(Boolean) as line}<span class="fb-why">{line}</span>{/each}
       {@render links(x.links)}
     </div>
   {/if}

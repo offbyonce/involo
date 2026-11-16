@@ -90,8 +90,9 @@ describe("PracticePage", () => {
     const box = screen.getByRole("status");
     expect(within(box).getByText("Not this one")).toBeTruthy();
     // What the chosen option really is, then the right one (owner).
-    const said = box.querySelector(".fb-why")?.textContent ?? "";
-    expect(said).toBe(`${q.about[q.options[wrong] ?? ""]} ${q.why}`);
+    // Each on its own line (owner).
+    const said = [...box.querySelectorAll(".fb-why")].map((x) => x.textContent);
+    expect(said).toEqual([q.about[q.options[wrong] ?? ""], q.why]);
     expect(within(box).getAllByRole("link").length).toBeGreaterThan(0);
     // Locked: another choice changes nothing.
     await fireEvent.click(options[q.answer] as HTMLElement);
