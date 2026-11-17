@@ -19,7 +19,7 @@ pub(super) struct Index<'a> {
     pub(super) steps: BTreeSet<&'a str>,
     pub(super) blanks: BTreeMap<&'a str, usize>,
     pub(super) briefing_items: BTreeSet<&'a str>,
-    pub(super) start_states: BTreeSet<&'a str>,
+    pub(super) panel_states: BTreeSet<&'a str>,
     pub(super) phases: BTreeSet<&'a str>,
     pub(super) options: BTreeMap<&'a str, BTreeSet<&'a str>>,
     pub(super) zones: BTreeSet<&'a str>,
@@ -113,9 +113,9 @@ impl<'a> Index<'a> {
                     .map(|i| i.id.as_str()),
                 issues,
             ),
-            start_states: unique(
-                "start state",
-                c.start_states
+            panel_states: unique(
+                "panel state",
+                c.panel_states
                     .iter()
                     .flat_map(|f| &f.states)
                     .map(|s| s.id.as_str()),

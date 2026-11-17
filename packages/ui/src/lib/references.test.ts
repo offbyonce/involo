@@ -1,16 +1,11 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import type { FlatPack } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
+import { iflyPack } from "../test-pack";
 import { buildReferences, CONFIRMING, SOURCES } from "./references";
 
-const pack = Object.values(
-  import.meta.glob<FlatPack>("../../../../apps/web/public/packs/ifly-737-max8.json", {
-    eager: true,
-    import: "default",
-  }),
-)[0] as FlatPack;
+const pack = iflyPack();
 
 describe("References, counted from the pack (decision 0007)", () => {
   const refs = buildReferences(pack);
@@ -55,7 +50,7 @@ describe("References, counted from the pack (decision 0007)", () => {
     expect(refs.simulatorModel).toHaveLength(16);
     expect(new Set(refs.simulatorModel).size).toBe(16);
     const marked = new Set(
-      pack.lists.flatMap((l) => l.steps.filter((s) => s.simulator_model).map((s) => s.id)),
+      pack.lists.flatMap((l) => l.steps.filter((s) => s.simulatorModel).map((s) => s.id)),
     );
     expect(new Set(refs.simulatorModel)).toEqual(marked);
   });

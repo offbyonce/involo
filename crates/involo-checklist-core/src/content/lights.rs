@@ -7,6 +7,7 @@ use crate::model::Confirmation;
 
 data_types! {
     /// What a panel light means.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct LightNote {
         /// `<panel>/<section>/<label>/<n>`, where n counts items with that label from 1.
         pub locator: String,

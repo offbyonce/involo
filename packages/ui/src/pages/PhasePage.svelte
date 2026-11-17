@@ -75,7 +75,7 @@ step at a time (lib/FlowView.svelte).
   /** The phase's procedure is not done yet: its checklist stays folded (Checklist board). */
   let procedureOpen = $derived(view.lists.some((l) => l.kind === "flow" && !l.complete));
 
-  let asked = $derived(index.options.filter((o) => (o.ask_in ?? []).includes(view.id)));
+  let asked = $derived(index.options.filter((o) => (o.askIn ?? []).includes(view.id)));
 
   /**
    * Keys, as in 3.0's Flow view: Down and Up arrows move between steps, Space ticks the selected

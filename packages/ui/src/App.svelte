@@ -799,7 +799,7 @@ in Rust. The host saves progress and settings on the device.
         if (!id || !option || !asker) return null;
         const answer = f.options[id] ?? null;
         // The step's value for the answer (decision 0027), once answered.
-        const value = answer === null ? null : ((step.expect_when ?? []).find((e) => e.option === id && e.equals === answer)?.expect ?? null);
+        const value = answer === null ? null : ((step.expectWhen ?? []).find((e) => e.option === id && e.equals === answer)?.expect ?? null);
         return { option, decisionStep: asker.id, answer, value };
       },
       answer: (id, value) => void answerDecision(id, value),
@@ -883,11 +883,11 @@ in Rust. The host saves progress and settings on the device.
     if (!user || (await importFor(user))) window.location.hash = flightHref("simbrief");
   }
   /** A panel state (decision 0012): its marks, with Undo. */
-  async function chooseStartState(state: string | null): Promise<void> {
+  async function choosePanelState(state: string | null): Promise<void> {
     if (!flight) return;
     const before = flight;
-    await act({ type: "setStartState", state, at: Date.now() });
-    const title = state ? (index?.startStates.find((s) => s.id === state)?.title ?? state) : null;
+    await act({ type: "setPanelState", state, at: Date.now() });
+    const title = state ? (index?.panelStates.find((s) => s.id === state)?.title ?? state) : null;
     const marked = (flight.stateTicks?.length ?? 0) + (flight.stateSkips?.length ?? 0);
     offerUndo(title ? `Panel state: ${title}. ${marked} steps marked.` : "Panel state cleared.", before);
   }
@@ -1168,12 +1168,12 @@ in Rust. The host saves progress and settings on the device.
       {plan}
       centerTank={suggestions.center_tank ? `${suggestions.center_tank.amount.toLocaleString("en-US")} ${suggestions.center_tank.unit}` : null}
       options={index.options}
-      states={index.startStates}
+      states={index.panelStates}
       backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
       onSet={(field, value) => act({ type: "setValue", field, value })}
       onNotes={(notes) => act({ type: "setNotes", notes })}
       onOption={(option, value) => act({ type: "setOption", option, value })}
-      onStartState={(state) => void chooseStartState(state)}
+      onPanelState={(state) => void choosePanelState(state)}
       onImport={importFor}
       onFile={importFile}
       onClear={clearFlight}

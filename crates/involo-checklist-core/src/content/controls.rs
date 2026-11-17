@@ -5,6 +5,7 @@
 
 data_types! {
     /// An area of the cockpit.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct Zone {
         pub id: String,
         pub area: String,
@@ -49,6 +50,7 @@ data_types! {
     /// A part of the cockpit on the overview map, e.g. the forward overhead panel. A map of one
     /// region shows the areas whose centers fall inside its rectangle (the first region that
     /// holds them), with its captions around the edges.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct OverviewRegion {
         pub name: String,
         /// A short reference shown after the name, e.g. "P5".
@@ -132,6 +134,7 @@ data_types! {
     }
 
     /// Where one overview region sits in a side or seat view: one or more closed outlines.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct ViewPlace {
         /// The region's `name` on the overview.
         pub region: String,

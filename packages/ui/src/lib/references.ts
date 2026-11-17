@@ -114,7 +114,7 @@ export function buildReferences(pack: FlatPack, rail: Rail | null = null): Refer
   }
   const marked = new Set<string>();
   for (const o of order)
-    for (const step of lists.get(o.id)?.steps ?? []) if (step.simulator_model) marked.add(step.id);
+    for (const step of lists.get(o.id)?.steps ?? []) if (step.simulatorModel) marked.add(step.id);
   return {
     // Counted from the rows, so a card's count is what its chip shows.
     sources: SOURCES.map((s) => ({ ...s, count: rows.filter((r) => r.sources.includes(s.tag)).length })),

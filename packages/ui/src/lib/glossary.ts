@@ -75,21 +75,21 @@ export function buildGlossary(
     .sort((a, b) => a.term.localeCompare(b.term, "en", { sensitivity: "base", numeric: true }));
 }
 
-type ShowIf = NonNullable<Step["show_if"]>;
-type OptionTest = Exclude<ShowIf, { all_of: unknown } | { any_of: unknown }>;
+type ShowIf = NonNullable<Step["showIf"]>;
+type OptionTest = Exclude<ShowIf, { allOf: unknown } | { anyOf: unknown }>;
 
 /** The option values a step shows for, by option ("power" → ["gpu"]). */
 function showsFor(show: ShowIf | null | undefined): Map<string, string[]> {
   const tests: OptionTest[] = !show
     ? []
-    : "all_of" in show
-      ? show.all_of
-      : "any_of" in show
-        ? show.any_of
+    : "allOf" in show
+      ? show.allOf
+      : "anyOf" in show
+        ? show.anyOf
         : [show];
   const out = new Map<string, string[]>();
   for (const t of tests)
-    out.set(t.option, [...(out.get(t.option) ?? []), ...("equals" in t ? [t.equals] : t.one_of)]);
+    out.set(t.option, [...(out.get(t.option) ?? []), ...("equals" in t ? [t.equals] : t.oneOf)]);
   return out;
 }
 
@@ -112,7 +112,7 @@ export function rowTags(index: PackIndex, steps: FindStep[]): Record<string, str
       for (const s of group) if (s.list) tags[s.id] = s.list;
       continue;
     }
-    const shows = group.map((s) => showsFor(index.step(s.id)?.show_if));
+    const shows = group.map((s) => showsFor(index.step(s.id)?.showIf));
     const option = index.options.find((o) => {
       const sets = shows.map((m) => m.get(o.id));
       if (sets.some((v) => !v)) return false;

@@ -5,6 +5,7 @@ import { DecisionGallery, DrawingGallery, GateGallery } from "@involo/ui";
 import "@involo/ui/app.css";
 import "./fonts/fonts.css";
 import { mount } from "svelte";
+import { webHost } from "./web-host";
 
 const target = document.getElementById("gallery");
 if (!target) throw new Error("missing #gallery element");
@@ -20,5 +21,6 @@ export default view === "decision"
     })
   : mount(view === "gate" ? GateGallery : DrawingGallery, {
       target,
-      props: { packUrl: "../packs/ifly-737-max8.json" },
+      // The pack read through the WebAssembly module, as the app reads it.
+      props: { loadPack: () => webHost.loadPack("ifly-737-max8") },
     });

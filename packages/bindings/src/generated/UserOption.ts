@@ -21,7 +21,7 @@ choices?: Array<OptionChoice>,
 /**
  * Phases that show the choice above their lists.
  */
-ask_in?: Array<string>, 
+askIn?: Array<string>, 
 /**
  * How a flight value suggests the answer, for the pilot to confirm (decisions 0022 and
  * 0027).

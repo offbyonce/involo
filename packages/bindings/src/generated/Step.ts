@@ -55,7 +55,7 @@ opens?: string | null,
 /**
  * In a memory list: read this step rather than recalling it.
  */
-non_recall?: boolean, quick?: Quick | null, show_if?: ShowIf | null, 
+nonRecall?: boolean, quick?: Quick | null, showIf?: ShowIf | null, 
 /**
  * A decision step: it asks the pilot this option (by id), and the answer sets it for the
  * flight. Targets elsewhere may depend on the answer (decision 0022).
@@ -64,7 +64,7 @@ decide?: string | null,
 /**
  * The step's value for each answer of a decision its targets depend on (decision 0027).
  */
-expect_when?: Array<ExpectWhen>, 
+expectWhen?: Array<ExpectWhen>, 
 /**
  * Optional note shown under the step.
  */
@@ -73,11 +73,11 @@ note?: string | null,
  * The note is a caution: it stays visible on the step (under If not) instead of in How
  * to do it. Changes only where the note shows, never its wording.
  */
-note_caution?: boolean, 
+noteCaution?: boolean, 
 /**
  * Glossary terms the step uses, shown under Why (each must be in the glossary).
  */
-terms?: Array<string>, why?: string | null, check?: string | null, check_detail?: string | null, if_not?: string | null, if_not_detail?: string | null, 
+terms?: Array<string>, why?: string | null, check?: string | null, checkDetail?: string | null, ifNot?: string | null, ifNotDetail?: string | null, 
 /**
  * Id of a shared "how to do it" note.
  */
@@ -85,7 +85,7 @@ how?: string | null,
 /**
  * Id of a shared explanation.
  */
-explain?: string | null, walkaround?: WalkaroundPoint | null, look_for?: string | null, 
+explain?: string | null, walkaround?: WalkaroundPoint | null, lookFor?: string | null, 
 /**
  * Overrides the location text of the step's first control.
  */
@@ -97,20 +97,20 @@ callout?: string | null, timer?: Timer | null,
 /**
  * Panel lights this step refers to: control id, then light labels.
  */
-panel_lights?: { [key in string]: Array<string> }, 
+panelLights?: { [key in string]: Array<string> }, 
 /**
  * The simulator does not model this step, so it is left out of progress.
  */
-not_simulated?: boolean, 
+notSimulated?: boolean, 
 /**
  * Internal record of what this step was confirmed against (decision 0013).
  */
-confirmed_by?: Array<Confirmation>, 
+confirmedBy?: Array<Confirmation>, 
 /**
  * The simulator simplifies the real aircraft here.
  */
-sim_simplified?: boolean, 
+simSimplified?: boolean, 
 /**
  * The step's note describes how the simulator behaves, not the real aircraft.
  */
-simulator_model?: boolean, };
+simulatorModel?: boolean, };

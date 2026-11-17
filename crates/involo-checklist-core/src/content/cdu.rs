@@ -33,6 +33,7 @@ data_types! {
     }
 
     /// A live flight value. Calculations happen in the app, never in the pack.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct CduField {
         pub field: FillField,
         /// For `route_leg`: the row, from 1 to `MAX_ROUTE_LEG`.
@@ -68,6 +69,7 @@ data_types! {
 
     /// A number calculated from the route. The rows per page are the aircraft's, so they
     /// come from the pack.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct CduRouteCount {
         pub route_legs: RouteLegCount,
         pub per_page: u32,
@@ -95,6 +97,7 @@ data_types! {
 
     /// Shows one group of parts when flight values are known and another when they are not,
     /// e.g. `<SEL>` beside a runway, or a placeholder until there is a runway. Does not nest.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct CduWhen {
         /// Every one of these must be known for `show` to appear.
         pub when_known: Vec<FillField>,
@@ -119,6 +122,7 @@ pub type CduText = Vec<CduPart>;
 
 data_types! {
     /// One line select row: a small label line above a value line.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct CduRow {
         /// Draws a divider instead of the labels; empty text means a plain line.
         #[serde(default, skip_serializing_if = "Option::is_none")]

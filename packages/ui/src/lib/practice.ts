@@ -31,9 +31,9 @@ import { areaOf, deckAreas, deckHref, zoneSections } from "./deck";
 import { glossaryHref, split } from "./glossary";
 import { stepTitle as titleOfStep } from "./sentence";
 
-/** A show_if condition, as the pack declares it. */
-type ShowIf = NonNullable<Step["show_if"]>;
-type OptionTest = Exclude<ShowIf, { all_of: unknown } | { any_of: unknown }>;
+/** A showIf condition, as the pack declares it. */
+type ShowIf = NonNullable<Step["showIf"]>;
+type OptionTest = Exclude<ShowIf, { allOf: unknown } | { anyOf: unknown }>;
 
 export type Topic =
   | "memory"
@@ -258,14 +258,14 @@ export function windows<T>(items: T[]): T[][] {
   return out;
 }
 
-/** Whether a show_if holds for the flight's options (an option not set holds for nothing). */
+/** Whether a showIf holds for the flight's options (an option not set holds for nothing). */
 export function holds(show: ShowIf | null | undefined, options: Record<string, string>): boolean {
   if (!show) return true;
-  if ("all_of" in show) return show.all_of.every((t: OptionTest) => holds(t, options));
-  if ("any_of" in show) return show.any_of.some((t: OptionTest) => holds(t, options));
+  if ("allOf" in show) return show.allOf.every((t: OptionTest) => holds(t, options));
+  if ("anyOf" in show) return show.anyOf.some((t: OptionTest) => holds(t, options));
   const value = options[show.option];
   if (value === undefined) return false;
-  return "equals" in show ? value === show.equals : show.one_of.includes(value);
+  return "equals" in show ? value === show.equals : show.oneOf.includes(value);
 }
 
 const ordinal = ["first", "second", "third", "fourth", "fifth", "sixth"];
@@ -501,15 +501,15 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
     return [{ ...f, step, area: zone ? zones.get(zone)?.area : undefined }];
   });
   /** A fault's step and what it shows ("Ground power switch, GRD POWER AVAILABLE out"). */
-  const symptom = (x: Step) => `${stepTitle(index, x)}${x.if_not ? `, ${x.if_not}` : ""}`;
+  const symptom = (x: Step) => `${stepTitle(index, x)}${x.ifNot ? `, ${x.ifNot}` : ""}`;
   for (const f of faults) {
-    if (!f.step.if_not || !f.area) continue;
+    if (!f.step.ifNot || !f.area) continue;
     const o = faults.filter((x) => x !== f && x.area === f.area);
     const title = stepTitle(index, f.step);
     const stem: Stem = {
       kind: "card",
       title: `${title} · ${phaseTitle(index.phaseOf(f.step.id))}`,
-      body: f.step.if_not,
+      body: f.step.ifNot,
     };
     const base = {
       topic: "faults" as const,
@@ -523,10 +523,10 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       ...base,
       id: `faults:action:${f.step.id}`,
       prompt: "What should you do?",
-      short: `${title}: ${f.step.if_not}. What should you do?`,
+      short: `${title}: ${f.step.ifNot}. What should you do?`,
       source: `fault:${f.step.id}:action`,
       // The action only: a cause would give away the fault's cause question.
-      why: `${title}, ${f.step.if_not}. What to do: ${afterColon(f.action)}.`,
+      why: `${title}, ${f.step.ifNot}. What to do: ${afterColon(f.action)}.`,
       about: tell(o.map((x) => [x.action, `That’s what to do for ${symptom(x.step)}.`])),
       answer: f.action,
       tiers: [{ items: o.map((x) => x.action), shuffle: true }],
@@ -536,9 +536,9 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         ...base,
         id: `faults:cause:${f.step.id}:${n}`,
         prompt: "What is a likely cause?",
-        short: `${title}: ${f.step.if_not}. What is a likely cause?`,
+        short: `${title}: ${f.step.ifNot}. What is a likely cause?`,
         source: `fault:${f.step.id}:cause`,
-        why: `${title}, ${f.step.if_not}. Likely cause: ${afterColon(cause)}.`,
+        why: `${title}, ${f.step.ifNot}. Likely cause: ${afterColon(cause)}.`,
         about: tell(
           o.flatMap((x) =>
             x.causes.map((c): [string, string] => [c, `That’s a likely cause for ${symptom(x.step)}.`]),
@@ -1048,10 +1048,10 @@ export function stepShows(pack: FlatPack, options: Record<string, string>): (id:
   const stagePhases = (pack.content.phases?.stages ?? []).flatMap((s) => s.phases);
   return (id) => {
     const found = steps.get(id);
-    if (!found || !holds(found.step.show_if, merged)) return false;
+    if (!found || !holds(found.step.showIf, merged)) return false;
     const phase = phaseOfList.get(found.list);
     const entries = stagePhases.filter((p) => p.phase === phase);
-    return entries.length === 0 || entries.some((p) => holds(p.show_if, merged));
+    return entries.length === 0 || entries.some((p) => holds(p.showIf, merged));
   };
 }
 

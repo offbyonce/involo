@@ -6,6 +6,7 @@
 
 mod actions;
 mod app;
+mod boundary;
 mod error;
 mod flight;
 mod log;
@@ -26,6 +27,7 @@ mod weather;
 
 pub use actions::{Action, apply};
 pub use app::{AppInfo, app_info, example_checklist};
+pub use boundary::to_interface_json;
 pub use error::AppError;
 pub use flight::{AnswerSource, FLIGHT_FORMAT, Flight, new_flight};
 pub use log::{

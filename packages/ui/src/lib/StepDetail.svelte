@@ -17,9 +17,9 @@ Flow view and in the side panel. Each item shows once.
   let how = $derived(step.how ? index.how(step.how) : undefined);
   let explain = $derived(step.explain ? index.explain(step.explain) : undefined);
   let check = $derived(step.check ?? explain?.check ?? null);
-  let checkDetail = $derived(step.check ? step.check_detail : explain?.check_detail);
-  let ifNot = $derived(step.if_not ?? explain?.if_not ?? null);
-  let ifNotDetail = $derived(step.if_not ? step.if_not_detail : explain?.if_not_detail);
+  let checkDetail = $derived(step.check ? step.checkDetail : explain?.checkDetail);
+  let ifNot = $derived(step.ifNot ?? explain?.ifNot ?? null);
+  let ifNotDetail = $derived(step.ifNot ? step.ifNotDetail : explain?.ifNotDetail);
   let why = $derived(step.why ?? explain?.why ?? null);
   let howOpen = $derived(/COMPLETE|TEST/.test(step.expect));
 </script>

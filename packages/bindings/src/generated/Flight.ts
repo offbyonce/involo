@@ -16,7 +16,7 @@ options: { [key in string]: string },
 /**
  * The panel state the flight started from, if any.
  */
-startState: string | null, 
+panelState: string | null, 
 /**
  * The steps that panel state ticked, and those it skipped: only these change when the pilot
  * picks another state or none. Steps the pilot marks by hand are never in them (format 2).

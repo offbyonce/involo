@@ -38,7 +38,7 @@ Flight deck page at this panel. All from the pack, in the panel palette.
   let map = $derived(index.region(zone));
   let region = $derived(map?.region ?? null);
   let overview = $derived(index.overview);
-  let title = $derived((phone ? region?.short_title : region?.title) ?? region?.title ?? "Where is this?");
+  let title = $derived((phone ? region?.shortTitle : region?.title) ?? region?.title ?? "Where is this?");
 
   function show() {
     if (!dialog || !trigger) return;

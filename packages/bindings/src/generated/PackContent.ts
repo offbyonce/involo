@@ -8,10 +8,10 @@ import type { GlossaryFile } from "./GlossaryFile";
 import type { LightsFile } from "./LightsFile";
 import type { NotesFile } from "./NotesFile";
 import type { Panel } from "./Panel";
+import type { PanelStatesFile } from "./PanelStatesFile";
 import type { PhasesFile } from "./PhasesFile";
-import type { StartStatesFile } from "./StartStatesFile";
 
 /**
  * Everything a pack holds besides its manifest and lists. Each part is optional.
  */
-export type PackContent = { phases: PhasesFile | null, controls: ControlsFile | null, notes: NotesFile | null, panels: Array<Panel>, lights: LightsFile | null, faults: FaultsFile | null, glossary: GlossaryFile | null, briefings: BriefingsFile | null, start_states: StartStatesFile | null, cdu: CduFile | null, aliases: AliasesFile | null, };
+export type PackContent = { phases: PhasesFile | null, controls: ControlsFile | null, notes: NotesFile | null, panels: Array<Panel>, lights: LightsFile | null, faults: FaultsFile | null, glossary: GlossaryFile | null, briefings: BriefingsFile | null, panelStates: PanelStatesFile | null, cdu: CduFile | null, aliases: AliasesFile | null, };

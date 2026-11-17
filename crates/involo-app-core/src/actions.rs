@@ -75,7 +75,7 @@ pub enum Action {
     /// The iFly panel state the flight starts from, or none. It sets the state's options and
     /// ticks and skips the steps it has already set; picking another state, or none, takes back
     /// only the marks the earlier state made. The pilot's own ticks and skips are never changed.
-    SetStartState {
+    SetPanelState {
         state: Option<String>,
         #[ts(type = "number")]
         at: Millis,
@@ -90,7 +90,7 @@ fn invalid(message: impl Into<String>) -> AppError {
 
 /// Takes back the earlier state's own marks, then applies the new state's options, ticks and
 /// skips to steps the pilot has not marked.
-fn set_start_state(
+fn set_panel_state(
     pack: &FlatPack,
     flight: &mut Flight,
     state: Option<String>,
@@ -100,7 +100,7 @@ fn set_start_state(
     let chosen = match &state {
         Some(id) => Some(
             pack.content
-                .start_states
+                .panel_states
                 .iter()
                 .flat_map(|f| &f.states)
                 .find(|s| &s.id == id)
@@ -144,7 +144,7 @@ fn set_start_state(
             }
         }
     }
-    flight.start_state = state;
+    flight.panel_state = state;
     Ok(())
 }
 
@@ -304,9 +304,9 @@ pub fn apply(pack: &FlatPack, mut flight: Flight, action: Action) -> Result<Flig
             set_blank(pack, &mut flight, &step, index, &value)?;
         }
         Action::SetNotes { notes } => flight.notes = notes,
-        Action::SetStartState { state, at } => set_start_state(pack, &mut flight, state, at)?,
+        Action::SetPanelState { state, at } => set_panel_state(pack, &mut flight, state, at)?,
         Action::Clear => {
-            flight.start_state = None;
+            flight.panel_state = None;
             flight.state_ticks.clear();
             flight.state_skips.clear();
             flight.session.clear();
@@ -332,7 +332,7 @@ mod tests {
     #[test]
     fn a_panel_state_marks_its_steps_and_a_change_takes_back_only_its_own() {
         let pack = crate::test_support::ifly_pack();
-        let states = &pack.content.start_states.as_ref().unwrap().states;
+        let states = &pack.content.panel_states.as_ref().unwrap().states;
         let cd = states.iter().find(|s| s.id == "cd").unwrap().clone();
         let gpu = states.iter().find(|s| s.id == "gpu").unwrap().clone();
         let hand = cd.done[0].clone();
@@ -349,13 +349,13 @@ mod tests {
         let f = apply(
             &pack,
             f,
-            Action::SetStartState {
+            Action::SetPanelState {
                 state: Some("gpu".into()),
                 at: 2,
             },
         )
         .unwrap();
-        assert_eq!(f.start_state.as_deref(), Some("gpu"));
+        assert_eq!(f.panel_state.as_deref(), Some("gpu"));
         assert_eq!(f.options["power"], "gpu");
         for step in &gpu.done {
             assert!(f.session.done_at(step).is_some(), "{step} ticked");
@@ -376,7 +376,7 @@ mod tests {
         let f = apply(
             &pack,
             f,
-            Action::SetStartState {
+            Action::SetPanelState {
                 state: Some("cd".into()),
                 at: 3,
             },
@@ -405,8 +405,8 @@ mod tests {
             },
         )
         .unwrap();
-        let f = apply(&pack, f, Action::SetStartState { state: None, at: 5 }).unwrap();
-        assert_eq!(f.start_state, None);
+        let f = apply(&pack, f, Action::SetPanelState { state: None, at: 5 }).unwrap();
+        assert_eq!(f.panel_state, None);
         assert_eq!(f.session.done_at(&other), Some(4));
         assert_eq!(f.session.done_at(&hand), Some(1));
         assert!(f.state_ticks.is_empty() && f.state_skips.is_empty());
@@ -414,7 +414,7 @@ mod tests {
             apply(
                 &pack,
                 f,
-                Action::SetStartState {
+                Action::SetPanelState {
                     state: Some("nope".into()),
                     at: 6
                 }

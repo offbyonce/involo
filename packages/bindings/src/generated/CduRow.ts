@@ -8,4 +8,4 @@ export type CduRow = {
 /**
  * Draws a divider instead of the labels; empty text means a plain line.
  */
-separator?: string | null, left_label?: Array<CduPart>, left?: Array<CduPart>, right_label?: Array<CduPart>, right?: Array<CduPart>, };
+separator?: string | null, leftLabel?: Array<CduPart>, left?: Array<CduPart>, rightLabel?: Array<CduPart>, right?: Array<CduPart>, };

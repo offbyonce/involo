@@ -1,16 +1,13 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import type { FlatPack, Rail } from "@involo/bindings";
+import type { Rail } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
+import { iflyPack } from "../test-pack";
 import { buildFind, findIn, findOnly, foundValue, marked } from "./find-index";
 
-const packs = import.meta.glob<FlatPack>("../../../../apps/web/public/packs/ifly-737-max8.json", {
-  eager: true,
-  import: "default",
-});
-const pack = Object.values(packs)[0] as FlatPack;
+const pack = iflyPack();
 const index = indexPack(pack);
 const find = buildFind(pack, index);
 const titles = new Map((pack.content.phases?.phases ?? []).map((p) => [p.id, p.title]));
@@ -70,7 +67,7 @@ describe("find", () => {
 });
 
 describe("Find opened on a set of steps (References' simulator model notes)", () => {
-  const marked16 = pack.lists.flatMap((l) => l.steps.filter((s) => s.simulator_model).map((s) => s.id));
+  const marked16 = pack.lists.flatMap((l) => l.steps.filter((s) => s.simulatorModel).map((s) => s.id));
 
   it("shows those steps only, in the order given, controls and terms left out", () => {
     const backwards = [...marked16].reverse();

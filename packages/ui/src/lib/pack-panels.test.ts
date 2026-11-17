@@ -8,16 +8,21 @@
 
 import type { Panel, PanelItem, PanelSection } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
+import { packAsReceived } from "../test-pack";
 import { half, halfWidth, LAMP, layoutSection, PX } from "./panel-layout";
 import { em } from "./text-width";
 
-/** The flattened packs, by file; the pack index file has no `content` and is skipped below. */
-const files = import.meta.glob<{ content?: { panels?: Panel[] } }>(
-  "../../../../apps/web/public/packs/*.json",
-  {
-    eager: true,
-    import: "default",
-  },
+/** The flattened packs, by file, as the interface receives them; the pack index file is not a pack. */
+const files: Record<string, { content?: { panels?: Panel[] | null } }> = Object.fromEntries(
+  Object.entries(
+    import.meta.glob<string>("../../../../apps/web/public/packs/*.json", {
+      eager: true,
+      query: "?raw",
+      import: "default",
+    }),
+  )
+    .filter(([file]) => !file.endsWith("/index.json"))
+    .map(([file, text]) => [file, packAsReceived(text)]),
 );
 
 type Box = { x0: number; y0: number; x1: number; y1: number };

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-//! References from faults, glossary, briefings, start states and aliases.
+//! References from faults, glossary, briefings, panel states and aliases.
 
 use std::collections::BTreeSet;
 
@@ -37,7 +37,7 @@ pub(super) fn check_other_references(pack: &Pack, idx: &Index, issues: &mut Vec<
             idx.require_phase(&briefing.id, &briefing.phase, issues);
         }
     }
-    if let Some(file) = &c.start_states {
+    if let Some(file) = &c.panel_states {
         for state in &file.states {
             idx.require_phase(&state.id, &state.phase, issues);
             for (option, value) in &state.set {

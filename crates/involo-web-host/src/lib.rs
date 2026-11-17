@@ -55,7 +55,8 @@ fn reply<T: Serialize>(result: Result<T, AppError>) -> String {
         Ok(value) => Reply::Ok(value),
         Err(error) => Reply::Error(error),
     };
-    serde_json::to_string(&reply).unwrap_or_else(|_| UNENCODABLE.to_owned())
+    // Field names in camelCase: the interface reads one case (decision 0029, Names).
+    involo_app_core::to_interface_json(&reply).unwrap_or_else(|_| UNENCODABLE.to_owned())
 }
 
 /// Basic facts for the About box and the window title.

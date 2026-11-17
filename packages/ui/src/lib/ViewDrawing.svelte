@@ -89,8 +89,8 @@ both themes, sized by width.
       {#each bare ? [] : labels as label (label.text + label.x)}
         <text class="tag" x={label.x} y={label.y} style:font-size="{atLeast(LABEL)}px" style:text-anchor={label.anchor ?? "middle"}>{label.text}</text>
       {/each}
-      {#if here?.label_at && region && !bare}
-        <text class="name" x={here.label_at[0]} y={here.label_at[1]} style:font-size="{atLeast(NAME)}px">{region.toUpperCase()}</text>
+      {#if here?.labelAt && region && !bare}
+        <text class="name" x={here.labelAt[0]} y={here.labelAt[1]} style:font-size="{atLeast(NAME)}px">{region.toUpperCase()}</text>
       {/if}
     </svg>
   </div>

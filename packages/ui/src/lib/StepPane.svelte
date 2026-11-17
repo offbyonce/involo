@@ -58,12 +58,12 @@ and a caution note under If not. A step with no control shows the steps coming u
   let how = $derived(step.how ? index.how(step.how) : undefined);
   let explain = $derived(step.explain ? index.explain(step.explain) : undefined);
   let check = $derived(step.check ?? explain?.check ?? null);
-  let checkMore = $derived([step.check ? step.check_detail : explain?.check_detail, explain?.success].filter(Boolean) as string[]);
-  let ifNot = $derived(step.if_not ?? explain?.if_not ?? null);
-  let ifNotMore = $derived([step.if_not ? step.if_not_detail : explain?.if_not_detail, explain?.failure].filter(Boolean) as string[]);
+  let checkMore = $derived([step.check ? step.checkDetail : explain?.checkDetail, explain?.success].filter(Boolean) as string[]);
+  let ifNot = $derived(step.ifNot ?? explain?.ifNot ?? null);
+  let ifNotMore = $derived([step.ifNot ? step.ifNotDetail : explain?.ifNotDetail, explain?.failure].filter(Boolean) as string[]);
   let why = $derived(step.why ?? explain?.why ?? null);
-  let caution = $derived(step.note && step.note_caution ? step.note : null);
-  let background = $derived(step.note && !step.note_caution ? step.note : null);
+  let caution = $derived(step.note && step.noteCaution ? step.note : null);
+  let background = $derived(step.note && !step.noteCaution ? step.note : null);
   let terms = $derived((step.terms ?? []).map((t) => ({ term: t, meaning: index.glossary(t) ?? "" })));
 
   let checkOpen = $state(false);

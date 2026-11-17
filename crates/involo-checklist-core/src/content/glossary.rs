@@ -5,6 +5,7 @@
 
 data_types! {
     /// One term and its meaning.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct GlossaryEntry {
         pub term: String,
         pub meaning: String,

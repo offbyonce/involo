@@ -211,7 +211,7 @@ fn check_selector(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
     }
 }
 
-/// Resting positions must agree with the cold and dark start state (the start state that opens
+/// Resting positions must agree with the cold and dark panel state (the panel state that opens
 /// on the first phase of the first stage): a step that state counts as done is one whose
 /// controls already rest where the step asks.
 fn check_rest_against_cold_start(pack: &Pack, issues: &mut Vec<Issue>) {
@@ -223,7 +223,7 @@ fn check_rest_against_cold_start(pack: &Pack, issues: &mut Vec<Issue>) {
         .and_then(|s| s.phases.first())
         .map(|p| p.phase.as_str());
     let Some(cold) = c
-        .start_states
+        .panel_states
         .as_ref()
         .and_then(|f| f.states.iter().find(|s| Some(s.phase.as_str()) == first))
     else {
@@ -253,7 +253,7 @@ fn check_rest_against_cold_start(pack: &Pack, issues: &mut Vec<Issue>) {
                     issues.push(error(
                         &section.id,
                         format!(
-                            "`{}` rests at `{rest}`, but start state `{}` counts `{}` as done, which sets it to `{target}`",
+                            "`{}` rests at `{rest}`, but panel state `{}` counts `{}` as done, which sets it to `{target}`",
                             item.label, cold.id, step.id
                         ),
                     ));
@@ -409,7 +409,7 @@ fn check_view(
 pub(super) mod tests {
     use involo_checklist_core::{
         Control, ControlsFile, LightColor, LightNote, LightsFile, Overview, OverviewArea,
-        OverviewRegion, Panel, PanelItem, PanelItemKind, PanelSection, StartState, StartStatesFile,
+        OverviewRegion, Panel, PanelItem, PanelItemKind, PanelSection, PanelState, PanelStatesFile,
     };
 
     use super::super::test_support::{alias_pack, assert_flags, messages, pack, step};
@@ -473,8 +473,8 @@ pub(super) mod tests {
         let id = p.checklists[0].steps[0].id.clone();
         p.checklists[0].steps[0].controls = vec!["bat".into()];
         p.checklists[0].steps[0].expect = "OFF".into();
-        p.content.start_states = Some(StartStatesFile {
-            states: vec![StartState {
+        p.content.panel_states = Some(PanelStatesFile {
+            states: vec![PanelState {
                 id: "cold".into(),
                 title: "Cold".into(),
                 description: "Cold".into(),
@@ -555,7 +555,7 @@ pub(super) mod tests {
         );
         assert_flags(
             &rest_pack("ON"),
-            "rests at `ON`, but start state `cold` counts",
+            "rests at `ON`, but panel state `cold` counts",
         );
     }
 

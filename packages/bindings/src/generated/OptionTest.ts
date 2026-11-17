@@ -3,4 +3,4 @@
 /**
  * One test against a pilot-chosen option. The options are declared by the pack.
  */
-export type OptionTest = { option: string, equals: string, } | { option: string, one_of: Array<string>, };
+export type OptionTest = { option: string, equals: string, } | { option: string, oneOf: Array<string>, };

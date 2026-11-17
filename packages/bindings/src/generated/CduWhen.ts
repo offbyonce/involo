@@ -10,4 +10,4 @@ export type CduWhen = {
 /**
  * Every one of these must be known for `show` to appear.
  */
-when_known: Array<FillField>, show: Array<CduInline>, otherwise?: Array<CduInline>, };
+whenKnown: Array<FillField>, show: Array<CduInline>, otherwise?: Array<CduInline>, };

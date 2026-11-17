@@ -21,7 +21,7 @@ pub(super) fn check_alias(alias: &Alias, idx: &Index, issues: &mut Vec<Issue>) {
         AliasKind::BriefingItem if !found(&idx.briefing_items) => {
             issues.push(unknown("briefing item"));
         }
-        AliasKind::StartState if !found(&idx.start_states) => issues.push(unknown("start state")),
+        AliasKind::PanelState if !found(&idx.panel_states) => issues.push(unknown("panel state")),
         AliasKind::List if !found(&idx.lists) => issues.push(unknown("list")),
         AliasKind::Phase if !found(&idx.phases) => issues.push(unknown("phase")),
         AliasKind::Zone if !found(&idx.zones) => issues.push(unknown("zone")),
@@ -64,7 +64,7 @@ mod tests {
             alias(AliasKind::Step, "preflight-0-0", &step_id),
             alias(AliasKind::BriefingItem, "b-0-0", "departure.runway"),
             alias(AliasKind::Blank, "preflight-0-0-v1", &blank),
-            alias(AliasKind::StartState, "bes", "ready"),
+            alias(AliasKind::PanelState, "bes", "ready"),
             alias(AliasKind::OptionValue, "power:ground", "power:gpu"),
             alias(AliasKind::FillField, "toflaps", "takeoff_flaps"),
             alias(AliasKind::List, "m:Smoke", "preflight"),
@@ -87,8 +87,8 @@ mod tests {
             (alias(AliasKind::Blank, "x", &past_end), "unknown blank"),
             (alias(AliasKind::Blank, "x", "ghost#0"), "unknown blank"),
             (
-                alias(AliasKind::StartState, "x", "ghost"),
-                "unknown start state",
+                alias(AliasKind::PanelState, "x", "ghost"),
+                "unknown panel state",
             ),
             (
                 alias(AliasKind::OptionValue, "x", "power:solar"),

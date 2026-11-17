@@ -11,4 +11,4 @@ region: string, shapes: Array<Array<[number, number]>>,
 /**
  * Where the region's name goes when it is the one shown, if the view names it.
  */
-label_at?: [number, number] | null, };
+labelAt?: [number, number] | null, };

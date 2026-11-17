@@ -10,9 +10,9 @@ afterEach(cleanup);
 
 /** Invented places: one wide box, one too narrow for its name, one place drawn twice. */
 const zones = [
-  { id: "wide", title: "Wide panel", short_title: "WIDE", area: "Top", position: "Left" },
-  { id: "thin", title: "Thin panel", short_title: "THIN PANEL NAME", area: "Top", position: "Middle" },
-  { id: "twin", title: "Twin panel", short_title: "TW", area: "Top", position: "Right" },
+  { id: "wide", title: "Wide panel", shortTitle: "WIDE", area: "Top", position: "Left" },
+  { id: "thin", title: "Thin panel", shortTitle: "THIN PANEL NAME", area: "Top", position: "Middle" },
+  { id: "twin", title: "Twin panel", shortTitle: "TW", area: "Top", position: "Right" },
 ] as Zone[];
 const boxes = [
   { zone: "wide", x: 0, y: 0, width: 200, height: 60 },

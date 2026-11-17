@@ -24,6 +24,7 @@ pub const SCHEMA_VERSION: u32 = 5;
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
 pub struct PackContent {
     pub phases: Option<involo_checklist_core::PhasesFile>,
     pub controls: Option<involo_checklist_core::ControlsFile>,
@@ -33,7 +34,7 @@ pub struct PackContent {
     pub faults: Option<involo_checklist_core::FaultsFile>,
     pub glossary: Option<involo_checklist_core::GlossaryFile>,
     pub briefings: Option<involo_checklist_core::BriefingsFile>,
-    pub start_states: Option<involo_checklist_core::StartStatesFile>,
+    pub panel_states: Option<involo_checklist_core::PanelStatesFile>,
     pub cdu: Option<involo_checklist_core::CduFile>,
     pub aliases: Option<involo_checklist_core::AliasesFile>,
 }

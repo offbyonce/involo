@@ -11,4 +11,4 @@ success: string,
 /**
  * What a bad result can mean.
  */
-failure?: string | null, check?: string | null, check_detail?: string | null, if_not?: string | null, if_not_detail?: string | null, };
+failure?: string | null, check?: string | null, checkDetail?: string | null, ifNot?: string | null, ifNotDetail?: string | null, };

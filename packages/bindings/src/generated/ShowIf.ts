@@ -5,4 +5,4 @@ import type { OptionTest } from "./OptionTest";
  * When something is shown. Deliberately small: tests combine one level deep, with no
  * negation, comparisons, step state or expressions.
  */
-export type ShowIf = OptionTest | { all_of: Array<OptionTest>, } | { any_of: Array<OptionTest>, };
+export type ShowIf = OptionTest | { allOf: Array<OptionTest>, } | { anyOf: Array<OptionTest>, };

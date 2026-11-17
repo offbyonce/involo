@@ -8,7 +8,7 @@ On / Off), the section list (232) with "N to enter", the section, and "Find it i
 it. Every field of the old Flight setup lives in one section.
 -->
 <script lang="ts">
-  import type { FillField, Flight, SavedPlan, Settings, StartState, UserOption } from "@involo/bindings";
+  import type { FillField, Flight, SavedPlan, Settings, PanelState, UserOption } from "@involo/bindings";
   import Icon from "../lib/Icon.svelte";
   import { FLIGHT_SECTIONS, flightHref, type FlightSection } from "../route.svelte";
   import OfpPanel from "./OfpPanel.svelte";
@@ -32,7 +32,7 @@ it. Every field of the old Flight setup lives in one section.
     onSet,
     onNotes,
     onOption,
-    onStartState,
+    onPanelState,
     onImport,
     onFile,
     onClear,
@@ -47,12 +47,12 @@ it. Every field of the old Flight setup lives in one section.
     /** The center tank's share of the block fuel, from the suggestion rule ("1,262 kg"). */
     centerTank?: string | null;
     options: UserOption[];
-    states: StartState[];
+    states: PanelState[];
     backHref: string;
     onSet: (field: FillField, value: string) => void;
     onNotes: (notes: string) => void;
     onOption: (option: string, value: string) => void;
-    onStartState: (state: string | null) => void;
+    onPanelState: (state: string | null) => void;
     onImport: (user: string) => Promise<string | null>;
     onFile: (text: string) => Promise<string | null>;
     onClear: () => void;
@@ -160,7 +160,7 @@ it. Every field of the old Flight setup lives in one section.
       {:else if section === "weather"}
         <WeatherView {flight} {plan} descriptions={settings.descriptions} tab={focus} {onSet} bind:panel={wxPanel} />
       {:else if section === "start"}
-        <StartView {flight} {options} {states} {onOption} {onStartState} />
+        <StartView {flight} {options} {states} {onOption} {onPanelState} />
       {:else if section === "simbrief"}
         <SimBriefView user={settings.simbriefUser ?? null} {plan} {onImport} {onFile} {onClear} />
       {:else if def}

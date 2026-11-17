@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// The saved format of a [`Flight`]. Raise it, with a migration and tests, when the shape changes.
-pub const FLIGHT_FORMAT: u32 = 3;
+pub const FLIGHT_FORMAT: u32 = 4;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -24,7 +24,7 @@ pub struct Flight {
     /// The pilot's choice for each option the pack declares, e.g. the power source.
     pub options: BTreeMap<String, String>,
     /// The panel state the flight started from, if any.
-    pub start_state: Option<String>,
+    pub panel_state: Option<String>,
     /// The steps that panel state ticked, and those it skipped: only these change when the pilot
     /// picks another state or none. Steps the pilot marks by hand are never in them (format 2).
     #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
@@ -95,7 +95,7 @@ pub fn new_flight(pack: &FlatPack) -> Flight {
         pack: pack.manifest.id.clone(),
         pack_version: pack.manifest.version.to_string(),
         options,
-        start_state: None,
+        panel_state: None,
         state_ticks: BTreeSet::new(),
         state_skips: BTreeSet::new(),
         session: Session::new(),

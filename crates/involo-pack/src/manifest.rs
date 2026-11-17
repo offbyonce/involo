@@ -19,6 +19,10 @@ pub enum PackKind {
     Library,
 }
 
+/// A pack's manifest, `pack.json`. Field names: the manifest is camelCase (`schemaVersion`); the
+/// pack's YAML files and their fields are snake_case (`expect_when`, `ask_in`), as authors write
+/// them; the app's own saved data is camelCase. The app hands pack content to its interface with
+/// camelCase field names, so the interface reads one case (decision 0029).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -73,7 +77,7 @@ pub struct PackManifest {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub briefings: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub start_states: Option<String>,
+    pub panel_states: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cdu: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -91,7 +95,7 @@ impl PackManifest {
             &self.faults,
             &self.glossary,
             &self.briefings,
-            &self.start_states,
+            &self.panel_states,
             &self.cdu,
             &self.aliases,
         ];

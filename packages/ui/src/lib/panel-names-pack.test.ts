@@ -8,12 +8,21 @@
 
 import type { FlatPack } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
+import { packAsReceived } from "../test-pack";
 import { panelName } from "./panel-name";
 
-const packs = import.meta.glob<FlatPack>("../../../../apps/web/public/packs/*.json", {
-  eager: true,
-  import: "default",
-});
+/** The flattened packs, by file, as the interface receives them; the pack index file is not a pack. */
+const packs: Record<string, FlatPack> = Object.fromEntries(
+  Object.entries(
+    import.meta.glob<string>("../../../../apps/web/public/packs/*.json", {
+      eager: true,
+      query: "?raw",
+      import: "default",
+    }),
+  )
+    .filter(([file]) => !file.endsWith("/index.json"))
+    .map(([file, text]) => [file, packAsReceived(text)]),
+);
 
 /** Names that end in a thing: used as they are. */
 const AS_IS = [

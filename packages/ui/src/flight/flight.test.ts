@@ -5,9 +5,9 @@ import type {
   Decoded,
   FillField,
   Flight,
+  PanelState,
   SavedPlan,
   Settings,
-  StartState,
   UserOption,
 } from "@involo/bindings";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/svelte";
@@ -25,7 +25,7 @@ const flight = (values: Partial<Record<FillField, string>> = {}, notes = ""): Fl
     pack: "p",
     packVersion: "1",
     options: { power: "gpu", start: "cold" },
-    startState: null,
+    panelState: null,
     session: { done: {}, skipped: {} },
     values,
     blanks: {},
@@ -104,7 +104,7 @@ function page(props: Record<string, unknown>, withHost: Host = host) {
   ];
   const states = [
     { id: "cd", title: "Cold & Dark", description: "", phase: "cold-dark", done: [] },
-  ] as unknown as StartState[];
+  ] as unknown as PanelState[];
   const calls: unknown[] = [];
   render(FlightPage, {
     context: hostContext(withHost),
@@ -120,7 +120,7 @@ function page(props: Record<string, unknown>, withHost: Host = host) {
       onSet: (f: string, v: string) => sets.push([f, v]),
       onNotes: (n: string) => calls.push(["notes", n]),
       onOption: (o: string, v: string) => calls.push([o, v]),
-      onStartState: (s: string | null) => calls.push(["state", s]),
+      onPanelState: (s: string | null) => calls.push(["state", s]),
       onImport: async () => "Couldn't reach SimBrief.",
       onFile: async () => null,
       onClear: () => calls.push("clear"),

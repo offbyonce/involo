@@ -79,25 +79,25 @@ aliases:
   - kind: briefing_item
     from: b-5-4
     to: approach-chart-briefing.go-around-altitude
-  - kind: start_state
+  - kind: panel_state
     from: cd
     to: cd
-  - kind: start_state
+  - kind: panel_state
     from: gpu
     to: gpu
-  - kind: start_state
+  - kind: panel_state
     from: grd
     to: grd
-  - kind: start_state
+  - kind: panel_state
     from: apu
     to: apu
-  - kind: start_state
+  - kind: panel_state
     from: bes
     to: bes
-  - kind: start_state
+  - kind: panel_state
     from: rtt
     to: rtt
-  - kind: start_state
+  - kind: panel_state
     from: rwy
     to: rwy
   - kind: step

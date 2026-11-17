@@ -14,7 +14,8 @@ each region. `?theme=dark|light` picks the theme.
   import ViewDrawing from "../lib/ViewDrawing.svelte";
   import { applyPalette } from "../theme/tokens";
 
-  let { packUrl }: { packUrl: string } = $props();
+  /** The pack as the interface receives it, from the host (decision 0029, Names). */
+  let { loadPack }: { loadPack: () => Promise<FlatPack> } = $props();
 
   const params = new URLSearchParams(location.search);
   const dark = params.get("theme") !== "light";
@@ -23,7 +24,7 @@ each region. `?theme=dark|light` picks the theme.
   let pack = $state<FlatPack | null>(null);
   $effect(() => {
     safely(
-      (async () => (await fetch(packUrl)).json() as Promise<FlatPack>)(),
+      loadPack(),
       (p) => {
         pack = p;
       },

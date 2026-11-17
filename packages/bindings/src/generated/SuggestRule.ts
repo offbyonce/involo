@@ -8,9 +8,9 @@ import type { WeightUnit } from "./WeightUnit";
  * `otherwise`; within `near` of `more_than` the suggestion says it is close to the line
  * (decision 0027). The amounts are in `unit`. With `minus` at 0, nothing is suggested.
  */
-export type SuggestRule = { field: FillField, unit: WeightUnit, minus: number, more_than: number, near: number, 
+export type SuggestRule = { field: FillField, unit: WeightUnit, minus: number, moreThan: number, near: number, 
 /**
  * The line and margin for a flight in the other unit, when the choices name both
  * ("More than 1,000 lb (450 kg)"): a pound flight is held to 1,000 lb, not 992.
  */
-other_unit?: SuggestLine | null, then: string, otherwise: string, };
+otherUnit?: SuggestLine | null, then: string, otherwise: string, };
