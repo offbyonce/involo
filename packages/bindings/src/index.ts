@@ -66,6 +66,7 @@ export type { StepRow } from "./generated/StepRow";
 export type { StepState } from "./generated/StepState";
 export type { StripPart } from "./generated/StripPart";
 export type { Suggestion } from "./generated/Suggestion";
+export type { SuggestLine } from "./generated/SuggestLine";
 export type { SuggestRule } from "./generated/SuggestRule";
 export type { Suggests } from "./generated/Suggests";
 export type { Theme } from "./generated/Theme";

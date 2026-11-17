@@ -46,8 +46,19 @@ data_types! {
         pub more_than: u32,
         #[serde(default)]
         pub near: u32,
+        /// The line and margin for a flight in the other unit, when the choices name both
+        /// ("More than 1,000 lb (450 kg)"): a pound flight is held to 1,000 lb, not 992.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub other_unit: Option<SuggestLine>,
         pub then: String,
         pub otherwise: String,
+    }
+
+    /// A suggestion rule's line and margin in the other unit.
+    pub struct SuggestLine {
+        pub more_than: u32,
+        #[serde(default)]
+        pub near: u32,
     }
 
     /// A unit for a suggestion rule's amounts.

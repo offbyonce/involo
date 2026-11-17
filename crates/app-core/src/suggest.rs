@@ -78,16 +78,29 @@ fn from_rule(rule: &SuggestRule, flight: &Flight) -> Option<Suggestion> {
         _ => 1.0,
     };
     let left = (amount * to_rule - f64::from(rule.minus)).max(0.0);
-    let line = f64::from(rule.more_than);
-    let value = if left > line {
+    // The amount the pilot sees, whole, in the flight's unit; the line and margin in that unit
+    // too (the rule's own, or its other-unit line), so the suggestion always agrees with the
+    // figure shown beside it.
+    let shown = whole(left / to_rule)?;
+    let same_unit = (rule.unit == WeightUnit::Kg) == kg_flight;
+    let (line, margin) = match (&rule.other_unit, same_unit) {
+        (_, true) => (f64::from(rule.more_than), f64::from(rule.near)),
+        (Some(other), false) => (f64::from(other.more_than), f64::from(other.near)),
+        (None, false) => (
+            f64::from(rule.more_than) / to_rule,
+            f64::from(rule.near) / to_rule,
+        ),
+    };
+    let amount = f64::from(shown);
+    let value = if amount > line {
         &rule.then
     } else {
         &rule.otherwise
     };
-    let near = rule.near > 0 && (left - line).abs() <= f64::from(rule.near);
+    let near = margin > 0.0 && (amount - line).abs() <= margin;
     Some(Suggestion {
         value: value.clone(),
-        amount: whole(left / to_rule)?,
+        amount: shown,
         unit: if kg_flight { "kg" } else { "lb" }.into(),
         near,
     })
@@ -106,6 +119,10 @@ mod tests {
             minus,
             more_than: 450,
             near: 225,
+            other_unit: Some(checklist_core::SuggestLine {
+                more_than: 1000,
+                near: 500,
+            }),
             then: "more".into(),
             otherwise: "less".into(),
         }
@@ -167,6 +184,12 @@ mod tests {
         let pack = ifly_pack();
         let s = suggestion(&pack, &flight("9000", "KG"), "center_tank").unwrap();
         assert_eq!((s.value.as_str(), s.amount), ("more", 1262));
+        // The pack's pound line: 18,059 lb leaves 1,000 lb, not more than 1,000.
+        let lb = suggestion(&pack, &flight("18059", "LB"), "center_tank").unwrap();
+        assert_eq!(
+            (lb.value.as_str(), lb.amount, lb.near),
+            ("less", 1000, true)
+        );
         assert_eq!(
             suggestion(&pack, &flight("9000", "KG"), "power"),
             None,

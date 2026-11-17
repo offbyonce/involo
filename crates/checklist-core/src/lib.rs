@@ -32,8 +32,8 @@ pub use content::{
     GlossaryFile, HowNote, IntroParagraph, LabelAnchor, LightColor, LightNote, LightsFile,
     NotesFile, OptionChoice, Overview, OverviewArea, OverviewCaption, OverviewRegion,
     OverviewViews, Panel, PanelItem, PanelItemKind, PanelSection, Phase, PhasesFile, RouteLegCount,
-    RouteLegPart, Stage, StagePhase, StartState, StartStatesFile, SuggestRule, Suggests,
-    UserOption, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, WeightUnit, Zone,
+    RouteLegPart, Stage, StagePhase, StartState, StartStatesFile, SuggestLine, SuggestRule,
+    Suggests, UserOption, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, WeightUnit, Zone,
 };
 pub use model::{
     AutoStart, AutoStartPick, Checklist, Confirmation, ConfirmationKind, ExpectWhen, FillField,

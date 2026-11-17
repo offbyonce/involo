@@ -185,6 +185,7 @@ mod tests {
                     unit: checklist_core::WeightUnit::Kg,
                     minus: 7738,
                     near: 225,
+                    other_unit: None,
                     more_than: 450,
                     then: then.into(),
                     otherwise: "gpu".into(),

@@ -121,6 +121,10 @@ source: crates/pack-cli/tests/snapshot.rs
         "minus": 7738,
         "more_than": 450,
         "near": 225,
+        "other_unit": {
+          "more_than": 1000,
+          "near": 500
+        },
         "then": "more",
         "otherwise": "less"
       }

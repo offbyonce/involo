@@ -81,6 +81,10 @@ options:
       minus: 7738
       more_than: 450
       near: 225
+      # A pound flight is held to the choices' 1,000 lb, with 500 lb as its margin.
+      other_unit:
+        more_than: 1000
+        near: 500
       then: more
       otherwise: less
 # Steps in Essentials only on a turnaround (quick: turnaround) count when this holds.

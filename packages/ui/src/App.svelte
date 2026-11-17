@@ -33,7 +33,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import Slideout from "./lib/Slideout.svelte";
   import Toast from "./lib/Toast.svelte";
   import { answered } from "./lib/answers.svelte";
-  import { changedText, dependsOn, type DecisionSource, type Decisions } from "./lib/decision";
+  import { changedText, dependsOn, labelOf, lowerFirst, shortLabel, type DecisionSource, type Decisions } from "./lib/decision";
   import { stepTitle } from "./lib/sentence";
   import StepPane from "./lib/StepPane.svelte";
   import Drawer from "./lib/Drawer.svelte";
@@ -654,17 +654,33 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
    * reads as answered by the pilot.
    */
   let changing = $state<string | null>(null);
-  /** What each asked option's rule suggests from the flight's values (decision 0027). */
+  /**
+   * What each asked option's rule suggests (decision 0027), only from a SimBrief plan's own
+   * figures: with no plan, or once the block fuel or its unit is no longer the plan's (typed over,
+   * switched, or cleared by Reset flight plan), there is no suggestion and the pilot answers.
+   */
   let suggestions = $state<Record<string, Suggestion | null>>({});
+  /** The plan figures the current suggestions were worked out from. */
+  let suggestedFrom = "";
   $effect(() => {
     const f = flight;
     const ix = index;
-    if (!f || !ix) return;
+    const fills = planFills;
+    const fuel = f?.values?.fuel;
+    const unit = f?.values?.weight_unit ?? "LB";
+    const fromPlan = !!plan && !!fuel && fuel === fills.fuel && unit === (fills.weight_unit ?? "LB");
+    const key = fromPlan ? `${fuel} ${unit}` : "";
+    if (key !== suggestedFrom) {
+      suggestedFrom = key;
+      // Never an old suggestion for new figures, even for a moment.
+      suggestions = {};
+    }
+    if (!f || !ix || !fromPlan) return;
     const asked = ix.options.filter((o) => ix.decider(o.id));
     let live = true;
     void Promise.all(asked.map(async (o) => [o.id, await host.suggestion(packId, f, o.id)] as const))
       .then((list) => {
-        if (live) suggestions = Object.fromEntries(list);
+        if (live && suggestedFrom === key) suggestions = Object.fromEntries(list);
       })
       .catch(() => {});
     return () => {
@@ -746,7 +762,17 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     plan = next;
     await host.savePlan(packId, next);
     const check = filled.checkClearance ? " Check the runway and departure against your clearance." : "";
-    offerUndo(`Imported ${filled.origin} → ${filled.destination}: ${filled.filled} values.${check}`, before, () => {
+    // An answer already given that the new plan's figures would not suggest: say so (the pilot
+    // decides; the answer stays).
+    let differs = "";
+    const now = flight;
+    const ix = index;
+    if (now && ix)
+      for (const o of ix.options.filter((x) => ix.decider(x.id) && now.options[x.id] !== undefined)) {
+        const s = await host.suggestion(packId, now, o.id);
+        if (s && s.value !== now.options[o.id]) differs += ` ${o.title}: the new plan suggests ${lowerFirst(shortLabel(labelOf(o, s.value)))}; check your answer.`;
+      }
+    offerUndo(`Imported ${filled.origin} → ${filled.destination}: ${filled.filled} values.${check}${differs}`, before, () => {
       plan = keptPlan;
       void host.savePlan(packId, keptPlan);
     });

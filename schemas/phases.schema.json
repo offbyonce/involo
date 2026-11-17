@@ -377,6 +377,27 @@
         "phase"
       ]
     },
+    "SuggestLine": {
+      "description": "A suggestion rule's line and margin in the other unit.",
+      "type": "object",
+      "properties": {
+        "more_than": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "near": {
+          "type": "integer",
+          "format": "uint32",
+          "default": 0,
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "more_than"
+      ]
+    },
     "SuggestRule": {
       "description": "A weight from the flight, less `minus`, above `more_than` suggests `then`, otherwise\n`otherwise`; within `near` of `more_than` the suggestion says it is close to the line\n(decision 0027). The amounts are in `unit`. With `minus` at 0, nothing is suggested.",
       "type": "object",
@@ -399,6 +420,17 @@
           "format": "uint32",
           "default": 0,
           "minimum": 0
+        },
+        "other_unit": {
+          "description": "The line and margin for a flight in the other unit, when the choices name both\n(\"More than 1,000 lb (450 kg)\"): a pound flight is held to 1,000 lb, not 992.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SuggestLine"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "otherwise": {
           "type": "string"
