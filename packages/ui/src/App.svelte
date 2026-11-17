@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 The app frame, laid out as in 3.0: the top bar with stage tabs, the phase chips, the screen for
 the current address, and on wide screens the context panel for the selected step. State comes
 from the host (decision 0012): a flight, settings, the rail and the phase on screen, all computed
-in Rust. Progress lives in memory until batch 1 saves it on the device.
+in Rust. The host saves progress and settings on the device.
 -->
 <script lang="ts">
   import {
@@ -76,7 +76,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
 
   /**
    * The list (the page) and the side pane scroll on their own with no scrollbar, as on the boards;
-   * edge fades show where there is more (batch 2). Wheel, trackpad, touch and keys
+   * edge fades show where there is more. Wheel, trackpad, touch and keys
    * scroll them as usual.
    */
   let pageMore = $state({ up: false, down: false });
@@ -154,7 +154,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let selected = $state<string | null>(null);
   /** The step Flow view shows; null follows the current step. */
   let cursor = $state<string | null>(null);
-  /** Find (batch 6): its index, built once per pack, and whether it is open. */
+  /** Find: its index, built once per pack, and whether it is open. */
   let findIndex = $state<FindIndex | null>(null);
   /** The loaded pack, for Practice's question generator. */
   let flatPack = $state.raw<FlatPack | null>(null);
@@ -234,7 +234,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
         return null;
       };
       // A flight saved with no settings: settings are saved only once changed, so this pilot has been
-      // here before (review). Saved settings say for themselves.
+      // here before. Saved settings say for themselves.
       hadFlight = !!saved.flight && !saved.settings;
       settings = usable("settings", saved.settings) ?? (await host.defaultSettings());
       const savedFlight = usable("flight", saved.flight);
@@ -882,7 +882,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     const user = settings?.simbriefUser;
     if (!user || (await importFor(user))) window.location.hash = flightHref("simbrief");
   }
-  /** A panel state (decision record pending): its marks, with Undo. */
+  /** A panel state (decision 0012): its marks, with Undo. */
   async function chooseStartState(state: string | null): Promise<void> {
     if (!flight) return;
     const before = flight;
@@ -992,7 +992,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     if (welcomeAsked || !settings || !rail || !view || (screen !== "phase" && screen !== "start")) return;
     welcomeAsked = true;
     // Not a first visit: a flight saved before settings were (settings are only saved once changed),
-    // or saved settings set aside, which can't take the answer until they are resolved (review).
+    // or saved settings set aside, which can't take the answer until they are resolved.
     if (!settings.tourSeen && !hadFlight && !kept.some((k) => k.what === "settings")) {
       tour.dir = 1;
       tour.step = 1;

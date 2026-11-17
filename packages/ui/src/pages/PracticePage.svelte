@@ -132,7 +132,7 @@ the latest; a test's questions and answers last only for this visit.
     visit.test = null;
     focusTop();
   }
-  /** After End test, See results or New test, focus goes to the new screen's heading (review). */
+  /** After End test, See results or New test, focus goes to the new screen's heading. */
   const focusTop = () => safely(tick(), () => document.querySelector<HTMLElement>(".practice [data-top]")?.focus());
 
   let test = $derived(visit.test);
@@ -180,7 +180,7 @@ the latest; a test's questions and answers last only for this visit.
     if (t.feedback === "end") next();
   }
   function rowKey(e: KeyboardEvent, i: number): void {
-    // Keys on the row's ↑ and ↓ buttons are theirs (review).
+    // Keys on the row's ↑ and ↓ buttons are theirs.
     if (locked || e.target !== e.currentTarget) return;
     if (e.key === " ") {
       e.preventDefault();
@@ -222,7 +222,7 @@ the latest; a test's questions and answers last only for this visit.
 
   function key(e: KeyboardEvent): void {
     if (!q || e.altKey || e.ctrlKey || e.metaKey) return;
-    // Enter on an answered option, or on a step row, still moves on or checks (review); on any
+    // Enter on an answered option, or on a step row, still moves on or checks; on any
     // other button or link it does what that control does.
     const onControl = (e.target as HTMLElement | null)?.closest("a, button:not(.opt)");
     if (q.kind === "choice" && !locked && /^[1-4]$/.test(e.key)) {
@@ -571,7 +571,7 @@ the latest; a test's questions and answers last only for this visit.
     line-height: normal;
   }
   /* The boards' widths (1100, 820, 1240) are the column's content, inside its padding. */
-  /* The page scrolls at its edge; the column keeps the board's width inside it (review). */
+  /* The page scrolls at its edge; the column keeps the board's width inside it. */
   .scroll {
     flex: 1;
     min-height: 0;

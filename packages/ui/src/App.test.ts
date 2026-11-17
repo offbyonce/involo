@@ -449,7 +449,7 @@ describe("App", () => {
     });
     render(App, { context: hostContext(h) });
 
-    // Nothing entered yet: the strip asks for the flight (batch 3), and opens the panel.
+    // Nothing entered yet: the strip asks for the flight, and opens the panel.
     const prompt = await screen.findByRole("button", {
       name: "Add your flight: import from SimBrief or enter the clearance",
     });
@@ -875,7 +875,7 @@ describe("App", () => {
     expect(await screen.findByRole("dialog", { name: "Find" })).toBeTruthy();
   });
 
-  it("gives each list a plain label row with the fold's text, for tablet and phone (batch 6)", async () => {
+  it("gives each list a plain label row with the fold's text, for tablet and phone", async () => {
     render(App, { context: hostContext(host()) });
     await screen.findByRole("heading", { level: 1, name: "Power up" });
     const labels = [...document.querySelectorAll("section.card > p.label")].map((p) => p.textContent);
@@ -1221,7 +1221,7 @@ describe("App", () => {
     await waitFor(() => expect(location.hash).toBe("#/phase/power-up"));
   });
 
-  it("How procedures work's current phase is the phase last open, over the first with steps to do (review)", async () => {
+  it("How procedures work's current phase is the phase last open, over the first with steps to do", async () => {
     render(App, { context: hostContext(host()) });
     await screen.findByRole("heading", { level: 1, name: "Power up" });
     location.hash = "#/phase/taxi";
@@ -1643,7 +1643,7 @@ describe("the Flight log (decision 0026)", () => {
     expect(screen.queryByText("Flight complete. Log it and start new?")).toBeNull();
   });
 
-  it("keeps the flight when the log can't be saved, and says so (review)", async () => {
+  it("keeps the flight when the log can't be saved, and says so", async () => {
     const actions: Action[] = [];
     window.location.hash = "#/log";
     const h = host({
@@ -1666,7 +1666,7 @@ describe("the Flight log (decision 0026)", () => {
     expect(document.querySelector(".earlier h2")?.textContent).toBe("Earlier flights");
   });
 
-  it("starts each change from the log as saved, so another tab's flights are kept (review)", async () => {
+  it("starts each change from the log as saved, so another tab's flights are kept", async () => {
     const other = {
       id: "other@1",
       loggedAt: 1,
@@ -1713,7 +1713,7 @@ describe("the Flight log (decision 0026)", () => {
     );
   });
 
-  it("doesn't offer to log a flight that was already finished when it loaded (review)", async () => {
+  it("doesn't offer to log a flight that was already finished when it loaded", async () => {
     const done = {
       ...rail,
       stages: rail.stages.map((s, i) =>
@@ -1734,7 +1734,7 @@ describe("the Flight log (decision 0026)", () => {
     expect(screen.queryByText("Flight complete. Log it and start new?")).toBeNull();
   });
 
-  it("shows on Practice home only this aircraft's latest saved result (review)", async () => {
+  it("shows on Practice home only this aircraft's latest saved result", async () => {
     window.location.hash = "#/practice";
     const result = (pack: string, title: string, at: number) => ({
       id: `${pack}@${at}`,

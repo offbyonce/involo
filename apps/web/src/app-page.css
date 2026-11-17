@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2026 offbyonce
  * SPDX-License-Identifier: MIT
  *
- * The app page's own notice, until the first-launch notice arrives (Phase 2 brief, step 10).
+ * The app page's own notice, shown while the app loads.
  * Once the app is running it shows a fuller notice under each screen, so this one hides.
  */
 body:has([data-app-ready]) .sim-only {

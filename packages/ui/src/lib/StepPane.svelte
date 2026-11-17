@@ -71,7 +71,7 @@ and a caution note under If not. A step with no control shows the steps coming u
   let howOpen = $state(false);
   let termsOpen = $state(false);
 
-  // The step's panels as tiles (batch 6), in one preview card at thumbnail size.
+  // The step's panels as tiles, in one preview card at thumbnail size.
   let tiles = $derived(stepTiles(index, step, targets));
   let drawnTiles = $derived(tiles.flatMap((t) => (t.kind === "drawn" ? [t] : [])));
   let listedTiles = $derived(tiles.flatMap((t) => (t.kind === "listed" ? [t] : [])));
@@ -361,7 +361,7 @@ and a caution note under If not. A step with no control shows the steps coming u
     font: inherit;
     text-align: left;
   }
-  /* A panel the pack does not draw, named with the step's controls on it (batch 6). */
+  /* A panel the pack does not draw, named with the step's controls on it. */
   .listed {
     color: var(--panel-text);
     font-size: var(--font-size-secondary);

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: MIT
 
 // An invented fixture for the decision step (Decision.dc.html), for the design gallery and tests
-// only: never part of a shipped pack or the app's runtime. It carries what pack format 4 cannot
-// yet say, the fuel step's value for each answer and a plan suggestion; batch 7 proposes the pack
-// field and the suggestion rule (with a 0022 amendment). The location line and "0 lb" are
+// only: never part of a shipped pack or the app's runtime. It carries the fuel step's value for
+// each answer and a plan suggestion, which packs now give themselves (pack format 5, decision
+// 0027). The location line and "0 lb" are
 // the board's stand-ins.
 
 import type { FlatPack, PhaseList, Step, StepRow, StepState, UserOption } from "@involo/bindings";

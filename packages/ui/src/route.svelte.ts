@@ -3,9 +3,9 @@
 
 // Screens have their own address after `#`, so Back works and a screen can be bookmarked,
 // offline too. `#/phase/<id>`, `#/reference` (optionally `/<phase id>`), `#/settings`,
-// `#/flight/<section>` (the Flight pages, batch 4; optionally `/<field>` to focus a field, or the
+// `#/flight/<section>` (the Flight pages; optionally `/<field>` to focus a field, or the
 // Weather tab), `#/open` (open steps), `#/glossary` (optionally `/<term>`), `#/deck` (optionally `/<area>/<place>`), `#/practice`, `#/how` (optionally `/<part>`, 1 to 7), `#/log` (optionally `/<flight id>`, or `/current` for This flight), `#/references`; anything else is the start. `#/setup` (Flight setup until
-// batch 4) leads to Flight › Overview.
+// leads to Flight › Overview.
 
 export type Route =
   | { screen: "start" }

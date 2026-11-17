@@ -11,14 +11,10 @@ build the interface on it.
 **Gate:** every 3.0 step is accounted for (moved, merged or deliberately dropped, with a
 reason), `pack check` passes, and `just ci` is green.
 
-Work one step at a time (see `AGENTS.md`): finish a step, show the result, wait for the
-maintainer's go-ahead.
-
 ## Where the 3.0 content is
 
 The 3.0 source is **not** in this repo and must not be committed to it wholesale (it contains
-links to sources we no longer allow). The maintainer provides a local copy; its path is given to
-you separately. The parts that matter:
+links to sources we no longer allow). A local copy is kept outside the repository. The parts that matter:
 
 | 3.0 file | Holds |
 | --- | --- |

@@ -35,10 +35,10 @@ wins.
 landscape and the panes behind the slide-out) and in the tablet portrait expanded step; the Show
 panel button is gone from every board. `Decision.dc.html` adds the decision step (decision 0022):
 `DecUnanswered`, `DecSuggested`, `DecAnswered`, `DecChanging`, `DecChanged` and `DecPhone`, dark
-and light. Its location line ("Main panel (P2) · fuel quantity on the upper display") and "0 lb" are stand-ins until the center tank step is sourced (Phase 2 step 7, batch 7). The toast on
+and light. Its location line ("Main panel (P2) · fuel quantity on the upper display") and "0 lb" were stand-ins until the center tank step was sourced; the pack now gives them (decision 0027). The toast on
 `DecChanged` is the one every Undo uses (color.toast-text, color.toast-link, color.toast-shadow).
 
-**Flight sections and the strip (approved 2026-11-13, batch 4).** `FlightSection.dc.html` (with
+**Flight sections and the strip (approved 2026-11-13).** `FlightSection.dc.html` (with
 `FSOverview`, `FSRoute`, `FSFuel`, `FSCruise`, `FSClearance`, `FSTakeoff` and `FSApproach`, dark and
 light) draws the Flight pages' sections with the Approach board's field row and "Find it in your
 OFP" beside each; `FSApproach` replaces the round 5 `Descent` board. `Weather.dc.html` (round 6,
@@ -46,10 +46,10 @@ with `Winds` for the en route winds tab), `StripOpen` and `StripFreq` (the strip
 Frequencies open) supersede their round 5 copies; `SimBrief` and `Start` (round 5) stand. Editable
 values are always boxed fields (color.field, outlined in color.field-border), values still needed
 are amber, and read-only and cross-section rows are plain text. Values, descriptions, the location
-lines and OFP close-ups are stand-ins for batch 7's validation list. The center tank row stays
-hidden until batch 7, when it shows the exact figure.
+lines and OFP close-ups were stand-ins, checked in the content pass that followed. The center tank
+row shows the exact figure once a SimBrief plan gives it (decision 0027).
 
-**Batch 4 additions (approved 2026-11-13).** `WxTabL` and `WindsTabL` (Weather and the en route
+**Flight additions (approved 2026-11-13).** `WxTabL` and `WindsTabL` (Weather and the en route
 winds at tablet landscape, 1180 × 820), `FSTakeoffTabL` (every section page at tablet landscape,
 shown with Takeoff) and `FSInvalid` (a value out of range: red border, alert icon and "Enter X to
 Y" under the field, for every field 3.0 gave a range), each dark and light, come from the `layout`
@@ -60,7 +60,7 @@ the assumed temperature as its own row. Every boxed field uses color.field and c
 "From the FMC" is the placeholder for values the FMC gives; SimBrief and OFP file says the import is
 the only part of the checklist that uses the internet; Transition reads SUMMA on every board.
 
-**Batch 5 additions (approved 2026-11-15).** `StagePicker.dc.html` (with `StagesPhone`,
+**Tablet and phone additions (approved 2026-11-15).** `StagePicker.dc.html` (with `StagesPhone`,
 `StagesTabP` and `StagesTabL`, dark and light) draws the stage and phase picker that opens from the
 stage button in the compact header: a bottom sheet on phone and tablet portrait (two columns on
 tablet), a pop-over under the stage button from 900 to 1439 px. Wide desktop (1440 and wider) keeps
@@ -70,7 +70,7 @@ its stage tabs and does not use it. The stages and phases come from the pack, in
 whose page does not exist yet stay hidden, with any group heading left empty, until that page is
 built (2026-11-15).
 
-**Batch 6 additions (approved 2026-11-15).** `Find.dc.html` with twelve wrapper boards (`FindDesk`,
+**Find and panel additions (approved 2026-11-15).** `Find.dc.html` with twelve wrapper boards (`FindDesk`,
 `FindDeskNone`, `FindDeskStart`, `FindPhone`, `FindPhoneNone`, `FindPhoneStart`, dark and light)
 draws Find: a 640 px dialog 88 px from the top on the pop-over tokens over `color.scrim` from 900 px,
 a full-screen sheet below it. It searches every step, control and term in the pack, in sections
@@ -95,7 +95,7 @@ the Glossary at that term, each definition in a step's Terms has its own "Open i
 the menu shows Glossary under Reference. Two step rows that would read the same also name their
 list. No new tokens: a term's text keeps the boards' 640 px reading width (written as
 `size.drawer` plus `size.map-figure`) and its definition the 1.55 line height (`leading.normal`
-plus 0.05). Terms IGN L, IGN R, PERF INIT and MA take no expansion (reviewed exceptions).
+plus 0.05). Terms IGN L, IGN R, PERF INIT and MA take no expansion (deliberate exceptions).
 
 **Flight deck (2026-11-16).** Built from `Deck.dc.html` (1440 px and up: the side view
 over the area list, the area's map with "Panels in this area, as a list" and "Light meanings for
@@ -106,7 +106,7 @@ column. The areas are the board's seven, the pack's center console split into th
 electronic panel (P9), the control stand and the aft electronic panel (P8) by its places' area
 names, then "Around the flight deck" last: it has no map region, so its places are a list, each with
 its location line and, where the pack draws it, its drawing, and nothing is lit in the side view.
-The map is the pack's overview, with the batch 6 map rules (a box is named only when its name fits
+The map is the pack's overview, with the map rules (a box is named only when its name fits
 with 6 px either side). The selected panel is an overview fitted to its column (labels may go below
 11 px there), with "Full size ›" opening it in the panel sheet at the 11 px minimum, under a
 navigator when wider; the 900 to 1439 px slide-out shows it at full size. The slide-out's and Where is this?'s "Whole flight deck" map is gone: "Open
@@ -152,7 +152,7 @@ under This flight and the app.
 Decision 0007 stands: the page names only the kind of source a list's basis tag stands for
 (Simulator documentation, Regulator guidance), never a citation, title, page or link. Lists tagged
 prior-release show "Source being confirmed" in a dashed, muted tag: a status, not a source, which
-goes away when the content batch re-tags them. The chips are All, each source, then Source being
+goes away once a list is re-tagged with its basis. The chips are All, each source, then Source being
 confirmed (over the board's order), on phone too. The simulation notice uses the
 If-not box's amber. Simulator model notes opens Find on those steps; Open-source software opens the
 third-party licenses file, made from the app's dependencies at build time. In the menu it follows
@@ -178,7 +178,7 @@ no line height (the browser's normal one, as the page does) and draw the questio
 widths 1100, 820 and 1240 are the column's content inside its padding. Results last only for the
 visit.
 
-**Batch 6 panels (2026-11-15).** `PanelTiles.dc.html` (dark and light) draws a step whose
+**Panels as tiles (2026-11-15).** `PanelTiles.dc.html` (dark and light) draws a step whose
 controls are on two panels, and the Whole flight deck map (replaced by the Flight deck page). A step draws only the panels that hold
 its controls or the lights its Check names, nothing between them; each is its own tile at its own
 scale, side by side when they fit at full size, otherwise stacked, 16 px apart, centered, never
@@ -233,8 +233,8 @@ drawing style. The app's existing control drawings stay wherever they are better
 the shared renderer so they meet `rules.md`: tokens only, both themes, unlit lights outline only,
 labels at 11 px or more and light legends at 10 px or more, the real ON direction, and the
 changed, resting, conditional and resolved states. Where ours are better, ours win; where a board
-shows a state or rule ours lack, it is added. The reviewer brief for batch 2 (the shared drawing
-renderer) includes a side-by-side for each control type: the current drawing, the board, and the
+shows a state or rule ours lack, it is added. The reviewer brief for the shared drawing
+renderer includes a side-by-side for each control type: the current drawing, the board, and the
 result.
 
 ### Answers on the handoff
@@ -251,6 +251,6 @@ result.
 `tokens.json` is the delivered file plus additions approved on 2026-11-12: border
 widths, line heights and eight sizes (icons, the tablet side pane, the drawer, the open-step dot,
 status icons, the progress bar and the Flow button). Each names its source board in a `$sources`
-entry. Approved the same day for batch 2: `radius.popover`, `color.popover-border` and
+entry. Approved the same day for the drawing renderer: `radius.popover`, `color.popover-border` and
 `color.overlay-shadow` (WherePop's values, for every pop-over, sheet and drawer) and
-`size.map-figure` (280, the side pane's map figure on the Checklist and WherePop boards). Round 6 (2026-11-13), from `round6/boards/Locator.dc.html`: `size.slideout` (840), `size.slideout-tablet` (700) and `color.slideout-scrim`. Batch 5 (2026-11-15), from `round6/boards/StagePicker.dc.html`: `color.scrim-light`, the pop-over picker's scrim from 900 to 1439 px. New tokens are proposed with their source first, never added on their own.
+`size.map-figure` (280, the side pane's map figure on the Checklist and WherePop boards). Round 6 (2026-11-13), from `round6/boards/Locator.dc.html`: `size.slideout` (840), `size.slideout-tablet` (700) and `color.slideout-scrim`. 2026-11-15, from `round6/boards/StagePicker.dc.html`: `color.scrim-light`, the pop-over picker's scrim from 900 to 1439 px. New tokens are proposed with their source first, never added on their own.

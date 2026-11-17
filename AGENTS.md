@@ -2,11 +2,12 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 -->
-# Working on Involo (for AI agents and contributors)
+# Working on Involo
 
-Read this first, then `docs/plan.md` (what we are building and why) and the brief for the
-current phase in `docs/briefs/`. Decision records in `docs/decisions/` explain past choices;
-do not reverse one without the maintainer's agreement.
+A guide for everyone who changes the code or the packs, people and AI agents alike. Read it with
+`CONTRIBUTING.md` (sign-off, checks, content rules) and `docs/plan.md` (what we are building and
+why). Decision records in `docs/decisions/` explain past choices; a change that would reverse one
+starts with a discussion in an issue.
 
 ## What this project is
 
@@ -73,16 +74,12 @@ engine never names an aircraft. **The app never connects to the simulator** (dec
   themes, with every difference listed; any difference the maintainer has not approved is a
   finding.
 
-## How to work
+## Conventions
 
-- **One step at a time.** Propose a step, do it, show the result (command output, test results),
-  and wait for the maintainer to confirm before starting the next one. Do not queue up extra
-  tasks before the current one works.
-- **Ask before deciding** anything that changes the data model, the pack format, a public
-  interface, licenses or the plan. Write a short decision record for choices that matter.
-- **Say plainly when unsure,** and verify instead of guessing: run the command, read the file,
-  check the docs.
-- Keep explanations short and in plain language; say which machine a command runs on.
+- **Changes that need agreement first.** Open an issue, or ask in your pull request, before
+  changing the data model, the pack format, a public interface, licenses or the plan. Choices
+  that matter get a short decision record.
+- **Verify, don't guess.** Run the command, read the file, check the docs; say so when unsure.
 - American English everywhere: code identifiers, pack field names, error messages, docs and pack content (color, behavior, license as a noun, optimize, pressurization).
   Exceptions keep their exact spelling: SPDX license IDs, file names such as `LICENSE` and `LICENSES/`, and anything quoted from outside sources.
 
@@ -98,14 +95,14 @@ engine never names an aircraft. **The app never connects to the simulator** (dec
 | `crates/simbrief` | SimBrief OFP parsing |
 | `crates/store` | SQLite saved data and migrations. Parked: not in the workspace (0010) |
 | `crates/web-host` | Thin WebAssembly glue for the web app; `just wasm` builds it (wasm-bindgen CLI at the crate's pinned version) |
-| `apps/web` | Web site: placeholder front page, the work-in-progress app at `app/` (web host in `src/`; `src/core.ts` calls the WebAssembly module; `src/sw/` and `build/` make the offline service worker) and the SimBrief probe page. `just site` builds it into `apps/web/dist` (decisions 0009, 0010) |
+| `apps/web` | Web site: the front page, the app at `app/` (web host in `src/`; `src/core.ts` calls the WebAssembly module; `src/sw/` and `build/` make the offline service worker), the SimBrief probe page and the drawing gallery. `just site` builds it into `apps/web/dist` (decisions 0009, 0010) |
 | `apps/desktop` | Tauri shell (`src-tauri`) and its host. Parked: not in the workspace (0010) |
 | `packages/ui` | The shared Svelte 5 interface and its host interface (`src/host.ts`) |
 | `packages/bindings` | TypeScript types generated from Rust (`src/generated`), and `isAppError` |
 | `tools/import-3x` | One-way converter from the 3.0 checklist to pack YAML (retired, kept for reference) |
 | `packs/` | Content packs (CC BY-NC-SA 4.0) |
 | `schemas/` | Generated JSON Schemas |
-| `docs/` | Plan, briefs, setup guide, decision records |
+| `docs/` | Plan, phase briefs, setup guide, brand, design boards, decision records |
 
 ## Commands
 
@@ -116,11 +113,14 @@ just test      # Rust and interface tests
 just packs     # validate every pack
 just site      # build the web site into apps/web/dist (WebAssembly, packs, app)
 just update-test  # service worker update test in headless Firefox (local; needs Firefox)
-just screenshots <dir>  # review screenshots (five sizes, dark and light) into <dir>;
-                        # with INVOLO_BASELINE=<local 3.0 HTML file>, also 3.0 side by side in <dir>/compare
+just screenshots <dir>  # review screenshots (five sizes, dark and light) into <dir>
 just ci        # everything; must pass before a push
-just overlap   # compare packs with private references (INVOLO_OVERLAP_REFS)
+just overlap   # compare packs with local reference files
 ```
+
+`just overlap` and parts of `just screenshots` use optional local files named by `INVOLO_*`
+variables; without them those extra checks are skipped. `CONTRIBUTING.md` ("Optional local
+files") lists each one.
 
 Rust is pinned in `rust-toolchain.toml` (1.99). Newer clippy versions add lints, so always run
 `just ci` with the pinned toolchain, not an older one.

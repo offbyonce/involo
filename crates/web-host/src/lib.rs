@@ -225,13 +225,13 @@ pub fn log_csv(log: &str) -> String {
     reply((|| Ok(app_core::log_csv(&read("log", log)?)))())
 }
 
-/// A METAR decoded from the code table (batch 4).
+/// A METAR decoded from the code table.
 #[wasm_bindgen]
 pub fn decode_metar(text: &str) -> String {
     reply(Ok::<_, app_core::AppError>(app_core::decode_metar(text)))
 }
 
-/// A TAF decoded from the code table (batch 4).
+/// A TAF decoded from the code table.
 #[wasm_bindgen]
 pub fn decode_taf(text: &str) -> String {
     reply(Ok::<_, app_core::AppError>(app_core::decode_taf(text)))

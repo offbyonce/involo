@@ -22,7 +22,7 @@ export const SOURCES = [
 ] as const;
 
 /** A status, not a source: lists whose text came from an earlier release and are being checked
- * against the sources above. The content batch re-tags them, and the status then goes away. */
+ * against the sources above. Once a list is re-tagged with its basis, the status goes away. */
 export const CONFIRMING = { tag: "prior-release", name: "Source being confirmed" } as const;
 
 export type Basis = (typeof SOURCES)[number]["tag"] | typeof CONFIRMING.tag;

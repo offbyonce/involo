@@ -52,7 +52,7 @@ ticks, skips or changes anything in the flight.
   let text = $derived(stepText(step, { tabs: lit?.tabs ?? true, bar: lit?.bar ?? false, stages, findKey }));
   let sheet = $derived(!wide && !lit?.bar);
   /** Whether the card is placed and can show: a lit step's card waits for its element, so a step
-   * that will be skipped never shows (review). */
+   * that will be skipped never shows. */
   let placed = $derived(step === 1 || step === STEPS ? centerTop !== null : !!lit && (sheet || !!place));
   /** The scrim's hole: the window, less the ring's box with its rounded corners. */
   let hole = $derived.by(() => {
@@ -218,7 +218,7 @@ ticks, skips or changes anything in the flight.
   }
 
   // The page underneath is inert while the tour is open, so nothing reaches it, not even a screen
-  // reader's browse mode (review).
+  // reader's browse mode.
   let root = $state<HTMLElement | null>(null);
   $effect(() => {
     const parent = root?.parentElement;

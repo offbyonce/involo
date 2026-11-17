@@ -6,7 +6,8 @@
 // preference, so the app needs no test hook. Writes PNG files to <out-dir>, which should be
 // outside the repo. Needs Firefox on the PATH (or FIREFOX=/path/to/firefox).
 //
-// With INVOLO_BASELINE set to a local copy of the 3.0 checklist's HTML file, it also shoots
+// Optionally (CONTRIBUTING.md, "Optional local files"): with INVOLO_BASELINE set to a local copy of
+// the 3.0 checklist's HTML file, it also shoots
 // the same screens of 3.0 into <out-dir>/baseline and writes side-by-side images (3.0 left, new
 // right, same size and theme) into <out-dir>/compare. The 3.0 copy is never part of the repo.
 // SCREENSHOTS_ONLY=phase-desktop-dark,flow limits the run to keys that start with one of those.
@@ -96,7 +97,7 @@ const CLEARANCE = [
   ["initial_altitude", "alt", "5000"],
   ["squawk", "sq", "4521"],
 ];
-/** Where each field lives in the Flight pages (batch 4), for typing the same data as 3.0. */
+/** Where each field lives in the Flight pages, for typing the same data as 3.0. */
 const SECTION_OF = {
   runway: "clearance",
   sid: "clearance",
@@ -125,7 +126,7 @@ const go = (hash) => `location.hash = ${JSON.stringify(hash)}; true`;
 const skipStep = (title) =>
   `(() => { const it = [...document.querySelectorAll(".it")].find((i) => i.textContent.toUpperCase().includes(${JSON.stringify(title)})); const skip = () => [...it.querySelectorAll("button")].find((b) => b.textContent.includes("Skip for now")); if (!skip()) it.querySelector(".chev").click(); return new Promise((go) => setTimeout(() => { skip().click(); go(true); }, 300)); })()`;
 /**
- * The Flight pages in the boards' state (batch 4): the invented KSEA to KSFO OFP dropped on SimBrief
+ * The Flight pages in the boards' state: the invented KSEA to KSFO OFP dropped on SimBrief
  * and OFP file, as a pilot would, then the values the boards show typed in. The import's Undo toast
  * is left to time out (10 s) so it is not in the shot.
  */
@@ -194,7 +195,7 @@ const rowMenu = (name) =>
   `[...document.querySelectorAll(".it")].find((it) => it.querySelector(".nm")?.textContent.trim() === ${JSON.stringify(name)}).querySelector("button.more").click(); true`;
 /**
  * The approved boards' state for Before start: Landing gear pins to Door lights done, TERR skipped,
- * so the fuel pump switches are the current step (the boards' center tank step is batch 7's).
+ * so the fuel pump switches are the current step (the boards' center tank step comes before them).
  */
 const BOARD_STATE = [
   finishPhase("apu-power", "before-start"),
@@ -395,7 +396,7 @@ const SHOTS = [
   },
   {
     // Descent with the same arrival data: in Flight › Approach on our side (the Arrival data box
-    // is a link there since batch 4), in 3.0's box on the other.
+    // is a link there), in 3.0's box on the other.
     name: "arrival",
     only: "desktop",
     app: { hash: "#/flight/approach", before: [inFlight(ARRIVAL), go("#/phase/descent")] },
@@ -479,7 +480,7 @@ const SHOTS = [
     app: { hash: "#/phase/preflight", before: [unfold, stepExact("OXYGEN", ".row"), press("p")] },
   },
   {
-    // Tablet portrait and phone: Where is this? opens the panel sheet on Where it is (batch 5).
+    // Tablet portrait and phone: Where is this? opens the panel sheet on Where it is.
     name: "where-narrow",
     only: ["phone", "tablet"],
     app: { hash: "#/phase/before-start", before: [stepNamed("FUEL PUMP SWITCHES", ".row"), press("w")] },
@@ -525,14 +526,14 @@ const SHOTS = [
     only: ["desktop"],
     app: { hash: "#/phase/before-takeoff", before: [...BOARD_FLIGHT, go("#/phase/before-takeoff"), unfold] },
   },
-  // Batch 4: the Flight pages, each section in the boards' state.
+  // The Flight pages, each section in the boards' state.
   ...["overview", "route", "fuel", "cruise", "weather", "clearance", "takeoff", "approach", "start", "simbrief"].map((section) => ({
     name: `board-flight-${section}`,
     full: true,
     only: ["desktop", "wide", "tablet-landscape"],
     app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go(`#/flight/${section}`)] },
   })),
-  // Every placeholder fits at the narrow sizes too (batch 4 review).
+  // Every placeholder fits at the narrow sizes too.
   ...["takeoff", "approach"].map((section) => ({
     name: `flight-${section}`,
     full: true,
@@ -570,7 +571,7 @@ const SHOTS = [
   // without its answer.
   { name: "center-tank-suggested", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE.slice(0, -1)] } },
   { name: "board-checklist", full: true, only: ["tablet-landscape", "tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE] } },
-  // Batch 5: the menu drawer at every size (Menu, Tablet and Mobile boards), the stage and phase
+  // The menu drawer at every size (Menu, Tablet and Mobile boards), the stage and phase
   // picker (StagePicker), the tablet portrait and phone panel sheets, and phone's open-steps sheet.
   { name: "board-menu", only: ["desktop", "tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click('[aria-controls="drawer"]')] } },
   // StagePicker's state: the flight loaded, Preflight done with one step still open, Before start
@@ -591,7 +592,7 @@ const SHOTS = [
     },
   },
   { name: "board-sheet", only: ["tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("p")] } },
-  // Keyboard focus at tablet and phone sizes (batch 5): the app's 2 px ring, 2 px out. Focus goes
+  // Keyboard focus at tablet and phone sizes: the app's 2 px ring, 2 px out. Focus goes
   // to the control before, then a real Tab (or Shift Tab) moves it on.
   { name: "focus-done", only: ["tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, { keys: ["\uE008"] }, `document.querySelector(".actions .donebtn").focus(); true`] } },
   { name: "focus-menu", only: ["tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click('[aria-controls="drawer"]'), `document.querySelector("#drawer .close").focus(); true`, { keys: ["\uE004"] }] } },
@@ -601,9 +602,9 @@ const SHOTS = [
   // The decision step on phone (DecPhone), from the design gallery's invented fixture (the pack has
   // no decision step yet).
   { name: "board-decision", only: ["phone"], app: { hash: "", page: "design/?view=decision&state=phone&theme={theme}" } },
-  // Batch 6 panels: a step's sheet and side-pane preview card, opened by P, for each step in
-  // INVOLO_STEPS (a local file of "phase|reference <tab> phase id <tab> step id [<tab> number]" lines), named
-  // tiles-<n>.
+  // Panels: a step's sheet and side-pane preview card, opened by P, for each step in the optional
+  // local INVOLO_STEPS file (CONTRIBUTING.md, "Optional local files"), named tiles-<n>; none
+  // without it.
   ...stepShots(),
   // The PanelTiles board's step: the wiper selectors, their sheet and the deck map open.
   { name: "board-tiles", only: ["desktop"], app: { hash: "#/phase/cold-dark", before: [openStep("phase", "cold-dark", "ifly-737-max8.cold-dark.wiper-selectors"), press("p")] } },
@@ -613,7 +614,7 @@ const SHOTS = [
   ...["ifly-737-max8.cold-dark.wiper-selectors", "ifly-737-max8.landing.speedbrake-lever"].flatMap((id, n) => [
     { name: `tiles-phone-${n}`, only: ["phone", "phone-sideways"], app: { hash: "#/", before: [openStep("phase", id.split(".")[1], id), press("p")] } },
   ]),
-  // Batch 6: Find (results for "fuel", no match, before typing) over the boards' state, opened
+  // Find (results for "fuel", no match, before typing) over the boards' state, opened
   // from the header; the desktop menu's "Where is Flight setup?" opened.
   ...[
     ["board-find", "fuel"],
@@ -672,7 +673,7 @@ const SHOTS = [
   { name: "refs-sim-find", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/references"), click(".sim .more")] } },
   { name: "board-log-empty", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/log")] } },
   ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ name: `how-part-${n}`, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go(`#/how/${n}`)] } })),
-  // The phone list with its fold opened: each later list starts with its label row (batch 6).
+  // The phone list with its fold opened: each later list starts with its label row.
   { name: "board-phone-fold", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("button.after"), click("button.card.folded"), `(() => { [...document.querySelectorAll("section.card > p.label")].find((p) => p.offsetParent)?.scrollIntoView({ block: "center" }); return true; })()`] } },
   { name: "board-phone-open", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click(".prow .open")] } },
   // Round 6's slide-out: Show panel (P), Where is this? (W), and a control's card (tap CTR L).

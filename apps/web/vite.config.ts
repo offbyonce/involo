@@ -91,7 +91,7 @@ export default defineConfig({
     target: "es2022",
     rollupOptions: {
       // Relative to this folder, where the build runs. The front page stays the placeholder until
-      // the app is ready for users; the app is at app/ meanwhile (Phase 2 brief, steps 10 and 11).
+      // the app is ready for users; the app is at app/ meanwhile (decision 0009).
       input: {
         index: "index.html",
         app: "app/index.html",

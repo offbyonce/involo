@@ -410,7 +410,7 @@ export type SectionLayout = {
 
 /**
  * Places every label in a section so none overlaps a control or another label, keeping all of
- * them, as 3.0 did (Phase 2 brief, step 7). Controls stay where the pack puts them and are
+ * them, as 3.0 did. Controls stay where the pack puts them and are
  * placed first. Then, the step's controls
  * first and the rest from left to right: a switch's position labels go on its right, or its left
  * if the right is taken; a name goes under its control, or a line or more lower. Text never
@@ -594,7 +594,7 @@ function place(
       const px = fit.px * scale;
       const line = (px * LINE) / k;
       // A name and nothing under it: no board draws a "SET TO" caption; the set position shows on
-      // the control itself (batch 2).
+      // the control itself.
       const boxFor = (dy: number): Box => {
         const w = (widest(fit.lines) * px) / k;
         const top = it.y + half(it) + 3 + dy * line;

@@ -22,7 +22,7 @@ const boxes = [
 ] as OverviewArea[];
 const base = { boxes, zones, region: null, selected: "wide", onPick: () => {} };
 
-describe("DeckMap (batch 6 map rules)", () => {
+describe("DeckMap map rules", () => {
   it("names the selected box when its name fits with 6 px either side, and no other unless asked", () => {
     const { container } = render(DeckMap, base);
     expect([...container.querySelectorAll("text.name")].map((t) => t.textContent)).toEqual(["WIDE"]);

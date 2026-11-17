@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import { panelName, panelTitle } from "./panel-name";
 
-describe("panel names (batch 6)", () => {
+describe("panel names", () => {
   it("names one panel from the pack's title, in sentence case, once", () => {
     expect(panelName("Electrical meters")).toBe("Electrical meters panel");
     expect(panelName("Doors panel")).toBe("Doors panel");

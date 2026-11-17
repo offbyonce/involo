@@ -149,7 +149,7 @@ const SHOTS = [
   ["DecChanging", { state: "changing" }, 1120, 560, "Decision", round6],
   ["DecChanged", { state: "changed" }, 1120, 560, "Decision", round6],
   ["DecPhone", { state: "phone" }, 390, 844, "Decision", round6],
-  // Batch 4: the strip panel and the Flight pages.
+  // The strip panel and the Flight pages.
   ["StripOpen", {}, 1440, 900, "StripOpen", round6],
   ["StripFreq", { freqOpen: true }, 1440, 900, "StripOpen", round6],
   ["SimBrief", {}, 1440, 900],
@@ -164,12 +164,12 @@ const SHOTS = [
   ["FSClearance", { section: "clearance" }, 1440, 900, "FlightSection", round6],
   ["FSTakeoff", { section: "takeoff" }, 1440, 900, "FlightSection", round6],
   ["FSApproach", { section: "approach" }, 1440, 900, "FlightSection", round6],
-  // Batch 4 additions: tablet landscape and a value out of range.
+  // Tablet landscape and a value out of range.
   ["WxTabL", { layout: "tabletL" }, 1180, 820, "Weather", round6],
   ["WindsTabL", { tab: "winds", layout: "tabletL" }, 1180, 820, "Weather", round6],
   ["FSTakeoffTabL", { section: "takeoff", layout: "tabletL" }, 1180, 820, "FlightSection", round6],
   ["FSInvalid", { section: "cruiseInvalid" }, 1440, 900, "FlightSection", round6],
-  // Batch 5: tablet and phone, the menu at every size, the stage and phase picker.
+  // Tablet and phone, the menu at every size, the stage and phase picker.
   ["Menu", {}, 1440, 900],
   ["R6TabP", { orient: "portrait", overlay: "none", r6: true }, 820, 1180, "Tablet", round6],
   ["R6PhonePre", { r6: true, preview: true }, 390, 844, "Mobile", round6],
@@ -182,7 +182,7 @@ const SHOTS = [
   ["StagesPhone", { layout: "phone" }, 390, 844, "StagePicker", round6],
   ["StagesTabP", { layout: "tabletP" }, 820, 1180, "StagePicker", round6],
   ["StagesTabL", { layout: "tabletL" }, 1180, 820, "StagePicker", round6],
-  // Batch 6: the desktop menu's "Where is Flight setup?" opened, and Find.
+  // The desktop menu's "Where is Flight setup?" opened, and Find.
   ["MenuWhere", { where: true }, 1440, 900, "Menu"],
   ["FindDesk", { layout: "desktop", state: "results" }, 1440, 900, "Find", round6],
   ["FindDeskNone", { layout: "desktop", state: "none" }, 1440, 900, "Find", round6],
@@ -190,7 +190,7 @@ const SHOTS = [
   ["FindPhone", { layout: "phone", state: "results" }, 390, 844, "Find", round6],
   ["FindPhoneNone", { layout: "phone", state: "none" }, 390, 844, "Find", round6],
   ["FindPhoneStart", { layout: "phone", state: "start" }, 390, 844, "Find", round6],
-  // Batch 6 panels: a step's panels as tiles, and the deck map.
+  // Panels: a step's panels as tiles, and the deck map.
   ["PanelTiles", {}, 1440, 1100, "PanelTiles", round6],
   // The Glossary: desktop and tablet landscape, the phone's term list, one term on phone.
   // The Flight deck: Deck, and PhoneDeck (the Mobile board's deck screen).

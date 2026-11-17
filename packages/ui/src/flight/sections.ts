@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// The Flight sections (FlightSection boards, batch 4): each row's label, the flight field it
+// The Flight sections (FlightSection boards): each row's label, the flight field it
 // edits (or a read-only value, or a link to the section that holds it), its description,
 // destination chip and where the OFP prints it.
 

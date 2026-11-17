@@ -102,7 +102,7 @@ pub struct Settings {
     /// Settings › Panel preview in steps (round 6): the label-free panel beside each step. Show
     /// panel and Where is this? always work.
     pub panel_preview: bool,
-    /// The Flight pages' Descriptions On/Off (batch 4): each field's description under its value.
+    /// The Flight pages' Descriptions On/Off: each field's description under its value.
     /// Off keeps the label, the value and the chip; ? keeps the longer note. Set only from the
     /// Flight header.
     pub descriptions: bool,

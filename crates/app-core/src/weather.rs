@@ -4,9 +4,9 @@
 //! METAR and TAF, decoded from one code table (2026-11-13). Each kind of group the table
 //! knows names the section of the code it comes from: the WMO code forms FM 15 (METAR) and FM 51
 //! (TAF), and US practice for visibility in statute miles, the A altimeter and remarks. The full
-//! references are kept outside the repository (decisions 0007 and 0013). A group the table does
+//! references are not part of the repository (decisions 0007 and 0013). A group the table does
 //! not cover is shown as printed and marked not decoded; nothing is guessed. The plain-language
-//! descriptions the interface shows beside these rows are batch 7 content.
+//! descriptions shown beside these rows are the interface's content, not this table's.
 
 use serde::Serialize;
 use ts_rs::TS;
@@ -90,8 +90,8 @@ pub struct Altimeter {
 
 // The code table: where each kind of group is defined. Every entry was checked on 2026-11-14
 // against the current editions of the WMO Manual on Codes, Volume I.1 (FM 15 METAR, FM 51 TAF)
-// and the FAA's aviation weather services guidance (US practice); the full references are kept
-// outside the repository (decisions 0007 and 0013). "FM 15 · 15.5" is regulation 15.5 of code form
+// and the FAA's aviation weather services guidance (US practice); the full references are not
+// part of the repository (decisions 0007 and 0013). "FM 15 · 15.5" is regulation 15.5 of code form
 // FM 15; "US · 3.1.5.6" is that section of the US guidance.
 const SRC_KIND_METAR: &str = "FM 15 · 15.1";
 const SRC_KIND_TAF: &str = "FM 51 · 51.1";

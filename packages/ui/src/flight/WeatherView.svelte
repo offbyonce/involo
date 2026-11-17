@@ -7,7 +7,7 @@ row's groups highlighted, the decoded rows as buttons (value, groups as printed,
 where the value goes, ?), the Altimeter as an editable field on the Departure and Destination tabs
 (filled from the METAR, overwritable, inHg / hPa), and the TAF as printed under its disclosure.
 En route winds come from the plan's navigation log. Decoding is Rust's code table; a group it does
-not cover shows as printed, "Not decoded". Descriptions are the boards' stand-ins (batch 7).
+not cover shows as printed, "Not decoded". Descriptions are the boards' stand-ins.
 -->
 <script lang="ts">
   import type { Decoded, DecodedRow, Element, FillField, Flight, SavedPlan } from "@involo/bindings";

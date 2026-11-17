@@ -6,7 +6,7 @@ The slide-out (round 6, ROUND6.md; boards R6Panel, R6Where, R6Control, R6TabL; L
 the step's panel, labeled at 11 px or more, and where it is. It fills the box its parent gives it
 (beside the side pane, over the step list, below the flight strip). In order: the header (the
 step, the panels' title, where it is with "Also:" the other panels, Esc and close); The panel: the
-step's panels as tiles (PanelTiles, batch 6), with a navigator above one wider than the
+step's panels as tiles (PanelTiles), with a navigator above one wider than the
 slide-out (gate reviews); a tapped control's card under it; then Where it is (folded to one line, or
 expanded: the plain-language line, the side and seat views and the area map). How it opens depends
 on the entry point: the panel (Show panel, a preview, P), Where it is expanded (the location line,
@@ -66,7 +66,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   // svelte-ignore state_referenced_locally
 
   let place = $derived(index.place(step));
-  /** The step's panels as tiles (batch 6): only those holding its controls or the lights
+  /** The step's panels as tiles: only those holding its controls or the lights
    * its Check names, the main control's first. */
   let tiles = $derived(stepTiles(index, step, targets));
   let drawnTiles = $derived(tiles.flatMap((t) => (t.kind === "drawn" ? [t] : [])));
@@ -221,7 +221,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
         edges();
         return;
       }
-      // A phone held sideways opens at the top, "The panel" in view (batch 6).
+      // A phone held sideways opens at the top, "The panel" in view.
       const sideways = window.matchMedia?.("(max-width: 899px) and (max-height: 499px)").matches ?? false;
       // The step's controls on its first panel (the main one, PanelTiles), as several tiles can run
       // taller than the sheet together; only drawings on screen, not the phone's outline (hidden

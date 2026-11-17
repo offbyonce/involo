@@ -1,7 +1,7 @@
 <!--
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
-The stage and phase picker (round 6 batch 5 additions, StagePicker.dc.html): opened from the stage
+The stage and phase picker (StagePicker.dc.html): opened from the stage
 button in the compact header. A bottom sheet on phone (StagesPhone) and tablet portrait
 (StagesTabP, two columns), a pop-over under the stage button from 900 to 1439 px (StagesTabL, two
 columns, a light scrim below the header). Every stage is a group heading ("Done" or "In

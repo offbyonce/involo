@@ -100,7 +100,7 @@ data_types! {
         Manual,
         Origin,
         Destination,
-        /// The first alternate airport (decision 0019 amendment, batch 4).
+        /// The first alternate airport (decision 0019, amended).
         Alternate,
         FlightNumber,
         Route,
