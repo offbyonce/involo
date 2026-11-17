@@ -65,7 +65,8 @@ pack + involo-pack-cli run at build time: YAML in, checked, flattened JSON out.
 
 ## Packs
 
-- `pack.json` manifest: id, semver version, schema version, engine range, dependencies,
+- `pack.json` manifest: id, semver version, pack format (6, the first public one; 0029), engine
+  range, the aircraft (family, name, ICAO types, simulator, developer), the one pack it extends,
   kind (aircraft or library), license, attribution, list of content files.
 - Content in YAML, one file per checklist, flow or topic, with stable namespaced ids
   (`ifly-737-max8.preflight.irs-mode`).

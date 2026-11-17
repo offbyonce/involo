@@ -5,7 +5,7 @@
 
 use super::ids::{valid_id, valid_segment};
 use super::{Issue, error};
-use crate::{Pack, SCHEMA_VERSION};
+use crate::{Pack, PackKind, format_problem};
 
 /// File types a pack must not contain. Vendor images and screenshots never ship.
 const BLOCKED_FILE_EXTENSIONS: &[&str] = &[
@@ -27,16 +27,12 @@ pub(super) fn check_manifest(pack: &Pack, issues: &mut Vec<Issue>) {
             ),
         ));
     }
-    if m.schema_version > SCHEMA_VERSION {
-        issues.push(error(
-            "pack.json",
-            format!(
-                "schema version {} is newer than this app supports ({SCHEMA_VERSION})",
-                m.schema_version
-            ),
-        ));
+    if let Some(problem) = format_problem(m.schema_version) {
+        issues.push(error("pack.json", problem));
     }
-    if m.kind == crate::PackKind::Aircraft {
+    check_aircraft(pack, issues);
+    check_extends(pack, issues);
+    if m.kind == PackKind::Aircraft {
         if m.checklists.is_empty() {
             issues.push(error(
                 "pack.json",
@@ -56,6 +52,81 @@ pub(super) fn check_manifest(pack: &Pack, issues: &mut Vec<Issue>) {
                 "pack.json",
                 format!("basis tag `{tag}` must be lower-case letters, digits and dashes"),
             ));
+        }
+    }
+}
+
+/// An ICAO type designator: two to four capital letters and digits, starting with a letter.
+fn valid_icao_type(t: &str) -> bool {
+    (2..=4).contains(&t.len())
+        && t.starts_with(|c: char| c.is_ascii_uppercase())
+        && t.chars()
+            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
+}
+
+/// An aircraft pack names its aircraft; a library has none (decision 0029).
+fn check_aircraft(pack: &Pack, issues: &mut Vec<Issue>) {
+    let m = &pack.manifest;
+    match (m.kind, &m.aircraft) {
+        (PackKind::Aircraft, None) => issues.push(error(
+            "pack.json",
+            "an aircraft pack must have an `aircraft` block (family, name, icaoTypes, simulator, developer)",
+        )),
+        (PackKind::Library, Some(_)) => issues.push(error(
+            "pack.json",
+            "a library pack has no `aircraft` block: the packs that extend it name their aircraft",
+        )),
+        (PackKind::Aircraft, Some(a)) => {
+            if a.icao_types.is_empty() {
+                issues.push(error(
+                    "pack.json",
+                    "`aircraft.icaoTypes` must list at least one ICAO type designator",
+                ));
+            }
+            for t in a.icao_types.iter().filter(|t| !valid_icao_type(t)) {
+                issues.push(error(
+                    "pack.json",
+                    format!("`{t}` is not an ICAO type designator (two to four capital letters and digits, starting with a letter)"),
+                ));
+            }
+            for (field, value) in [
+                ("family", &a.family),
+                ("name", &a.name),
+                ("simulator", &a.simulator),
+                ("developer", &a.developer),
+            ] {
+                if value.trim().is_empty() {
+                    issues.push(error(
+                        "pack.json",
+                        format!("`aircraft.{field}` must not be empty"),
+                    ));
+                }
+            }
+        }
+        (PackKind::Library, None) => {}
+    }
+}
+
+/// `extends` names at most one parent, by a valid id that is not the pack's own.
+fn check_extends(pack: &Pack, issues: &mut Vec<Issue>) {
+    let m = &pack.manifest;
+    if m.extends.len() > 1 {
+        issues.push(error(
+            "pack.json",
+            format!(
+                "`extends` names {} packs; a pack builds on one parent",
+                m.extends.len()
+            ),
+        ));
+    }
+    for parent in m.extends.keys() {
+        if !valid_id(parent) {
+            issues.push(error(
+                "pack.json",
+                format!("`extends` names `{parent}`, which is not a valid pack id"),
+            ));
+        } else if parent == &m.id {
+            issues.push(error("pack.json", "a pack cannot extend itself"));
         }
     }
 }
@@ -168,11 +239,98 @@ mod tests {
         assert!(!joined.contains("notes.md"), "{joined}");
     }
 
+    /// The issues a pack has beyond the demo pack's own (it has none).
+    fn errors(p: &Pack) -> Vec<String> {
+        crate::validate_pack(p)
+            .iter()
+            .filter(|i| i.severity == crate::Severity::Error)
+            .map(ToString::to_string)
+            .collect()
+    }
+
     #[test]
-    fn newer_schema_is_rejected() {
+    fn the_demo_pack_is_clean() {
+        assert_eq!(errors(&pack(vec![step("a")], vec![])), Vec::<String>::new());
+    }
+
+    #[test]
+    fn a_pack_newer_than_the_app_needs_a_newer_involo() {
         let mut p = pack(vec![step("a")], vec![]);
-        p.manifest.schema_version = SCHEMA_VERSION + 1;
-        assert_flags(&p, "newer than this app");
+        p.manifest.schema_version = crate::SCHEMA_VERSION + 1;
+        assert_flags(&p, "Needs a newer Involo");
+    }
+
+    #[test]
+    fn formats_4_and_5_are_no_longer_read() {
+        for old in [4, 5] {
+            let mut p = pack(vec![step("a")], vec![]);
+            p.manifest.schema_version = old;
+            let e = errors(&p);
+            assert_eq!(e.len(), 1, "{e:?}");
+            assert!(
+                e[0].contains(&format!(
+                    "Format {old} is no longer read; move the pack to format 6"
+                )),
+                "{e:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn an_aircraft_pack_names_its_aircraft() {
+        let mut p = pack(vec![step("a")], vec![]);
+        p.manifest.aircraft = None;
+        let e = errors(&p);
+        assert_eq!(e.len(), 1, "{e:?}");
+        assert!(e[0].contains("must have an `aircraft` block"), "{e:?}");
+    }
+
+    #[test]
+    fn an_aircraft_block_lists_icao_types() {
+        let mut p = pack(vec![step("a")], vec![]);
+        p.manifest.aircraft.as_mut().unwrap().icao_types.clear();
+        let e = errors(&p);
+        assert_eq!(e.len(), 1, "{e:?}");
+        assert!(e[0].contains("at least one ICAO type designator"), "{e:?}");
+        p.manifest.aircraft.as_mut().unwrap().icao_types =
+            vec!["B38M".into(), "b738".into(), "7".into()];
+        assert_eq!(errors(&p).len(), 2, "lower case and too short");
+    }
+
+    #[test]
+    fn a_library_has_no_aircraft_block_and_skips_aircraft_checks() {
+        let mut p = pack(vec![step("a")], vec![]);
+        p.manifest.kind = PackKind::Library;
+        let e = errors(&p);
+        assert_eq!(e.len(), 1, "{e:?}");
+        assert!(
+            e[0].contains("a library pack has no `aircraft` block"),
+            "{e:?}"
+        );
+        p.manifest.aircraft = None;
+        p.content.phases = None;
+        assert_eq!(errors(&p), Vec::<String>::new());
+    }
+
+    #[test]
+    fn extends_names_one_valid_parent_that_is_not_itself() {
+        let range = || semver::VersionReq::parse(">=1.0, <2").unwrap();
+        let mut p = pack(vec![step("a")], vec![]);
+        p.manifest.extends.insert("lib.boeing-737".into(), range());
+        assert_eq!(errors(&p), Vec::<String>::new(), "one parent is fine");
+        p.manifest.extends.insert("lib.boeing-cdu".into(), range());
+        let e = errors(&p);
+        assert_eq!(e.len(), 1, "{e:?}");
+        assert!(e[0].contains("a pack builds on one parent"), "{e:?}");
+        for (bad, wanted) in [
+            ("Lib Boeing", "not a valid pack id"),
+            (super::super::test_support::PACK, "cannot extend itself"),
+        ] {
+            p.manifest.extends = std::collections::BTreeMap::from([(bad.to_string(), range())]);
+            let e = errors(&p);
+            assert_eq!(e.len(), 1, "{e:?}");
+            assert!(e[0].contains(wanted), "{e:?}");
+        }
     }
 
     #[test]

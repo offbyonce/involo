@@ -6,10 +6,18 @@ source: crates/involo-pack-cli/tests/snapshot.rs
   "id": "ifly-737-max8",
   "name": "iFly 737 MAX 8",
   "version": "0.1.0",
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "kind": "aircraft",
   "engine": ">=0.1.0, <1.0.0",
-  "dependencies": {},
+  "aircraft": {
+    "family": "Boeing 737",
+    "name": "737 MAX 8",
+    "icaoTypes": [
+      "B38M"
+    ],
+    "simulator": "Microsoft Flight Simulator",
+    "developer": "iFly"
+  },
   "license": "CC-BY-NC-SA-4.0",
   "attribution": [
     "A study aid for flight simulation. Not for real-world use."

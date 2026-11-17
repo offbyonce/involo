@@ -45,7 +45,7 @@ mod tests {
         std::fs::create_dir_all(&pack).unwrap();
         std::fs::write(
             pack.join("pack.json"),
-            r#"{"id":"demo","name":"Demo","version":"0.1.0","schemaVersion":2,"kind":"library",
+            r#"{"id":"demo","name":"Demo","version":"0.1.0","schemaVersion":6,"kind":"library",
                "engine":">=0.1.0","license":"CC-BY-NC-SA-4.0","checklists":["a.yaml"]}"#,
         )
         .unwrap();

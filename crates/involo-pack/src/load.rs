@@ -27,6 +27,10 @@ pub enum LoadError {
         path: PathBuf,
         source: serde_json::Error,
     },
+    /// A pack format this version doesn't read, found before reading the rest (an older format
+    /// may not parse as the current one).
+    #[error("{path}: {message}")]
+    Format { path: PathBuf, message: String },
 }
 
 fn options() -> serde_saphyr::Options {
@@ -72,11 +76,21 @@ fn load_optional<T: DeserializeOwned>(
 /// Load `pack.json` and every file it lists from a pack folder.
 pub fn load_pack_dir(dir: &Path) -> Result<Pack, LoadError> {
     let manifest_path = dir.join("pack.json");
-    let manifest: PackManifest =
-        serde_json::from_str(&read(&manifest_path)?).map_err(|source| LoadError::Json {
-            path: manifest_path.clone(),
-            source,
-        })?;
+    let text = read(&manifest_path)?;
+    if let Some(message) = serde_json::from_str::<serde_json::Value>(&text)
+        .ok()
+        .and_then(|v| v.get("schemaVersion")?.as_u64())
+        .and_then(|v| crate::format_problem(u32::try_from(v).unwrap_or(u32::MAX)))
+    {
+        return Err(LoadError::Format {
+            path: manifest_path,
+            message,
+        });
+    }
+    let manifest: PackManifest = serde_json::from_str(&text).map_err(|source| LoadError::Json {
+        path: manifest_path.clone(),
+        source,
+    })?;
 
     let checklists = manifest
         .checklists
@@ -280,6 +294,31 @@ steps:
 
         let nested = doc("[{when_known: [runway], show: [{when_known: [sid], show: [x]}]}]");
         assert!(parse_yaml::<CduFile>(&nested, Path::new("c.yaml")).is_err());
+    }
+
+    #[test]
+    fn an_older_or_newer_format_is_refused_before_the_rest_is_read() {
+        for (version, wanted) in [
+            (4, "Format 4 is no longer read; move the pack to format 6"),
+            (5, "Format 5 is no longer read; move the pack to format 6"),
+            (crate::SCHEMA_VERSION + 1, "Needs a newer Involo"),
+        ] {
+            let dir = std::env::temp_dir().join(format!(
+                "involo-pack-format-{version}-{}",
+                std::process::id()
+            ));
+            std::fs::create_dir_all(&dir).unwrap();
+            // Format 5's `dependencies` and no checklists: it is never read that far.
+            std::fs::write(
+                dir.join("pack.json"),
+                format!(r#"{{"id": "old", "schemaVersion": {version}, "dependencies": {{}}}}"#),
+            )
+            .unwrap();
+            let error = load_pack_dir(&dir).unwrap_err();
+            std::fs::remove_dir_all(&dir).unwrap();
+            assert!(matches!(error, LoadError::Format { .. }), "{error}");
+            assert!(error.to_string().contains(wanted), "{error}");
+        }
     }
 
     #[test]
