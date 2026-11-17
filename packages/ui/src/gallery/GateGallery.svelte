@@ -19,14 +19,15 @@ pack (its `at` locators read here, for review only). `?view=gate&theme=dark|ligh
   import { panelCaption } from "../lib/panel-name";
   import { applyPalette } from "../theme/tokens";
 
-  let { packUrl }: { packUrl: string } = $props();
+  /** The pack as the interface receives it, from the host (decision 0029, Names). */
+  let { loadPack }: { loadPack: () => Promise<FlatPack> } = $props();
   const params = new URLSearchParams(location.search);
   applyPalette(document.documentElement, params.get("theme") !== "light", 0);
 
   let pack = $state<FlatPack | null>(null);
   $effect(() => {
     safely(
-      (async () => (await fetch(packUrl)).json() as Promise<FlatPack>)(),
+      loadPack(),
       (p) => {
         pack = p;
       },

@@ -27,7 +27,7 @@ choices, Confirm, Change, Keep this answer and Undo all work, as in the app.
     pack: "fixture",
     packVersion: "0.0.0",
     options: {},
-    startState: null,
+    panelState: null,
     session: { done: {}, skipped: {} },
     values: {},
     blanks: {},

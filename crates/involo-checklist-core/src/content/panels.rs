@@ -33,6 +33,7 @@ data_types! {
     }
 
     /// One item on a panel drawing. Positions are our own layout.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct PanelItem {
         pub kind: PanelItemKind,
         pub label: String,

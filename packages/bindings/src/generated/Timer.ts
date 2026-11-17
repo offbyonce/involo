@@ -4,4 +4,4 @@ import type { AutoStart } from "./AutoStart";
 /**
  * A wait attached to a step.
  */
-export type Timer = { seconds: number, label: string, note?: string | null, auto_start?: AutoStart | null, };
+export type Timer = { seconds: number, label: string, note?: string | null, autoStart?: AutoStart | null, };

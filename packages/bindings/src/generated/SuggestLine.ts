@@ -3,4 +3,4 @@
 /**
  * A suggestion rule's line and margin in the other unit.
  */
-export type SuggestLine = { more_than: number, near: number, };
+export type SuggestLine = { moreThan: number, near: number, };

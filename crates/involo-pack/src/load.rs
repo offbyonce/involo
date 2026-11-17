@@ -96,7 +96,7 @@ pub fn load_pack_dir(dir: &Path) -> Result<Pack, LoadError> {
         faults: load_optional(dir, manifest.faults.as_ref())?,
         glossary: load_optional(dir, manifest.glossary.as_ref())?,
         briefings: load_optional(dir, manifest.briefings.as_ref())?,
-        start_states: load_optional(dir, manifest.start_states.as_ref())?,
+        panel_states: load_optional(dir, manifest.panel_states.as_ref())?,
         cdu: load_optional(dir, manifest.cdu.as_ref())?,
         aliases: load_optional(dir, manifest.aliases.as_ref())?,
     };
@@ -296,7 +296,7 @@ steps:
                 && c.faults.is_some()
                 && c.glossary.is_some()
                 && c.briefings.is_some()
-                && c.start_states.is_some()
+                && c.panel_states.is_some()
                 && c.cdu.is_some()
                 && c.aliases.is_some()
         );

@@ -12,9 +12,9 @@ mod faults;
 mod glossary;
 mod lights;
 mod notes;
+mod panel_states;
 mod panels;
 mod phases;
-mod start_states;
 
 pub use aliases::{Alias, AliasKind, AliasesFile};
 pub use briefings::{BriefItem, Briefing, BriefingsFile};
@@ -30,9 +30,9 @@ pub use faults::{Fault, FaultsFile};
 pub use glossary::{GlossaryEntry, GlossaryFile};
 pub use lights::{LightNote, LightsFile};
 pub use notes::{ExplainNote, HowNote, NotesFile};
+pub use panel_states::{PanelState, PanelStatesFile};
 pub use panels::{LightColor, Panel, PanelItem, PanelItemKind, PanelSection};
 pub use phases::{
     IntroParagraph, OptionChoice, Phase, PhasesFile, Stage, StagePhase, SuggestLine, SuggestRule,
     Suggests, UserOption, WeightUnit,
 };
-pub use start_states::{StartState, StartStatesFile};

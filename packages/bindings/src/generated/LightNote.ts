@@ -16,4 +16,4 @@ normal: boolean,
 /**
  * Internal record of what this note was confirmed against (decision 0013).
  */
-confirmed_by?: Array<Confirmation>, };
+confirmedBy?: Array<Confirmation>, };

@@ -294,7 +294,7 @@ fn documents(pack: &Pack) -> Vec<(String, Value)> {
     add_document(&mut docs, m.faults.as_ref(), &c.faults);
     add_document(&mut docs, m.glossary.as_ref(), &c.glossary);
     add_document(&mut docs, m.briefings.as_ref(), &c.briefings);
-    add_document(&mut docs, m.start_states.as_ref(), &c.start_states);
+    add_document(&mut docs, m.panel_states.as_ref(), &c.panel_states);
     add_document(&mut docs, m.cdu.as_ref(), &c.cdu);
     docs
 }
@@ -385,7 +385,7 @@ pub fn find_overlaps(pack: &Pack, references: &References) -> Vec<Overlap> {
 #[cfg(test)]
 mod tests {
     use involo_checklist_core::{
-        Checklist, Fault, FaultsFile, ListKind, NotesFile, StartState, StartStatesFile, Step,
+        Checklist, Fault, FaultsFile, ListKind, NotesFile, PanelState, PanelStatesFile, Step,
         StepId,
     };
     use proptest::prelude::*;
@@ -419,7 +419,7 @@ mod tests {
                 faults: None,
                 glossary: None,
                 briefings: None,
-                start_states: None,
+                panel_states: None,
                 cdu: None,
                 aliases: None,
             },
@@ -540,10 +540,10 @@ mod tests {
     fn step_ids_used_as_references_are_not_compared() {
         let id = "demo.p.alpha-bravo-charlie-delta-echo-foxtrot-golf-hotel";
         let mut p = pack(vec![Step::new(id, "T", "E")]);
-        p.manifest.start_states = Some("start-states.yaml".into());
+        p.manifest.panel_states = Some("panel-states.yaml".into());
         p.manifest.faults = Some("faults.yaml".into());
-        p.content.start_states = Some(StartStatesFile {
-            states: vec![StartState {
+        p.content.panel_states = Some(PanelStatesFile {
+            states: vec![PanelState {
                 id: "ready".into(),
                 title: "Ready".into(),
                 description: "Ready".into(),

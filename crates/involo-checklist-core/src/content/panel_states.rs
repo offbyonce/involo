@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-//! `start-states.yaml`: ready-made starting points.
+//! `panel-states.yaml`: ready-made starting points.
 
 use std::collections::BTreeMap;
 
@@ -9,7 +9,7 @@ use crate::model::StepId;
 
 data_types! {
     /// A ready-made point to start from, with earlier steps already accounted for.
-    pub struct StartState {
+    pub struct PanelState {
         pub id: String,
         pub title: String,
         pub description: String,
@@ -24,8 +24,8 @@ data_types! {
         pub skip: Vec<StepId>,
     }
 
-    /// `start-states.yaml`.
-    pub struct StartStatesFile {
-        pub states: Vec<StartState>,
+    /// `panel-states.yaml`.
+    pub struct PanelStatesFile {
+        pub states: Vec<PanelState>,
     }
 }

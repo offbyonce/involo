@@ -7,7 +7,7 @@ aliases:
   - {kind: step, from: before-start-0-1, to: example-trainer.before-start.battery}
   - {kind: briefing_item, from: b-0-0, to: departure.runway}
   - {kind: blank, from: start-0-2-v0, to: 'example-trainer.start.speeds#0'}
-  - {kind: start_state, from: bes, to: ready}
+  - {kind: panel_state, from: bes, to: ready}
   - {kind: option_value, from: 'power:gpu', to: 'power:external'}
   - {kind: fill_field, from: toflaps, to: takeoff_flaps}
   - {kind: list, from: 'm:Smoke', to: smoke}

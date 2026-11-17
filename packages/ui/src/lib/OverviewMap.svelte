@@ -31,10 +31,10 @@ unlabeled; the marked area is always named.
   let region = $derived(map?.region ?? null);
   /** The edge captions this map shows: short on the step map, long elsewhere. */
   let edges = $derived({
-    top: (compact ? region?.top_short : null) ?? region?.top ?? null,
-    bottom: (compact ? region?.bottom_short : null) ?? region?.bottom ?? null,
-    left: (compact ? region?.left_short : null) ?? region?.left ?? null,
-    right: (compact ? region?.right_short : null) ?? region?.right ?? null,
+    top: (compact ? region?.topShort : null) ?? region?.top ?? null,
+    bottom: (compact ? region?.bottomShort : null) ?? region?.bottom ?? null,
+    left: (compact ? region?.leftShort : null) ?? region?.left ?? null,
+    right: (compact ? region?.rightShort : null) ?? region?.right ?? null,
   });
   let bounds = $derived.by(() => {
     const areas = map?.areas ?? [];
@@ -126,7 +126,7 @@ unlabeled; the marked area is always named.
     {#each map.areas as area (area.zone + area.x + area.y)}
       {@const z = byId.get(area.zone)}
       {@const on = area.zone === zone.id}
-      {@const text = labelLines(area.label ?? z?.short_title ?? "", area.width, area.height, Math.max(LABEL, (LABEL_MIN * page) / k))}
+      {@const text = labelLines(area.label ?? z?.shortTitle ?? "", area.width, area.height, Math.max(LABEL, (LABEL_MIN * page) / k))}
       {@const fit = size(text, area.width, area.height)}
       {@const fs = on ? Math.max(fit, (LABEL_MIN * page) / k) : fit}
       <g class:on>

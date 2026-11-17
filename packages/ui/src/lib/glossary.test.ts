@@ -1,18 +1,13 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import type { FlatPack } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
+import { iflyPack } from "../test-pack";
 import { buildFind } from "./find-index";
 import { buildGlossary, filterTerms, letterOf, NO_EXPANSION, split } from "./glossary";
 
-const pack = Object.values(
-  import.meta.glob<FlatPack>("../../../../apps/web/public/packs/ifly-737-max8.json", {
-    eager: true,
-    import: "default",
-  }),
-)[0] as FlatPack;
+const pack = iflyPack();
 
 describe("the expansion (Glossary answer 1)", () => {
   it("is the first sentence of an abbreviation's definition when it is a short name", () => {

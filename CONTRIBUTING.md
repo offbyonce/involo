@@ -84,6 +84,11 @@ archive.org, AviationHunt, NTSB docket documents, or any other second-hand study
 - Text, tables or diagrams copied from a manual or tutorial. Switch names, positions and
   values are facts and are fine.
 
+**Field names.** The pack's YAML files and their fields are snake_case (`expect_when`, `ask_in`),
+as authors write them. The manifest, `pack.json`, is camelCase (`schemaVersion`), as is the app's
+own saved data. The app hands pack content to its interface with camelCase field names, so the
+interface reads one case (decision 0029).
+
 **Step ids** are `<pack-id>.<phase>.<short-name>`, for example
 `ifly-737-max8.preflight.irs-mode`. An id never changes once published, even if the step is
 reworded or moved. A removed step's id is retired and never reused.

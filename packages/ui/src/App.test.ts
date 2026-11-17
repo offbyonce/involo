@@ -71,14 +71,14 @@ const pack = {
             { value: "gpu", label: "Ground power at the gate", description: "Start the APU later." },
             { value: "apu", label: "No ground power", description: "Start the APU now." },
           ],
-          ask_in: ["power-up"],
+          askIn: ["power-up"],
         },
       ],
       stages: [],
       phases: [],
     },
     controls: {
-      zones: [{ id: "elec", area: "Forward overhead", title: "Electrical", short_title: "ELEC" }],
+      zones: [{ id: "elec", area: "Forward overhead", title: "Electrical", shortTitle: "ELEC" }],
       controls: [
         {
           id: "stby",
@@ -1049,7 +1049,7 @@ describe("App", () => {
               { at: "oh/elec/STBY/1", set: "AUTO", when: { option: "tank", equals: "full" } },
               { at: "oh/elec/STBY/1", set: "OFF", when: { option: "tank", equals: "empty" } },
             ],
-            expect_when: [
+            expectWhen: [
               { option: "tank", equals: "full", expect: "AUTO" },
               { option: "tank", equals: "empty", expect: "OFF" },
             ],
@@ -1136,7 +1136,7 @@ describe("App", () => {
         basis: ["ifly-docs"],
         steps: l.steps.map((st) =>
           st.id === "standby"
-            ? { ...st, note: "The simulator powers it at once.", simulator_model: true }
+            ? { ...st, note: "The simulator powers it at once.", simulatorModel: true }
             : st,
         ),
       })),

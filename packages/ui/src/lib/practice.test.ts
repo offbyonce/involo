@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import type { FlatPack } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
 import { parseRoute } from "../route.svelte";
+import { iflyPack } from "../test-pack";
 import { deckAreas } from "./deck";
 import {
   available,
@@ -30,12 +30,7 @@ import {
   windows,
 } from "./practice";
 
-const pack = Object.values(
-  import.meta.glob<FlatPack>("../../../../apps/web/public/packs/ifly-737-max8.json", {
-    eager: true,
-    import: "default",
-  }),
-)[0] as FlatPack;
+const pack = iflyPack();
 const index = indexPack(pack);
 const all = seeds(pack, index);
 const count = (topic: Topic, id = "") =>
@@ -142,9 +137,9 @@ describe("the question generator", () => {
   });
 
   it("follows the flight's options and the chosen stages", () => {
-    const gated = all.find((q) => q.steps.some((s) => index.step(s)?.show_if));
+    const gated = all.find((q) => q.steps.some((s) => index.step(s)?.showIf));
     expect(gated).toBeTruthy();
-    const step = gated?.steps.map((s) => index.step(s)).find((s) => s?.show_if);
+    const step = gated?.steps.map((s) => index.step(s)).find((s) => s?.showIf);
     const off = stepShows(pack, {});
     const choice = { topics: TOPICS.map((t) => t.id), phases: null, options: {} };
     if (step && !off(step.id)) expect(available(all, choice, off)).not.toContain(gated);
@@ -156,9 +151,9 @@ describe("the question generator", () => {
     expect(
       holds(
         {
-          any_of: [
+          anyOf: [
             { option: "x", equals: "a" },
-            { option: "y", one_of: ["b"] },
+            { option: "y", oneOf: ["b"] },
           ],
         },
         { y: "b" },
@@ -312,7 +307,7 @@ describe("the question generator", () => {
       ...(pack.content.phases?.phases ?? []).map((p) => p.id),
       ...(pack.content.briefings?.briefings ?? []).flatMap((b) => [b.id, ...b.items.map((i) => i.id)]),
     ].filter((id) => id.length >= 3 && !words.has(id));
-    const shortTitles = index.zones.map((z) => `(${z.short_title.toLowerCase()})`);
+    const shortTitles = index.zones.map((z) => `(${z.shortTitle.toLowerCase()})`);
     const idSet = new Set(ids);
     const found: string[] = [];
     for (const seed of all) {

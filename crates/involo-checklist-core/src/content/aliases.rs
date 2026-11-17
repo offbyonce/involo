@@ -14,8 +14,8 @@ data_types! {
         BriefingItem,
         /// A value typed into a blank. `to` is `<step-id>#<n>`, counting blanks from 0.
         Blank,
-        /// `to` is a start state id.
-        StartState,
+        /// `to` is a panel state id.
+        PanelState,
         /// A chosen option. `from` and `to` are `<option>:<value>`.
         OptionValue,
         /// A saved flight value. `to` is a name from the app's fill list.

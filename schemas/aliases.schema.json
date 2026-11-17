@@ -56,9 +56,9 @@
           "const": "blank"
         },
         {
-          "description": "`to` is a start state id.",
+          "description": "`to` is a panel state id.",
           "type": "string",
-          "const": "start_state"
+          "const": "panel_state"
         },
         {
           "description": "A chosen option. `from` and `to` are `<option>:<value>`.",

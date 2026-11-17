@@ -77,6 +77,7 @@ data_types! {
 
     /// One test against a pilot-chosen option. The options are declared by the pack.
     #[serde(untagged)]
+    #[cfg_attr(feature = "ts", ts(rename_all_fields = "camelCase"))]
     pub enum OptionTest {
         Equals { option: String, equals: String },
         OneOf { option: String, one_of: Vec<String> },
@@ -85,6 +86,7 @@ data_types! {
     /// When something is shown. Deliberately small: tests combine one level deep, with no
     /// negation, comparisons, step state or expressions.
     #[serde(untagged)]
+    #[cfg_attr(feature = "ts", ts(rename_all_fields = "camelCase"))]
     pub enum ShowIf {
         Test(OptionTest),
         AllOf { all_of: Vec<OptionTest> },
@@ -202,6 +204,7 @@ data_types! {
     }
 
     /// A wait attached to a step.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct Timer {
         pub seconds: u32,
         pub label: String,
@@ -261,6 +264,7 @@ data_types! {
     /// One challenge and response line.
     // These flags are independent facts from pack data; a step can have any mix of them.
     #[allow(clippy::struct_excessive_bools)]
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct Step {
         pub id: StepId,
         /// Printed number; absent for steps that are not numbered.

@@ -26,4 +26,4 @@ after?: string | null,
 /**
  * Shown when the value is not known.
  */
-empty?: string | null, empty_style?: CduStyle | null, };
+empty?: string | null, emptyStyle?: CduStyle | null, };

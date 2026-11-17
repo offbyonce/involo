@@ -3,7 +3,7 @@
 /**
  * An area of the cockpit.
  */
-export type Zone = { id: string, area: string, title: string, short_title: string, 
+export type Zone = { id: string, area: string, title: string, shortTitle: string, 
 /**
  * Where the zone sits in its area, for the step map's position line ("Captain side,
  * row nearest the windshield").

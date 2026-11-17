@@ -4,7 +4,7 @@ import type { StepId } from "./StepId";
 /**
  * A ready-made point to start from, with earlier steps already accounted for.
  */
-export type StartState = { id: string, title: string, description: string, 
+export type PanelState = { id: string, title: string, description: string, 
 /**
  * Options this start selects.
  */

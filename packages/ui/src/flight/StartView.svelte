@@ -7,7 +7,7 @@ Exterior phase), Power source (also asked at Power up), the iFly panel state, an
 descriptions are the board's.
 -->
 <script lang="ts">
-  import type { Flight, StartState, UserOption } from "@involo/bindings";
+  import type { Flight, PanelState, UserOption } from "@involo/bindings";
   import { phaseHref } from "../route.svelte";
   import Toggle from "../lib/Toggle.svelte";
   import Icon from "../lib/Icon.svelte";
@@ -17,13 +17,13 @@ descriptions are the board's.
     options,
     states,
     onOption,
-    onStartState,
+    onPanelState,
   }: {
     flight: Flight;
     options: UserOption[];
-    states: StartState[];
+    states: PanelState[];
     onOption: (option: string, value: string) => void;
-    onStartState: (state: string | null) => void;
+    onPanelState: (state: string | null) => void;
   } = $props();
 
   const opt = (id: string) => options.find((o) => o.id === id);
@@ -63,7 +63,7 @@ descriptions are the board's.
     <label class="pick">
       Panel state
       <span class="sel">
-        <select value={flight.startState ?? ""} onchange={(e) => onStartState(e.currentTarget.value || null)}>
+        <select value={flight.panelState ?? ""} onchange={(e) => onPanelState(e.currentTarget.value || null)}>
           <option value="">Choose a panel state</option>
           {#each states as s (s.id)}<option value={s.id}>{s.title}</option>{/each}
         </select>

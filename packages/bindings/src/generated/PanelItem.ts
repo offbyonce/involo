@@ -32,7 +32,7 @@ rest?: string | null,
  * it on, e.g. the parking brake at SET. Drawings show the light on, as expected, when a
  * step asks for that position.
  */
-lit_at?: string | null, 
+litAt?: string | null, 
 /**
  * Only on a selector: each position's angle on the dial, in degrees clockwise from
  * straight up, as on the panel (decision 0017). Without it, the positions spread over

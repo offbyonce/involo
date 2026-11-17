@@ -17,13 +17,17 @@ use crate::settings::{SETTINGS_FORMAT, Settings};
 
 /// What reading saved data found.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, TS)]
-#[serde(tag = "state", rename_all = "snake_case")]
-#[ts(export)]
+// The state names are values (snake_case); field names are camelCase, as in all app data.
+#[serde(
+    tag = "state",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase"
+)]
+#[ts(export, rename_all_fields = "camelCase")]
 pub enum Loaded<T> {
     /// Read, and migrated forward if it was older (`migratedFrom` names the old format).
     Ready {
         value: T,
-        #[serde(rename = "migratedFrom")]
         migrated_from: Option<u32>,
     },
     /// Written by a newer version of the app. Keep it; this version cannot read it.
@@ -36,7 +40,17 @@ pub enum Loaded<T> {
 pub(crate) type Migration = fn(Value) -> Result<Value, String>;
 
 /// Migrations for [`Flight`]: entry `i` turns format `i + 1` into format `i + 2`.
-const FLIGHT_MIGRATIONS: &[Migration] = &[flight_1_to_2, flight_2_to_3];
+const FLIGHT_MIGRATIONS: &[Migration] = &[flight_1_to_2, flight_2_to_3, flight_3_to_4];
+
+/// Format 4 calls the panel state the flight started from what the screen calls it: the saved
+/// key `startState` becomes `panelState`, with the same value (decision 0029, Names).
+fn flight_3_to_4(mut value: Value) -> Result<Value, String> {
+    let object = value.as_object_mut().ok_or("the flight is not an object")?;
+    if let Some(state) = object.remove("startState") {
+        object.insert("panelState".into(), state);
+    }
+    Ok(value)
+}
 
 /// Format 3 records how each decision was answered. Format 2 had no plan suggestions, so it
 /// starts with no records, and an answered option with no record reads as answered by the pilot.
@@ -213,6 +227,33 @@ mod tests {
         );
         assert!(value.state_ticks.is_empty());
         assert!(value.answers.is_empty());
+    }
+
+    #[test]
+    fn a_frozen_format_3_flight_keeps_its_panel_state() {
+        // Written by the app at format 3, which saved the panel state as `startState` (kept as it
+        // was, never regenerated).
+        let text = include_str!("../tests/fixtures/flight-format-3.json");
+        let Loaded::Ready {
+            value,
+            migrated_from,
+        } = load_flight(text)
+        else {
+            panic!("the format 3 flight did not load");
+        };
+        assert_eq!(migrated_from, Some(3));
+        assert_eq!(value.format, FLIGHT_FORMAT);
+        assert_eq!(value.panel_state.as_deref(), Some("gpu"));
+        assert_eq!(value.state_ticks.len(), 1);
+        assert_eq!(value.notes, "Taxi via A, hold short 16L");
+        // Saved again, it uses the new key, and reads back the same.
+        let saved = serde_json::to_value(&value).unwrap();
+        assert_eq!(saved["panelState"], "gpu");
+        assert!(saved.get("startState").is_none());
+        let Loaded::Ready { value: again, .. } = load_flight(&saved.to_string()) else {
+            panic!("did not load again");
+        };
+        assert_eq!(again, value);
     }
 
     #[test]

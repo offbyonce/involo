@@ -7,6 +7,7 @@ use crate::model::{FillField, ShowIf};
 
 data_types! {
     /// A choice the pilot makes that decides what is shown, e.g. the power source.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct UserOption {
         pub id: String,
         pub title: String,
@@ -39,6 +40,7 @@ data_types! {
     /// A weight from the flight, less `minus`, above `more_than` suggests `then`, otherwise
     /// `otherwise`; within `near` of `more_than` the suggestion says it is close to the line
     /// (decision 0027). The amounts are in `unit`. With `minus` at 0, nothing is suggested.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct SuggestRule {
         pub field: FillField,
         pub unit: WeightUnit,
@@ -55,6 +57,7 @@ data_types! {
     }
 
     /// A suggestion rule's line and margin in the other unit.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct SuggestLine {
         pub more_than: u32,
         #[serde(default)]
@@ -78,6 +81,7 @@ data_types! {
     }
 
     /// A phase's place in a stage.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct StagePhase {
         pub phase: String,
         #[serde(default, skip_serializing_if = "Option::is_none")]

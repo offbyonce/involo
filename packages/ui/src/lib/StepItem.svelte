@@ -140,7 +140,7 @@ row in place. A step that depends on the answer links back to it.
       {#if decision?.changing}<span class="src">Change your answer</span>
       {:else if suggested && current}<span class="suggest">Suggested from your SimBrief plan: {decision?.suggestion?.amount}</span>
       {:else if decision?.answer !== null && decision?.source && row.state === "done"}<span class="src">{SOURCE_WORDS[decision.source]}</span>{/if}
-      {#if detail === "expanded" && step.look_for}<span class="look"><b>Look for:</b> {step.look_for}</span>{/if}
+      {#if detail === "expanded" && step.lookFor}<span class="look"><b>Look for:</b> {step.lookFor}</span>{/if}
     </button>
     {#if row.state === "skipped"}<button class="do-now" type="button" onclick={onSelect}>Do it now</button>{/if}
   </div>

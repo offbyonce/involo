@@ -31,8 +31,8 @@ pub use content::{
     CduWalkthrough, CduWhen, Control, ControlsFile, ExplainNote, Fault, FaultsFile, GlossaryEntry,
     GlossaryFile, HowNote, IntroParagraph, LabelAnchor, LightColor, LightNote, LightsFile,
     NotesFile, OptionChoice, Overview, OverviewArea, OverviewCaption, OverviewRegion,
-    OverviewViews, Panel, PanelItem, PanelItemKind, PanelSection, Phase, PhasesFile, RouteLegCount,
-    RouteLegPart, Stage, StagePhase, StartState, StartStatesFile, SuggestLine, SuggestRule,
+    OverviewViews, Panel, PanelItem, PanelItemKind, PanelSection, PanelState, PanelStatesFile,
+    Phase, PhasesFile, RouteLegCount, RouteLegPart, Stage, StagePhase, SuggestLine, SuggestRule,
     Suggests, UserOption, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, WeightUnit, Zone,
 };
 pub use model::{

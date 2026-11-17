@@ -8,4 +8,4 @@ export type GlossaryEntry = { term: string, meaning: string,
  * `false` for a unit or a plain abbreviation (LB, FT, ENG): it stays in the glossary but is
  * never one of a step's terms, which name what a learner needs (panels and systems).
  */
-step_term?: boolean | null, };
+stepTerm?: boolean | null, };

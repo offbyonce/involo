@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "StartStatesFile",
-  "description": "`start-states.yaml`.",
+  "title": "PanelStatesFile",
+  "description": "`panel-states.yaml`.",
   "type": "object",
   "properties": {
     "states": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/StartState"
+        "$ref": "#/$defs/PanelState"
       }
     }
   },
@@ -16,7 +16,7 @@
     "states"
   ],
   "$defs": {
-    "StartState": {
+    "PanelState": {
       "description": "A ready-made point to start from, with earlier steps already accounted for.",
       "type": "object",
       "properties": {

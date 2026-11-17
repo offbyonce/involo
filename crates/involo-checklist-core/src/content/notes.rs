@@ -11,6 +11,7 @@ data_types! {
     }
 
     /// A shared explanation of a test or action.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct ExplainNote {
         pub id: String,
         pub what: String,

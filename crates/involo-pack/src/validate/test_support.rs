@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 use involo_checklist_core::{
     Alias, AliasKind, AliasesFile, BriefItem, Briefing, BriefingsFile, Checklist, ControlsFile,
-    ListKind, Phase, PhasesFile, Stage, StagePhase, StartState, StartStatesFile, Step, UserOption,
+    ListKind, PanelState, PanelStatesFile, Phase, PhasesFile, Stage, StagePhase, Step, UserOption,
     Zone,
 };
 
@@ -39,7 +39,7 @@ pub(super) fn manifest() -> PackManifest {
         faults: None,
         glossary: None,
         briefings: None,
-        start_states: None,
+        panel_states: None,
         cdu: None,
         aliases: None,
     }
@@ -153,8 +153,8 @@ pub(super) fn alias_pack(aliases: Vec<Alias>) -> Pack {
             }],
         }],
     });
-    p.content.start_states = Some(StartStatesFile {
-        states: vec![StartState {
+    p.content.panel_states = Some(PanelStatesFile {
+        states: vec![PanelState {
             id: "ready".into(),
             title: "Ready".into(),
             description: "Ready".into(),

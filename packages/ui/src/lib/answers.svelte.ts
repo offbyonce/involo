@@ -10,5 +10,5 @@ import type { Step } from "@involo/bindings";
 export const answered = $state<{ options: Record<string, string> }>({ options: {} });
 
 export function stepValue(step: Step, options: Record<string, string> = answered.options): string {
-  return (step.expect_when ?? []).find((e) => options[e.option] === e.equals)?.expect ?? step.expect;
+  return (step.expectWhen ?? []).find((e) => options[e.option] === e.equals)?.expect ?? step.expect;
 }

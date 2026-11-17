@@ -43,10 +43,10 @@ readers (its first box); the others still select it with a tap.
 
   let byId = $derived(new Map(zones.map((z) => [z.id, z])));
   let edges = $derived({
-    top: (compact ? region?.top_short : null) ?? region?.top ?? null,
-    bottom: (compact ? region?.bottom_short : null) ?? region?.bottom ?? null,
-    left: (compact ? region?.left_short : null) ?? region?.left ?? null,
-    right: (compact ? region?.right_short : null) ?? region?.right ?? null,
+    top: (compact ? region?.topShort : null) ?? region?.top ?? null,
+    bottom: (compact ? region?.bottomShort : null) ?? region?.bottom ?? null,
+    left: (compact ? region?.leftShort : null) ?? region?.left ?? null,
+    right: (compact ? region?.rightShort : null) ?? region?.right ?? null,
   });
   let bounds = $derived({
     x0: Math.min(...boxes.map((a) => a.x)),
@@ -73,7 +73,7 @@ readers (its first box); the others still select it with a tap.
   });
   /** The name a box shows, at the largest size from 16 down to 11 px that fits with 6 px either side. */
   const label = (a: OverviewArea, box: { w: number; h: number }) => {
-    const text = (a.label ?? byId.get(a.zone)?.short_title ?? "").toUpperCase();
+    const text = (a.label ?? byId.get(a.zone)?.shortTitle ?? "").toUpperCase();
     if (!text) return null;
     const fs = Math.min(NAME, (box.w - 2 * SIDE) / em(text), box.h - 2 * SIDE);
     return fs >= MIN ? { text, fs } : null;

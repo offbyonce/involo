@@ -3,4 +3,4 @@
 /**
  * What an alias renames. Covers everything the previous release saved.
  */
-export type AliasKind = "step" | "briefing_item" | "blank" | "start_state" | "option_value" | "fill_field" | "list" | "phase" | "zone";
+export type AliasKind = "step" | "briefing_item" | "blank" | "panel_state" | "option_value" | "fill_field" | "list" | "phase" | "zone";

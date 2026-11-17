@@ -13,7 +13,7 @@ import type {
   OverviewRegion,
   Panel,
   PanelSection,
-  StartState,
+  PanelState,
   Step,
   UserOption,
   Zone,
@@ -33,8 +33,8 @@ export type PackIndex = {
   order(stepId: string): number;
   overview: Overview | null;
   options: UserOption[];
-  /** The iFly panel states (start states) the pack offers. */
-  startStates: StartState[];
+  /** The iFly panel states (panel states) the pack offers. */
+  panelStates: PanelState[];
   /** A shared "how to do it" note's steps, by id. */
   how(id: string): string[] | undefined;
   /** A shared explanation, by id. */
@@ -187,7 +187,7 @@ export function indexPack(pack: FlatPack): PackIndex {
     order: (stepId) => stepOrder.get(stepId) ?? Number.MAX_SAFE_INTEGER,
     overview: pack.content.controls?.overview ?? null,
     options: pack.content.phases?.options ?? [],
-    startStates: pack.content.start_states?.states ?? [],
+    panelStates: pack.content.panelStates?.states ?? [],
     section: (id) => sections.get(id),
     panelOf: (id) => panels.get(id),
     zoneDrawn: (zone) => drawnZones.has(zone),

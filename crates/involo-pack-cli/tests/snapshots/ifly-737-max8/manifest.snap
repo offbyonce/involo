@@ -103,7 +103,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
   "faults": "faults.yaml",
   "glossary": "glossary.yaml",
   "briefings": "briefings.yaml",
-  "startStates": "start-states.yaml",
+  "panelStates": "panel-states.yaml",
   "cdu": "cdu.yaml",
   "aliases": "aliases.yaml"
 }

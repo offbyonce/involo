@@ -40,7 +40,7 @@ mod tests {
             insta::assert_json_snapshot!("faults", content.faults);
             insta::assert_json_snapshot!("glossary", content.glossary);
             insta::assert_json_snapshot!("briefings", content.briefings);
-            insta::assert_json_snapshot!("start-states", content.start_states);
+            insta::assert_json_snapshot!("panel-states", content.panel_states);
             insta::assert_json_snapshot!("cdu", content.cdu);
             insta::assert_json_snapshot!("aliases", content.aliases);
         });

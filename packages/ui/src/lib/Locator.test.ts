@@ -1,19 +1,14 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import type { FlatPack } from "@involo/bindings";
 import { cleanup, render, screen } from "@testing-library/svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
+import { iflyPack } from "../test-pack";
 import Locator from "./Locator.svelte";
 
 afterEach(cleanup);
-const pack = Object.values(
-  import.meta.glob<FlatPack>("../../../../apps/web/public/packs/ifly-737-max8.json", {
-    eager: true,
-    import: "default",
-  }),
-)[0] as FlatPack;
+const pack = iflyPack();
 const index = indexPack(pack);
 
 describe("Locator", () => {

@@ -64,7 +64,7 @@ export function buildFind(pack: FlatPack, index: PackIndex): FindIndex {
           phase: phase.id,
           list: lists.get(id)?.title,
           before: all[n - 1]?.text,
-          ...(step.expect_when?.length ? { when: step.expect_when } : {}),
+          ...(step.expectWhen?.length ? { when: step.expectWhen } : {}),
         });
       }
     }
