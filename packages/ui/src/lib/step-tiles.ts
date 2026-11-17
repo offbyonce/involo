@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// Which panels a step draws (batch 6): only the panels that hold the step's controls, or the
+// Which panels a step draws: only the panels that hold the step's controls, or the
 // lights its Check names (both are the step's targets), each its own tile; nothing between them.
 // A control on a panel the pack has no drawing for gets a tile too: the panel's name and the step's
 // controls on it, as a list.
@@ -15,7 +15,7 @@ export type ListedTile = { kind: "listed"; id: string; title: string; controls: 
 export type Tile = DrawnTile | ListedTile;
 
 /** The step's tiles: the one with the first control it sets first (the main panel), then in the
- * step's order, with panels that only hold lights its Check names last (batch 6). */
+ * step's order, with panels that only hold lights its Check names last. */
 export function stepTiles(index: PackIndex, step: Step, targets: ItemTarget[]): Tile[] {
   const controls = step.controls ?? [];
   const rank = (ids: readonly string[]) =>
@@ -47,7 +47,7 @@ export function stepTiles(index: PackIndex, step: Step, targets: ItemTarget[]): 
   for (const c of controls) {
     if (drawnControls.has(c)) continue;
     const control = index.control(c);
-    // Drawn on a panel the step does not target: the pack's targets name it (batch 6).
+    // Drawn on a panel the step does not target: the pack's targets name it.
     if (!control?.zone || index.controlDrawn(c)) continue;
     const zone = index.zones.find((z) => z.id === control.zone);
     const entry = listed.get(control.zone) ?? { title: zone?.title ?? control.name, controls: [], ids: [] };

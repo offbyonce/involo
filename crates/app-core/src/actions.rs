@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-//! The only way the interface changes a flight (decision 0012). More actions arrive with the
-//! batches that need them (panel states, plans, timers).
+//! The only way the interface changes a flight (decision 0012).
 
 use checklist_core::{FillField, Millis, StepId};
 use pack::FlatPack;

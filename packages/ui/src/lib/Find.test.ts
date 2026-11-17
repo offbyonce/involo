@@ -59,7 +59,7 @@ const base = {
 };
 
 describe("Find", () => {
-  it("marks the match in a step's value and a term's definition too (batch 6)", async () => {
+  it("marks the match in a step's value and a term's definition too", async () => {
     render(Find, base);
     const field = screen.getByRole("combobox", { name: "Find a step, control or term" });
     await fireEvent.input(field, { target: { value: "light" } });

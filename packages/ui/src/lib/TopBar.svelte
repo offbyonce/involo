@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 The header (Checklist board, 60 px): menu, the app's name and aircraft, the stage tabs (the
 current one bold and underlined, an amber dot on any stage holding an open step), the Checklist /
 Flow switch and Emergency, Find before them (Ctrl K; the icon alone below 1440 px). Below 1440 px it is
-the compact header (Tablet and Mobile boards, batch 5): no brand and no stage tabs, but a stage
+the compact header (Tablet and Mobile boards): no brand and no stage tabs, but a stage
 button (with the phase on phone, and an amber dot when another stage holds an open step) that opens
 the stage and phase picker; phone keeps Checklist / Flow in the menu.
 -->

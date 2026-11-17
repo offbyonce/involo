@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 A Flight deck area's map (Deck and PhoneDeck boards), drawn from the pack's overview: the area's
 places as boxes with the region's edge captions ("↑ AFT, TOWARD THE CABIN", "CAPTAIN SIDE"), the
 selected place filled and outlined in the accent with its name. Each box selects its place (a
-button). Name every panel labels them all. The batch 6 map rules hold: a box is labeled only when
+button). Name every panel labels them all. The map rules hold: a box is labeled only when
 its name fits with 6 px either side, at 11 px or more; otherwise it stays unlabeled (the place's
 name shows beside the map). A place drawn as several boxes is one stop for the keyboard and screen
 readers (its first box); the others still select it with a tap.

@@ -109,7 +109,7 @@ describe("How procedures work, desktop (HowDesk)", () => {
     expect(onStep).toHaveBeenCalledWith("s9");
   });
 
-  it("with no phase at all, the phase links are left out rather than empty (review)", () => {
+  it("with no phase at all, the phase links are left out rather than empty", () => {
     const { container } = render(HowPage, { ...base, phase: null, step: null });
     expect([...container.querySelectorAll(".inv a")].map((a) => a.textContent)).toEqual([
       "Emergency ›",
@@ -141,13 +141,13 @@ describe("How procedures work, desktop (HowDesk)", () => {
     expect(screen.getByRole("link", { name: "How much you see" }).getAttribute("aria-current")).toBe("true");
   });
 
-  it("names the parts in the list by title alone, the number hidden from screen readers (review)", () => {
+  it("names the parts in the list by title alone, the number hidden from screen readers", () => {
     render(HowPage, base);
     const list = screen.getByRole("navigation", { name: "Parts" });
     expect(within(list).getByRole("link", { name: "Reading a step" })).toBeTruthy();
   });
 
-  it("puts a part out of range at part 1, and the address with it (review)", async () => {
+  it("puts a part out of range at part 1, and the address with it", async () => {
     history.replaceState(null, "", "#/how/9");
     render(HowPage, { ...base, part: 9 });
     await tick();
@@ -157,7 +157,7 @@ describe("How procedures work, desktop (HowDesk)", () => {
     );
   });
 
-  it("keeps a picked part marked when the column ends before its heading reaches the top; the reader's own scrolling follows the column (review)", async () => {
+  it("keeps a picked part marked when the column ends before its heading reaches the top; the reader's own scrolling follows the column", async () => {
     const { container } = render(HowPage, base);
     const col = container.querySelector("main.read") as HTMLElement;
     // A column 900 px tall, scrolled to its end; headings 600 px apart, part 6 below the top third.
@@ -202,7 +202,7 @@ describe("How procedures work, desktop (HowDesk)", () => {
 });
 
 describe("How procedures work, between the layouts", () => {
-  it("keeps the part being read when a tablet turns from landscape to portrait (review)", async () => {
+  it("keeps the part being read when a tablet turns from landscape to portrait", async () => {
     let change = (): void => {};
     const mq = {
       matches: true,
@@ -248,7 +248,7 @@ describe("How procedures work, phone (HowPhone)", () => {
     expect(last.container.querySelector(".foot .prev")?.textContent).toBe("‹ 6 · Skipping and coming back");
   });
 
-  it("closes the parts list on Esc, and on picking the part already shown (review)", async () => {
+  it("closes the parts list on Esc, and on picking the part already shown", async () => {
     phone();
     render(HowPage, { ...base, part: 4 });
     const all = screen.getByRole("button", { name: "All seven parts" });

@@ -12,9 +12,8 @@ follows the privacy rules in decision 0009.
 saved progress survives export and import, the app works offline once installed, and `just ci`
 is green.
 
-Work one step at a time (see `AGENTS.md`): finish a step, show the result, wait for the
-maintainer's go-ahead. Steps marked **(maintainer)** are the maintainer's to do. That includes
-every change to `.github/workflows/`. For those, prepare what the step needs and stop.
+Steps marked **(maintainer)** need repository settings or workflow changes
+(`.github/workflows/`) that only the maintainer makes; the other steps prepare what they need.
 
 ## Rules for this phase
 

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// Every panel name in the pack against the naming rule (batch 6): a name ending in a thing
+// Every panel name in the pack against the naming rule: a name ending in a thing
 // is used as it is, any other takes "panel". The lists below are the names as reviewed; a new name
 // in the pack fails here until it is added to the right list, so a word the rule does not know
 // ("quadrant", say) is caught before it reads wrong.

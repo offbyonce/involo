@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// Find (batch 6, Find.dc.html): every step, control and term in the pack, searched by plain text.
+// Find (Find.dc.html): every step, control and term in the pack, searched by plain text.
 
 import type { ExpectWhen, FlatPack, Rail } from "@involo/bindings";
 import type { PackIndex } from "../pack-index";

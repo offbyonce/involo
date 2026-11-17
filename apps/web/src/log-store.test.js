@@ -114,7 +114,7 @@ test("with no IndexedDB (a blocked private window) there is no log and nothing i
   assert.equal(await writeLog("x", broken), false);
 });
 
-test("a database that fails to read is an error, never an empty log (review: a later save would replace the real one)", async () => {
+test("a database that fails to read is an error, never an empty log, which a later save would write over the real one", async () => {
   const broken = {
     open() {
       const r = {};

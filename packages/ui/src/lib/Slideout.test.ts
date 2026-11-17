@@ -138,7 +138,7 @@ describe("Slideout", () => {
     expect(changed).toBe("ask");
   });
 
-  it("titles the sheet with the main panel, adds Also for the others, and keeps an undrawn panel as a list (batch 6)", () => {
+  it("titles the sheet with the main panel, adds Also for the others, and keeps an undrawn panel as a list", () => {
     const efb = known("ifly-737-max8.gpu-power.ground-power-cart-efb");
     const locate = (at: string) => {
       const [, section, label, n] = at.split("/");

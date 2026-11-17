@@ -80,7 +80,7 @@ describe("Drawer", () => {
       ["Flight log", "#/log"],
       ["Settings", "#/settings"],
     ]);
-    // The old menu's items have their homes elsewhere now (batch 5).
+    // The old menu's items have their homes elsewhere now.
     expect(screen.queryByText(/Continue|Version/)).toBeNull();
   });
 

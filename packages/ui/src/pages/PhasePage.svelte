@@ -140,7 +140,7 @@ step at a time (lib/FlowView.svelte).
 {/each}
 
 {#if view.arrival}
-  <!-- Arrival values live only in Flight › Approach (batch 4; decision 0019 amended). -->
+  <!-- Arrival values live only in Flight › Approach (decision 0019, amended). -->
   <a class="arrival" href={flightHref("approach")}>Arrival data is in Flight › Approach <Icon name="chevron-right" /></a>
 {/if}
 

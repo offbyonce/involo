@@ -2,9 +2,8 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-Settings, laid out as in 3.0: one row per choice with a segmented control. This batch has the
-view, the detail level, the theme and dimming; they are kept for this visit only until batch 1
-saves them on the device, and batch 7 adds the rest.
+Settings, laid out as in 3.0: one row per choice with a segmented control. The host saves them
+on the device (decision 0012).
 -->
 <script lang="ts">
   import Toggle from "../lib/Toggle.svelte";
@@ -125,7 +124,7 @@ saves them on the device, and batch 7 adds the rest.
   {/each}
 </div>
 <div class="done"><a class="btn primary" href="#/">Done</a></div>
-<!-- The version line (Views board, Settings, batch 5 additions). -->
+<!-- The version line (Views board, Settings). -->
 {#if version}
   <p class="ver">Involo {version} · <a href={RELEASES} target="_blank" rel="noopener noreferrer">What’s new</a></p>
 {/if}

@@ -2,9 +2,9 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 -->
-# Design audit (design system batch, step 1)
+# Design audit (before the design system)
 
-Taken on the `phase-2/design-system` branch at the end of batch 2's step 6. Every style value in
+Taken on the `phase-2/design-system` branch, before the design system refactor. Every style value in
 the interface's 30 style sources (Svelte components, `app.css`, the web app's pages) was counted
 by `tools/design-audit/audit.py`; the full tables, with where each value is used, are in
 [audit-tables.md](audit-tables.md). Rerun the tool after the refactor to compare.
@@ -77,7 +77,7 @@ screens.
 
 The drawings draw lights and push buttons as one key, toggles and dials from one template each,
 and show each step's targets (decisions 0014 to 0018). These controls fall outside those rules
-and need their own treatment, now or in batch 3:
+and need their own treatment:
 
 - **Kinds with no template (46 items).** Display units and screens (24: the DUs, CDUs, the
   standby display, the IRS display and keypad, audio panel 3, the stabilizer trim wheel), gauges
@@ -99,7 +99,7 @@ and need their own treatment, now or in batch 3:
   APU choices, anti-ice, the MINS selectors, one-engine memory items and others. Drawn with no
   position and "SEE STEP"; the condition itself is only in the step's wording.
 - **Lights that may cycle.** The window heat ON lights get no light state (decision 0018).
-- **Pack data the drawings ignore (52 items; removed in this batch).** Lights and push buttons that still carry their
+- **Pack data the drawings ignore (52 items; removed with this audit).** Lights and push buttons that still carry their
   own width or height from the 3.0 import (door lights 48 wide, annunciator keys 42 by 24 and 54
   by 34, gear lights 42 by 0, cargo fire keys 38 to 46 wide). Every key is drawn at the standard
   size, so these values were dead and misleading. `pack check` now rejects a size on anything but a

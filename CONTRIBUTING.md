@@ -89,14 +89,25 @@ archive.org, AviationHunt, NTSB docket documents, or any other second-hand study
 reworded or moved. A removed step's id is retired and never reused.
 
 **Overlap check.** `just overlap` flags any run of 8 or more words matching plain-text reference
-files in a private folder outside the repo, named by the `INVOLO_OVERLAP_REFS` environment
-variable. It also compares each list's steps joined in order. That folder is never committed,
-uploaded or synced anywhere public. Standard phrases can be accepted in
-`crates/pack-overlap/allow.txt` with a reason. Without the folder the check prints "not run", and
-the maintainer runs it before merging.
+files (see `INVOLO_OVERLAP_REFS` under "Optional local files" below). It also compares each list's
+steps joined in order. Standard phrases can be accepted in `crates/pack-overlap/allow.txt` with a
+reason.
 
 If you are unsure whether something is acceptable, ask in your pull request before writing the
 content.
+
+## 4. Optional local files
+
+A few checks read files that stay on your own computer and are never committed, uploaded or
+synced anywhere public. Each is named by an environment variable. Without them everything else
+works; the extra check is just skipped.
+
+| Variable | Names | Used by | Without it |
+| --- | --- | --- | --- |
+| `INVOLO_OVERLAP_REFS` | a folder of plain-text reference files | `just overlap`, which flags pack text matching them | the check prints "not run"; it is run before merging content |
+| `INVOLO_BASELINE` | a local copy of the earlier single-file HTML checklist (3.0) | `just screenshots`, which also shoots the same screens of it and writes side-by-side images | only the app's screenshots are taken |
+| `INVOLO_STEPS` | a list of steps, one per line: `phase` or `reference`, the phase id and the step id, tab-separated, with an optional number | `just screenshots`, which shoots each step's panel sheet and preview card | those shots are left out |
+| `INVOLO_PLAN` | a real SimBrief plan file (with `INVOLO_PLAN_OUT`, where to write its compact form) | the ignored test `measures_a_real_plan` in `crates/simbrief` (`cargo test -p simbrief -- --ignored`) | the test is ignored, as it is by default |
 
 ## Reporting problems
 

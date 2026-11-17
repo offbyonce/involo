@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * Panel names, the same way everywhere (batch 6): the pack's section title as it is, in
+ * Panel names, the same way everywhere: the pack's section title as it is, in
  * sentence case, with "panel" added only when it does not already end in a thing ("Electrical
  * meters panel", "Control stand"). A sheet or card names one panel, or a left and right
  * pair as one ("L and R wiper panels"); otherwise the panel with the step's main control, and the
  * others in an "Also:" line. Names are never chained with "and".
  */
 /**
- * Words that name the thing itself, not what a panel is for (batch 6): a name ending in one
+ * Words that name the thing itself, not what a panel is for: a name ending in one
  * is used as it is ("Control stand", "Captain displays"); any other name is a panel ("Fuel panel").
  */
 const THINGS = new Set([

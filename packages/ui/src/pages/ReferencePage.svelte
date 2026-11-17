@@ -4,7 +4,7 @@ SPDX-License-Identifier: MIT
 
 Behind the Emergency button, as in 3.0: a tab for each reference phase (memory items, quick
 reference, non-normal), its introduction, and its lists as cards that open. Steps here use larger
-type (step 7 requirement for non-normal lists).
+type, as non-normal lists need.
 -->
 <script lang="ts">
   import type { Snippet } from "svelte";

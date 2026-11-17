@@ -319,7 +319,7 @@ it. Every field of the old Flight setup lives in one section.
     background: var(--color-line);
   }
   /* Each card keeps its height; the column scrolls (no hidden or squeezed rows). Scrollbars are
-     hidden, as on the checklist (batch 2). */
+     hidden, as on the checklist. */
   .fmain > :global(*) {
     flex: none;
   }
@@ -368,8 +368,8 @@ it. Every field of the old Flight setup lives in one section.
       padding: calc(var(--space-4) + var(--space-1)) var(--space-6);
     }
   }
-  /* Tablet portrait and phone keep every section reachable until batch 5's layouts: the
-     section list becomes a row, and the OFP panel follows the section. */
+  /* Tablet portrait and phone keep every section reachable: the section list becomes a row, and
+     the OFP panel follows the section. */
   @media (max-width: 899px) {
     .cols {
       flex-direction: column;

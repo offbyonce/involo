@@ -348,8 +348,7 @@ the "Find it in your OFP" panel at it. Descriptions Off keeps the label, the val
       padding-top: var(--space-1);
     }
   }
-  /* Phone: the label, then the value, then the description and chip, each the row's width
-     (batch 5 brings the phone boards). */
+  /* Phone: the label, then the value, then the description and chip, each the row's width. */
   @media (max-width: 599px) {
     .frow {
       grid-template-columns: minmax(0, 1fr);

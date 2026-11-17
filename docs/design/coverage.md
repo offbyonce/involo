@@ -40,25 +40,25 @@ Every 3.0 feature and where it lives at each size. Use this as a release check: 
 | Flight log | Menu | Menu | Menu | Menu |
 | Open steps across pages | "2 open steps" list; amber dots on stage and phase | "2 open steps ⌄" | Same | "2 open" sheet |
 | Skip a step | Skip for now, row menu, Do it now | Same | Bottom bar, row menu | Bottom bar, row menu |
-| Find **(batch 6; hidden until built, 2026-11-13)** | Header (Ctrl K) | Header icon | Header icon | Header icon |
+| Find | Header (Ctrl K) | Header icon | Header icon | Header icon |
 | Keyboard (Space, ←, S) | Hint on the current step | n/a | n/a | n/a |
 | Settings | Menu | Menu | Menu | Menu |
 | Tour | Menu | Menu | Menu | Menu |
 | References | Menu | Menu | Menu | Menu |
-| Flight setup (all flight data) | The Flight pages (batch 4): Strip › All flight data, each step's "— enter …" link (the menu's Flight item went with the batch 5 menu, 2026-11-15) | Same | Same | Same |
+| Flight setup (all flight data) | The Flight pages: Strip › All flight data, each step's "— enter …" link (the menu's Flight item went with the new menu, 2026-11-15) | Same | Same | Same |
 | Approach type and arrival data | Flight › Approach | Same | Same | Same |
 | Progress saves | Saved time and overall count in the phase track | Menu header | Menu header | Menu header |
 
 ## Added in the repository, for the review
 
-Found by the batch 1 independent review (2026-11-12): 3.0 features the table above did not list.
+Found by an independent review (2026-11-12): 3.0 features the table above did not list.
 No board draws them, so each home is the closest match to the boards and is flagged
 **(to review)** until it is confirmed.
 
 | 3.0 feature | Desktop and wide | Tablet landscape | Tablet portrait | Phone |
 |---|---|---|---|---|
 | Keep screen awake (On / Off) **(to review)** | Settings, a row beside Timer chime | Same | Same | Same |
-| Your Essentials: Reset to default, and how many steps you changed **(to review)** | Settings, a row under Text and controls size; changes themselves through the row menu (Add to / Remove from Essentials row) | Same | Same | Same |
+| Your Essentials: Reset to default, and how many steps you changed **(to check)** | Settings, a row under Text and controls size; changes themselves through the row menu (Add to / Remove from Essentials row) | Same | Same | Same |
 | Start setting: Cold and dark or Turnaround **(to review)** | Flight › Start options › Turnaround toggle (the same choice as the Turnaround row above); also a Settings row, as in 3.0 | Same | Same | Same |
 | Map setting: On / Off | Settings › Panel preview in steps (On / Off), round 6 (see the Map on or off row above) | Same | Same | Same |
 | "Used in" chips: the steps that use a control, each a link to the step **(to review)** | Flight deck › selected panel › Steps that use this panel (Deck board); in the step's side pane under the controls drawing, as 3.0 shows them | Side pane, under the controls drawing | Under the inline controls drawing | Flight deck page, "Used by" (Mobile board, deck screen); in the step, under the controls drawing |

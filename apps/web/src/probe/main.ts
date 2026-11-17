@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// The SimBrief probe page (Phase 2, step 3), now reading plans with the simbrief crate as
-// WebAssembly. The username goes from this browser straight to SimBrief; it is not stored, and
-// nothing is sent anywhere else. Kept as a test page; the app's own plan loading comes in step 7.
+// The SimBrief probe page, reading plans with the simbrief crate as WebAssembly (decision 0019).
+// The username goes from this browser straight to SimBrief; it is not stored, and nothing is sent
+// anywhere else. Kept as a test page beside the app's own plan import.
 
 import { type AppError, isAppError, type Plan } from "@involo/bindings";
 import { parsePlan, planUrl } from "../core";

@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-Find (batch 6, Find.dc.html: FindDesk, FindDeskNone, FindDeskStart and the phone boards). From 900 px
+Find (Find.dc.html: FindDesk, FindDeskNone, FindDeskStart and the phone boards). From 900 px
 a 640 px dialog 88 px from the top, centered, on the pop-over tokens over color.scrim; below 900 px a
 full-screen sheet with a back button and a boxed field. It searches every step, control and term
 in the pack: Steps, Controls, Terms, each with its count and its first three matches ("Show all N";
@@ -144,7 +144,7 @@ matches “…”". Esc, the scrim and the back button close it.
 
 <svelte:window onkeydown={onKey} />
 
-<!-- The match marked in a title, a step's value or a term's definition (batch 6). -->
+<!-- The match marked in a title, a step's value or a term's definition. -->
 {#snippet title(text: string)}
   {@const m = marked(text, query)}
   {#if m}{m[0]}<mark>{m[1]}</mark>{m[2]}{:else}{text}{/if}
@@ -520,7 +520,7 @@ matches “…”". Esc, the scrim and the back button close it.
     color: var(--color-text-muted);
     font-size: calc(var(--font-size-caption) + var(--border-thin));
   }
-  /* A long value clamps to two lines (batch 6). */
+  /* A long value clamps to two lines. */
   .val {
     display: -webkit-box;
     overflow: hidden;
