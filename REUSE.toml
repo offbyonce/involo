@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: MIT
 #
 # Licenses for files that cannot carry a comment header. Code is MIT; checklist
-# content in packs/ and the pack snapshots in crates/involo-pack-cli/tests/snapshots/ is
+# content in packs/, the pack snapshots in crates/involo-pack-cli/tests/snapshots/ and the step id
+# list in crates/involo-pack-cli/tests/fixtures/ is
 # CC BY-NC-SA 4.0. Check with `reuse lint` (https://reuse.software).
 version = 1
 
@@ -23,7 +24,7 @@ SPDX-FileCopyrightText = "2026 offbyonce"
 SPDX-License-Identifier = "MIT"
 
 [[annotations]]
-path = ["packs/**", "crates/involo-pack-cli/tests/snapshots/**"]
+path = ["packs/**", "crates/involo-pack-cli/tests/snapshots/**", "crates/involo-pack-cli/tests/fixtures/**"]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 offbyonce and Involo contributors"
 SPDX-License-Identifier = "CC-BY-NC-SA-4.0"

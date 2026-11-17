@@ -3,9 +3,16 @@
   "id": "example-trainer",
   "name": "Example trainer (format demo)",
   "version": "0.1.0",
-  "schemaVersion": 4,
+  "schemaVersion": 6,
   "kind": "aircraft",
   "engine": ">=0.1.0, <1.0.0",
+  "aircraft": {
+    "family": "Example trainer",
+    "name": "Example trainer",
+    "icaoTypes": ["ZZZZ"],
+    "simulator": "None: an invented format demo",
+    "developer": "Involo examples"
+  },
   "license": "CC-BY-NC-SA-4.0",
   "attribution": ["Invented example content to show the pack format. Not for real-world or simulator use."],
   "basisTags": ["invented-example", "prior-release"],

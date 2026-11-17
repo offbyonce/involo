@@ -14,11 +14,30 @@ pub mod terms;
 pub mod validate;
 
 pub use load::{LoadError, load_pack_dir, parse_checklist_yaml, parse_yaml};
-pub use manifest::{PackKind, PackManifest};
+pub use manifest::{AircraftInfo, PackKind, PackManifest};
 pub use validate::{Issue, Severity, validate_pack};
 
-/// The pack schema version this build of the app understands.
-pub const SCHEMA_VERSION: u32 = 5;
+/// The newest pack format this build of the app reads.
+pub const SCHEMA_VERSION: u32 = 6;
+
+/// The oldest pack format the app reads: format 6 is the first public one, and later formats only
+/// add (decision 0029).
+pub const MIN_SCHEMA_VERSION: u32 = 6;
+
+/// Why a pack of format `version` can't be read, or `None` when it can.
+pub fn format_problem(version: u32) -> Option<String> {
+    if version < MIN_SCHEMA_VERSION {
+        Some(format!(
+            "Format {version} is no longer read; move the pack to format {MIN_SCHEMA_VERSION}"
+        ))
+    } else if version > SCHEMA_VERSION {
+        Some(format!(
+            "Needs a newer Involo: the pack uses format {version}, and this version reads up to {SCHEMA_VERSION}"
+        ))
+    } else {
+        None
+    }
+}
 
 /// Everything a pack holds besides its manifest and lists. Each part is optional.
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -82,6 +101,9 @@ pub struct PackSummary {
     #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub version: semver::Version,
     pub kind: PackKind,
+    /// The aircraft an aircraft pack is for.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aircraft: Option<AircraftInfo>,
 }
 
 impl From<&PackManifest> for PackSummary {
@@ -91,6 +113,7 @@ impl From<&PackManifest> for PackSummary {
             name: m.name.clone(),
             version: m.version.clone(),
             kind: m.kind,
+            aircraft: m.aircraft.clone(),
         }
     }
 }

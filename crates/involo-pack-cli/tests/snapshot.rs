@@ -59,4 +59,17 @@ mod tests {
         let flat: FlatPack = serde_json::from_str(&json).unwrap();
         assert_matches_snapshots(&flat.manifest, &flat.lists, &flat.content);
     }
+
+    /// Moving to format 6 changed no step id: the ids published before it, kept as they were.
+    #[test]
+    fn the_ifly_step_ids_are_unchanged() {
+        let before: Vec<&str> = include_str!("fixtures/ifly-step-ids.txt").lines().collect();
+        let pack = ifly();
+        let now: Vec<&str> = pack
+            .checklists
+            .iter()
+            .flat_map(|l| l.steps.iter().map(|s| s.id.as_str()))
+            .collect();
+        assert_eq!(now, before);
+    }
 }
