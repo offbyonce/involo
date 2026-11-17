@@ -410,7 +410,7 @@ export type SectionLayout = {
 
 /**
  * Places every label in a section so none overlaps a control or another label, keeping all of
- * them, as 3.0 did (Phase 2 brief, step 7). Controls stay where the pack puts them and are
+ * them, as 3.0 did. Controls stay where the pack puts them and are
  * placed first. Then, the step's controls
  * first and the rest from left to right: a switch's position labels go on its right, or its left
  * if the right is taken; a name goes under its control, or a line or more lower. Text never
