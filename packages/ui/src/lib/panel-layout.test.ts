@@ -363,7 +363,7 @@ describe("tileScale (PanelTiles board)", () => {
   });
 });
 
-describe("sharedScale (owner: panels shown together share one scale)", () => {
+describe("sharedScale (panels shown together share one scale)", () => {
   const narrow = { w: 204, h: 124 };
   const wide = { w: 564, h: 232 };
   it("fits the fitted overview to its width at the smallest panel's fit, below 11 px if it must", () => {
@@ -386,7 +386,7 @@ describe("sharedScale (owner: panels shown together share one scale)", () => {
   });
 });
 
-describe("openingTop (owner, Glossary answers)", () => {
+describe("openingTop (Glossary answers)", () => {
   it("keeps the step's controls in view, the strip too when both fit, and the controls when not", () => {
     // No strip: the controls centered.
     expect(openingTop({ top: 900, bottom: 1000 }, 400)).toBe(750);

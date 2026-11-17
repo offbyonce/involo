@@ -2,8 +2,8 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-A step's panels as tiles (owner, batch 6; PanelTiles board). Every tile shares one scale, the
-largest at which each of them fits, so their labels are the same size (owner, replacing "each tile
+A step's panels as tiles (batch 6; PanelTiles board). Every tile shares one scale, the
+largest at which each of them fits, so their labels are the same size (replacing "each tile
 at its own scale"): side by side when they fit that way, otherwise stacked, 16 px apart, centered;
 never the deck's gaps between them (the map shows where things are). Several tiles are titled with their
 panel's name. A panel the pack has no drawing for is a tile too: its name and the step's controls
@@ -60,7 +60,7 @@ on it, as a list. One drawn panel alone is drawn as before.
   let drawnIds = $derived(tiles.flatMap((t) => (t.kind === "drawn" ? [t.id] : [])));
   let boxes = $derived(drawnIds.flatMap((id) => (extents[id] ? [extents[id]] : [])));
   /** Each tile wider than its room, and the element that scrolls it: a navigator strip above it
-   * (owner, batch 6: every wide panel, on single and multi-panel sheets alike). */
+   * (batch 6: every wide panel, on single and multi-panel sheets alike). */
   let wides = $state<Record<string, boolean>>({});
   let scrollers = $state<Record<string, HTMLDivElement | null>>({});
   let width = $state(0);

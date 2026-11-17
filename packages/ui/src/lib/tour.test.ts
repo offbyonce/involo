@@ -41,7 +41,7 @@ describe("the tour's targets", () => {
     expect(targetOf(2)).toBeNull();
   });
 
-  it("lights the current row, or below 900 px its Done / Skip for now bar with the row kept (owner)", () => {
+  it("lights the current row, or below 900 px its Done / Skip for now bar with the row kept", () => {
     document.body.innerHTML = `<ul><li class="it current"><div class="actions"></div></li></ul>`;
     layout("li, .actions");
     expect(targetOf(3)).toMatchObject({ selector: "row", bar: false });
@@ -103,7 +103,7 @@ describe("the tour's words", () => {
       expect(sentences, String(n)).toBeLessThanOrEqual(3);
     }
     expect(stepText(3, opts)?.keys).toBe("Space done · S skip for now");
-    // Step 3 on phone lights the bar, not the row (owner).
+    // Step 3 on phone lights the bar, not the row.
     expect(stepText(3, opts)?.body).toMatch(/^The highlighted row is the step to do now\./);
     expect(stepText(3, { ...opts, bar: true })?.body).toBe(
       "The step to do now is at the top of the list. Set the control in the simulator, then press Done here, or pick an answer when the step asks a question. Skip for now leaves it open to come back to.",

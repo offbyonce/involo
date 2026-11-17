@@ -1,6 +1,6 @@
 # Round 6: the panel and where it is
 
-Approved by the owner. This round changes how a step shows its panel and its location. It supersedes parts of round 5, listed below. Everything else in round 5 stands.
+Approved. This round changes how a step shows its panel and its location. It supersedes parts of round 5, listed below. Everything else in round 5 stands.
 
 `boards/` has every round 6 board in dark and light. The `R6*` files are thin wrappers. `Locator.dc.html` is the shared source for the slide-out and sheets (tweaks: layout, state, theme). `Checklist`, `Tablet`, `Mobile` and `Views` are the round 5 shared sources with an `r6` option added (and `preview` on Checklist and Mobile). With `r6` off they render exactly as round 5.
 
@@ -98,6 +98,6 @@ Before building anything else in this round:
 1. Render the label-free preview for the three densest panels (captain lights, the MCP, and the densest overhead panel), plus the fuel panel.
 2. Render each in both themes, at the 1440 side pane, the tablet landscape pane and the phone sheet.
 3. Put each beside your full labeled panel.
-4. Send them for the owner's review and wait.
+4. Send them for the review and wait.
 
 If a dense panel turns into a grid of identical boxes where the layout stops helping, say so and propose options. Don't pick one yourself.

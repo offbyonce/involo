@@ -4,7 +4,7 @@ SPDX-License-Identifier: MIT
 -->
 # 0024: Outside flight data, starting with SayIntentions (Beta)
 
-Date: 2026-11-13. Status: accepted (owner, 2026-11-13). A phase after Phase 2 step 7; not started.
+Date: 2026-11-13. Status: accepted (2026-11-13). A phase after Phase 2 step 7; not started.
 
 ## Context
 SayIntentions, an AI ATC add-on for the simulator, publishes a local `flight.json` on the pilot's
@@ -41,4 +41,4 @@ to the simulator) stands: SayIntentions is an add-on's file, not the simulator.
 - The engine and the pack format do not change; outside values enter the flight through the
   crate's merge rule.
 - A GitHub issue template for SayIntentions feedback, warning people to remove their api_key
-  before pasting `flight.json`, is drafted for the owner to add.
+  before pasting `flight.json`, is drafted, to be added.

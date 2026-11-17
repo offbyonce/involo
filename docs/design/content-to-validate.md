@@ -22,4 +22,4 @@ The mockups contain wording and data written to show the format. None of it may 
 
 ## Panel icons and drawing quality (assigned to you)
 
-The owner wants the icons and drawing detail in the panel views improved. Within the rules: geometry and arrangement stay as the pack defines them; improve switch, knob, selector, guard and light-lens drawing, label legibility and both themes' rendering through the shared drawing renderer and tokens. Show before and after for every panel type in the reviewer brief.
+The icons and drawing detail in the panel views are to be improved. Within the rules: geometry and arrangement stay as the pack defines them; improve switch, knob, selector, guard and light-lens drawing, label legibility and both themes' rendering through the shared drawing renderer and tokens. Show before and after for every panel type in the reviewer brief.

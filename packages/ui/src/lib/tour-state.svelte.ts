@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// The tour (owner's Tour boards and README, 2026-11-16): seven steps. The welcome card is step 1
+// The tour (Tour boards and README, 2026-11-16): seven steps. The welcome card is step 1
 // and "You're set" step 7, both centered; steps 2 to 6 each light up one real element. It stores
 // only whether the welcome has been seen (Settings.tourSeen), and never changes the flight.
 
@@ -46,7 +46,7 @@ export function stepText(
     case 3:
       return {
         title: "The current step",
-        // On phone the Done / Skip for now bar is lit, not the row (owner).
+        // On phone the Done / Skip for now bar is lit, not the row.
         body: opts.bar
           ? "The step to do now is at the top of the list. Set the control in the simulator, then press Done here, or pick an answer when the step asks a question. Skip for now leaves it open to come back to."
           : "The highlighted row is the step to do now. Set the control in the simulator, then press Done, or pick an answer when the step asks a question. Skip for now leaves it open to come back to.",
@@ -102,7 +102,7 @@ export function union(els: Element[]): Box | null {
 }
 
 /** A lit step's element: the elements to ring, and, for the current step on narrow screens, the
- * row to keep in view while its bar is lit (owner). */
+ * row to keep in view while its bar is lit. */
 export type Target = { els: Element[]; selector: string; bar: boolean; row: Element | null };
 
 /** The element a lit step points at, at the current size; null when none is on screen, so the step
@@ -112,7 +112,7 @@ export function targetOf(step: number, root: ParentNode = document): Target | nu
     const row = root.querySelector("li.it.current");
     if (!row || !shown(row)) return null;
     // Below 900 px Done and Skip for now sit in the fixed bar at the foot of the screen: the bar is
-    // lit, with the card above it and the row in view above that (owner).
+    // lit, with the card above it and the row in view above that.
     const actions = row.querySelector(".actions");
     if (actions && shown(actions) && getComputedStyle(actions).position === "fixed")
       return { els: [actions], selector: "bar", bar: true, row };

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// The Glossary (owner, Glossary boards): every term in the pack, A to Z, each with its expansion
+// The Glossary (Glossary boards): every term in the pack, A to Z, each with its expansion
 // when it has one, its definition and the steps that use it. Built from the pack's terms as they
 // are (no pack format change): Where is this? and Related stay out, as the pack has no data for them.
 
@@ -22,10 +22,10 @@ export type GlossaryTerm = {
 };
 
 /** Terms that meet the rule but whose first sentence reads as a description, not a name: no
- * expansion (owner, reviewed 2026-11-15). A test holds the list to the pack. */
+ * expansion (reviewed 2026-11-15). A test holds the list to the pack. */
 export const NO_EXPANSION = ["IGN L", "IGN R", "PERF INIT", "MA"];
 
-/** Words that make a first sentence a statement, not a name (owner: no verb). */
+/** Words that make a first sentence a statement, not a name (no verb). */
 const VERBS = new Set(
   "is are was were be been has have shows shown showing makes means meaning used gives sends tracks stops raises cools joins lists turns comes points supplies moves fires changes sets set lets keeps disables that which where while when".split(
     " ",
@@ -33,7 +33,7 @@ const VERBS = new Set(
 );
 
 /**
- * The owner's rule (Glossary, answer 1): the first sentence is the expansion only when the term is an
+ * The rule (Glossary, answer 1): the first sentence is the expansion only when the term is an
  * abbreviation and that sentence is a short name (no verb, eight words or fewer). An abbreviation
  * here is a term in capitals that is not itself one of the sentence's words ("GEN", "Generator";
  * not "DRIVE", "The generator drive light").
@@ -94,7 +94,7 @@ function showsFor(show: ShowIf | null | undefined): Map<string, string[]> {
 }
 
 /**
- * Rows that would read the same (title, phase and value) name what tells them apart (owner): their
+ * Rows that would read the same (title, phase and value) name what tells them apart: their
  * lists when those differ; otherwise the condition each shows for, in the pack's own labels for the
  * option ("Ground power at the gate", "No ground power"); for a step repeated for each engine, the
  * engine the step before it names ("Engine 1"); nothing otherwise.
@@ -124,7 +124,7 @@ export function rowTags(index: PackIndex, steps: FindStep[]): Record<string, str
       const label = values.map((v) => option?.choices?.find((c) => c.value === v)?.label ?? v).join(" or ");
       if (label) tags[s.id] = label;
     });
-    // A step repeated for each engine in one list: the engine, from the step before each (owner).
+    // A step repeated for each engine in one list: the engine, from the step before each.
     if (!option) {
       const engines = group.map((s) => /\bengine (\d+)\b/i.exec(s.before ?? "")?.[1]);
       if (engines.every(Boolean) && new Set(engines).size === engines.length)

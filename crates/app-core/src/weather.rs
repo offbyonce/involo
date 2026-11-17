@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-//! METAR and TAF, decoded from one code table (owner, 2026-11-13). Each kind of group the table
+//! METAR and TAF, decoded from one code table (2026-11-13). Each kind of group the table
 //! knows names the section of the code it comes from: the WMO code forms FM 15 (METAR) and FM 51
 //! (TAF), and US practice for visibility in statute miles, the A altimeter and remarks. The full
 //! references are kept outside the repository (decisions 0007 and 0013). A group the table does

@@ -63,7 +63,7 @@ describe("GlossaryPage", () => {
     expect(screen.getByRole("heading", { level: 2, name: "WGT" })).toBeTruthy();
     expect(screen.getByText("Widget gate timer", { selector: ".expansion" })).toBeTruthy();
     expect(screen.getByText("In the steps · 1")).toBeTruthy();
-    // No Where is this? and no Related: the pack has no data for them (owner).
+    // No Where is this? and no Related: the pack has no data for them.
     expect(screen.queryByText("Related")).toBeNull();
     expect(screen.queryByText("Where is this?")).toBeNull();
   });
@@ -148,7 +148,7 @@ describe("GlossaryPage", () => {
     expect(screen.getByRole("link", { name: "Back to checklist" })).toBeTruthy();
   });
 
-  it("shows what tells apart rows that would read the same, and nothing on the others (owner)", () => {
+  it("shows what tells apart rows that would read the same, and nothing on the others", () => {
     const twin = { title: "Pump", value: "ON", phase: "p1" };
     render(GlossaryPage, {
       ...base,

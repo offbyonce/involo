@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
 One list as a card (Checklist board): the title with its done and skipped counts and, once a step
-is ticked, Clear ticks (Undo after, owner); the steps, the done ones at the top folded to one line
+is ticked, Clear ticks (Undo after); the steps, the done ones at the top folded to one line
 with Show; and at the end the completion call (3.0). A challenge-and-response checklist stays
 folded to one line with its count until the phase's procedure is done.
 -->
@@ -119,7 +119,7 @@ folded to one line with its count until the phase's procedure is done.
     <span class="count">{counts}</span>
     {#if touched}<button class="clear" type="button" onclick={() => onClear(list.id)}>Clear ticks</button>{/if}
   </header>
-  <!-- Tablet and phone: a later list starts with a plain label, the fold's text (owner, batch 6). -->
+  <!-- Tablet and phone: a later list starts with a plain label, the fold's text (batch 6). -->
   <p class="label" aria-hidden="true">{list.title} · {list.progress.done} of {list.progress.total}</p>
   {#if source?.when || source?.why}
     <div class="when">

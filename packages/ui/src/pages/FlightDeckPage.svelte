@@ -2,16 +2,16 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-The Flight deck page (owner; Deck and PhoneDeck boards), from the pack's panels, controls, lights
+The Flight deck page (Deck and PhoneDeck boards), from the pack's panels, controls, lights
 and overview map. Its own header: the Checklist button, "Flight deck", "Every area, panel and light"
 and Name every panel.
 - 1440 px and up (Deck): three columns, the side view over the area list; the area's map, the
   panels in it as a list and its light meanings; the selected panel.
 - 900 to 1439 px: the area list and the area; a selected panel opens in a slide-out, drawn as the
-  step's slide-out is, not a third column (owner).
+  step's slide-out is, not a third column.
 - Below 900 px (PhoneDeck): the area picker in the header, the map, the list, the selected panel.
 Around the flight deck, last, has no map region: its places are a list, each with its location
-line and, where the pack draws it, its drawing; nothing is lit in the side view (owner).
+line and, where the pack draws it, its drawing; nothing is lit in the side view.
 -->
 <script lang="ts">
   import DeckMap from "../lib/DeckMap.svelte";

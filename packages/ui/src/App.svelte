@@ -71,7 +71,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
 
   /**
    * The list (the page) and the side pane scroll on their own with no scrollbar, as on the boards;
-   * edge fades show where there is more (the owner, batch 2). Wheel, trackpad, touch and keys
+   * edge fades show where there is more (batch 2). Wheel, trackpad, touch and keys
    * scroll them as usual.
    */
   let pageMore = $state({ up: false, down: false });
@@ -149,12 +149,12 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let findIndex = $state<FindIndex | null>(null);
   /** The loaded pack, for Practice's question generator. */
   let flatPack = $state.raw<FlatPack | null>(null);
-  /** The Glossary (owner): every term A to Z, with the steps that use it. */
+  /** The Glossary: every term A to Z, with the steps that use it. */
   let glossary = $derived(index && findIndex ? buildGlossary(index, findIndex.terms, findIndex.steps) : []);
   let findOpen = $state(false);
   /** Find opened on a set of steps (References' simulator model notes), or on everything. */
   let findScope = $state<{ label: string; steps: string[] } | null>(null);
-  /** References (owner's References boards), counted from the pack. */
+  /** References (References boards), counted from the pack. */
   let references = $derived(flatPack ? buildReferences(flatPack, rail) : null);
   let findOpener: HTMLElement | null = null;
   const findKey = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "⌘K" : "Ctrl K";
@@ -793,7 +793,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     const ticked = view.lists.filter((l) => l.progress.done + l.progress.skipped > 0);
     return ticked.find((l) => l.current !== null) ?? ticked.at(-1) ?? null;
   });
-  /** Clear ticks on one list (its card header), with Undo instead of asking first (owner). */
+  /** Clear ticks on one list (its card header), with Undo instead of asking first. */
   async function clearTicks(list: string): Promise<void> {
     if (!flight) return;
     const before = flight;
@@ -830,7 +830,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     if (settings) void changeSettings({ ...settings, listView: v });
   };
 
-  // The tour (owner's Tour README). The welcome opens on the first visit, once the checklist has
+  // The tour (Tour README). The welcome opens on the first visit, once the checklist has
   // loaded; answering it is remembered in Settings, the only thing the tour stores.
   let welcomeAsked = false;
   $effect(() => {
@@ -871,7 +871,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       else (row ?? document.querySelector<HTMLElement>("main"))?.focus();
     });
   }
-  // How procedures work (owner's How README). Its "In Involo" links go to the pilot's current phase,
+  // How procedures work (How README). Its "In Involo" links go to the pilot's current phase,
   // found as Take the tour finds it, and that phase's current step.
   let howPhase = $derived.by(() => {
     const phases = rail?.stages.flatMap((s) => s.phases) ?? [];
@@ -1320,7 +1320,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     background: linear-gradient(0deg, var(--color-bg), transparent);
   }
   /* 3.0's toast: dark on light (light on dark), centered at the bottom. */
-  /* The offer to log a finished flight, in place under the steps (owner's Log README). */
+  /* The offer to log a finished flight, in place under the steps (Log README). */
   .offer {
     display: flex;
     flex-wrap: wrap;

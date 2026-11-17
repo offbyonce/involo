@@ -275,7 +275,7 @@ What the step asks for, never the simulator's state (decision 0006).
         {/if}
       {/if}
       {#if selected === i}
-        <!-- The one selection ring, following the control's own outline (owner, after round 6). -->
+        <!-- The one selection ring, following the control's own outline (after round 6). -->
         {@render ring(grow(own, RING_PAD), "selection")}
       {/if}
       {#if hit > 0 && onPick}

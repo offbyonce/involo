@@ -46,7 +46,7 @@ now (References was the last). The version line lives at the foot of Settings.
      * procedure's header), with its tick count; null when nothing is ticked. */
     clear?: { title: string; ticks: number } | null;
     onClearTicks?: () => void;
-    /** Take the tour: from step 2, at any time (owner's Tour README). */
+    /** Take the tour: from step 2, at any time (Tour README). */
     onTour?: () => void;
     onClose: () => void;
   } = $props();

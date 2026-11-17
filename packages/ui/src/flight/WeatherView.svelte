@@ -117,7 +117,7 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
   /** Where a decoded value goes in the cockpit, as the Weather board words it. */
   const LOC: Partial<Record<Element, string>> = { wind: "Enter on the CDU › TAKEOFF REF", temperature: "Enter on the CDU › TAKEOFF REF" };
   /**
-   * Where a row's code is defined, in plain words (the code table's verified section, owner
+   * Where a row's code is defined, in plain words (the code table's verified section,
    * 2026-11-14): "FM 15 · 15.5" is regulation 15.5 of the WMO's METAR code; "US · 3.1.5.6" is that
    * section of the FAA's aviation weather guidance. A row with no verified section says nothing.
    */

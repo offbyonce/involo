@@ -4,10 +4,10 @@ SPDX-License-Identifier: MIT
 -->
 # 0025: The app is renamed Involo
 
-Date: 2026-11-14. Status: accepted (owner, 2026-11-14).
+Date: 2026-11-14. Status: accepted (2026-11-14).
 
 ## Context
-The old name is used by another company in aviation. The owner chose a new name and approved a
+The old name is used by another company in aviation. A new name was chosen, with a
 complete brand and design-system handoff (`docs/brand/BRAND.md`, `docs/brand/DESIGN-SYSTEM.md`).
 
 ## Decision

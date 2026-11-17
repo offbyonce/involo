@@ -55,7 +55,7 @@ describe("References, desktop (RefsDesk)", () => {
     );
   });
 
-  it("filters by source with the chips, in the owner's order, and shows the first six until Show all", async () => {
+  it("filters by source with the chips, in the order, and shows the first six until Show all", async () => {
     const { container } = render(ReferencesPage, base);
     const chips = within(screen.getByRole("group", { name: "Show lists based on" })).getAllByRole("button");
     expect(chips.map((c) => c.textContent)).toEqual([
@@ -140,7 +140,7 @@ describe("References, desktop (RefsDesk)", () => {
 });
 
 describe("References, phone (RefsPhone)", () => {
-  it("stacks the rows, keeps the chips (owner), and the shorter line under the heading", async () => {
+  it("stacks the rows, keeps the chips, and the shorter line under the heading", async () => {
     phone();
     const { container } = render(ReferencesPage, base);
     expect(screen.getByRole("link", { name: "Back to checklist" })).toBeTruthy();

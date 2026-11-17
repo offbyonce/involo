@@ -2,14 +2,14 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-The Glossary (owner; GlossaryDesk, GlossaryPhone and GlossaryPhoneTerm boards). Its own header: the
+The Glossary (GlossaryDesk, GlossaryPhone and GlossaryPhoneTerm boards). Its own header: the
 Checklist back button, "Glossary" and "Every term in the steps, A to Z". From 900 px (desktop and
 tablet landscape) a 360 px term list on the left, the filter field with the count, A to Z headings
 and 44 px rows, the chosen term open on the right. Below 900 px (phone, tablet portrait) the list is
 a page of its own and a term opens on its own page; back returns to the list where it was.
 A term's page: the name and its expansion, the definition, and "In the steps" with every step that
 uses it, each going to that step. Where is this? and Related stay out: the pack has no data for
-them (owner).
+them.
 -->
 <script module lang="ts">
   /** Where the phone's list was scrolled, and the term opened from it, for the way back (cleared

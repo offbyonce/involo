@@ -159,7 +159,7 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       their labels open as a full-width sheet. The panel icon and drawing-quality work
       (content-to-validate.md, last section), with before and after for every panel type and a
       side-by-side for each control type (current drawing, board, result). The existing control
-      drawings win where they are better (owner's addendum in docs/design/README.md). Templates
+      drawings win where they are better (addendum in docs/design/README.md). Templates
       for displays, gauges, readouts, levers, handles and continuous knobs. Decision 0022's
       conditional and resolved drawing.
       Carried from batch 1's review: the "SET TO" caption (10 px, under the 11 px label rule)
@@ -178,7 +178,7 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       drawing takes the side pane's remaining height so a whole panel no longer pushes the
       step's switches below the fold (the fuel pump switches today); term definitions and the
       Add to / Remove from Essentials action on the row.
-      The phase progress-bar track reaches 3:1 using the `todo-ring` color (owner, 2026-11-12).
+      The phase progress-bar track reaches 3:1 using the `todo-ring` color (2026-11-12).
    4. Flight strip panel and Flight pages: clearance, frequencies, notes, Import latest from
       SimBrief, Reset flight plan, All flight data; Flight sections with field descriptions,
       destination chips and the Descriptions toggle; Weather with Find it in your OFP and a plain
@@ -194,9 +194,9 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       phone bottom bar (DecPhone: Confirm and Skip, today inline); rows whose two-line location
       makes them taller than 3.0's on phone; the mode pill covering the end of a phase tab on
       phone. Propose whether phone shows an optional short value from the pack ("MAIN ON ·
-      CENTER ON or OFF") or wraps the full value, and ask before adding a pack field (owner,
-      2026-11-13).
-      Owner, 2026-11-15: the menu drawer rebuilt once for every size from the Menu, Tablet and Mobile
+      CENTER ON or OFF") or wraps the full value, and ask before adding a pack field
+      (2026-11-13).
+      2026-11-15: the menu drawer rebuilt once for every size from the Menu, Tablet and Mobile
       boards, its header with the small mark, "involo", the sub-line (the count on tablet only, the
       saved time once this visit has saved) and Close; items whose page does not exist yet hidden,
       with empty group headings, until that page is built; the version line at the foot of
@@ -204,7 +204,7 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       too, and the stage and phase picker from StagePicker.dc.html. Phone wraps the full value: no
       new pack field. The 5 px gaps on the top bar, phase tabs and step rows go to the boards' 6 px;
       the keyboard focus ring checked at tablet and phone sizes.
-      Owner, after batch 5's review: the tablet value column stays 34 % and wraps the full value,
+      After batch 5's review: the tablet value column stays 34 % and wraps the full value,
       as phone does; the pop-over picker takes `color.scrim-light`, the sheets keep `color.scrim`;
       the pop-over's radius 14 and the drawer shadow approved.
    6. The other views: Flow, Emergency reference, step timers, CDU walkthrough, briefings,
@@ -214,44 +214,44 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       Keep screen awake; the step timer chip (IRS); "Used in" links to the steps that use a
       control; every menu item in coverage.md (Flight deck, Practice, Glossary, Flight log,
       Tour, References, How procedures work). The coverage.md rows added for review apply.
-      Find (Ctrl K) in the header, built from a results board the owner will provide; hidden
-      in the header until then (owner, 2026-11-13).
-      Batch 6 first (owner, 2026-11-15, PanelTiles board): a step draws only its own panels, each
+      Find (Ctrl K) in the header, built from a results board still to come; hidden
+      in the header until then (2026-11-13).
+      Batch 6 first (2026-11-15, PanelTiles board): a step draws only its own panels, each
       a tile; the preview card the same tiles; undrawn panels as a list; sheet titles one name, an
       L and R pair, or the main panel with "Also:"; the deck map's labels, outline and marks.
-      Batch 6 boards (owner, 2026-11-15): Find from the Find boards, searching the pack's steps,
-      controls and terms; the drawer pages one at a time, each from a board the owner gives first,
+      Batch 6 boards (2026-11-15): Find from the Find boards, searching the pack's steps,
+      controls and terms; the drawer pages one at a time, each from its board first,
       its menu item shown once its page exists.
-      The Glossary first (owner, 2026-11-15, Glossary boards): every pack term A to Z, the
+      The Glossary first (2026-11-15, Glossary boards): every pack term A to Z, the
       expansion only for an abbreviation whose first sentence is a short name, "In the steps";
       no Where is this? or Related (no pack data, no format change). Find's terms and the step's
       "Open in Glossary" lead to it; its menu item shows under Reference.
-      Then the Flight deck (owner, 2026-11-16, Deck and PhoneDeck boards): the board's seven
+      Then the Flight deck (2026-11-16, Deck and PhoneDeck boards): the board's seven
       areas and "Around the flight deck" last; 900 to 1439 px in two columns with the panel in a
       slide-out; "Open in Flight deck" replaces the slide-out's Whole flight deck map.
-      Then Practice (owner, 2026-11-16, Practice boards): a test engine with every question
+      Then Practice (2026-11-16, Practice boards): a test engine with every question
       generated from the pack (one correct answer, real neighbors as wrong options, each linked
       to its source), the ready-made tests, Build a test and the results, for this visit only.
-      Then the tour (owner, 2026-11-16, Tour boards): seven steps, the welcome on a first visit
+      Then the tour (2026-11-16, Tour boards): seven steps, the welcome on a first visit
       and "Take the tour" in the menu, each step lighting up the real element; it stores only
       whether the welcome has been seen (Settings format 6) and never changes the flight.
-      Then How procedures work (owner, 2026-11-16, How boards): seven short parts from one
+      Then How procedures work (2026-11-16, How boards): seven short parts from one
       content module, counts from the pack, each ending in a link to the real place in Involo.
-      Then the Flight log (owner, 2026-11-16, Log boards; decision 0026): This flight, earlier
+      Then the Flight log (2026-11-16, Log boards; decision 0026): This flight, earlier
       flights and practice results, saved on the device only (IndexedDB), with exports, import,
       the 500-entry limit and a versioned format; Practice home shows the latest saved result.
-      Then References (owner, 2026-11-16, References boards; decision 0007 stands): the
+      Then References (2026-11-16, References boards; decision 0007 stands): the
       simulation notice, the kinds of source each list is based on, counted from the pack, the
       lists with their "Based on" tag (prior-release lists show "Source being confirmed", a status,
       until the content batch re-tags them), the simulator model notes (opening Find on those
       steps) and about this pack and app, with a third-party licenses file made at build time.
       Every menu item now has its page.
-      First, from batch 5 (owner, 2026-11-15), once the boards show them: the procedure header
+      First, from batch 5 (2026-11-15), once the boards show them: the procedure header
       hidden at tablet and phone, with Clear ticks in the menu as a row just above Reset flight
       plan (same style, same Undo toast); and the desktop menu's "Where is Flight setup?", which
       opens to "Flight setup is now the Flight pages. Open them from the flight strip, or from any
       step that needs a flight value." and "Open Flight ›" (Overview).
-   7. Content. First on the sourcing list (owner, 2026-11-12): the resting position of FLT
+   7. Content. First on the sourcing list (2026-11-12): the resting position of FLT
       CONTROL A and B, which the pack rests at STBY RUD where they are normally guarded ON; and
       the placards of the 11 positions not in capitals (`pack check` warns on each): "OFF to
       BRIGHT" on eight lighting knobs, "Guarded" on generator DISCONNECT 1 and 2, and the air
@@ -261,8 +261,8 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       valve, standby power, yaw damper, trim air, anti-ice). Then
       the center tank decision step, built to the Decision boards (batch 3 built the row's
       states from an invented fixture), and every mockup wording in content-to-validate.md,
-      sourced and validated under decision 0007 before it ships. Sourced and approved by the
-      owner (2026-11-13) for the center tank step:
+      sourced and validated under decision 0007 before it ships. Sourced and approved
+      (2026-11-13) for the center tank step:
       - Tank capacities: main tanks 3,869 kg each (7,738 kg both wings), center tank 12,989 kg,
         total 20,727 kg, observed in the simulator model's EFB (Performance › Fuel, which lists
         each tank's capacity), and cross-checked against Boeing's airport planning
@@ -324,7 +324,7 @@ SIPanel, SIBriefing, SISettings, dark and light; read its README first); copy th
      SayIntentions not running the checklist works exactly as without it. "Copy what Chock to
      Chock read" copies only the flight fields the app used. A GitHub issue template for
      SayIntentions feedback (warning people to remove their api_key if they paste `flight.json`)
-     is drafted for the owner to add. The integration is unverified until users confirm it, and
+     is drafted, to be added. The integration is unverified until users confirm it, and
      the Beta label stays until they do.
    - Phone and tablet versions come with boards after batch 5.
 

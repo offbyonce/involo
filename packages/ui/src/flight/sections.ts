@@ -437,7 +437,7 @@ export const SECTIONS: Section[] = [
               "Block is the last line: everything on board before engine start.",
             ),
           },
-          // Center tank: hidden until batch 7 (owner); then block fuel less the wing capacity, exact.
+          // Center tank: hidden until batch 7; then block fuel less the wing capacity, exact.
           {
             id: "trip",
             label: "Trip fuel",

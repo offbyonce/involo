@@ -8,7 +8,7 @@ Mark done, Skip for now, Add to or Remove from Essentials). The whole row select
 target. The current step is larger, with where it is, Done, Skip for now and the keyboard hint; a
 skipped step has a Skipped pill and Do it now. States read without color too: the icon's shape
 and the words. Every step looks the same (decision 0013). Blanks stay inline fields in the value
-column until batch 4 (owner). Below 900 px (tablet portrait and phone, no side pane) the step the
+column until batch 4. Below 900 px (tablet portrait and phone, no side pane) the step the
 pane would show opens in place with the pane's content (`inline`), and the current step's Done and
 Skip for now sit in the bottom bar (Tablet and Mobile boards, batch 5).
 A decision step (decision 0022, Decision.dc.html) asks its option in the value column: a diamond

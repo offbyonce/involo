@@ -695,7 +695,7 @@ describe("PanelSchematic", () => {
     expect(container.querySelector("svg.schematic")?.textContent).toContain("INBD");
   });
 
-  it("draws only the step's panels as tiles, never one between them (owner, batch 6)", () => {
+  it("draws only the step's panels as tiles, never one between them (batch 6)", () => {
     // TERR: the two EFIS panels at either end of the glareshield; the MCP between them is not the
     // step's and is not drawn, and each EFIS panel is its own tile.
     const item = (label: string) => ({
@@ -733,7 +733,7 @@ describe("PanelSchematic", () => {
     expect(container.textContent).not.toContain("VNAV");
   });
 
-  it("draws tiles shown together at one scale, so their labels are the same size (owner)", () => {
+  it("draws tiles shown together at one scale, so their labels are the same size", () => {
     // EFIS L and the MCP in a 300 px sheet: each at its own scale, EFIS L's labels were twice the
     // MCP's.
     const item = (label: string) => ({

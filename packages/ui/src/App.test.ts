@@ -446,7 +446,7 @@ describe("App", () => {
     });
     render(App, { context: hostContext(h) });
 
-    // Nothing entered yet: the strip asks for the flight (owner, batch 3), and opens the panel.
+    // Nothing entered yet: the strip asks for the flight (batch 3), and opens the panel.
     const prompt = await screen.findByRole("button", {
       name: "Add your flight: import from SimBrief or enter the clearance",
     });
@@ -681,7 +681,7 @@ describe("App", () => {
     expect(await screen.findByRole("dialog", { name: "Find" })).toBeTruthy();
   });
 
-  it("gives each list a plain label row with the fold's text, for tablet and phone (owner, batch 6)", async () => {
+  it("gives each list a plain label row with the fold's text, for tablet and phone (batch 6)", async () => {
     render(App, { context: hostContext(host()) });
     await screen.findByRole("heading", { level: 1, name: "Power up" });
     const labels = [...document.querySelectorAll("section.card > p.label")].map((p) => p.textContent);

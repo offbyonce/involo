@@ -41,7 +41,7 @@ matches “…”". Esc, the scrim and the back button close it.
     findKey?: string;
     onStep: (id: string) => void;
     onControl: (control: FindControl) => void;
-    /** A term opens the Glossary at that term (owner), in place of its definition. */
+    /** A term opens the Glossary at that term, in place of its definition. */
     onTerm?: (term: string) => void;
     onClose: () => void;
     /** Opened on a set of steps (References' simulator model notes): their name, and the steps. */
@@ -143,7 +143,7 @@ matches “…”". Esc, the scrim and the back button close it.
 
 <svelte:window onkeydown={onKey} />
 
-<!-- The match marked in a title, a step's value or a term's definition (owner, batch 6). -->
+<!-- The match marked in a title, a step's value or a term's definition (batch 6). -->
 {#snippet title(text: string)}
   {@const m = marked(text, query)}
   {#if m}{m[0]}<mark>{m[1]}</mark>{m[2]}{:else}{text}{/if}
@@ -519,7 +519,7 @@ matches “…”". Esc, the scrim and the back button close it.
     color: var(--color-text-muted);
     font-size: calc(var(--font-size-caption) + var(--border-thin));
   }
-  /* A long value clamps to two lines (owner, batch 6). */
+  /* A long value clamps to two lines (batch 6). */
   .val {
     display: -webkit-box;
     overflow: hidden;

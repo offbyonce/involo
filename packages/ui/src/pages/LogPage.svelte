@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-The Flight log (owner; LogDesk, LogPhone and LogPhoneFlight boards, completing round 6's Log view;
+The Flight log (LogDesk, LogPhone and LogPhoneFlight boards, completing round 6's Log view;
 decision 0026). Saved on this device only.
 From 900 px (desktop and tablet landscape): This flight (its latest ticks and open steps, Show
 every tick), Earlier flights newest first with the opened one marked and shown below the list

@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-References (owner's References boards: RefsDesk from 900 px, RefsPhone below; decision 0007):
+References (References boards: RefsDesk from 900 px, RefsPhone below; decision 0007):
 the simulation notice, what each list is based on (the kinds of source, never a citation, title,
 page or link), the lists with their "Based on" tag, the simulator model notes and about this pack
 and app. Everything is counted from the pack. Lists still marked "Source being confirmed" show a
@@ -48,7 +48,7 @@ status, not a source; when the content batch re-tags them, the status goes away 
     return () => mq.removeEventListener("change", read);
   });
 
-  /** The chips (owner): All, each source, then Source being confirmed while any list is. */
+  /** The chips: All, each source, then Source being confirmed while any list is. */
   let chips = $derived<{ id: "all" | Basis; name: string }[]>([
     { id: "all", name: "All" },
     ...refs.sources.map((s) => ({ id: s.tag, name: s.name })),
@@ -282,7 +282,7 @@ status, not a source; when the content batch re-tags them, the status goes away 
     width: calc(var(--size-icon-small) + var(--border-thick));
     height: calc(var(--size-icon-small) + var(--border-thick));
   }
-  /* Desktop: the page scrolls under the header, with the browser's scrollbar (owner). */
+  /* Desktop: the page scrolls under the header, with the browser's scrollbar. */
   .body {
     flex: 1;
     min-height: 0;

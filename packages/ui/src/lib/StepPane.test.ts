@@ -70,7 +70,7 @@ describe("StepPane", () => {
     const button = screen.getByRole("button", { name: /^Terms:/ });
     await fireEvent.click(button);
     for (const t of withTerms.terms ?? []) expect(screen.getByText(t)).toBeTruthy();
-    // Each definition stays here, with its own link into the Glossary (owner).
+    // Each definition stays here, with its own link into the Glossary.
     for (const t of withTerms.terms ?? [])
       expect(screen.getByRole("link", { name: `Open in Glossary: ${t}` }).getAttribute("href")).toBe(
         `#/glossary/${encodeURIComponent(t)}`,

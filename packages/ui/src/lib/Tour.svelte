@@ -7,7 +7,7 @@ the welcome, and step 7, "You're set", are centered cards over color.scrim. Step
 one real element: a 2 px accent ring 8 px outside it, color.scrim over everything else, and the card
 beside it (below by default, otherwise wherever fits) with an arrow pointing at it; below 900 px the
 card is a bottom sheet with the element kept in view above it. On narrow screens step 3 lights the
-Done / Skip for now bar, with the card just above the bar (owner). A step whose element isn't on
+Done / Skip for now bar, with the card just above the bar. A step whose element isn't on
 screen at this size is skipped. While the tour is open no key or click reaches the page, so it never
 ticks, skips or changes anything in the flight.
 -->

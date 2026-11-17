@@ -243,7 +243,7 @@ fn performance(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
     }
 }
 
-/// The alternate, the arrival and each airport's altimeter setting (batch 4, owner 2026-11-13).
+/// The alternate, the arrival and each airport's altimeter setting (batch 4, 2026-11-13).
 /// The destination's setting takes the departure's unit, converted when its METAR uses the other.
 fn arrival(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
     if let Some(a) = icao(plan.alternates.first().and_then(|a| a.icao.as_ref())) {

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// How procedures work: every word on the page, in one place to edit (the owner's CONTENT.md, a
+// How procedures work: every word on the page, in one place to edit (CONTENT.md, a
 // first draft to adjust after seeing it in the app). How to write here:
 //   **word**   shows in bold.
 //   {stages}   a count from the pack: {stages}, {memory}, {qrh} and {procedures}.

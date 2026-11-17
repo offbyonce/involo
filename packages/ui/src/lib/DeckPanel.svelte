@@ -64,13 +64,13 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
   );
   let controls = $derived(zoneControls(index, zone));
   /** Full size, in the panel sheet: the sheet's width, any height; a panel wider than that at the
-   * 11 px label floor scrolls sideways under a navigator strip (owner). */
+   * 11 px label floor scrolls sideways under a navigator strip. */
   let sheet = $state<PanelSheet | null>(null);
   let sheetWidth = $state(0);
   let room = $derived(sheetWidth ? { width: sheetWidth, height: sheetWidth * 8 } : undefined);
   let wider = $state(false);
   let scroller = $state<HTMLDivElement | null>(null);
-  /** The overview's tiles share one scale, the largest at which each fits the column (owner), and
+  /** The overview's tiles share one scale, the largest at which each fits the column, and
    * one picked control, so only one is ever ringed. */
   let figure = $state<DOMRectReadOnly | undefined>();
   let page = $state(1);
@@ -110,7 +110,7 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
         <figcaption><span>Resting positions. Tap a light for its meaning.</span></figcaption>
       </figure>
     {:else}
-      <!-- An overview fitted to the column, never scrolling (owner); Full size opens the panel sheet. -->
+      <!-- An overview fitted to the column, never scrolling; Full size opens the panel sheet. -->
       <figure class="drawing" bind:contentRect={figure}>
         {#each tiles as t (t.id)}
           {#if t.kind === "drawn"}

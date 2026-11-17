@@ -33,7 +33,7 @@ const pack = Object.values(
 )[0] as FlatPack;
 const index = indexPack(pack);
 
-describe("the Flight deck's selected panel (owner's panel-highlight fixes)", () => {
+describe("the Flight deck's selected panel (panel-highlight fixes)", () => {
   it("rings one control across its tiles, and shows one card", async () => {
     // Test switches and elevator jam: two tiles of one panel, each with its own picked control,
     // so MACH TEST 1 and then STALL TEST 1 left both ringed, each with a card.

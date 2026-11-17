@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-The slide-out's panel navigator (round 6, owner's gate review): above a labeled panel bigger than
+The slide-out's panel navigator (round 6, gate review): above a labeled panel bigger than
 its room, the whole panel label-free with a frame marking the part in view. Tapping or dragging on
 it moves the view there; arrow keys move it a step at a time. It keeps the whole layout in view
 while the labeled panel stays at 11 px labels or more.

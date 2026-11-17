@@ -6,8 +6,8 @@ The label-free panel preview (round 6, ROUND6.md): the whole panel the step uses
 renderer from the same pack data as the full panel, with the same glyphs and states (changed
 filled blue, conditional dashed, lights outline only), simply without text, and a thick solid blue
 halo around the step's controls so they read at small sizes. The whole
-panel is scaled to fit a box, its card's width and at most `size.preview-max` tall (the owner,
-gate review), and centered in it; it is never cropped or stretched.
+panel is scaled to fit a box, its card's width and at most `size.preview-max` tall (gate
+review), and centered in it; it is never cropped or stretched.
 -->
 <script lang="ts">
   import type { ItemTarget, Panel, PanelSection as PanelSectionT } from "@involo/bindings";
@@ -40,7 +40,7 @@ gate review), and centered in it; it is never cropped or stretched.
     marker?: { x0: number; y0: number; x1: number; y1: number } | undefined;
     /** A control tapped in the phone's controls list: it alone keeps the halo (R6PhoneCtl). */
     ringed?: { section: string; item: number } | null | undefined;
-    /** The step's panels as tiles (owner, batch 6): each section on its own, side by side when that
+    /** The step's panels as tiles (batch 6): each section on its own, side by side when that
      * draws them larger than stacked, 16 px apart, never the deck's gaps; `panel` and `focus` are
      * then ignored. */
     tiles?: PanelSectionT[] | undefined;

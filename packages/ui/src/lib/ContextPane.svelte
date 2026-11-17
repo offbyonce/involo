@@ -55,7 +55,7 @@ the list on wide screens and inside the step on narrow ones.
     const many = (region.code ?? "").includes("·");
     return [region.name, many ? (code ?? name) : (region.code ?? code)];
   });
-  /** The step's panels as tiles (owner, batch 6). */
+  /** The step's panels as tiles (batch 6). */
   let tiles = $derived(stepTiles(index, step, targets));
   let cardName = $derived(tilesTitle(tiles).title);
   let guardClosed = $derived(/\bGUARDS? CLOSED\b/i.test(step.expect));

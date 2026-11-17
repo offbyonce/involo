@@ -71,7 +71,7 @@ describe("Drawer", () => {
       ["Flight log", "#/log"],
       ["Settings", "#/settings"],
     ]);
-    // The old menu's items have their homes elsewhere now (owner, batch 5).
+    // The old menu's items have their homes elsewhere now (batch 5).
     expect(screen.queryByText(/Continue|Version/)).toBeNull();
   });
 

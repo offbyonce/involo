@@ -190,16 +190,16 @@ const SHOTS = [
   ["FindPhone", { layout: "phone", state: "results" }, 390, 844, "Find", round6],
   ["FindPhoneNone", { layout: "phone", state: "none" }, 390, 844, "Find", round6],
   ["FindPhoneStart", { layout: "phone", state: "start" }, 390, 844, "Find", round6],
-  // Batch 6 panels: a step's panels as tiles, and the deck map (owner).
+  // Batch 6 panels: a step's panels as tiles, and the deck map.
   ["PanelTiles", {}, 1440, 1100, "PanelTiles", round6],
-  // The Glossary (owner): desktop and tablet landscape, the phone's term list, one term on phone.
-  // The Flight deck (owner): Deck, and PhoneDeck (the Mobile board's deck screen).
+  // The Glossary: desktop and tablet landscape, the phone's term list, one term on phone.
+  // The Flight deck: Deck, and PhoneDeck (the Mobile board's deck screen).
   ["Deck", {}, 1440, 900, "Deck"],
   ["PhoneDeck", { screen: "deck" }, 390, 844, "Mobile", round6],
   ["GlossaryDesk", { layout: "desktop" }, 1440, 900, "Glossary", round6],
   ["GlossaryPhone", { layout: "phone" }, 390, 844, "Glossary", round6],
   ["GlossaryPhoneTerm", { layout: "phoneTerm" }, 390, 844, "Glossary", round6],
-  // Practice (owner): home, a question answered wrong, a step order question, the results.
+  // Practice: home, a question answered wrong, a step order question, the results.
   ["PracticeHome", { layout: "desktop", state: "home" }, 1440, 900, "Practice", round6],
   ["PracticeHomePhone", { layout: "phone", state: "home" }, 390, 844, "Practice", round6],
   ["PracticeQuestion", { layout: "desktop", state: "question" }, 1440, 900, "Practice", round6],
@@ -207,17 +207,17 @@ const SHOTS = [
   ["PracticeOrder", { layout: "desktop", state: "order" }, 1440, 900, "Practice", round6],
   ["PracticeResults", { layout: "desktop", state: "results" }, 1440, 900, "Practice", round6],
   ["PracticeResultsPhone", { layout: "phone", state: "results" }, 390, 844, "Practice", round6],
-  // The tour (owner): the welcome card, a step, the last step.
+  // The tour: the welcome card, a step, the last step.
   ["TourWelcome", { layout: "desktop", state: "welcome" }, 1440, 900, "Tour", round6],
   ["TourWelcomePhone", { layout: "phone", state: "welcome" }, 390, 844, "Tour", round6],
   ["TourStep", { layout: "desktop", state: "step" }, 1440, 900, "Tour", round6],
   ["TourStepPhone", { layout: "phone", state: "step" }, 390, 844, "Tour", round6],
   ["TourEnd", { layout: "desktop", state: "end" }, 1440, 900, "Tour", round6],
   ["TourEndPhone", { layout: "phone", state: "end" }, 390, 844, "Tour", round6],
-  // How procedures work (owner): part 2, desktop and phone.
+  // How procedures work: part 2, desktop and phone.
   ["HowDesk", { layout: "desktop" }, 1440, 900, "HowItWorks", round6],
   ["HowPhone", { layout: "phone" }, 390, 844, "HowItWorks", round6],
-  // The Flight log (owner): desktop and tablet, the phone's log, one earlier flight on phone; and
+  // The Flight log: desktop and tablet, the phone's log, one earlier flight on phone; and
   // round 6's Log view it completes.
   ["LogDesk", { layout: "desktop" }, 1440, 1100, "FlightLog", round6],
   ["LogPhone", { layout: "phone" }, 390, 844, "FlightLog", round6],

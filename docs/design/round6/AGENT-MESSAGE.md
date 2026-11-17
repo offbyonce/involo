@@ -1,4 +1,4 @@
-The owner approved a sixth design round, which changes how a step shows its panel and where it is. The handoff is in ~/private/design-r6/. Read ROUND6.md first, then the boards.
+A sixth design round was approved, which changes how a step shows its panel and where it is. The handoff is in ~/private/design-r6/. Read ROUND6.md first, then the boards.
 
 Standing rule, restated: the boards are the specification. Match them exactly, in both themes and at every size. The one exception is panel drawings: your renderer's panels are higher quality than the boards' and win. The fuel panel on the round 6 boards is a stand-in. The new label-free panel preview must come from your renderer, from the same panel data, at the same quality as your full panels, just without text. Don't copy the boards' outline. If a board can't be matched exactly, stop and ask before building anything different.
 
@@ -15,7 +15,7 @@ Redo the affected pairs, push phase-2/step-7-batch-2, and send the PR text.
 - Copy ~/private/design-r6 into docs/design/round6/, and mark the superseded round 5 boards as superseded in the README.
 - Update coverage.md as ROUND6.md says.
 - Add the approved tokens (slide-out widths and scrim colors) with Locator.dc.html as the source.
-- Start with the dense-panel gate in ROUND6.md: label-free previews of the three densest panels plus the fuel panel, both themes, three sizes, each beside your full panel. Send them and wait for the owner's review before building the rest of round 6 or the rest of batch 3.
+- Start with the dense-panel gate in ROUND6.md: label-free previews of the three densest panels plus the fuel panel, both themes, three sizes, each beside your full panel. Send them and wait for the review before building the rest of round 6 or the rest of batch 3.
 
 Batch 3 then covers the core components and the desktop checklist from round 5 (the step list, header, phase track, flight strip and open-steps list, as already briefed), together with round 6's side pane, slide-out, control card, Flow side pane and Settings row.
 

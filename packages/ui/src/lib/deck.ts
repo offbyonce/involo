@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// The Flight deck page's areas (owner; Deck and PhoneDeck boards): the board's seven, from the pack's
+// The Flight deck page's areas (Deck and PhoneDeck boards): the board's seven, from the pack's
 // overview map, the center console split into its three panels by the pack's own area names, and
-// "Around the flight deck" last, for the places with no map region of their own (owner).
+// "Around the flight deck" last, for the places with no map region of their own.
 
 import type { OverviewArea, OverviewRegion, Panel, PanelSection, Zone } from "@involo/bindings";
 import { type PackIndex, splitArea } from "../pack-index";
