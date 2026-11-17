@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+
+[package]
+name = "involo-pack-cli"
+description = "The `involo-pack` command for authors: check packs and regenerate schemas without launching the app."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "involo-pack"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+involo-pack.workspace = true
+involo-pack-overlap.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+involo-checklist-core.workspace = true
+insta.workspace = true
+
+[lints]
+workspace = true

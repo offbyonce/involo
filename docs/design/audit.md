@@ -102,6 +102,6 @@ and need their own treatment, now or in batch 3:
 - **Pack data the drawings ignore (52 items; removed in this batch).** Lights and push buttons that still carry their
   own width or height from the 3.0 import (door lights 48 wide, annunciator keys 42 by 24 and 54
   by 34, gear lights 42 by 0, cargo fire keys 38 to 46 wide). Every key is drawn at the standard
-  size, so these values were dead and misleading. `pack check` now rejects a size on anything but a
+  size, so these values were dead and misleading. `involo-pack check` now rejects a size on anything but a
   display unit or readout, and the values are gone (one more turned up than this audit first
   counted: 52).

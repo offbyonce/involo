@@ -29,16 +29,16 @@ checks dependencies. The git hooks (installed by `pnpm install`) run the quick p
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/):
   `feat: …`, `fix: …`, `docs: …`, `pack(ifly-737-max8): …`.
 - Every bug fix comes with a test that would have caught it.
-- Keep logic in `crates/`. The host crates (`crates/web-host`) and the interface stay thin.
+- Keep logic in `crates/`. The host crates (`crates/involo-web-host`) and the interface stay thin.
 - Never put an aircraft name in engine code. Aircraft differences belong in pack data.
 - American English everywhere: code identifiers, pack field names, error messages, docs and pack content (color, behavior, license as a noun, optimize, pressurization).
   Exceptions keep their exact spelling: SPDX license IDs, file names such as `LICENSE` and `LICENSES/`, and anything quoted from outside sources.
 
 ## 3. Checklist content rules
 
-These protect the project and other people's work. `pack check` enforces most of them
+These protect the project and other people's work. `involo-pack check` enforces most of them
 automatically, and the maintainer reviews every content change. The reasoning is in
-[decision 0007](docs/decisions/0007-pack-content-model.md); `pack check` is being updated to
+[decision 0007](docs/decisions/0007-pack-content-model.md); `involo-pack check` is being updated to
 match, and until that lands it still expects per-step sources.
 
 **No citations and no third-party links.** Steps do not cite sources, and packs contain no URLs
@@ -52,7 +52,7 @@ link.
 list of `{ kind, date }` entries saying what kind of source it was confirmed against and when
 (kinds defined in [decision 0013](docs/decisions/0013-step-presentation-and-provenance.md),
 for example `vendor-docs`). Record only the kind and the date, never who or which document. The
-app never shows these records or the list `basis`, and `pack check` never flags a step without a
+app never shows these records or the list `basis`, and `involo-pack check` never flags a step without a
 record: every step in a pack is presented the same way. Steps may also set `sim_simplified` where
 the simulator simplifies the real aircraft. Content imported from the 3.0 checklist starts with
 basis `prior-release`; each list moves to a real basis when the maintainer reviews it.
@@ -93,7 +93,7 @@ reworded or moved. A removed step's id is retired and never reused.
 files in a private folder outside the repo, named by the `INVOLO_OVERLAP_REFS` environment
 variable. It also compares each list's steps joined in order. That folder is never committed,
 uploaded or synced anywhere public. Standard phrases can be accepted in
-`crates/pack-overlap/allow.txt` with a reason. Without the folder the check prints "not run", and
+`crates/involo-pack-overlap/allow.txt` with a reason. Without the folder the check prints "not run", and
 the maintainer runs it before merging.
 
 If you are unsure whether something is acceptable, ask in your pull request before writing the

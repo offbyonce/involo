@@ -8,7 +8,7 @@
 
 mod commands;
 
-pub use app_core::AppError;
+pub use involo_app_core::AppError;
 
 pub fn run() {
     tracing_subscriber::fmt()

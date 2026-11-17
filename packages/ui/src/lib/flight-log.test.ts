@@ -5,10 +5,10 @@ import type { Log, LoggedFlight } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import { clock, dayLabel, duration, ends, htmlCopy, stageTimes, summary } from "./flight-log";
 
-/** Shared with app-core (crates/app-core/tests/fixtures/stage-minutes.json). */
+/** Shared with involo-app-core (crates/involo-app-core/tests/fixtures/stage-minutes.json). */
 const fixture = Object.values(
   import.meta.glob<{ cases: { name: string; ms: number[]; minutes: number[] }[] }>(
-    "../../../../crates/app-core/tests/fixtures/stage-minutes.json",
+    "../../../../crates/involo-app-core/tests/fixtures/stage-minutes.json",
     { eager: true, import: "default" },
   ),
 )[0] as { cases: { name: string; ms: number[]; minutes: number[] }[] };
@@ -48,7 +48,7 @@ describe("the Flight log's words", () => {
   it.each(fixture.cases)(
     "rounds the stage minutes so they add up to the flight's total: $name",
     ({ ms, minutes }) => {
-      // The cases app-core's stage_minutes test reads too, so the two copies cannot drift.
+      // The cases involo-app-core's stage_minutes test reads too, so the two copies cannot drift.
       const stages = ms.map((t) => ({ title: "Stage", ms: t }));
       expect(stageTimes(stages)).toEqual(minutes.map((m) => `${m} min`));
       const total = ms.reduce((a, t) => a + t, 0);
@@ -75,7 +75,7 @@ describe("the Flight log's words", () => {
     expect(html).not.toMatch(/https?:\/\//);
   });
 
-  it("shows a real date for the latest moment a merged entry can hold (app-core's MAX_TIME)", () => {
+  it("shows a real date for the latest moment a merged entry can hold (involo-app-core's MAX_TIME)", () => {
     // The last millisecond of the year 9999; Rust refuses anything later on merge.
     const last = 253_402_300_799_999;
     const late: LoggedFlight = {

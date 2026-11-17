@@ -35,20 +35,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
-name = "app-core"
-version = "0.1.0"
-dependencies = [
- "checklist-core",
- "pack",
- "proptest",
- "serde",
- "serde_json",
- "simbrief",
- "thiserror",
- "ts-rs",
-]
-
-[[package]]
 name = "arraydeque"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -148,19 +134,6 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "rand_core",
-]
-
-[[package]]
-name = "checklist-core"
-version = "0.1.0"
-dependencies = [
- "proptest",
- "rstest",
- "schemars",
- "serde",
- "serde_json",
- "thiserror",
- "ts-rs",
 ]
 
 [[package]]
@@ -339,6 +312,98 @@ dependencies = [
 ]
 
 [[package]]
+name = "involo-app-core"
+version = "0.1.0"
+dependencies = [
+ "involo-checklist-core",
+ "involo-pack",
+ "involo-simbrief",
+ "proptest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "ts-rs",
+]
+
+[[package]]
+name = "involo-checklist-core"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+ "rstest",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "ts-rs",
+]
+
+[[package]]
+name = "involo-pack"
+version = "0.1.0"
+dependencies = [
+ "involo-checklist-core",
+ "proptest",
+ "schemars",
+ "semver",
+ "serde",
+ "serde-saphyr",
+ "serde_json",
+ "thiserror",
+ "ts-rs",
+]
+
+[[package]]
+name = "involo-pack-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "insta",
+ "involo-checklist-core",
+ "involo-pack",
+ "involo-pack-overlap",
+ "serde_json",
+]
+
+[[package]]
+name = "involo-pack-overlap"
+version = "0.1.0"
+dependencies = [
+ "involo-checklist-core",
+ "involo-pack",
+ "proptest",
+ "semver",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "involo-simbrief"
+version = "0.1.0"
+dependencies = [
+ "insta",
+ "proptest",
+ "roxmltree",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "ts-rs",
+]
+
+[[package]]
+name = "involo-web-host"
+version = "0.1.0"
+dependencies = [
+ "involo-app-core",
+ "involo-pack",
+ "serde",
+ "serde_json",
+ "ts-rs",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -388,46 +453,6 @@ name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
-
-[[package]]
-name = "pack"
-version = "0.1.0"
-dependencies = [
- "checklist-core",
- "proptest",
- "schemars",
- "semver",
- "serde",
- "serde-saphyr",
- "serde_json",
- "thiserror",
- "ts-rs",
-]
-
-[[package]]
-name = "pack-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "checklist-core",
- "insta",
- "pack",
- "pack-overlap",
- "serde_json",
-]
-
-[[package]]
-name = "pack-overlap"
-version = "0.1.0"
-dependencies = [
- "checklist-core",
- "pack",
- "proptest",
- "semver",
- "serde",
- "serde_json",
- "thiserror",
-]
 
 [[package]]
 name = "pin-project-lite"
@@ -765,19 +790,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "simbrief"
-version = "0.1.0"
-dependencies = [
- "insta",
- "proptest",
- "roxmltree",
- "serde",
- "serde_json",
- "thiserror",
- "ts-rs",
-]
-
-[[package]]
 name = "simdutf8"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -980,18 +992,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b1f9c3798725016c6ee5f2f57869ec0831e8bbc0ab0310a86e787e97f41389e"
 dependencies = [
  "unicode-ident",
-]
-
-[[package]]
-name = "web-host"
-version = "0.1.0"
-dependencies = [
- "app-core",
- "pack",
- "serde",
- "serde_json",
- "ts-rs",
- "wasm-bindgen",
 ]
 
 [[package]]

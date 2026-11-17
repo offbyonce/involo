@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+
+[package]
+name = "involo-web-host"
+description = "Thin WebAssembly glue between the web interface and the app crates (decision 0010)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lib]
+# cdylib for the WebAssembly module; rlib so the tests run natively.
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+involo-app-core.workspace = true
+involo-pack.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+ts-rs.workspace = true
+wasm-bindgen.workspace = true
+
+[lints]
+workspace = true

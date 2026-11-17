@@ -3,11 +3,11 @@
 
 // The Flight log's words and numbers as the Log boards write them (dates "Sun 15 Nov", times
 // "09:48", durations "2 h 41 min"), and its files: the HTML copy and downloads. The log itself
-// (entries, the 500 limit, merging, CSV) is Rust's (crates/app-core/src/log.rs, decision 0026).
+// (entries, the 500 limit, merging, CSV) is Rust's (crates/involo-app-core/src/log.rs, decision 0026).
 
 import type { Log, LoggedFlight, PracticeResult, StageTime } from "@involo/bindings";
 
-/** How many flights, and how many practice results, the log keeps (app-core's LOG_LIMIT). */
+/** How many flights, and how many practice results, the log keeps (involo-app-core's LOG_LIMIT). */
 export const LOG_LIMIT = 500;
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -26,7 +26,7 @@ export function clock(ms: number): string {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-/** Whole minutes, rounded to the nearest (half a minute up, as app-core's `minutes`). */
+/** Whole minutes, rounded to the nearest (half a minute up, as involo-app-core's `minutes`). */
 const minutes = (ms: number) => Math.floor((ms + 30_000) / 60_000);
 
 /** "48 min", or "2 h 05 min" from an hour up. */
@@ -39,8 +39,8 @@ export function duration(ms: number): string {
  * Each stage's time under its bar, "38 min" (Log boards: minutes only), rounded so the stages add
  * up to the flight's rounded total: every stage gets its whole minutes, then the stages with the
  * largest leftover seconds get one more each, earlier stages first on a tie (the largest remainder
- * method; app-core's `stage_minutes` does the same for the CSV, and both are tested against
- * crates/app-core/tests/fixtures/stage-minutes.json).
+ * method; involo-app-core's `stage_minutes` does the same for the CSV, and both are tested against
+ * crates/involo-app-core/tests/fixtures/stage-minutes.json).
  */
 export function stageTimes(stages: readonly StageTime[]): string[] {
   const out = stages.map((s) => Math.floor(s.ms / 60_000));

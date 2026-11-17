@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 #
 # Licenses for files that cannot carry a comment header. Code is MIT; checklist
-# content in packs/ and the pack snapshots in crates/pack-cli/tests/snapshots/ is
+# content in packs/ and the pack snapshots in crates/involo-pack-cli/tests/snapshots/ is
 # CC BY-NC-SA 4.0. Check with `reuse lint` (https://reuse.software).
 version = 1
 
@@ -23,7 +23,7 @@ SPDX-FileCopyrightText = "2026 offbyonce"
 SPDX-License-Identifier = "MIT"
 
 [[annotations]]
-path = ["packs/**", "crates/pack-cli/tests/snapshots/**"]
+path = ["packs/**", "crates/involo-pack-cli/tests/snapshots/**"]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 offbyonce and Involo contributors"
 SPDX-License-Identifier = "CC-BY-NC-SA-4.0"
@@ -44,7 +44,7 @@ SPDX-License-Identifier = "MIT"
 
 # Real public weather reports used as test fixtures.
 [[annotations]]
-path = ["crates/app-core/tests/fixtures/weather/*.txt"]
+path = ["crates/involo-app-core/tests/fixtures/weather/*.txt"]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 offbyonce"
 SPDX-License-Identifier = "MIT"

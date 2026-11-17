@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 [package]
-name = "involo"
+name = "involo-desktop"
 description = "Involo desktop app: the thin Tauri shell around the checklist crates."
 version.workspace = true
 edition.workspace = true
@@ -14,15 +14,15 @@ publish.workspace = true
 
 [lib]
 # The `_lib` suffix avoids a name clash with the binary on Windows.
-name = "involo_lib"
+name = "involo_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build.workspace = true
 
 [dependencies]
-app-core.workspace = true
-checklist-core.workspace = true
+involo-app-core.workspace = true
+involo-checklist-core.workspace = true
 tauri.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true

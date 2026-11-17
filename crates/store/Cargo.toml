@@ -13,7 +13,7 @@ repository.workspace = true
 publish.workspace = true
 
 [dependencies]
-checklist-core.workspace = true
+involo-checklist-core.workspace = true
 rusqlite.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

@@ -8,13 +8,13 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import * as wasm from "./src/wasm/web_host.js";
+import * as wasm from "./src/wasm/involo_web_host.js";
 
 const here = import.meta.dirname;
-wasm.initSync({ module: fs.readFileSync(path.join(here, "src/wasm/web_host_bg.wasm")) });
+wasm.initSync({ module: fs.readFileSync(path.join(here, "src/wasm/involo_web_host_bg.wasm")) });
 
 const fixture = (name) =>
-  fs.readFileSync(path.join(here, "../../crates/simbrief/tests/fixtures", name), "utf8");
+  fs.readFileSync(path.join(here, "../../crates/involo-simbrief/tests/fixtures", name), "utf8");
 const ok = (answer) => {
   const reply = JSON.parse(answer);
   assert.ok("ok" in reply, answer);

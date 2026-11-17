@@ -3,7 +3,7 @@
 
 // The third-party licenses file (References › Open-source software), made at build time from what
 // the app actually ships: the Rust crates linked into the WebAssembly module (cargo metadata, normal
-// dependencies of web-host for the wasm target, without proc-macros, which run only at build time),
+// dependencies of involo-web-host for the wasm target, without proc-macros, which run only at build time),
 // the JavaScript packages in the bundle (the modules Rollup includes), and the bundled fonts and
 // icons. Each with its version, its license and the license texts its package ships.
 
@@ -32,7 +32,7 @@ export function licenseFiles(dir) {
  * dependencies, transitively, leaving out proc-macro crates (and what only they use) and the
  * workspace's own crates.
  */
-export function rustCrates(metadata, root = "web-host") {
+export function rustCrates(metadata, root = "involo-web-host") {
   const packages = new Map(metadata.packages.map((p) => [p.id, p]));
   const nodes = new Map(metadata.resolve.nodes.map((n) => [n.id, n]));
   const start = metadata.packages.find((p) => p.name === root && p.source === null);

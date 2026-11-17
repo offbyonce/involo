@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// Typed calls into the WebAssembly module (crates/web-host). Every export answers with a JSON
+// Typed calls into the WebAssembly module (crates/involo-web-host). Every export answers with a JSON
 // Reply; a reply with an error is thrown as the tagged AppError, so callers can branch on `kind`.
 // Run `just wasm` to build the module into ./wasm.
 
@@ -28,7 +28,7 @@ import type {
   Settings,
   Suggestion,
 } from "@involo/bindings";
-import init, * as wasm from "./wasm/web_host.js";
+import init, * as wasm from "./wasm/involo_web_host.js";
 
 let ready: Promise<unknown> | undefined;
 
@@ -54,7 +54,7 @@ export async function exampleChecklist(): Promise<Checklist> {
   return unwrap<Checklist>(wasm.example_checklist());
 }
 
-/** Reads a flattened pack's JSON text, as written by `pack build`; the module keeps it loaded. */
+/** Reads a flattened pack's JSON text, as written by `involo-pack build`; the module keeps it loaded. */
 export async function loadPack(json: string): Promise<FlatPack> {
   await load();
   return unwrap<FlatPack>(wasm.load_pack(json));

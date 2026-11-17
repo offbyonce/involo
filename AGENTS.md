@@ -22,7 +22,7 @@ engine never names an aircraft. **The app never connects to the simulator** (dec
 
 - No per-step citations and no URLs to third-party material (decision 0007). Each list has a
   `basis` tag naming only the kind of material it was checked against. Never link the banned
-  sites or second-hand study material; `pack check` enforces this.
+  sites or second-hand study material; `involo-pack check` enforces this.
 - Facts are checked against vendor documentation. No manual text, link or citation enters the
   repo. Facts only: never copy text, tables, diagrams or layout, never closely
   paraphrase, and write from our own flow structure. Never store, upload, link or cite them.
@@ -35,7 +35,7 @@ engine never names an aircraft. **The app never connects to the simulator** (dec
 
 **Code:**
 
-- Logic lives in `crates/`. The host crates (`crates/web-host`; the parked Tauri shell) and the
+- Logic lives in `crates/`. The host crates (`crates/involo-web-host`; the parked Tauri shell) and the
   interface stay thin. No aircraft names in engine code; differences come from pack data.
 - Rust types are the single source of truth. Regenerate derived files, never edit them by hand:
   `just schemas` (JSON Schemas) and `just bindings` (TypeScript types).
@@ -90,14 +90,14 @@ engine never names an aircraft. **The app never connects to the simulator** (dec
 
 | Path | What it is |
 | --- | --- |
-| `crates/app-core` | App operations that do not depend on where the app runs; `AppError`, `AppInfo` |
-| `crates/checklist-core` | Domain: checklists, steps, sessions. No I/O. |
-| `crates/pack` | Pack manifest, strict YAML loading (`serde-saphyr`), validation, schemas |
-| `crates/pack-cli` | `pack check <dir>`, `pack schema <dir>`, `pack build <dir> <out>` (flattened JSON), `pack overlap <dir>`, `pack suggest-targets <dir>` (drafts step targets) |
-| `crates/pack-overlap` | Text-overlap check against private references, with its allow list (`allow.txt`) |
-| `crates/simbrief` | SimBrief OFP parsing |
+| `crates/involo-app-core` | App operations that do not depend on where the app runs; `AppError`, `AppInfo` |
+| `crates/involo-checklist-core` | Domain: checklists, steps, sessions. No I/O. |
+| `crates/involo-pack` | Pack manifest, strict YAML loading (`serde-saphyr`), validation, schemas |
+| `crates/involo-pack-cli` | `involo-pack check <dir>`, `involo-pack schema <dir>`, `involo-pack build <dir> <out>` (flattened JSON), `involo-pack overlap <dir>`, `involo-pack suggest-targets <dir>` (drafts step targets) |
+| `crates/involo-pack-overlap` | Text-overlap check against private references, with its allow list (`allow.txt`) |
+| `crates/involo-simbrief` | SimBrief OFP parsing |
 | `crates/store` | SQLite saved data and migrations. Parked: not in the workspace (0010) |
-| `crates/web-host` | Thin WebAssembly glue for the web app; `just wasm` builds it (wasm-bindgen CLI at the crate's pinned version) |
+| `crates/involo-web-host` | Thin WebAssembly glue for the web app; `just wasm` builds it (wasm-bindgen CLI at the crate's pinned version) |
 | `apps/web` | Web site: placeholder front page, the work-in-progress app at `app/` (web host in `src/`; `src/core.ts` calls the WebAssembly module; `src/sw/` and `build/` make the offline service worker) and the SimBrief probe page. `just site` builds it into `apps/web/dist` (decisions 0009, 0010) |
 | `apps/desktop` | Tauri shell (`src-tauri`) and its host. Parked: not in the workspace (0010) |
 | `packages/ui` | The shared Svelte 5 interface and its host interface (`src/host.ts`) |

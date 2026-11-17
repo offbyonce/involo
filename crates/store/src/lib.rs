@@ -8,7 +8,7 @@
 
 use std::path::Path;
 
-use checklist_core::Session;
+use involo_checklist_core::Session;
 use rusqlite::{Connection, OptionalExtension, params};
 
 #[derive(Debug, thiserror::Error)]
@@ -132,7 +132,7 @@ fn migrate(conn: &mut Connection) -> Result<(), StoreError> {
 
 #[cfg(test)]
 mod tests {
-    use checklist_core::{Checklist, ListKind, Step, StepId};
+    use involo_checklist_core::{Checklist, ListKind, Step, StepId};
 
     use super::*;
 

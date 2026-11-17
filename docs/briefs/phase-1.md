@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 build the interface on it.
 
 **Gate:** every 3.0 step is accounted for (moved, merged or deliberately dropped, with a
-reason), `pack check` passes, and `just ci` is green.
+reason), `involo-pack check` passes, and `just ci` is green.
 
 Work one step at a time (see `AGENTS.md`): finish a step, show the result, wait for the
 maintainer's go-ahead.
@@ -40,7 +40,7 @@ not `data.js` on its own.
    structures, the counts (phases, checklists, flows, steps, memory items, sources), and the
    kinds of fields steps carry. Propose how each maps onto packs.
 2. **Pack format design (decision record).** From the inventory, propose the additions to the
-   Rust model in `checklist-core` and `pack`: phases, flows versus checklists, step kinds,
+   Rust model in `involo-checklist-core` and `pack`: phases, flows versus checklists, step kinds,
    panel zones and states, timers, CDU walkthrough, list-level `basis`, step `status`, memory
    items, glossary, per-step "why" and "when", and an alias table from 3.0 ids to new ids. Write it as
    `docs/decisions/0007-pack-content-model.md` and wait for approval before coding.
@@ -53,10 +53,10 @@ not `data.js` on its own.
    carries over no sources or links.
    Every list gets basis `prior-release`, every step `draft`, and the 10 "confirm" light notes
    `draft`. It normalizes imported 3.0 text to American spelling.
-5. **Build the text-overlap check.** `pack overlap` and `just overlap` as designed in decision
+5. **Build the text-overlap check.** `involo-pack overlap` and `just overlap` as designed in decision
    0007, with tests. Add the `overlap` pre-commit hook to `lefthook.yml` in this step, once
    `just overlap` exists.
-6. **Generate and check the pack.** Run the converter, then `pack check`. Fix errors in the
+6. **Generate and check the pack.** Run the converter, then `involo-pack check`. Fix errors in the
    converter or the model, not by hand-editing generated YAML (unless a step is deliberately
    rewritten, which the report must list). Run the text-overlap check (0007) over the imported
    text before it is first committed.

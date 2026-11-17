@@ -46,13 +46,13 @@ test: wasm web-packs
 # Build the web host as WebAssembly into apps/web/src/wasm. Needs the wasm-bindgen CLI at the
 # same version as the crate (decision 0010).
 wasm:
-    cargo build -q -p web-host --target wasm32-unknown-unknown --profile wasm
-    wasm-bindgen --target web --remove-name-section --remove-producers-section --out-dir apps/web/src/wasm target/wasm32-unknown-unknown/wasm/web_host.wasm
+    cargo build -q -p involo-web-host --target wasm32-unknown-unknown --profile wasm
+    wasm-bindgen --target web --remove-name-section --remove-producers-section --out-dir apps/web/src/wasm target/wasm32-unknown-unknown/wasm/involo_web_host.wasm
 
 # Check the published packs and write them as flattened JSON for the web app to fetch. The
 # example pack is a format demo for authors and is not published.
 web-packs:
-    cargo run -q -p pack-cli -- build packs/ifly-737-max8 apps/web/public/packs
+    cargo run -q -p involo-pack-cli -- build packs/ifly-737-max8 apps/web/public/packs
 
 # Build the deployable web site into apps/web/dist (published to GitHub Pages): the placeholder
 # front page, the work-in-progress app at app/ and the SimBrief probe page, with the WebAssembly
@@ -77,7 +77,7 @@ drawing-shots out: site
 
 # Regenerate the pack JSON Schemas from the Rust types.
 schemas:
-    cargo run -q -p pack-cli -- schema schemas
+    cargo run -q -p involo-pack-cli -- schema schemas
 
 # Regenerate the TypeScript types from the Rust types.
 bindings:
@@ -93,12 +93,12 @@ generated-check: schemas bindings tokens
 
 # Validate every pack, including the content rules.
 packs:
-    cargo run -q -p pack-cli -- check packs
-    cargo run -q -p pack-cli -- terms packs/ifly-737-max8
+    cargo run -q -p involo-pack-cli -- check packs
+    cargo run -q -p involo-pack-cli -- terms packs/ifly-737-max8
 
 # Compare pack text with private reference files named by INVOLO_OVERLAP_REFS.
 overlap:
-    cargo run -q -p pack-cli -- overlap packs --allow crates/pack-overlap/allow.txt
+    cargo run -q -p involo-pack-cli -- overlap packs --allow crates/involo-pack-overlap/allow.txt
 
 # Licenses, advisories, banned crates and sources (Rust), then JS advisories.
 deny:

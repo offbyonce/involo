@@ -37,7 +37,7 @@ expect: string,
 controls?: Array<string>, 
 /**
  * The panel items the step involves and the state it asks of each, which the control
- * drawings show exactly (decision 0018). `pack check` holds them to the step's wording.
+ * drawings show exactly (decision 0018). `involo-pack check` holds them to the step's wording.
  */
 targets?: Array<StepTarget>, 
 /**
