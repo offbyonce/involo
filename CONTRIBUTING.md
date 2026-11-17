@@ -38,8 +38,7 @@ checks dependencies. The git hooks (installed by `pnpm install`) run the quick p
 
 These protect the project and other people's work. `pack check` enforces most of them
 automatically, and the maintainer reviews every content change. The reasoning is in
-[decision 0007](docs/decisions/0007-pack-content-model.md); `pack check` is being updated to
-match, and until that lands it still expects per-step sources.
+[decision 0007](docs/decisions/0007-pack-content-model.md).
 
 **No citations and no third-party links.** Steps do not cite sources, and packs contain no URLs
 to third-party material. A first-party link needs the maintainer's approval.
