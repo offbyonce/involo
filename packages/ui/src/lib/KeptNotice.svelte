@@ -42,8 +42,9 @@ be moved aside (`stuck`: storage full), nothing is moved, and the notice says so
     {/if}
   </p>
   <div class="acts">
-    <a class="btn" {href} download="involo-{what}.json">Save a copy</a>
-    <button class="btn primary" type="button" onclick={onFresh}>Start fresh</button>
+    <!-- When it couldn't be set aside, saving a copy comes first. -->
+    <a class="btn" class:primary={stuck} {href} download="involo-{what}.json">Save a copy</a>
+    <button class="btn" class:primary={!stuck} type="button" onclick={onFresh}>Start fresh</button>
   </div>
 </div>
 

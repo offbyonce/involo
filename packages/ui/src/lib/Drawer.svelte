@@ -34,7 +34,7 @@ now (References was the last). The version line lives at the foot of Settings.
     aircraft: string;
     /** When this visit last saved, if it has. */
     savedAt: number | null;
-    /** The last save was refused: the notice in place of the save time. */
+    /** The last save was refused: "not saved" in place of the save time (the page's notice says why). */
     saveFailed?: boolean;
     total: Progress;
     /** The list view, when a phase is on screen (phone shows Checklist / Flow here). */
@@ -85,7 +85,7 @@ now (References was the last). The version line lives at the foot of Settings.
     <div class="who">
       <span class="name"><span class="mark" aria-hidden="true">{@html headerMark}</span>involo</span>
       <small
-        >{aircraft}{#if saveFailed}<span>{" · progress isn’t being saved on this device"}</span>{:else if saved}<span>{` · saved ${saved}`}</span>{/if}<span class="count">{` · ${total.done}/${total.total}`}</span></small
+        >{aircraft}{#if saveFailed}<span>{" · not saved"}</span>{:else if saved}<span>{` · saved ${saved}`}</span>{/if}<span class="count">{` · ${total.done}/${total.total}`}</span></small
       >
     </div>
     <button bind:this={closer} class="close" type="button" aria-label="Close menu" onclick={onClose}><Icon name="x" /></button>

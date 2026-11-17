@@ -1243,11 +1243,15 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     <div class="app" class:strip={!!view && screen !== "settings" && screen !== "open" && screen !== "reference"} class:nopane={!pane} class:flow={flow && screen !== "settings"}>
       <main>
         <div class="inner">
-          {#each kept as k (k.what)}
-            <KeptNotice what={k.what} state={k.state} text={k.text} stuck={k.stuck ?? false} onFresh={() => startFresh(k.what)} />
-          {/each}
-          {#if saveFailed}
-            <SaveFailedNotice />
+          {#if kept.length || saveFailed}
+            <div class="notices">
+              {#each kept as k (k.what)}
+                <KeptNotice what={k.what} state={k.state} text={k.text} stuck={k.stuck ?? false} onFresh={() => startFresh(k.what)} />
+              {/each}
+              {#if saveFailed}
+                <SaveFailedNotice />
+              {/if}
+            </div>
           {/if}
           {#if screen === "settings"}
             <SettingsPage {settings} version={info?.version ?? null} onChange={(s) => void changeSettings(s)} />
@@ -1556,6 +1560,10 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     /* The phase's list starts under the progress row (Mobile board). */
     .app.strip main {
       padding-top: 0;
+    }
+    /* A notice above it keeps the notices' gap from the progress row. */
+    .app.strip .notices {
+      padding-top: var(--space-4);
     }
   }
   @media (max-width: 899px) and (max-height: 499px) {

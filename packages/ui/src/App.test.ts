@@ -625,6 +625,7 @@ describe("App", () => {
 
     expect(await screen.findByText("Your saved progress is from a newer version of the app.")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Save a copy" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Start fresh" }).classList.contains("primary")).toBe(true);
     await fireEvent.click(await screen.findByRole("button", { name: "Confirm Standby power: AUTO" }));
     await new Promise((r) => setTimeout(r, 20));
     expect(saves).not.toContain("flight");
@@ -645,9 +646,7 @@ describe("App", () => {
     expect(await screen.findByText("Progress isn’t being saved on this device.")).toBeTruthy();
     expect(screen.queryByText(/^Saved /)).toBeNull();
     expect(screen.getByText("Not saved")).toBeTruthy();
-    expect(document.querySelector("#drawer .who small")?.textContent).toMatch(
-      /progress isn’t being saved on this device/,
-    );
+    expect(document.querySelector("#drawer .who small")?.textContent).toMatch(/ · not saved · /);
 
     refuse = false;
     await fireEvent.click(screen.getByRole("button", { name: "Confirm Standby power: AUTO" }));
@@ -676,6 +675,9 @@ describe("App", () => {
     expect(screen.getByText("Your saved progress is from a newer version of the app.")).toBeTruthy();
     expect(screen.getByText(/starting fresh sets it aside rather than deleting it/)).toBeTruthy();
     expect(saves).not.toContain("flight");
+    // Saving a copy comes first now: it is the primary button.
+    expect(screen.getByRole("link", { name: "Save a copy" }).classList.contains("primary")).toBe(true);
+    expect(screen.getByRole("button", { name: "Start fresh" }).classList.contains("primary")).toBe(false);
   });
 
   describe("two windows (the installed app beside a tab)", () => {
