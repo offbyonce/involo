@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+
+name: Feature idea
+description: Suggest something Involo could do.
+labels: ["feature", "needs-triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do, and what gets in the way today?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: What Involo could do about it.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Other ways around it you've tried or thought of.
