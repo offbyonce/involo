@@ -59,3 +59,15 @@ step counts as finished, and ticks carry no time.
 - Every call passes the flight (tens of kilobytes at most); views are computed for the screen in
   view, not the whole pack.
 - Undo (for example after clearing a flight) is the interface keeping the previous flight.
+
+## Amendment (2026-11-17): saving with more than one window open
+- **A save goes only over what this window saw.** Each window remembers the progress and settings
+  text it last read or wrote. If the stored text has changed since (another window saved), nothing
+  is written: the window loads what is saved, applies its own change on top (the action again, or
+  only the settings it changed), and saves that. Neither window's ticks are lost.
+- **Changes from another window show.** When another window saves, this one reloads progress and
+  settings from storage. Data saved in a newer format, or that can't be read, is kept and reported
+  as above, and nothing is saved over it.
+- **A save counts only when it reads back.** While saves are refused (storage blocked or full), no
+  save time is shown and the app says progress isn't being saved. Start fresh removes saved text
+  only after its copy has been stored and read back; otherwise nothing is moved.
