@@ -74,4 +74,29 @@ describe("the Flight log's words", () => {
     expect(html).toContain("No practice results.");
     expect(html).not.toMatch(/https?:\/\//);
   });
+
+  it("shows a real date for the latest moment a merged entry can hold (app-core's MAX_TIME)", () => {
+    // The last millisecond of the year 9999; Rust refuses anything later on merge.
+    const last = 253_402_300_799_999;
+    const late: LoggedFlight = {
+      ...f,
+      loggedAt: last,
+      offBlocks: last,
+      onBlocks: last,
+      ticks: f.ticks.map((t) => ({ ...t, at: last })),
+    };
+    const html = htmlCopy(
+      {
+        format: 1,
+        flights: [late],
+        practice: [{ id: "r", at: last, pack: "p", title: "T", score: 1, total: 1 }],
+      },
+      last,
+      (t) => t,
+    );
+    expect(html).not.toContain("Invalid Date");
+    expect(html).not.toContain("NaN");
+    // Past JavaScript's own limit a date can't be shown at all, which is why it is refused.
+    expect(String(new Date(8.64e15 + 1))).toBe("Invalid Date");
+  });
 });

@@ -12,4 +12,9 @@ already: number,
 /**
  * The oldest entries dropped to keep the newest [`LOG_LIMIT`].
  */
-droppedFlights: number, droppedPractice: number, };
+droppedFlights: number, droppedPractice: number, 
+/**
+ * Entries in a merged file that can't be real (a date past [`MAX_TIME`], an overlong id),
+ * left out.
+ */
+refused: number, };

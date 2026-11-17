@@ -241,7 +241,7 @@ fn wind(g: &str) -> Option<String> {
     if main.len() < 5 {
         return None;
     }
-    let (dir, speed) = main.split_at(3);
+    let (dir, speed) = main.split_at_checked(3)?;
     let speed = num(speed)?;
     let gusts = gust
         .map(|g| format!(", gusting {g} {unit}"))
@@ -269,7 +269,11 @@ fn variation(g: &str) -> Option<String> {
 
 /// Metres: VVVV with an optional direction; 9999 is 10 km or more.
 fn visibility_m(g: &str) -> Option<String> {
-    let (v, dir) = if g.len() > 4 { g.split_at(4) } else { (g, "") };
+    let (v, dir) = if g.len() > 4 {
+        g.split_at_checked(4)?
+    } else {
+        (g, "")
+    };
     let v = num(v)?;
     let dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW", "NDV"];
     if !dir.is_empty() && !dirs.contains(&dir) {
@@ -447,7 +451,7 @@ fn cloud(g: &str) -> Option<String> {
     if rest.len() < 3 {
         return None;
     }
-    let (h, kind) = rest.split_at(3);
+    let (h, kind) = rest.split_at_checked(3)?;
     let kind = match kind {
         "" => "",
         "CB" => " cumulonimbus",
@@ -489,7 +493,7 @@ fn altimeter_group(g: &str) -> Option<(Altimeter, String, &'static str)> {
     if g.len() != 5 {
         return None;
     }
-    let (kind, v) = g.split_at(1);
+    let (kind, v) = g.split_at_checked(1)?;
     let n = num(v)?;
     match kind {
         "Q" if (850..=1100).contains(&n) => Some((
@@ -864,11 +868,19 @@ fn add(out: &mut Decoded, raws: &[&str], read: Read) {
         .extend(raws.iter().map(|g| ((*g).to_owned(), index)));
 }
 
+/// Stands in, for the group readers, for a token that isn't plain ASCII: no group in the table
+/// has another character, so it is never decoded, and no reader slices inside a character.
+const NOT_ASCII: &str = "?";
+
 fn decode(text: &str, taf: bool) -> Decoded {
-    let tokens: Vec<&str> = text
+    let raw: Vec<&str> = text
         .split_whitespace()
         .filter(|t| *t != "=")
         .map(|t| t.trim_end_matches('='))
+        .collect();
+    let tokens: Vec<&str> = raw
+        .iter()
+        .map(|t| if t.is_ascii() { t } else { NOT_ASCII })
         .collect();
     let mut out = Decoded {
         station: None,
@@ -919,7 +931,7 @@ fn decode(text: &str, taf: bool) -> Decoded {
             _ => {}
         }
         let taken = read.taken;
-        add(&mut out, &tokens[at..at + taken], read);
+        add(&mut out, &raw[at..at + taken], read);
         at += taken;
     }
     out
@@ -932,7 +944,7 @@ pub fn altimeter(metar: &str) -> Option<Altimeter> {
         if g == "RMK" {
             seen_rmk = true;
         }
-        if seen_rmk {
+        if seen_rmk || !g.is_ascii() {
             None
         } else {
             altimeter_group(g).map(|(a, _, _)| a)
@@ -1216,6 +1228,66 @@ mod tests {
             assert!(d.station.is_some(), "{r}");
             assert!(d.rows.iter().any(|x| x.element == Element::Validity), "{r}");
             assert_eq!(d.groups.len(), r.split_whitespace().count(), "{r}");
+        }
+    }
+
+    /// A token with a multi-byte character where a group is split at a fixed byte offset.
+    #[test]
+    fn a_multi_byte_character_in_a_group_is_not_decoded() {
+        for (group, element) in [
+            // Wind: split after the three-digit direction, inside the é.
+            ("18é08KT", Element::Wind),
+            // Cloud: split after the three-digit height, inside the é.
+            ("BKN00é", Element::Clouds),
+            // Visibility in metres: split after four digits, inside the é.
+            ("999é", Element::Visibility),
+            // Altimeter: split after the Q or A, inside the é.
+            ("é012", Element::Altimeter),
+            ("Q1é1", Element::Altimeter),
+        ] {
+            let d = decode_metar(&format!("EGLL 121750Z {group} 09/04"));
+            assert!(lines(&d, element).is_empty(), "{group}");
+            assert_eq!(
+                d.rows.iter().find(|r| r.raw == [group]).map(|r| r.element),
+                Some(Element::NotDecoded),
+                "{group}"
+            );
+            // The groups around it still decode.
+            assert_eq!(d.station.as_deref(), Some("EGLL"));
+            assert_eq!(lines(&d, Element::Temperature), ["9 °C · dew point 4 °C"]);
+            assert_eq!(
+                decode_taf(&format!("TAF EGLL 121700Z 1218/1324 {group}"))
+                    .station
+                    .as_deref(),
+                Some("EGLL")
+            );
+        }
+        assert_eq!(altimeter("EGLL 121750Z é012 Q1é1"), None);
+        assert_eq!(
+            altimeter("EGLL 121750Z é012 Q1013").map(|a| a.value),
+            Some("1013".into())
+        );
+    }
+
+    proptest::proptest! {
+        /// Any text at all, as a SimBrief reply or a chosen file might hold.
+        #[test]
+        fn never_panics_on_arbitrary_text(input in ".{0,300}") {
+            let _ = decode_metar(&input);
+            let _ = decode_taf(&input);
+            let _ = altimeter(&input);
+        }
+
+        /// Report-like text: groups of METAR characters mixed with multi-byte ones, so the group
+        /// readers see them at every offset.
+        #[test]
+        fn never_panics_on_report_like_text(
+            groups in proptest::collection::vec("[0-9A-Z/+\\-é°ü€ß]{0,9}", 0..14),
+        ) {
+            let text = groups.join(" ");
+            let _ = decode_metar(&text);
+            let _ = decode_taf(&format!("TAF {text}"));
+            let _ = altimeter(&text);
         }
     }
 }

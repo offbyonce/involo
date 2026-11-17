@@ -16,6 +16,7 @@ portrait too). Each finished test's score goes in the Flight log (decision 0026)
 the latest; a test's questions and answers last only for this visit.
 -->
 <script lang="ts">
+  import { safely } from "../lib/safely";
   import type { FlatPack, PracticeResult } from "@involo/bindings";
   import { tick } from "svelte";
   import Icon from "../lib/Icon.svelte";
@@ -96,7 +97,7 @@ the latest; a test's questions and answers last only for this visit.
     visit.test = { title, custom, topics: t, stages: s, allStages: s.length === stages.length, count: n, feedback: fb, questions, answers: questions.map(() => null), at: 0, started: Date.now(), ended: null };
     order = null;
     grabbed = null;
-    void tick().then(() => document.querySelector<HTMLElement>(".practice h2")?.focus());
+    safely(tick(), () => document.querySelector<HTMLElement>(".practice h2")?.focus());
   }
   /** Retry: the missed questions again, dealt afresh. */
   function retry(t: Test): void {
@@ -132,7 +133,7 @@ the latest; a test's questions and answers last only for this visit.
     focusTop();
   }
   /** After End test, See results or New test, focus goes to the new screen's heading (review). */
-  const focusTop = () => void tick().then(() => document.querySelector<HTMLElement>(".practice [data-top]")?.focus());
+  const focusTop = () => safely(tick(), () => document.querySelector<HTMLElement>(".practice [data-top]")?.focus());
 
   let test = $derived(visit.test);
   let q = $derived(test && !test.ended ? test.questions[test.at] : undefined);
@@ -155,7 +156,7 @@ the latest; a test's questions and answers last only for this visit.
     t.at += 1;
     order = null;
     grabbed = null;
-    void tick().then(() => document.querySelector<HTMLElement>(".practice h2")?.focus());
+    safely(tick(), () => document.querySelector<HTMLElement>(".practice h2")?.focus());
   }
 
   // Step order: the order on screen, as indexes of the question's items.
@@ -191,7 +192,7 @@ the latest; a test's questions and answers last only for this visit.
       move(i, to);
       if (to >= 0 && to < shown.length) {
         grabbed = to;
-        void tick().then(() => document.querySelectorAll<HTMLElement>(".order li")[to]?.focus());
+        safely(tick(), () => document.querySelectorAll<HTMLElement>(".order li")[to]?.focus());
       }
     }
   }

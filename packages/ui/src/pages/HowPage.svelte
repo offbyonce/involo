@@ -12,6 +12,7 @@ Each part ends in an "In Involo" box whose link goes to the real place: the pilo
 (as Take the tour finds it), the current step, the Emergency list, Settings, Open steps or Flight.
 -->
 <script lang="ts">
+  import { safely } from "../lib/safely";
   import { HOW, type HowBlock, type HowCounts, type HowLink, fill, runs } from "../lib/how-content";
   import FlowFigure from "../lib/FlowFigure.svelte";
   import Icon from "../lib/Icon.svelte";
@@ -72,7 +73,7 @@ Each part ends in an "In Involo" box whose link goes to the real place: the pilo
   }
   /** Shows a part: scrolled to on desktop, from its top on phone, its heading focused if asked. */
   function show(focus: boolean): void {
-    void tick().then(() => {
+    safely(tick(), () => {
       // The part on screen by then: one picked meanwhile wins.
       if (wide) scrollTo(at);
       else if (phoneScroll) phoneScroll.scrollTop = 0;

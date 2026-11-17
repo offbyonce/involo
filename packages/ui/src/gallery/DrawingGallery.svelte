@@ -10,6 +10,7 @@ each region. `?theme=dark|light` picks the theme.
 <script lang="ts">
   import type { FlatPack, ItemTarget, Panel, PanelItem } from "@involo/bindings";
   import PanelSchematic from "../lib/PanelSchematic.svelte";
+  import { safely } from "../lib/safely";
   import ViewDrawing from "../lib/ViewDrawing.svelte";
   import { applyPalette } from "../theme/tokens";
 
@@ -21,11 +22,12 @@ each region. `?theme=dark|light` picks the theme.
 
   let pack = $state<FlatPack | null>(null);
   $effect(() => {
-    fetch(packUrl)
-      .then((r) => r.json())
-      .then((p: FlatPack) => {
+    safely(
+      (async () => (await fetch(packUrl)).json() as Promise<FlatPack>)(),
+      (p) => {
         pack = p;
-      });
+      },
+    );
   });
 
   type State = { name: string; target: Omit<ItemTarget, "section" | "item"> | null; guardClosed?: boolean };

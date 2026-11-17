@@ -4,6 +4,7 @@
 import type { Log, LoggedFlight } from "@involo/bindings";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { MAX_LOG_FILE_BYTES } from "../lib/file-limits";
 import { LOG_LIMIT } from "../lib/flight-log";
 import LogPage from "./LogPage.svelte";
 
@@ -240,6 +241,24 @@ describe("Flight log, desktop (LogDesk)", () => {
     await fireEvent.change(input);
     await vi.waitFor(() => expect(screen.getByText("Added 2 flights.")).toBeTruthy());
     expect(onImport).toHaveBeenCalledWith('{"format":1}');
+  });
+
+  it("refuses a log file over the limit without reading it", async () => {
+    const onImport = vi.fn(async () => "Added 2 flights.");
+    const { container } = render(LogPage, { ...base, onImport });
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(["{}"], "log.json", { type: "application/json" });
+    Object.defineProperty(file, "size", { value: MAX_LOG_FILE_BYTES + 1 });
+    const read = vi.spyOn(file, "text");
+    Object.defineProperty(input, "files", { value: [file], configurable: true });
+    await fireEvent.change(input);
+    expect(
+      await screen.findByText(
+        "That file is too large to be an Involo log file (over 64 MB), so it wasn’t read.",
+      ),
+    ).toBeTruthy();
+    expect(read).not.toHaveBeenCalled();
+    expect(onImport).not.toHaveBeenCalled();
   });
 
   it("can't log a flight with nothing ticked, and shows the empty log as round 6's Log view", () => {

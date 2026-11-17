@@ -9,6 +9,7 @@ only the compact plan is kept, decision 0019), the last import, and Reset flight
 <script lang="ts">
   import type { SavedPlan } from "@involo/bindings";
   import Icon from "../lib/Icon.svelte";
+  import { MAX_PLAN_FILE_BYTES, tooLarge } from "../lib/file-limits";
 
   let {
     user,
@@ -44,6 +45,11 @@ only the compact plan is kept, decision 0019), the last import, and Reset flight
   }
   async function readFile(file: File | undefined): Promise<void> {
     if (!file) return;
+    const refused = tooLarge(file, MAX_PLAN_FILE_BYTES, "a SimBrief OFP file");
+    if (refused) {
+      problem = refused;
+      return;
+    }
     const text = await file.text();
     await run(() => onFile(text));
   }

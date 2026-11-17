@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+#
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 9951db7b7d2b09447d0c9a32d17303bd422dbfae163499ecfef542d6d8407bf5 # shrinks to fuel = [None, None, None, Some(306748831), Some(1840734817), None, None, None, None, None, None], weights = [None, None, None, None, None, None, None, None, None, None], general = [None, None, None, None, None, None, None], airport = [None, None, None]

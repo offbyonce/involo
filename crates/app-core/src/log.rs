@@ -29,6 +29,25 @@ pub const LOG_LIMIT: usize = 500;
 /// Migrations for [`Log`]: entry `i` turns format `i + 1` into format `i + 2`. None yet.
 const LOG_MIGRATIONS: &[Migration] = &[];
 
+// What a merged log file's entries can hold. A log file is outside data: these keep an
+// impossible entry out of the log, where it would stay until deleted.
+/// The latest moment an entry can have: the last millisecond of the year 9999. Past it a date
+/// loses its four-digit year, and past 8.64e15 ms JavaScript can't show it ("Invalid Date").
+pub const MAX_TIME: Millis = 253_402_300_799_999;
+/// The longest a stage can last: 30 days, far beyond any flight.
+const MAX_STAGE_MS: Millis = 30 * 24 * 3_600_000;
+/// The most ticks or skipped steps a logged flight keeps: over ten times the steps of the
+/// largest pack today (about 370).
+const MAX_STEPS: usize = 5_000;
+/// The most stages a logged flight keeps.
+const MAX_STAGES: usize = 100;
+/// The longest text kept in an entry's names and values, in characters; the pack's longest is
+/// a fraction of it.
+const MAX_TEXT: usize = 1_000;
+/// The longest id an entry can have; a longer one is refused rather than cut, since a cut id
+/// could match another entry's.
+const MAX_ID: usize = 200;
+
 /// Flights and practice results, each newest first.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -169,6 +188,9 @@ pub struct LogChange {
     /// The oldest entries dropped to keep the newest [`LOG_LIMIT`].
     pub dropped_flights: usize,
     pub dropped_practice: usize,
+    /// Entries in a merged file that can't be real (a date past [`MAX_TIME`], an overlong id),
+    /// left out.
+    pub refused: usize,
 }
 
 /// An empty log.
@@ -363,6 +385,7 @@ pub fn edit_log(log: Log, edit: LogEdit) -> Result<LogChange, AppError> {
         already: 0,
         dropped_flights: 0,
         dropped_practice: 0,
+        refused: 0,
     };
     match edit {
         LogEdit::AddFlight { flight } => add_flights(&mut change, vec![*flight]),
@@ -382,11 +405,93 @@ pub fn edit_log(log: Log, edit: LogEdit) -> Result<LogChange, AppError> {
                     ));
                 }
             };
-            add_flights(&mut change, other.flights);
-            add_practice(&mut change, other.practice);
+            let total = other.flights.len() + other.practice.len();
+            let flights: Vec<_> = other
+                .flights
+                .into_iter()
+                .filter_map(checked_flight)
+                .collect();
+            let practice: Vec<_> = other
+                .practice
+                .into_iter()
+                .filter_map(checked_result)
+                .collect();
+            change.refused = total - flights.len() - practice.len();
+            add_flights(&mut change, flights);
+            add_practice(&mut change, practice);
         }
     }
     Ok(change)
+}
+
+/// Text cut to [`MAX_TEXT`] characters.
+fn cut(text: &mut String) {
+    if let Some((at, _)) = text.char_indices().nth(MAX_TEXT) {
+        text.truncate(at);
+    }
+}
+
+/// A moment an entry can hold.
+fn in_time(at: Millis) -> bool {
+    at <= MAX_TIME
+}
+
+/// A merged flight as the log can keep it, or none when it can't be real: its log time past
+/// [`MAX_TIME`], or an id longer than [`MAX_ID`]. Everything else is clamped: times past the
+/// limit dropped, counts to the total, text cut, lists shortened.
+fn checked_flight(mut f: LoggedFlight) -> Option<LoggedFlight> {
+    if !in_time(f.logged_at) || f.id.len() > MAX_ID {
+        return None;
+    }
+    f.off_blocks = f.off_blocks.filter(|t| in_time(*t));
+    f.on_blocks = f.on_blocks.filter(|t| in_time(*t));
+    f.done = f.done.min(f.total);
+    for t in [
+        &mut f.pack,
+        &mut f.pack_version,
+        &mut f.aircraft,
+        &mut f.origin,
+        &mut f.destination,
+    ] {
+        cut(t);
+    }
+    f.stages.truncate(MAX_STAGES);
+    for s in &mut f.stages {
+        s.ms = s.ms.min(MAX_STAGE_MS);
+        cut(&mut s.title);
+    }
+    f.ticks.retain(|t| in_time(t.at));
+    f.ticks.truncate(MAX_STEPS);
+    for t in &mut f.ticks {
+        cut(&mut t.step.0);
+        cut(&mut t.text);
+        cut(&mut t.value);
+    }
+    f.skipped.truncate(MAX_STEPS);
+    for s in &mut f.skipped {
+        for t in [
+            &mut s.step.0,
+            &mut s.text,
+            &mut s.value,
+            &mut s.stage,
+            &mut s.phase,
+            &mut s.phase_title,
+        ] {
+            cut(t);
+        }
+    }
+    Some(f)
+}
+
+/// A merged practice result as the log can keep it, or none when it can't be real.
+fn checked_result(mut r: PracticeResult) -> Option<PracticeResult> {
+    if !in_time(r.at) || r.id.len() > MAX_ID {
+        return None;
+    }
+    r.score = r.score.min(r.total);
+    cut(&mut r.pack);
+    cut(&mut r.title);
+    Some(r)
 }
 
 fn add_flights(change: &mut LogChange, new: Vec<LoggedFlight>) {
@@ -467,7 +572,7 @@ pub fn log_csv(log: &Log) -> String {
 
 /// Whole minutes, rounded to the nearest.
 fn minutes(ms: Millis) -> u64 {
-    (ms + 30_000) / 60_000
+    ms / 60_000 + u64::from(ms % 60_000 >= 30_000)
 }
 
 /// Each stage's whole minutes, rounded so they add up to the flight's rounded total (the largest
@@ -478,7 +583,11 @@ fn minutes(ms: Millis) -> u64 {
 fn stage_minutes(stages: &[StageTime]) -> Vec<u64> {
     const MIN: Millis = 60_000;
     let mut out: Vec<u64> = stages.iter().map(|s| s.ms / MIN).collect();
-    let target = minutes(stages.iter().map(|s| s.ms).sum());
+    let target = minutes(
+        stages
+            .iter()
+            .fold(0, |sum: Millis, s| sum.saturating_add(s.ms)),
+    );
     let short = usize::try_from(target.saturating_sub(out.iter().sum())).unwrap_or(0);
     let mut order: Vec<usize> = (0..stages.len()).collect();
     order.sort_by(|&a, &b| {
@@ -493,9 +602,12 @@ fn stage_minutes(stages: &[StageTime]) -> Vec<u64> {
 }
 
 /// A CSV cell, quoted when it holds a comma, quote or line break. A cell a spreadsheet would read
-/// as a formula is prefixed with an apostrophe.
+/// as a formula is prefixed with an apostrophe: one starting with a tab or carriage return, or
+/// with `=`, `+`, `-` or `@` after any leading spaces or control characters (spreadsheets skip
+/// those before reading a formula).
 fn csv_cell(text: &str) -> String {
-    let text = if text.starts_with(['=', '+', '-', '@']) {
+    let lead = text.trim_start_matches(|c: char| c.is_whitespace() || c.is_control());
+    let text = if text.starts_with(['\t', '\r']) || lead.starts_with(['=', '+', '-', '@']) {
         format!("'{text}")
     } else {
         text.to_owned()
@@ -946,6 +1058,195 @@ mod tests {
             change.dropped_flights, 2,
             "both imported flights are older than every kept one"
         );
+    }
+
+    fn merge(flights: Vec<LoggedFlight>, practice: Vec<PracticeResult>) -> LogChange {
+        let mut theirs = new_log();
+        theirs.flights = flights;
+        theirs.practice = practice;
+        let text = serde_json::to_string(&theirs).unwrap();
+        edit_log(new_log(), LogEdit::Merge { text }).unwrap()
+    }
+
+    #[test]
+    fn a_merged_entry_dated_past_the_year_9999_is_refused() {
+        let ok = entry("ok", MAX_TIME);
+        let late = entry("late", MAX_TIME + 1);
+        let max = entry("max", Millis::MAX);
+        let change = merge(
+            vec![ok, late, max],
+            vec![result("r-ok", MAX_TIME), result("r-late", MAX_TIME + 1)],
+        );
+        let ids: Vec<&str> = change.log.flights.iter().map(|f| f.id.as_str()).collect();
+        assert_eq!(ids, ["ok"]);
+        assert_eq!(change.log.practice.len(), 1);
+        assert_eq!(
+            (change.added_flights, change.added_practice, change.refused),
+            (1, 1, 3)
+        );
+    }
+
+    #[test]
+    fn a_merged_flight_s_block_and_tick_times_past_the_limit_are_dropped() {
+        let mut f = entry("a", 2_000 * MIN);
+        f.off_blocks = Some(MAX_TIME + 1);
+        f.on_blocks = Some(Millis::MAX);
+        f.ticks = vec![
+            LoggedTick {
+                at: 1_000 * MIN,
+                step: StepId::new("s1"),
+                text: "ONE".into(),
+                value: "ON".into(),
+            },
+            LoggedTick {
+                at: Millis::MAX,
+                step: StepId::new("s2"),
+                text: "TWO".into(),
+                value: "ON".into(),
+            },
+        ];
+        let got = &merge(vec![f], vec![]).log.flights[0];
+        assert_eq!((got.off_blocks, got.on_blocks), (None, None));
+        assert_eq!(got.ticks.len(), 1);
+        assert_eq!(got.ticks[0].step.as_str(), "s1");
+    }
+
+    #[test]
+    fn a_merged_entry_s_counts_are_clamped_to_its_total() {
+        let mut f = entry("a", 100);
+        f.done = 900;
+        f.total = 12;
+        let mut r = result("r", 100);
+        r.score = 50;
+        r.total = 10;
+        let change = merge(vec![f], vec![r]);
+        assert_eq!(
+            (change.log.flights[0].done, change.log.flights[0].total),
+            (12, 12)
+        );
+        assert_eq!(
+            (change.log.practice[0].score, change.log.practice[0].total),
+            (10, 10)
+        );
+    }
+
+    #[test]
+    fn a_merged_entry_s_overlong_text_is_cut_and_an_overlong_id_refused() {
+        let mut f = entry("a", 100);
+        f.origin = "é".repeat(MAX_TEXT + 5);
+        f.aircraft = "x".repeat(MAX_TEXT * 3);
+        f.ticks = vec![LoggedTick {
+            at: 100,
+            step: StepId::new("s"),
+            text: "T".repeat(MAX_TEXT + 1),
+            value: "V".into(),
+        }];
+        f.stages = vec![StageTime {
+            title: "S".repeat(MAX_TEXT + 1),
+            ms: MIN,
+        }];
+        let long_id = entry(&"i".repeat(MAX_ID + 1), 100);
+        let mut r = result("r", 100);
+        r.title = "q".repeat(MAX_TEXT + 1);
+        let change = merge(vec![f, long_id], vec![r]);
+        assert_eq!(change.refused, 1);
+        let got = &change.log.flights[0];
+        assert_eq!(got.origin.chars().count(), MAX_TEXT);
+        assert_eq!(got.aircraft.chars().count(), MAX_TEXT);
+        assert_eq!(got.ticks[0].text.chars().count(), MAX_TEXT);
+        assert_eq!(got.stages[0].title.chars().count(), MAX_TEXT);
+        assert_eq!(change.log.practice[0].title.chars().count(), MAX_TEXT);
+    }
+
+    #[test]
+    fn a_merged_flight_keeps_no_more_ticks_skips_or_stages_than_a_flight_can_have() {
+        let mut f = entry("a", 100);
+        let tick = LoggedTick {
+            at: 100,
+            step: StepId::new("s"),
+            text: "T".into(),
+            value: "V".into(),
+        };
+        f.ticks = vec![tick; MAX_STEPS + 10];
+        let skip = LoggedStep {
+            step: StepId::new("s"),
+            text: "T".into(),
+            value: "V".into(),
+            stage: "S".into(),
+            phase: "p".into(),
+            phase_title: "P".into(),
+        };
+        f.skipped = vec![skip; MAX_STEPS + 10];
+        f.stages = vec![
+            StageTime {
+                title: "S".into(),
+                ms: Millis::MAX
+            };
+            MAX_STAGES + 10
+        ];
+        let got = &merge(vec![f], vec![]).log.flights[0];
+        assert_eq!(got.ticks.len(), MAX_STEPS);
+        assert_eq!(got.skipped.len(), MAX_STEPS);
+        assert_eq!(got.stages.len(), MAX_STAGES);
+        assert!(got.stages.iter().all(|s| s.ms == MAX_STAGE_MS));
+        // The CSV of such a flight still adds up, without overflowing.
+        let mut log = new_log();
+        log.flights = vec![got.clone()];
+        assert_eq!(log_csv(&log).lines().count(), 2);
+    }
+
+    #[test]
+    fn minutes_never_overflow() {
+        // The largest value: its leftover 51,615 ms round up.
+        assert_eq!(Millis::MAX % 60_000, 51_615);
+        assert_eq!(minutes(Millis::MAX), Millis::MAX / 60_000 + 1);
+        assert_eq!(minutes(29_999), 0);
+        assert_eq!(minutes(30_000), 1);
+        let huge = [
+            StageTime {
+                title: "A".into(),
+                ms: Millis::MAX,
+            },
+            StageTime {
+                title: "B".into(),
+                ms: Millis::MAX,
+            },
+        ];
+        assert_eq!(stage_minutes(&huge).len(), 2);
+    }
+
+    #[test]
+    fn csv_guards_every_form_a_spreadsheet_reads_as_a_formula() {
+        for (cell, out) in [
+            ("=SUM(A1)", "'=SUM(A1)"),
+            ("+1", "'+1"),
+            ("-1+2", "'-1+2"),
+            ("@cmd", "'@cmd"),
+            // After leading spaces or control characters.
+            ("  =SUM(A1)", "'  =SUM(A1)"),
+            ("\u{1}=1", "'\u{1}=1"),
+            ("\u{a0}@x", "'\u{a0}@x"),
+            // Tab and carriage return first, whatever follows.
+            ("\tKSEA", "'\tKSEA"),
+            ("\r=1", "\"'\r=1\""),
+        ] {
+            assert_eq!(csv_cell(cell), out, "{cell:?}");
+        }
+        // What the log writes itself is unchanged: dates, times, counts, words.
+        for cell in [
+            "2025-11-14",
+            "07:08",
+            "161",
+            "0",
+            "KSEA",
+            "Entered by hand",
+            "Preflight 38",
+            " KSEA",
+            "",
+        ] {
+            assert_eq!(csv_cell(cell), cell, "{cell:?}");
+        }
+        assert_eq!(csv_cell("San Francisco, CA"), "\"San Francisco, CA\"");
     }
 
     #[test]

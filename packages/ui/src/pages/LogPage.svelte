@@ -14,6 +14,7 @@ Practice results as a list; a flight opens on its own page; Log flight and start
 bottom bar, and "···" opens the export and import actions as a sheet.
 -->
 <script lang="ts">
+  import { safely } from "../lib/safely";
   import type { Log, LoggedFlight } from "@involo/bindings";
   import {
     clock,
@@ -30,6 +31,7 @@ bottom bar, and "···" opens the export and import actions as a sheet.
     summary,
   } from "../lib/flight-log";
   import Icon from "../lib/Icon.svelte";
+  import { MAX_LOG_FILE_BYTES, tooLarge } from "../lib/file-limits";
   import Toast from "../lib/Toast.svelte";
   import { trapFocus } from "../lib/trap";
   import { logHref } from "../route.svelte";
@@ -131,12 +133,12 @@ bottom bar, and "···" opens the export and import actions as a sheet.
     const chosen = input.files?.[0];
     input.value = "";
     if (!chosen) return;
-    notice = await onImport(await chosen.text());
+    notice = tooLarge(chosen, MAX_LOG_FILE_BYTES, "an Involo log file") ?? (await onImport(await chosen.text()));
     sheet = false;
   }
   function print(): void {
     sheet = false;
-    void tick().then(() => window.print());
+    safely(tick(), () => window.print());
   }
   const route = (f: Pick<LoggedFlight, "origin" | "destination">) => ends(f).join(" → ");
   let sheetBox = $state<HTMLElement | null>(null);
