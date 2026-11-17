@@ -126,6 +126,8 @@ Why transparent vs solid:
 
 To regenerate the platform set from one source, `tauri icon icons/desktop/icon.png` writes Tauri's names; but it would plate nothing for macOS and use the universal mark there. Keep `icon.icns` from this kit (or rebuild it from `macos-icon-1024.png`).
 
+**Export without metadata.** Image editors and export tools embed metadata (C2PA provenance blocks, text, EXIF and time chunks). It is weight every visitor downloads, and it isn't meant to be published. Strip it before committing: `oxipng --strip all` or `exiftool -all= -overwrite_original` for PNG, and `svgo` (or deleting the `<metadata>` element and its namespace) for SVG. `apps/web/build/image-metadata.test.js` fails on any image under `apps/web/public`, `assets/brand` or `apps/desktop/src-tauri/icons` that still carries metadata.
+
 ## 8. Voice
 
 Calm, precise, instructional. Say what to do and why, in the order you'd do it, the way a good captain briefs a first officer. No hype, no exclamation marks; plain American English, sentence case, and the airplane's own words in capitals only where the airplane uses them.
