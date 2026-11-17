@@ -75,6 +75,7 @@ export type { ViewLabel } from "./generated/ViewLabel";
 export type { ViewPlace } from "./generated/ViewPlace";
 export type { ViewRole } from "./generated/ViewRole";
 export type { ViewShape } from "./generated/ViewShape";
+export type { WeightUnit } from "./generated/WeightUnit";
 export type { Zone } from "./generated/Zone";
 export type { AppError, AppInfo, Checklist };
 

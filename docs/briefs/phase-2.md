@@ -124,7 +124,7 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
      JavaScript dependencies holds; MIT is already in `LICENSES/`.
    - Adding any new license file to `LICENSES/` needs the maintainer's go-ahead first (B612's
      `OFL-1.1.txt` is approved and added with the font in step 6).
-   Batches (one pull request each, screenshots for review saved in `~/private/screenshots/`, outside
+   Batches (one pull request each, screenshots for review kept outside
    the repo). The approved design in [docs/design/](../design/README.md) is the baseline, recorded
    in decisions 0021 and 0022; 3.0 is the reference for features, not for layout. Every 3.0
    feature keeps a reachable home at every size ([coverage.md](../design/coverage.md)). Each
@@ -288,8 +288,9 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       the wing capacity, never below 0, never "about").
       Applied first (2026-11-16): the center tank decision step before Fuel pump switches (its
       wording and location still to be checked in the simulator), with the fuel step's value for each answer and its
-      center switches resolved (decision 0027: pack format 5, flight format 3); the suggestion
-      stays off until its rule ships with the wing capacity. Paired lights name their side or
+      center switches resolved (decision 0027: pack format 5, flight format 3), the Before start
+      checklist's FUEL item on the same answer, and the plan's suggestion on with the figures
+      above, the Fuel page showing the center tank's share. Paired lights name their side or
       engine; the engine generator steps say what shows when they fail; upset recovery is based
       on regulator guidance; the Flight pages' wording, OFP close-ups and the Weather page's
       sources (the kind of source only, no section numbers): the content that needs no simulator
@@ -300,9 +301,9 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
 SayIntentions (an AI ATC add-on for the simulator) runs on the pilot's computer, the app reads the
 ATC-assigned runway, SID, STAR, gate and clearance status, fills them in the strip and the Flight
 pages, and flags anything that differs from the plan or from what the pilot already briefed, so
-briefings become interactive. The boards and rules are in `~/private/design-sources/` (SIStrip,
-SIPanel, SIBriefing, SISettings, dark and light; read its README first); copy the boards to
-`docs/design/sources/` when the phase starts.
+briefings become interactive. Its boards (SIStrip,
+SIPanel, SIBriefing, SISettings, dark and light) go into `docs/design/sources/` when the phase
+starts.
    - **Architecture:** a separate, independently versioned module, not part of the engine. A
      provider-neutral Rust crate (`flight-sources`): types for a value from an outside source
      (value, source, time), the merge rule into the flight, and change detection against the

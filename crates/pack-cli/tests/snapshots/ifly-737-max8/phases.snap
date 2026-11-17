@@ -104,10 +104,11 @@ source: crates/pack-cli/tests/snapshot.rs
         "less"
       ],
       "default": "less",
+      "description": "The center tank holds",
       "choices": [
         {
           "value": "more",
-          "label": "More than 1,000 lb (about 450 kg)"
+          "label": "More than 1,000 lb (450 kg)"
         },
         {
           "value": "less",
@@ -116,8 +117,10 @@ source: crates/pack-cli/tests/snapshot.rs
       ],
       "suggests": {
         "field": "fuel",
-        "minus_lb": 0,
-        "more_than_lb": 1000,
+        "unit": "kg",
+        "minus": 7738,
+        "more_than": 450,
+        "near": 225,
         "then": "more",
         "otherwise": "less"
       }

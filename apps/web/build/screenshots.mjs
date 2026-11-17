@@ -530,6 +530,9 @@ const SHOTS = [
     app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE, tap(".fsline"), click("button.freq")] },
   },
   // The tablet and phone boards draw no menu; tablet portrait and phone open the step in place.
+  // Center tank fuel still asking, with the plan's suggestion (DecSuggested): the boards' state
+  // without its answer.
+  { name: "center-tank-suggested", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE.slice(0, -1)] } },
   { name: "board-checklist", full: true, only: ["tablet-landscape", "tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE] } },
   // Batch 5: the menu drawer at every size (Menu, Tablet and Mobile boards), the stage and phase
   // picker (StagePicker), the tablet portrait and phone panel sheets, and phone's open-steps sheet.

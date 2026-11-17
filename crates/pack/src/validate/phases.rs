@@ -182,8 +182,10 @@ mod tests {
             Some(checklist_core::Suggests::Rule(
                 checklist_core::SuggestRule {
                     field,
-                    minus_lb: 0,
-                    more_than_lb: 1000,
+                    unit: checklist_core::WeightUnit::Kg,
+                    minus: 7738,
+                    near: 225,
+                    more_than: 450,
                     then: then.into(),
                     otherwise: "gpu".into(),
                 },

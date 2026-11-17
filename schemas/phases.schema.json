@@ -378,20 +378,26 @@
       ]
     },
     "SuggestRule": {
-      "description": "A weight from the flight, less `minus_lb`, above `more_than_lb` suggests `then`, otherwise\n`otherwise` (decision 0027). With `minus_lb` at 0 (not yet checked), nothing is suggested.",
+      "description": "A weight from the flight, less `minus`, above `more_than` suggests `then`, otherwise\n`otherwise`; within `near` of `more_than` the suggestion says it is close to the line\n(decision 0027). The amounts are in `unit`. With `minus` at 0, nothing is suggested.",
       "type": "object",
       "properties": {
         "field": {
           "$ref": "#/$defs/FillField"
         },
-        "minus_lb": {
+        "minus": {
           "type": "integer",
           "format": "uint32",
           "minimum": 0
         },
-        "more_than_lb": {
+        "more_than": {
           "type": "integer",
           "format": "uint32",
+          "minimum": 0
+        },
+        "near": {
+          "type": "integer",
+          "format": "uint32",
+          "default": 0,
           "minimum": 0
         },
         "otherwise": {
@@ -399,13 +405,17 @@
         },
         "then": {
           "type": "string"
+        },
+        "unit": {
+          "$ref": "#/$defs/WeightUnit"
         }
       },
       "additionalProperties": false,
       "required": [
         "field",
-        "minus_lb",
-        "more_than_lb",
+        "unit",
+        "minus",
+        "more_than",
         "then",
         "otherwise"
       ]
@@ -480,6 +490,14 @@
         "title",
         "values",
         "default"
+      ]
+    },
+    "WeightUnit": {
+      "description": "A unit for a suggestion rule's amounts.",
+      "type": "string",
+      "enum": [
+        "kg",
+        "lb"
       ]
     }
   }

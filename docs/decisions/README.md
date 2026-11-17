@@ -35,6 +35,6 @@ Never rewrite an accepted record; add a new one that supersedes it.
 | [0024](0024-outside-flight-data.md) | Outside flight data, starting with SayIntentions (Beta) | Accepted; a phase after step 7, not started |
 | [0025](0025-rename-to-involo.md) | The app is renamed Involo | Accepted |
 | [0026](0026-flight-log-on-the-device.md) | The flight log is saved on the device, never sent | Accepted |
-| [0027](0027-decision-answers.md) | A value per answer, suggestion rules and saved answers | Accepted; the center tank suggestion waits for a simulator check |
+| [0027](0027-decision-answers.md) | A value per answer, suggestion rules and saved answers | Accepted |
 
 Template: Context, Decision, Consequences. Keep it under a page.

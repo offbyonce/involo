@@ -839,6 +839,22 @@ mod tests {
             filled_value(&flight, &step),
             "MAIN PUMPS ON · CENTER PUMPS OFF"
         );
+        // The Before start checklist's FUEL item keeps its blanks in the answer's value.
+        let fuel = pack
+            .lists
+            .iter()
+            .flat_map(|l| &l.steps)
+            .find(|s| s.id.as_str() == "ifly-737-max8.before-start.fuel")
+            .unwrap();
+        flight
+            .values
+            .insert(checklist_core::FillField::MinimumTakeoffFuel, "5160".into());
+        flight
+            .values
+            .insert(checklist_core::FillField::Fuel, "6400".into());
+        let v = filled_value(&flight, fuel);
+        assert!(v.ends_with("MAIN PUMPS ON · CENTER PUMPS OFF"), "{v}");
+        assert!(v.contains("5160") && v.contains("6400"), "{v}");
     }
 
     #[test]

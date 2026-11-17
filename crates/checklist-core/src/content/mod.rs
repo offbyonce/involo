@@ -33,6 +33,6 @@ pub use notes::{ExplainNote, HowNote, NotesFile};
 pub use panels::{LightColor, Panel, PanelItem, PanelItemKind, PanelSection};
 pub use phases::{
     IntroParagraph, OptionChoice, Phase, PhasesFile, Stage, StagePhase, SuggestRule, Suggests,
-    UserOption,
+    UserOption, WeightUnit,
 };
 pub use start_states::{StartState, StartStatesFile};

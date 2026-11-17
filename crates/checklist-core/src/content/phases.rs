@@ -36,14 +36,26 @@ data_types! {
         Field(FillField),
     }
 
-    /// A weight from the flight, less `minus_lb`, above `more_than_lb` suggests `then`, otherwise
-    /// `otherwise` (decision 0027). With `minus_lb` at 0 (not yet checked), nothing is suggested.
+    /// A weight from the flight, less `minus`, above `more_than` suggests `then`, otherwise
+    /// `otherwise`; within `near` of `more_than` the suggestion says it is close to the line
+    /// (decision 0027). The amounts are in `unit`. With `minus` at 0, nothing is suggested.
     pub struct SuggestRule {
         pub field: FillField,
-        pub minus_lb: u32,
-        pub more_than_lb: u32,
+        pub unit: WeightUnit,
+        pub minus: u32,
+        pub more_than: u32,
+        #[serde(default)]
+        pub near: u32,
         pub then: String,
         pub otherwise: String,
+    }
+
+    /// A unit for a suggestion rule's amounts.
+    #[derive(Copy, Eq)]
+    #[serde(rename_all = "snake_case")]
+    pub enum WeightUnit {
+        Kg,
+        Lb,
     }
 
     /// How one value of an option is shown, e.g. "Ground power at the gate".

@@ -151,6 +151,7 @@ function host(overrides: Partial<Host> = {}): Host {
     rail: async () => rail,
     phaseView: async () => view(["skipped", "current"]),
     openSteps: async () => [],
+    suggestion: async () => null,
     loadSaved: async () => ({ flight: null, settings: null }),
     save: async () => 0,
     setAside: async () => {},
@@ -703,6 +704,70 @@ describe("App", () => {
     await screen.findByRole("heading", { level: 1, name: "Power up" });
     await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
     expect(screen.getByRole("link", { name: "Glossary" }).getAttribute("href")).toBe("#/glossary");
+  });
+
+  it("offers the plan's suggestion on a decision, and confirming it is saved as from the plan (decision 0027)", async () => {
+    const decided = {
+      ...pack,
+      lists: pack.lists.map((l) => ({ ...l, steps: [{ ...l.steps[0], decide: "tank" }, l.steps[1]] })),
+      content: {
+        ...pack.content,
+        phases: {
+          ...pack.content.phases,
+          options: [
+            ...(pack.content.phases?.options ?? []),
+            {
+              id: "tank",
+              title: "Tank",
+              values: ["full", "empty"],
+              default: "empty",
+              description: "The tank holds",
+              choices: [
+                { value: "full", label: "Full" },
+                { value: "empty", label: "Empty" },
+              ],
+            },
+          ],
+        },
+      },
+    } as unknown as FlatPack;
+    const actions: Action[] = [];
+    const h = host({
+      loadPack: async () => decided,
+      phaseView: async () => view(["current", "to_do"]),
+      suggestion: async (_p, _f, option) =>
+        option === "tank" ? { value: "empty", amount: 263, unit: "kg", near: true } : null,
+      apply: async (_pack, flight, action) => {
+        actions.push(action);
+        if (action.type === "answer")
+          return {
+            ...flight,
+            options: { ...flight.options, [action.option]: action.value },
+            answers: { ...flight.answers, [action.option]: action.by },
+          };
+        if (action.type === "tick")
+          return {
+            ...flight,
+            session: { ...flight.session, done: { ...flight.session.done, [action.step]: action.at } },
+          };
+        return flight;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    const row = () => document.querySelector('li[data-step="battery"]') as HTMLElement;
+    expect(
+      await within(row()).findAllByText(
+        "Suggested from your SimBrief plan: 263 kg. Close to the line: check the gauge",
+      ),
+    ).not.toHaveLength(0);
+    expect(within(row()).getByText("The tank holds")).toBeTruthy();
+    expect(within(row()).getByText("Suggested")).toBeTruthy();
+    // The row's Confirm takes the suggested answer.
+    await fireEvent.click(within(row()).getByRole("button", { name: /^Confirm/ }));
+    await waitFor(() =>
+      expect(actions[0]).toEqual({ type: "answer", option: "tank", value: "empty", by: "plan" }),
+    );
   });
 
   it("asks a decision in its row, saves how it was answered, and shows the dependent step's value for the answer (decision 0027)", async () => {

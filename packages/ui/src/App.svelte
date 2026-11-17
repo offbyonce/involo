@@ -25,6 +25,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     type Rail,
     type OpenStep,
     type SavedPlan,
+    type Suggestion,
     type Settings,
   } from "@involo/bindings";
   import { getHost, type SavedItem } from "./host";
@@ -653,6 +654,26 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
    * reads as answered by the pilot.
    */
   let changing = $state<string | null>(null);
+  /** What each asked option's rule suggests from the flight's values (decision 0027). */
+  let suggestions = $state<Record<string, Suggestion | null>>({});
+  $effect(() => {
+    const f = flight;
+    const ix = index;
+    if (!f || !ix) return;
+    const asked = ix.options.filter((o) => ix.decider(o.id));
+    let live = true;
+    void Promise.all(asked.map(async (o) => [o.id, await host.suggestion(packId, f, o.id)] as const))
+      .then((list) => {
+        if (live) suggestions = Object.fromEntries(list);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  });
+  /** "263 kg", and near the line, "263 kg. Close to the line: check the gauge". */
+  const amountWords = (s: Suggestion) =>
+    `${s.amount.toLocaleString("en-US")} ${s.unit}${s.near ? ". Close to the line: check the gauge" : ""}`;
   // Every view shows a step's value for the flight's answers (lib/answers.svelte.ts).
   $effect(() => {
     answered.options = { ...(flight?.options ?? {}) };
@@ -667,7 +688,9 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
         if (!option) return null;
         const answer = f.options[option.id] ?? null;
         const source: DecisionSource | null = answer === null ? null : (f.answers?.[option.id] ?? "you");
-        return { option, answer, source, suggestion: null, changing: answer !== null && changing === step.id };
+        const s = suggestions[option.id];
+        const suggestion = s ? { value: s.value, amount: amountWords(s) } : null;
+        return { option, answer, source, suggestion, changing: answer !== null && changing === step.id };
       },
       dependent(step) {
         const id = dependsOn(step);
@@ -701,7 +724,9 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     const changed = wasChanging && before.options[option.id] !== undefined && before.options[option.id] !== value;
     // The same answer again (Change, then the same choice) records nothing new, but still ticks a
     // step whose tick was cleared.
-    if (!wasChanging || changed) await act({ type: "answer", option: option.id, value, by: changed ? "changed" : "you" });
+    // Confirming the plan's suggestion (its value, while first asked) is answered from the plan.
+    const fromPlan = !wasChanging && suggestions[option.id]?.value === value;
+    if (!wasChanging || changed) await act({ type: "answer", option: option.id, value, by: changed ? "changed" : fromPlan ? "plan" : "you" });
     if (flight && flight.session.done[id] === undefined) await act({ type: "tick", step: id, at: Date.now() });
     if (changed) {
       const updated = [...new Set(ix.dependents(option.id).map((s) => stepTitle(ix, s)))];
@@ -1018,6 +1043,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       {flight}
       settings={s}
       {plan}
+      centerTank={suggestions.center_tank ? `${suggestions.center_tank.amount.toLocaleString("en-US")} ${suggestions.center_tank.unit}` : null}
       options={index.options}
       states={index.startStates}
       backHref={lastPhase ? phaseHref(lastPhase) : "#/"}

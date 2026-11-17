@@ -15,6 +15,9 @@ export type Ctx = {
   notes: string;
   /** "lb" or "kg". */
   unit: string;
+  /** The center tank's share of the block fuel, as the Center tank fuel step's suggestion reads
+   * it ("1,262 kg"), or null without a plan (decision 0027). */
+  centerTank?: string | null;
 };
 
 /** A stretch of a close-up, marked when it is the value. */
@@ -436,7 +439,20 @@ export const SECTIONS: Section[] = [
               "Block is the total: everything on board before engine start.",
             ),
           },
-          // Center tank: hidden until batch 7; then block fuel less the wing capacity, exact.
+          {
+            // Block fuel less what both wing tanks hold, exact (FSFuel board).
+            id: "center_tank",
+            label: "Center tank",
+            read: (c) => c.centerTank ?? "—",
+            phase: "before-start",
+            desc: "What's left after both wing tanks fill. The Center tank fuel step suggests its answer from this.",
+            chip: "Before start ›",
+            ofp: fromFuel(
+              "Block fuel is in the fuel plan",
+              "block",
+              "The center tank takes what's left of the block fuel after both wing tanks fill.",
+            ),
+          },
           {
             id: "trip",
             label: "Trip fuel",

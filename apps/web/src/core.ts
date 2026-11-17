@@ -26,6 +26,7 @@ import type {
   Reply,
   SavedPlan,
   Settings,
+  Suggestion,
 } from "@involo/bindings";
 import init, * as wasm from "./wasm/web_host.js";
 
@@ -84,6 +85,12 @@ export async function openSteps(
   return unwrap<OpenStep[]>(
     wasm.open_steps(pack, JSON.stringify(flight), JSON.stringify(settings), before ?? ""),
   );
+}
+
+/** The answer an option's rule suggests for this flight, or null (decision 0027). */
+export async function suggestion(pack: string, flight: Flight, option: string): Promise<Suggestion | null> {
+  await load();
+  return unwrap<Suggestion | null>(wasm.suggestion(pack, JSON.stringify(flight), option));
 }
 
 export async function phaseView(

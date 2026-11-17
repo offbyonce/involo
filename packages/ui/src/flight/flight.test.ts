@@ -328,6 +328,14 @@ describe("FlightPage", () => {
     expect(screen.getByText("US practice (FAA weather guidance).")).toBeTruthy();
   });
 
+  it("Fuel and weights shows the center tank's share of the block fuel, read-only, as the suggestion reads it", async () => {
+    page({ section: "fuel", plan, flight: flight({}), centerTank: "1,262 kg" });
+    const row = (await screen.findByText("Center tank")).closest(".row, li, tr, [data-row]") ?? document.body;
+    expect(row.textContent).toContain("1,262 kg");
+    expect(row.textContent).toContain("What's left after both wing tanks fill.");
+    expect(screen.queryByRole("textbox", { name: /Center tank/ })).toBeNull();
+  });
+
   it("Weather without a plan: the empty state, and the Altimeter still to enter", async () => {
     page({ section: "weather", focus: "qnh" });
     expect(

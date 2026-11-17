@@ -144,6 +144,19 @@ fn check_expect_when(options: &BTreeMap<&str, Vec<&str>>, step: &Step, issues: &
             )),
             Some(_) => {}
         }
+        let blanks = |v: &str| v.matches("___").count();
+        if blanks(&e.expect) != blanks(&step.expect) {
+            issues.push(error(
+                at,
+                format!(
+                    "`expect_when` for `{} = {}` has {} blanks, the step's value {}",
+                    e.option,
+                    e.equals,
+                    blanks(&e.expect),
+                    blanks(&step.expect)
+                ),
+            ));
+        }
         if !seen.insert((e.option.as_str(), e.equals.as_str())) {
             issues.push(error(
                 at,
@@ -572,6 +585,11 @@ mod tests {
         );
         p.checklists[0].steps[0].expect_when = vec![value_for("gpu", "ON"), value_for("gpu", "ON")];
         assert_flags(&p, "`expect_when` has `power = gpu` twice");
+        p.checklists[0].steps[0].expect_when = vec![value_for("gpu", "ON ___")];
+        assert_flags(
+            &p,
+            "`expect_when` for `power = gpu` has 1 blanks, the step's value 0",
+        );
         p.checklists[0].steps[0].expect_when = vec![value_for("battery", "ON")];
         assert_flags(
             &p,

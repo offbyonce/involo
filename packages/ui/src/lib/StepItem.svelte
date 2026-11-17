@@ -82,7 +82,7 @@ row in place. A step that depends on the answer links back to it.
 
   let menu = $state(false);
   /** A value with blanks: the parts with blanks first, the rest of the instruction after. */
-  let fill = $derived(fillParts(step.expect));
+  let fill = $derived(fillParts(dependent?.value ?? step.expect));
   let place = $derived(index.place(step));
   let title = $derived(stepTitle(index, step));
   let current = $derived(row.state === "current");
@@ -162,7 +162,11 @@ row in place. A step that depends on the answer links back to it.
       <span class="val">{step.expect}</span>
       <span class="ans">{labelOf(decision.option, decision.answer)}</span>
     {:else if dependent}
-      <span class="val">{dependent.value ?? step.expect}</span>
+      {#if fill}
+        <BlankFields name={step.text} blanks={fill.blanks} rest={fill.rest} values={row.values} links={blankLinks(step.fill ?? [])} {onBlank} />
+      {:else}
+        <span class="val">{dependent.value ?? step.expect}</span>
+      {/if}
       {#if dependent.answer === null}
         <button class="dlink muted" type="button" onclick={() => decisions?.change(dependent.decisionStep)}>Depends on the {lowerFirst(dependent.option.title)} answer</button>
       {:else}
