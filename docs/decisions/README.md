@@ -10,19 +10,19 @@ Never rewrite an accepted record; add a new one that supersedes it.
 | # | Decision | Status |
 | --- | --- | --- |
 | [0001](0001-app-stack.md) | Tauri 2, a Rust core and a Svelte 5 interface | Accepted; delivery amended by 0009 |
-| [0002](0002-pack-format.md) | Packs authored in YAML, read strictly, shipped as JSON | Accepted; per-step sources superseded by 0007 |
+| [0002](0002-pack-format.md) | Packs authored in YAML, read strictly, shipped as JSON | Accepted; per-step sources superseded by 0007; extended by 0029 |
 | [0003](0003-licensing-and-contributions.md) | MIT code, CC BY-NC-SA 4.0 content, DCO sign-off | Accepted |
 | [0004](0004-sim-link.md) | Sim link behind a trait; pure-Rust SimConnect client first | Superseded by 0006 |
-| [0005](0005-updates-and-signing.md) | Notify-only updates via GitHub Releases; unsigned beta | Accepted; applies to a desktop build only (0009) |
+| [0005](0005-updates-and-signing.md) | Notify-only updates via GitHub Releases; unsigned beta | Accepted; in force again for the desktop app (0031) |
 | [0006](0006-instruction-not-sim-control.md) | Teach procedures and systems; no connection to the simulator | Accepted |
-| [0007](0007-pack-content-model.md) | Pack content model; list-level basis tags instead of per-step sources | Accepted; step status replaced by 0013 |
+| [0007](0007-pack-content-model.md) | Pack content model; list-level basis tags instead of per-step sources | Accepted; step status replaced by 0013; `fill` list and step id prefix superseded by 0029 |
 | [0008](0008-platform-scope.md) | Learn to operate the airplane like a trained crew; what we do not build | Accepted; amended by 0011 |
-| [0009](0009-web-first-delivery.md) | Web first: a hosted app that installs and works offline | Accepted |
+| [0009](0009-web-first-delivery.md) | Web first: a hosted app that installs and works offline | Accepted; amended by 0028 and 0031 |
 | [0010](0010-web-build-tooling.md) | Web build layout and tooling | Accepted |
 | [0011](0011-scope-boundaries.md) | Scope boundaries for fuel training and the out-of-scope list | Accepted |
-| [0012](0012-app-state.md) | App state for the web beta: one flight, rules in Rust, skipped stays open | Accepted |
+| [0012](0012-app-state.md) | App state for the web beta: one flight, rules in Rust, skipped stays open | Accepted; one flight per pack (0028) |
 | [0013](0013-step-presentation-and-provenance.md) | Every step presented the same way; provenance kept as an internal record | Accepted |
-| [0014](0014-pack-format-3.md) | Pack format 3: option choices, map regions and target positions | Accepted |
+| [0014](0014-pack-format-3.md) | Pack format 3: option choices, map regions and target positions | Accepted; extended by 0029 |
 | [0015](0015-resting-positions.md) | Resting positions for controls a step does not use | Accepted |
 | [0016](0016-levers-handles-and-lit-lights.md) | Levers, handles, and lights a step expects on | Accepted |
 | [0017](0017-selector-dials.md) | Selector dials: every position named, at its real angle | Accepted |
@@ -34,7 +34,11 @@ Never rewrite an accepted record; add a new one that supersedes it.
 | [0023](0023-side-and-seat-views.md) | Side and seat views from pack data | Accepted |
 | [0024](0024-outside-flight-data.md) | Outside flight data, starting with SayIntentions (Beta) | Accepted; a phase after step 7, not started |
 | [0025](0025-rename-to-involo.md) | The app is renamed Involo | Accepted |
-| [0026](0026-flight-log-on-the-device.md) | The flight log is saved on the device, never sent | Accepted |
+| [0026](0026-flight-log-on-the-device.md) | The flight log is saved on the device, never sent | Accepted; log format 2 by 0028 |
 | [0027](0027-decision-answers.md) | A value per answer, suggestion rules and saved answers | Accepted |
+| [0028](0028-multiple-packs.md) | Several packs, chosen and installed from the app | Accepted |
+| [0029](0029-pack-format-6.md) | Pack format 6, the first public format | Accepted |
+| [0030](0030-pack-authoring-kit.md) | A pack authoring kit for people and agents | Accepted |
+| [0031](0031-desktop-app.md) | A desktop app beside the web app, for Windows and macOS | Accepted |
 
 Template: Context, Decision, Consequences. Keep it under a page.
