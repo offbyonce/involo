@@ -26,7 +26,7 @@ Key
 | 7 | Step map and panel views in steps | Aside: step map plus "The controls" (Main, R4 Checklist light and dark) | Aside, scaled | Aside | Inline in the current step, two figures side by side | "Where · Controls" row opens PhoneWhere. Where tab drawn, Controls tab not drawn |
 | 8 | Flight deck reference page (overview map, every panel) | R4 FlightDeck, light and dark. Menu › Reference › Flight deck (R4 Menu) | NO BOARD (inherits desktop) | NO BOARD | NO BOARD | **MISSING**: PhoneMenu (R3) has no Flight deck link |
 | 9 | Light meanings | R4 FlightDeck aside only. The lens drawn in a step can't be tapped for its meaning | NO BOARD | NO BOARD | NO BOARD | **MISSING** (no route to Flight deck on phone) |
-| 10 | Where is this? locator | WherePopover: side view plus captain-seat view | Link in the aside | Link only. Pop-over not drawn | Link only. Pop-over not drawn | PhoneWhere: side view plus overhead map. **The captain-seat view isn't there** (owner decision) |
+| 10 | Where is this? locator | WherePopover: side view plus captain-seat view | Link in the aside | Link only. Pop-over not drawn | Link only. Pop-over not drawn | PhoneWhere: side view plus overhead map. **The captain-seat view isn't there** (decided) |
 | 11 | Map on/off | "Hide map" in the aside, "Show map" in MapHidden. Settings not drawn | "Hide map" | **MISSING** (no Hide map, Settings not drawn) | **MISSING** | Map is always behind the "Where · Controls" row (acceptable) |
 | 12 | Check, If not, Why | Aside (Main, MapHidden, R4 Checklist) | Aside | Aside | Inline | Inline |
 | 13 | How to do it | Aside link (Main, R4 Checklist). **MISSING in the MapHidden state** | Aside link | **MISSING** | **MISSING** | **MISSING** |
@@ -84,7 +84,7 @@ Each SVG has a fixed `height`, so it letterboxes and shrinks the viewBox, and ev
 | WherePopover, side and seat views | 400x210, 400x270 | ~278x176 | 0.70, 0.65 | 11 → **7.6 px, 7.2 px** |
 | R4 FlightDeck, panel detail | 440x186 | ~394x190 | 0.90 | 8 → 7.2 px, 9 → 8.0 px |
 
-The switch bodies also end up about 10x20 px on desktop. The OFF/ON labels, which are the point of the owner's switch-direction decision, are at 6.6 px. The 3.0 screenshot gives its single panel view about 230 px of height. R3 and R4 give the controls 136 px.
+The switch bodies also end up about 10x20 px on desktop. The OFF/ON labels, which are the point of the switch-direction decision, are at 6.6 px. The 3.0 screenshot gives its single panel view about 230 px of height. R3 and R4 give the controls 136 px.
 
 **Why it matters:** the pilot reads this glance-wise, on a second monitor, with eyes going back and forth to the sim. Below about 11 px, OFF and ON stop being reliable to tell apart, and a misread switch direction defeats the feature.
 
@@ -152,9 +152,9 @@ The row "···" menu offers Make current, Mark done and Skip for now. Adding or
 ### F6. The "Where is this?" pop-over covers Check and If not, and the phone version drops the captain-seat view.
 **Boards:** WherePopover, PhoneWhere.
 
-On desktop the pop-over sits at left 776, top 352, 640 px wide and about 360 px tall. That lands it over the aside's Check and If not boxes (about y 600 to 740). The owner's rule is that Check, If not and Why are never hidden.
+On desktop the pop-over sits at left 776, top 352, 640 px wide and about 360 px tall. That lands it over the aside's Check and If not boxes (about y 600 to 740). The rule is that Check, If not and Why are never hidden.
 
-PhoneWhere's "Where" tab has the side view plus the overhead map, but no captain-seat view, which the owner made part of "Where is this?". The full-height sheet (top 70) also hides the step's Check line.
+PhoneWhere's "Where" tab has the side view plus the overhead map, but no captain-seat view, which is part of "Where is this?". The full-height sheet (top 70) also hides the step's Check line.
 
 **Fix:**
 - Desktop: anchor the pop-over to the left of the link and open it leftward over the step list (x about 236 to 876), so the aside stays readable. Stack the two figures vertically (F1).
@@ -170,7 +170,7 @@ PhoneWhere's "Where" tab has the side view plus the overhead map, but no captain
 ### F8. MapHidden loses "How to do it".
 **Board:** MapHidden.
 
-The Why row reads only "Why  Feeds fuel…", while Main has "How to do it ⌄" on the same row. Hiding the map must hide only the map (owner decision).
+The Why row reads only "Why  Feeds fuel…", while Main has "How to do it ⌄" on the same row. Hiding the map must hide only the map (decided).
 
 **Fix:** share one Why-row component between the two states, including the "How to do it ⌄" link.
 
@@ -181,7 +181,7 @@ The pilot can't tell whether these do the same thing, or whether either clears c
 
 **Fix:**
 - Decide the scopes and name them once. If both clear only plan data, use "Reset flight plan" in both places. If the strip action also clears ticks, call it "Start a new flight" and say so in its subtext.
-- Keep Reset at the menu root, as the owner decided, but move it to the last group, behind a divider. Keep the Undo toast.
+- Keep Reset at the menu root, as decided, but move it to the last group, behind a divider. Keep the Undo toast.
 - Add it to PhoneMenu.
 
 ### F10. Flight strip labels change name between closed and open, and they're tracked caps.
@@ -207,7 +207,7 @@ R3 FlightSetup shows Center tank: 0 lb. The step still reads "ALL ON, CENTER PUM
 
 **Why it matters:** this is where the new app can clearly beat 3.0. The data is already there.
 
-**Fix (keeps the dashed outline and the legend, per the owner):**
+**Fix (keeps the dashed outline and the legend, as decided):**
 - When the field is known, draw the lever in the resolved position (OFF, up) inside the dashed outline.
 - Show the value as two lines: "ALL ON" first, then "Center pumps OFF · center tank 0 lb". The second line is a link to the Center tank field, per the "values link to their field" decision.
 - When the field is blank, keep today's wording and an empty dashed capsule.
@@ -293,7 +293,7 @@ Text tokens pass in both themes: light muted #5b6472 is 5.05 to 5.57 on all its 
 ### F19. The Flight page Weather rows have no CDU destination chips, and the OFP schematic is hard to see in light mode.
 **Board:** R4 Main.
 
-Owner decision: the flight plan has CDU destination chips. R3 Fuel and weights had them ("CDU · PERF INIT · ZFW"). The Weather rows have none, though wind and temperature go into the CDU (TAKEOFF REF) and the altimeter goes to the EFIS BARO.
+Decided: the flight plan has CDU destination chips. R3 Fuel and weights had them ("CDU · PERF INIT · ZFW"). The Weather rows have none, though wind and temperature go into the CDU (TAKEOFF REF) and the altimeter goes to the EFIS BARO.
 
 The OFP page schematic blocks are #e2e6ec on #ffffff (1.25:1) in light mode, and the highlighted section is #e4ecfd (1.19:1). Only the 2 px accent ring identifies it. Dark mode has the same problem: #2a323e on #1b212b is 1.25:1.
 
@@ -317,7 +317,7 @@ R4 shrank "Fuel pump switches" plus its value to a 13 px kicker, "Current step �
 ### F22. Smaller issues
 - **R4 FlightDeck:** the map figure is fixed at 520 px tall but the scaled map is about 278 px tall, leaving about 240 px empty. Size the figure to the map's aspect ratio and move "Light meanings for this area" up under it as a disclosure.
 - **Light meanings swatch:** hard-coded amber #f2bd5c with 9 px text. Raise it to 11 px. The ratio is fine at 8.08.
-- **Labels under changed switches:** blue #a9caff or #1d4fd8 ("AFT 1 · ON"). The owner's rule is that values are neutral text. Color the switch drawing only and keep the label neutral (#8b94a3 dark, #4a5462 light).
+- **Labels under changed switches:** blue #a9caff or #1d4fd8 ("AFT 1 · ON"). The rule is that values are neutral text. Color the switch drawing only and keep the label neutral (#8b94a3 dark, #4a5462 light).
 - **Exterior inspection:** with the toggle off, the 18-stop diagram can't be reached for study. Make Find return the stage, and let StartOptions offer "Preview the inspection".
 - **Keyboard hint:** omits Left arrow (back). Use "Space done · ← back · S skip".
 - **StartOptions:** `max-width:980px` left-aligns the content while the Weather page fills the width. Pick one rule.

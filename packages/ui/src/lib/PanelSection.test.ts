@@ -94,7 +94,7 @@ const expectBox = (actual: Box, expected: Box) => {
   for (const [n, v] of actual.entries()) expect(v).toBeCloseTo(expected[n] ?? NaN, 5);
 };
 
-describe("the selected control's ring (owner: one ring, following the control)", () => {
+describe("the selected control's ring (one ring, following the control)", () => {
   it.each(
     items.map((it, n) => [`${it.kind}${it.guarded ? (n === 2 ? " (guard open)" : " (guard shut)") : ""}`, n]),
   )("rings a %s with its own box plus the padding, and nothing else", (_, n) => {

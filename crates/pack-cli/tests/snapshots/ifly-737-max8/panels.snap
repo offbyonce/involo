@@ -440,6 +440,7 @@ source: crates/pack-cli/tests/snapshot.rs
             "x": 113.0,
             "y": 265.0,
             "controls": [
+              "ctrpumps",
               "fuelpumps"
             ],
             "positions": "OFF, ON",
@@ -452,6 +453,7 @@ source: crates/pack-cli/tests/snapshot.rs
             "x": 188.0,
             "y": 265.0,
             "controls": [
+              "ctrpumps",
               "fuelpumps"
             ],
             "positions": "OFF, ON",

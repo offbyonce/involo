@@ -4,11 +4,11 @@ SPDX-License-Identifier: MIT
 -->
 # 0026: The flight log is saved on the device, never sent
 
-Date: 2026-11-16. Status: accepted (owner, 2026-11-16). Builds on [0012](0012-app-state.md).
+Date: 2026-11-16. Status: accepted (2026-11-16). Builds on [0012](0012-app-state.md).
 
 ## Context
-0012 planned a log of filed flights and left saving past flights and practice results for the
-owner to decide. The owner approved it with the Log boards: pilots keep their past flights and
+0012 planned a log of filed flights and left saving past flights and practice results open. The Log boards
+settle it: pilots keep their past flights and
 practice scores, and nothing about them leaves the device. A full log is large: every tick of
 500 flights is several megabytes, more than the browser storage the flight and settings use
 (about 5 MB per site).

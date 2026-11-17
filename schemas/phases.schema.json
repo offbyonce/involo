@@ -377,6 +377,92 @@
         "phase"
       ]
     },
+    "SuggestLine": {
+      "description": "A suggestion rule's line and margin in the other unit.",
+      "type": "object",
+      "properties": {
+        "more_than": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "near": {
+          "type": "integer",
+          "format": "uint32",
+          "default": 0,
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "more_than"
+      ]
+    },
+    "SuggestRule": {
+      "description": "A weight from the flight, less `minus`, above `more_than` suggests `then`, otherwise\n`otherwise`; within `near` of `more_than` the suggestion says it is close to the line\n(decision 0027). The amounts are in `unit`. With `minus` at 0, nothing is suggested.",
+      "type": "object",
+      "properties": {
+        "field": {
+          "$ref": "#/$defs/FillField"
+        },
+        "minus": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "more_than": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "near": {
+          "type": "integer",
+          "format": "uint32",
+          "default": 0,
+          "minimum": 0
+        },
+        "other_unit": {
+          "description": "The line and margin for a flight in the other unit, when the choices name both\n(\"More than 1,000 lb (450 kg)\"): a pound flight is held to 1,000 lb, not 992.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SuggestLine"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "otherwise": {
+          "type": "string"
+        },
+        "then": {
+          "type": "string"
+        },
+        "unit": {
+          "$ref": "#/$defs/WeightUnit"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "field",
+        "unit",
+        "minus",
+        "more_than",
+        "then",
+        "otherwise"
+      ]
+    },
+    "Suggests": {
+      "description": "What suggests an option's answer: a rule (decision 0027), or, as format 4 wrote it, a bare\nflight field, which suggests nothing.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SuggestRule"
+        },
+        {
+          "$ref": "#/$defs/FillField"
+        }
+      ]
+    },
     "UserOption": {
       "description": "A choice the pilot makes that decides what is shown, e.g. the power source.",
       "type": "object",
@@ -410,10 +496,10 @@
           "type": "string"
         },
         "suggests": {
-          "description": "A flight value that suggests the answer, for the pilot to confirm (decision 0022).",
+          "description": "How a flight value suggests the answer, for the pilot to confirm (decisions 0022 and\n0027).",
           "anyOf": [
             {
-              "$ref": "#/$defs/FillField"
+              "$ref": "#/$defs/Suggests"
             },
             {
               "type": "null"
@@ -436,6 +522,14 @@
         "title",
         "values",
         "default"
+      ]
+    },
+    "WeightUnit": {
+      "description": "A unit for a suggestion rule's amounts.",
+      "type": "string",
+      "enum": [
+        "kg",
+        "lb"
       ]
     }
   }

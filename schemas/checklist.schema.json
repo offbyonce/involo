@@ -115,6 +115,27 @@
         }
       ]
     },
+    "ExpectWhen": {
+      "description": "A step's value once a decision has answered an option with this value (decision 0027),\ne.g. \"MAIN PUMPS ON · CENTER PUMPS OFF\". Until it is answered, the step's own `expect`\nshows.",
+      "type": "object",
+      "properties": {
+        "equals": {
+          "type": "string"
+        },
+        "expect": {
+          "type": "string"
+        },
+        "option": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "option",
+        "equals",
+        "expect"
+      ]
+    },
     "FillField": {
       "description": "The fixed list of flight values the app can fill in. Packs cannot add names; a new one\nneeds an app release.",
       "oneOf": [
@@ -431,6 +452,13 @@
         "expect": {
           "description": "The expected response or position, e.g. \"NAV\". Always text, never a boolean.\n`___` marks a blank the pilot fills in.",
           "type": "string"
+        },
+        "expect_when": {
+          "description": "The step's value for each answer of a decision its targets depend on (decision 0027).",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ExpectWhen"
+          }
         },
         "explain": {
           "description": "Id of a shared explanation.",

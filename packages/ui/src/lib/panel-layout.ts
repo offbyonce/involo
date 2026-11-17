@@ -72,7 +72,7 @@ export function drawingScale(room: number, boxWidth: number, page = 1): { k: num
 export const tileScale = (k: number, page = 1): number => Math.min(k, K * page);
 
 /**
- * The one scale for panels shown together (owner: the Flight deck's selected panel, a step's
+ * The one scale for panels shown together (the Flight deck's selected panel, a step's
  * sheet, a pane card): the largest at which every one of them fits, so their labels are the same
  * size. Each drawing's own fit is as before: in a `room` (the sheet, the slide-out) both ways at
  * the 11 px label minimum or more; in a card `width` wide, across at that minimum or more; as an
@@ -98,7 +98,7 @@ export function sharedScale(
 }
 
 /**
- * Where a sheet opens scrolled to (owner, Glossary answers): the step's own controls always in view,
+ * Where a sheet opens scrolled to (Glossary answers): the step's own controls always in view,
  * centered when nothing else matters; the first wide panel's navigator strip in view as well when
  * both fit, and the controls winning when they do not. Offsets in the sheet's scrolled pixels.
  */
@@ -594,7 +594,7 @@ function place(
       const px = fit.px * scale;
       const line = (px * LINE) / k;
       // A name and nothing under it: no board draws a "SET TO" caption; the set position shows on
-      // the control itself (the owner, batch 2).
+      // the control itself (batch 2).
       const boxFor = (dy: number): Box => {
         const w = (widest(fit.lines) * px) / k;
         const top = it.y + half(it) + 3 + dy * line;

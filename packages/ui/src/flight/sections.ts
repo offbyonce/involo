@@ -3,8 +3,7 @@
 
 // The Flight sections (FlightSection boards, batch 4): each row's label, the flight field it
 // edits (or a read-only value, or a link to the section that holds it), its description,
-// destination chip and where the OFP prints it. Labels, descriptions, chips and OFP close-ups
-// are the boards' stand-ins, on batch 7's validation list.
+// destination chip and where the OFP prints it.
 
 import type { FillField, Flight, SavedPlan } from "@involo/bindings";
 import type { FlightSection } from "../route.svelte";
@@ -16,6 +15,9 @@ export type Ctx = {
   notes: string;
   /** "lb" or "kg". */
   unit: string;
+  /** The center tank's share of the block fuel, as the Center tank fuel step's suggestion reads
+   * it ("1,262 kg"), or null without a plan (decision 0027). */
+  centerTank?: string | null;
 };
 
 /** A stretch of a close-up, marked when it is the value. */
@@ -216,7 +218,7 @@ const OFP_NOTE = "Section order depends on the OFP layout chosen in SimBrief.";
 const fromHeader = (title: string, close: Ofp["close"], note: string): Ofp => ({
   section: 0,
   title,
-  body: "The header at the top of page 1 has the flight number, the airports, the route as filed, the distance and the times.",
+  body: "The header has the flight number, the airports, the route as filed, the distance and the times.",
   cap: "Close-up, the header",
   close,
   note,
@@ -232,7 +234,7 @@ const fromFuel = (title: string, hi: Parameters<typeof fuelPlan>[1], note: strin
 const fromWeights = (title: string, hi: Parameters<typeof weights>[1], note: string): Ofp => ({
   section: 2,
   title,
-  body: "The weights section gives the planned zero fuel, takeoff and landing weights, in thousands.",
+  body: "The weights section gives the planned zero fuel, takeoff and landing weights.",
   cap: "Close-up, the weights section",
   close: (c) => weights(c, hi),
   note,
@@ -253,7 +255,7 @@ const takeoffOfp: Ofp = {
   notin: true,
   cap: "Close-up, the weights section",
   close: (c) => weights(c, "tow"),
-  note: "The takeoff weight (in thousands of lb) is what the FMC uses for these speeds.",
+  note: "The FMC uses the takeoff weight for these speeds.",
 };
 const approachRoute: Ofp = {
   section: 0,
@@ -361,7 +363,7 @@ export const SECTIONS: Section[] = [
             ofp: fromHeader(
               "The flight number opens the header",
               (c) => header(c, "fn"),
-              "It comes first, before the airports.",
+              "It comes before the airports in most layouts.",
             ),
           },
         ],
@@ -391,7 +393,7 @@ export const SECTIONS: Section[] = [
             label: "Distance",
             read: (c) =>
               c.plan?.plan.general.airDistanceNm != null ? `${c.plan.plan.general.airDistanceNm} nm` : "—",
-            desc: "Planned air distance.",
+            desc: "Planned air distance, which allows for the wind.",
             ofp: fromHeader(
               "The distance is in the header",
               (c) => header(c, "dist"),
@@ -402,7 +404,7 @@ export const SECTIONS: Section[] = [
             id: "time",
             label: "Planned time",
             read: (c) => minutes(c.plan?.plan.times.enrouteS),
-            desc: "Takeoff to landing.",
+            desc: "Planned time from takeoff to landing.",
             ofp: fromHeader(
               "The planned time is in the header",
               (c) => header(c, "time"),
@@ -434,10 +436,23 @@ export const SECTIONS: Section[] = [
             ofp: fromFuel(
               "Block fuel is in the fuel plan",
               "block",
-              "Block is the last line: everything on board before engine start.",
+              "Block is the total: everything on board before engine start.",
             ),
           },
-          // Center tank: hidden until batch 7 (owner); then block fuel less the wing capacity, exact.
+          {
+            // Block fuel less what both wing tanks hold, exact (FSFuel board).
+            id: "center_tank",
+            label: "Center tank",
+            read: (c) => c.centerTank ?? "—",
+            phase: "before-start",
+            desc: "What's left after both wing tanks fill. The Center tank fuel step suggests its answer from this.",
+            chip: "Before start ›",
+            ofp: fromFuel(
+              "Block fuel is in the fuel plan",
+              "block",
+              "The center tank takes what's left of the block fuel after both wing tanks fill.",
+            ),
+          },
           {
             id: "trip",
             label: "Trip fuel",
@@ -446,7 +461,7 @@ export const SECTIONS: Section[] = [
             ofp: fromFuel(
               "Trip fuel is in the fuel plan",
               "trip",
-              "Trip is the first line: the burn from takeoff to landing.",
+              "Trip is the burn from takeoff to landing.",
             ),
           },
           {
@@ -482,7 +497,7 @@ export const SECTIONS: Section[] = [
                 ? `${grouped(Number(v(c, "minimum_takeoff_fuel")))} ${c.unit}`
                 : "—",
             phase: "before-start",
-            desc: "Block fuel less taxi fuel. Check it before takeoff.",
+            desc: "The least fuel to start the takeoff with: trip, contingency, alternate and final reserve. Check you have at least this before takeoff.",
             chip: "Before start ›",
             ofp: fromFuel(
               "Minimum takeoff fuel is in the fuel plan",
@@ -507,7 +522,7 @@ export const SECTIONS: Section[] = [
             ofp: fromWeights(
               "Zero fuel weight is in the weights section",
               "zfw",
-              "In thousands, as the CDU takes it.",
+              "Enter it in thousands, as the CDU takes it.",
             ),
           },
           {
@@ -539,7 +554,7 @@ export const SECTIONS: Section[] = [
               mode: "decimal",
               weight: "thousands",
             },
-            desc: "Payload in the load sheet.",
+            desc: "Passengers and cargo, from the plan's load sheet.",
             ofp: fromWeights("The payload is in the weights section", "pax", "Passengers, then cargo."),
           },
           {
@@ -625,7 +640,7 @@ export const SECTIONS: Section[] = [
             show: signed,
             max: 3,
             mode: "numeric",
-            desc: "How much warmer than standard the air is at cruise.",
+            desc: "How much warmer (plus) or colder (minus) than standard the air is at cruise.",
             loc: "Enter on the CDU › PERF INIT",
             ofp: fromHeader(
               "The ISA deviation is in the header",
@@ -927,7 +942,7 @@ export const SECTIONS: Section[] = [
             max: 3,
             mode: "numeric",
             show: (x) => `FL${x}`,
-            desc: "Where you switch the altimeters to the local setting on the way down.",
+            desc: "Where you set the altimeters to the local setting on the way down.",
             loc: "Enter on the CDU › DESCENT",
             ofp: fromHeader(
               "The transition level is in the header",

@@ -117,6 +117,15 @@ pub fn open_steps(pack: &str, flight: &str, settings: &str, before: &str) -> Str
     })())
 }
 
+/// The answer an option's rule suggests for this flight, or null (decision 0027).
+#[wasm_bindgen]
+pub fn suggestion(pack: &str, flight: &str, option: &str) -> String {
+    reply((|| {
+        let flight: Flight = read("flight", flight)?;
+        with_pack(pack, |p| Ok(app_core::suggestion(p, &flight, option)))
+    })())
+}
+
 /// One phase of a flight as the interface shows it: lists, step states, progress, neighbors.
 #[wasm_bindgen]
 pub fn phase_view(pack: &str, flight: &str, settings: &str, phase: &str) -> String {
@@ -317,6 +326,9 @@ mod tests {
             ))["ok"]
                 .is_array()
         );
+        // No suggestion rule in the example pack: null, not an error.
+        assert!(json(&suggestion("example-trainer", &ticked.to_string(), "power"))["ok"].is_null());
+        assert!(json(&suggestion("example-trainer", "{", "power"))["error"].is_object());
         let view = json(&phase_view(
             "example-trainer",
             &ticked.to_string(),

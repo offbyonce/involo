@@ -9,6 +9,7 @@ import type {
   PhaseView,
   Rail,
   RailPhase,
+  SavedPlan,
   Settings,
   StepState,
 } from "@involo/bindings";
@@ -151,6 +152,7 @@ function host(overrides: Partial<Host> = {}): Host {
     rail: async () => rail,
     phaseView: async () => view(["skipped", "current"]),
     openSteps: async () => [],
+    suggestion: async () => null,
     loadSaved: async () => ({ flight: null, settings: null }),
     save: async () => 0,
     setAside: async () => {},
@@ -446,7 +448,7 @@ describe("App", () => {
     });
     render(App, { context: hostContext(h) });
 
-    // Nothing entered yet: the strip asks for the flight (owner, batch 3), and opens the panel.
+    // Nothing entered yet: the strip asks for the flight (batch 3), and opens the panel.
     const prompt = await screen.findByRole("button", {
       name: "Add your flight: import from SimBrief or enter the clearance",
     });
@@ -681,7 +683,7 @@ describe("App", () => {
     expect(await screen.findByRole("dialog", { name: "Find" })).toBeTruthy();
   });
 
-  it("gives each list a plain label row with the fold's text, for tablet and phone (owner, batch 6)", async () => {
+  it("gives each list a plain label row with the fold's text, for tablet and phone (batch 6)", async () => {
     render(App, { context: hostContext(host()) });
     await screen.findByRole("heading", { level: 1, name: "Power up" });
     const labels = [...document.querySelectorAll("section.card > p.label")].map((p) => p.textContent);
@@ -703,6 +705,223 @@ describe("App", () => {
     await screen.findByRole("heading", { level: 1, name: "Power up" });
     await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
     expect(screen.getByRole("link", { name: "Glossary" }).getAttribute("href")).toBe("#/glossary");
+  });
+
+  describe("the plan's suggestion on a decision (decision 0027)", () => {
+    const decided = {
+      ...pack,
+      lists: pack.lists.map((l) => ({ ...l, steps: [{ ...l.steps[0], decide: "tank" }, l.steps[1]] })),
+      content: {
+        ...pack.content,
+        phases: {
+          ...pack.content.phases,
+          options: [
+            ...(pack.content.phases?.options ?? []),
+            {
+              id: "tank",
+              title: "Tank",
+              values: ["full", "empty"],
+              default: "empty",
+              description: "The tank holds",
+              choices: [
+                { value: "full", label: "Full" },
+                { value: "empty", label: "Empty" },
+              ],
+            },
+          ],
+        },
+      },
+    } as unknown as FlatPack;
+    const SUGGESTED = "Suggested from your SimBrief plan: 263 kg. Close to the line: check the gauge";
+    /** A flight whose block fuel came from a loaded plan (8,001 kg), unless `typed` replaces it. */
+    function setup(opts: { plan?: boolean; typed?: string } = {}) {
+      const actions: Action[] = [];
+      const withPlan = opts.plan ?? true;
+      const h = host({
+        loadPack: async () => decided,
+        phaseView: async () => view(["current", "to_do"]),
+        loadSaved: async () =>
+          ({
+            flight: {
+              loaded: {
+                state: "ready",
+                value: {
+                  pack: "demo",
+                  options: { power: "gpu" },
+                  session: { done: {}, skipped: {} },
+                  values: { fuel: opts.typed ?? "8001", weight_unit: "KG" },
+                  answers: {},
+                },
+                migratedFrom: null,
+              },
+              text: "{}",
+            },
+            settings: null,
+          }) as never,
+        loadPlan: async () => (withPlan ? ({ plan: {} } as unknown as SavedPlan) : null),
+        planValues: async () => ({
+          values: { fuel: "8001", weight_unit: "KG" },
+          filled: 2,
+          origin: "",
+          destination: "",
+          checkClearance: false,
+        }),
+        suggestion: async (_p, _f, option) =>
+          option === "tank" ? { value: "empty", amount: 263, unit: "kg", near: true } : null,
+        apply: async (_pack, flight, action) => {
+          actions.push(action);
+          if (action.type === "answer")
+            return {
+              ...flight,
+              options: { ...flight.options, [action.option]: action.value },
+              answers: { ...flight.answers, [action.option]: action.by },
+            };
+          if (action.type === "tick")
+            return {
+              ...flight,
+              session: { ...flight.session, done: { ...flight.session.done, [action.step]: action.at } },
+            };
+          if (action.type === "clear")
+            return { ...flight, values: {}, options: { power: "gpu" }, answers: {} };
+          return flight;
+        },
+      });
+      render(App, { context: hostContext(h) });
+      return actions;
+    }
+    const row = () => document.querySelector('li[data-step="battery"]') as HTMLElement;
+
+    it("offers it from the plan's figures, and confirming it is saved as from the plan", async () => {
+      const actions = setup();
+      await screen.findByRole("heading", { level: 1, name: "Power up" });
+      expect(await within(row()).findAllByText(SUGGESTED)).not.toHaveLength(0);
+      expect(within(row()).getByText("The tank holds")).toBeTruthy();
+      expect(within(row()).getByText("Suggested")).toBeTruthy();
+      await fireEvent.click(within(row()).getByRole("button", { name: /^Confirm/ }));
+      await waitFor(() =>
+        expect(actions[0]).toEqual({ type: "answer", option: "tank", value: "empty", by: "plan" }),
+      );
+    });
+
+    it("saves the other answer as the pilot's own", async () => {
+      const actions = setup();
+      await screen.findByRole("heading", { level: 1, name: "Power up" });
+      await within(row()).findAllByText(SUGGESTED);
+      await fireEvent.click(within(row()).getByRole("button", { name: /^Full/ }));
+      await waitFor(() =>
+        expect(actions[0]).toEqual({ type: "answer", option: "tank", value: "full", by: "you" }),
+      );
+    });
+
+    it("suggests nothing with no plan, or once the block fuel is not the plan's", async () => {
+      setup({ plan: false });
+      await screen.findByRole("heading", { level: 1, name: "Power up" });
+      await within(row()).findByText("The tank holds");
+      expect(within(row()).queryByText(/Suggested from your SimBrief plan/)).toBeNull();
+      cleanup();
+      setup({ typed: "9000" });
+      await screen.findByRole("heading", { level: 1, name: "Power up" });
+      await within(row()).findByText("The tank holds");
+      expect(within(row()).queryByText(/Suggested from your SimBrief plan/)).toBeNull();
+    });
+
+    it("drops the suggestion on Reset flight plan", async () => {
+      setup();
+      await screen.findByRole("heading", { level: 1, name: "Power up" });
+      await within(row()).findAllByText(SUGGESTED);
+      await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+      await fireEvent.click(screen.getByRole("button", { name: /^Reset flight plan/ }));
+      await waitFor(() => expect(within(row()).queryByText(/Suggested from your SimBrief plan/)).toBeNull());
+    });
+  });
+
+  it("asks a decision in its row, saves how it was answered, and shows the dependent step's value for the answer (decision 0027)", async () => {
+    // Invented: Battery asks "Tank" (full or empty); Standby power's switch depends on it.
+    const decided = {
+      ...pack,
+      lists: pack.lists.map((l) => ({
+        ...l,
+        steps: [
+          { ...l.steps[0], decide: "tank" },
+          {
+            ...l.steps[1],
+            expect: "AUTO OR OFF FROM YOUR TANK ANSWER",
+            targets: [
+              { at: "oh/elec/STBY/1", open: true },
+              { at: "oh/elec/STBY/1", set: "AUTO", when: { option: "tank", equals: "full" } },
+              { at: "oh/elec/STBY/1", set: "OFF", when: { option: "tank", equals: "empty" } },
+            ],
+            expect_when: [
+              { option: "tank", equals: "full", expect: "AUTO" },
+              { option: "tank", equals: "empty", expect: "OFF" },
+            ],
+          },
+        ],
+      })),
+      content: {
+        ...pack.content,
+        phases: {
+          ...pack.content.phases,
+          options: [
+            ...(pack.content.phases?.options ?? []),
+            {
+              id: "tank",
+              title: "Tank",
+              values: ["full", "empty"],
+              default: "empty",
+              choices: [
+                { value: "full", label: "Full" },
+                { value: "empty", label: "Empty" },
+              ],
+            },
+          ],
+        },
+      },
+    } as unknown as FlatPack;
+    const actions: Action[] = [];
+    const h = host({
+      loadPack: async () => decided,
+      phaseView: async (_p, f) =>
+        view([f.session.done.battery ? "done" : "current", f.session.done.battery ? "current" : "to_do"]),
+      apply: async (_pack, flight, action) => {
+        actions.push(action);
+        if (action.type === "answer")
+          return {
+            ...flight,
+            options: { ...flight.options, [action.option]: action.value },
+            answers: { ...flight.answers, [action.option]: action.by },
+          };
+        if (action.type === "tick")
+          return {
+            ...flight,
+            session: { ...flight.session, done: { ...flight.session.done, [action.step]: action.at } },
+          };
+        return flight;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    const row = (id: string) => document.querySelector(`li[data-step="${id}"]`) as HTMLElement;
+    // Before the answer, the dependent step shows its own value and what it depends on.
+    expect(within(row("standby")).getByText("AUTO OR OFF FROM YOUR TANK ANSWER")).toBeTruthy();
+    await fireEvent.click(within(row("battery")).getByRole("button", { name: "Empty" }));
+    await waitFor(() => expect(actions.some((a) => a.type === "tick")).toBe(true));
+    expect(actions[0]).toEqual({ type: "answer", option: "tank", value: "empty", by: "you" });
+    // Answered: the source line under the name, and the dependent step's value for the answer.
+    expect(await within(row("battery")).findByText("Answered by you")).toBeTruthy();
+    expect(within(row("standby")).getByText("OFF")).toBeTruthy();
+    // A changed answer is saved as changed, and offers Undo.
+    await fireEvent.click(within(row("standby")).getByRole("button", { name: /^Tank empty/ }));
+    await fireEvent.click(within(row("battery")).getByRole("button", { name: /Full/ }));
+    await waitFor(() =>
+      expect(actions.at(-1)).toEqual({ type: "answer", option: "tank", value: "full", by: "changed" }),
+    );
+    expect(await within(row("battery")).findByText("Changed by you")).toBeTruthy();
+    expect(within(row("standby")).getByText("AUTO")).toBeTruthy();
+    // Undo puts the whole flight back, the answer and how it was given too.
+    await fireEvent.click(await screen.findByRole("button", { name: "Undo" }));
+    expect(await within(row("battery")).findByText("Answered by you")).toBeTruthy();
+    expect(within(row("standby")).getByText("OFF")).toBeTruthy();
   });
 
   it("opens References from the menu, and Find on the steps that follow the simulator's model (References README)", async () => {

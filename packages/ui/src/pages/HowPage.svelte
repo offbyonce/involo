@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-How procedures work (owner; HowDesk and HowPhone boards). Every word comes from lib/how-content.ts,
+How procedures work (HowDesk and HowPhone boards). Every word comes from lib/how-content.ts,
 the counts from the pack. From 900 px (desktop and tablet landscape): the header with the Checklist
 button, the parts list on the left, and all seven parts in one 640 px reading column; the list
 follows the reading position, and a part picked there scrolls to it and goes in the address
@@ -290,7 +290,7 @@ Each part ends in an "In Involo" box whose link goes to the real place: the pilo
     line-height: normal;
   }
   /* The parts list, the column and the phone's page keep the browser's scrollbar, as the Glossary
-     does (owner, How review): desktop shows it in the theme's colors (app.css), phones draw their own. */
+     does (How review): desktop shows it in the theme's colors (app.css), phones draw their own. */
   /* Phone header (HowPhone): 56 px and its rule, the back icon, the title and "Part n of 7". */
   .top {
     display: flex;

@@ -30,6 +30,7 @@ const flight = (values: Partial<Record<FillField, string>> = {}, notes = ""): Fl
     blanks: {},
     notes,
     timers: {},
+    answers: {},
   }) as Flight;
 const settings = { descriptions: true, simbriefUser: null } as unknown as Settings;
 const METAR: Decoded = {
@@ -316,15 +317,23 @@ describe("FlightPage", () => {
     expect(screen.getByRole("button", { name: "More about wind" }).tagName).toBe("BUTTON");
   });
 
-  it("Weather's ? says where the code is defined, in plain words", async () => {
+  it("Weather's ? names the kind of source the code comes from, with no section numbers", async () => {
     page({ section: "weather", plan, flight: flight({ origin: "KSEA", qnh: "30.12", qnh_unit: "inHg" }) });
     await screen.findByText("Observed 17:53 UTC");
     await fireEvent.click(screen.getByRole("button", { name: "More about wind" }));
-    expect(screen.getByText(/Defined in the WMO's METAR code \(FM 15\), regulation 15\.5\./)).toBeTruthy();
+    expect(screen.getByText("Part of the international METAR code (WMO).")).toBeTruthy();
+    // The kind of source only: no section numbers on the page.
+    expect(document.body.textContent).not.toMatch(/regulation \d|section \d|FM 15/);
     await fireEvent.click(screen.getByRole("button", { name: "More about the altimeter setting" }));
-    expect(
-      screen.getByText(/US practice, defined in the FAA's aviation weather guidance, section 3\.1\.5\.11\./),
-    ).toBeTruthy();
+    expect(screen.getByText("US practice (FAA weather guidance).")).toBeTruthy();
+  });
+
+  it("Fuel and weights shows the center tank's share of the block fuel, read-only, as the suggestion reads it", async () => {
+    page({ section: "fuel", plan, flight: flight({}), centerTank: "1,262 kg" });
+    const row = (await screen.findByText("Center tank")).closest(".row, li, tr, [data-row]") ?? document.body;
+    expect(row.textContent).toContain("1,262 kg");
+    expect(row.textContent).toContain("What's left after both wing tanks fill.");
+    expect(screen.queryByRole("textbox", { name: /Center tank/ })).toBeNull();
   });
 
   it("Weather without a plan: the empty state, and the Altimeter still to enter", async () => {

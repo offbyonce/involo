@@ -329,6 +329,7 @@ sections:
         x: 113
         "y": 265
         controls:
+          - ctrpumps
           - fuelpumps
         positions: "OFF, ON"
         rest: "OFF"
@@ -338,6 +339,7 @@ sections:
         x: 188
         "y": 265
         controls:
+          - ctrpumps
           - fuelpumps
         positions: "OFF, ON"
         rest: "OFF"

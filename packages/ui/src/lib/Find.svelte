@@ -14,7 +14,8 @@ matches “…”". Esc, the scrim and the back button close it.
 <script lang="ts">
   import type { Rail } from "@involo/bindings";
   import { onMount, tick } from "svelte";
-  import { type FindControl, type FindIndex, type FindTerm, type FoundStep, findIn, findOnly, marked } from "./find-index";
+  import { answered } from "./answers.svelte";
+  import { type FindControl, type FindIndex, type FindTerm, type FoundStep, findIn, findOnly, foundValue, marked } from "./find-index";
   import Icon from "./Icon.svelte";
   import { trapFocus } from "./trap";
 
@@ -41,7 +42,7 @@ matches “…”". Esc, the scrim and the back button close it.
     findKey?: string;
     onStep: (id: string) => void;
     onControl: (control: FindControl) => void;
-    /** A term opens the Glossary at that term (owner), in place of its definition. */
+    /** A term opens the Glossary at that term, in place of its definition. */
     onTerm?: (term: string) => void;
     onClose: () => void;
     /** Opened on a set of steps (References' simulator model notes): their name, and the steps. */
@@ -143,7 +144,7 @@ matches “…”". Esc, the scrim and the back button close it.
 
 <svelte:window onkeydown={onKey} />
 
-<!-- The match marked in a title, a step's value or a term's definition (owner, batch 6). -->
+<!-- The match marked in a title, a step's value or a term's definition (batch 6). -->
 {#snippet title(text: string)}
   {@const m = marked(text, query)}
   {#if m}{m[0]}<mark>{m[1]}</mark>{m[2]}{:else}{text}{/if}
@@ -225,7 +226,7 @@ matches “…”". Esc, the scrim and the back button close it.
               >
               <span class="txt"
                 ><span class="t">{@render title(s.title)}</span><span class="sub"
-                  ><span>{s.stage} › {s.phaseTitle}</span><span class="val">{@render title(s.value)}</span></span
+                  ><span>{s.stage} › {s.phaseTitle}</span><span class="val">{@render title(foundValue(s, answered.options))}</span></span
                 ></span
               >
               <span class="end">{#if st === "current"}<span class="now">Current</span>{/if}<Icon name="chevron-right" /></span>
@@ -519,7 +520,7 @@ matches “…”". Esc, the scrim and the back button close it.
     color: var(--color-text-muted);
     font-size: calc(var(--font-size-caption) + var(--border-thin));
   }
-  /* A long value clamps to two lines (owner, batch 6). */
+  /* A long value clamps to two lines (batch 6). */
   .val {
     display: -webkit-box;
     overflow: hidden;

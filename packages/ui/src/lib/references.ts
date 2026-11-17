@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// References (owner's References boards; decision 0007): what each list is based on, as the
+// References (References boards; decision 0007): what each list is based on, as the
 // kind of source its pack basis tag stands for, never a citation, title, page or link. Everything
 // is counted from the pack.
 

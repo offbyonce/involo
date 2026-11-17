@@ -63,7 +63,7 @@ Drawing tokens (`panel.*`), document tokens (`paper*`), toast and emergency-head
 
 Recorded as found, not resolved here:
 
-- **border** (resolved by the owner): `#2a323e` / `#d3d9e1` is canonical, as on the design rules board. `#2f3846` / `#c9d0d9` had drifted into Mobile, SimBrief, Start, StripOpen and Tablet; those boards are now corrected.
+- **border** (resolved): `#2a323e` / `#d3d9e1` is canonical, as on the design rules board. `#2f3846` / `#c9d0d9` had drifted into Mobile, SimBrief, Start, StripOpen and Tablet; those boards are now corrected.
 - **segTrack (dark)**: `#121720` on most boards; `#0f1218` on Menu and Mobile.
 - **surface (dark)**: `#121720` on Menu (it uses the sheet color as its surface).
 - **scrim (dark)**: 0.55 on Menu and Tablet, 0.60 on Mobile. Pop-over boards use 0.45 to 0.50 in their own `O` object.
@@ -137,7 +137,7 @@ Dark theme draws no shadows on controls; light theme uses one-pixel shadows.
 - **Current stage (header nav)**: `inset 0 -3px 0 color.accent` underline, weight 600, color.strong.
 - **Current step tab**: color.accentSoft fill plus the 1.5 px accent ring.
 - **Current checklist row**: color.current fill plus `inset 4px 0 0 color.accent`.
-- **Keyboard focus** (approved by the owner): `outline: 2px solid color.accent; outline-offset: 2px` on every focusable element, shown only with `:focus-visible`, never on click. It sits outside the control, so it never collides with the 1.5 px inset selection ring; a selected control that has focus shows both. color.accent passes 3:1 on both backgrounds (5.86:1 dark, 4.82:1 light). No new token. Drawn on the design rules board.
+- **Keyboard focus**: `outline: 2px solid color.accent; outline-offset: 2px` on every focusable element, shown only with `:focus-visible`, never on click. It sits outside the control, so it never collides with the 1.5 px inset selection ring; a selected control that has focus shows both. color.accent passes 3:1 on both backgrounds (5.86:1 dark, 4.82:1 light). No new token. Drawn on the design rules board.
 
 ## 8. Iconography
 

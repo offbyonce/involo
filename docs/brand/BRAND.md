@@ -121,7 +121,7 @@ Transparent where the platform allows it; color.bg.dark where it forces a square
 Why transparent vs solid:
 
 - **Windows, Linux, PWA "any", Windows Store**: the OS allows transparency, so no box (rule: no tile where we control it). Windows plates Store tiles itself.
-- **macOS** (approved by the owner as a platform exception to "no box"): macOS 26 puts any icon without the standard rounded-square plate into a gray box, so the plate is forced; it uses color.bg.dark.
+- **macOS** (a platform exception to "no box"): macOS 26 puts any icon without the standard rounded-square plate into a gray box, so the plate is forced; it uses color.bg.dark.
 - **iOS/iPadOS, Android adaptive, PWA maskable, Apple touch**: the platform forces a square or masks a full-bleed layer; color.bg.dark.
 
 To regenerate the platform set from one source, `tauri icon icons/desktop/icon.png` writes Tauri's names; but it would plate nothing for macOS and use the universal mark there. Keep `icon.icns` from this kit (or rebuild it from `macos-icon-1024.png`).
@@ -139,7 +139,7 @@ Calm, precise, instructional. Say what to do and why, in the order you'd do it, 
 5. **Small cut: kept for two colors (no crease); changed for one color.** Without the tile, the one-color small cut lost the fold entirely and became the Lucide/Feather send silhouette. It now keeps a 4-unit crease. Also fixed: two abutting fills showed an anti-aliasing seam on the fold line, so the upper fold now runs 0.8 units under the lower one in the small files.
 6. **Trail dots: dropped** (from the review).
 7. **Universal colors: added.** Transparent OS icons and the favicon fallback can land on either a light or a dark surface. White-plus-blue vanishes on white; near-black-plus-blue vanishes on dark. Upper fold color.accent.light plus lower fold color.accent.dark keeps one fold at 4.82:1 or better on light and 5.86:1 on dark. The lower fold dips to 2.98:1 on #f5f7fa; accepted, because the upper fold carries the silhouette there.
-8. **Wordmark: Geist SemiBold, −0.02 em, lowercase "involo"** (the review's choice; lowercase keeps the owner's approved wordmark form). Outlined with fontTools from the official `geist` npm package, with kerning applied by HarfBuzz.
+8. **Wordmark: Geist SemiBold, −0.02 em, lowercase "involo"** (the review's choice; lowercase keeps the approved wordmark form). Outlined with fontTools from the official `geist` npm package, with kerning applied by HarfBuzz.
 9. **Lockup proportions**: plane 0.9 em (tried 0.8 em: the plane looked timid next to the wordmark), centered on 0.36 em, gap 0.30 em.
 10. **Header**: the tile was 22 px; the tileless small mark is 18 × 15 px in a tight box with a 4 px gap, which keeps the same visual weight and the header's layout. Wordmark stays 17 px.
 11. **macOS gets a plate**, because macOS 26 boxes icons without one; every other desktop icon is transparent.

@@ -95,6 +95,39 @@ source: crates/pack-cli/tests/snapshot.rs
           "label": "Off"
         }
       ]
+    },
+    {
+      "id": "center_tank",
+      "title": "Center tank",
+      "values": [
+        "more",
+        "less"
+      ],
+      "default": "less",
+      "description": "The center tank holds",
+      "choices": [
+        {
+          "value": "more",
+          "label": "More than 1,000 lb (450 kg)"
+        },
+        {
+          "value": "less",
+          "label": "1,000 lb (450 kg) or less"
+        }
+      ],
+      "suggests": {
+        "field": "fuel",
+        "unit": "kg",
+        "minus": 7738,
+        "more_than": 450,
+        "near": 225,
+        "other_unit": {
+          "more_than": 1000,
+          "near": 500
+        },
+        "then": "more",
+        "otherwise": "less"
+      }
     }
   ],
   "turnaround": {

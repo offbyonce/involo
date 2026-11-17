@@ -61,6 +61,32 @@ options:
         label: "On"
       - value: "off"
         label: "Off"
+  - id: center_tank
+    title: Center tank
+    description: The center tank holds
+    values:
+      - more
+      - less
+    default: less
+    choices:
+      - value: more
+        label: More than 1,000 lb (450 kg)
+      - value: less
+        label: 1,000 lb (450 kg) or less
+    # The plan's block fuel less what the two wing tanks hold (3,869 kg each, observed in the
+    # simulator model's EFB; the wing tanks fill first). Within 225 kg of the line, the app says so.
+    suggests:
+      field: fuel
+      unit: kg
+      minus: 7738
+      more_than: 450
+      near: 225
+      # A pound flight is held to the choices' 1,000 lb, with 500 lb as its margin.
+      other_unit:
+        more_than: 1000
+        near: 500
+      then: more
+      otherwise: less
 # Steps in Essentials only on a turnaround (quick: turnaround) count when this holds.
 turnaround:
   option: start

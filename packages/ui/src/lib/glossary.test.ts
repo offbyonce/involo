@@ -14,7 +14,7 @@ const pack = Object.values(
   }),
 )[0] as FlatPack;
 
-describe("the expansion (owner, Glossary answer 1)", () => {
+describe("the expansion (Glossary answer 1)", () => {
   it("is the first sentence of an abbreviation's definition when it is a short name", () => {
     expect(split("APU", "Auxiliary power unit. A small turbine in the tail.")).toEqual({
       expansion: "Auxiliary power unit",
@@ -82,7 +82,7 @@ describe("the Glossary", () => {
   });
 });
 
-describe("the reviewed exceptions (owner)", () => {
+describe("the reviewed exceptions", () => {
   it("gives no expansion to the terms whose first sentence reads as a description, each still in the pack", () => {
     const terms = pack.content.glossary?.terms ?? [];
     for (const name of NO_EXPANSION) {

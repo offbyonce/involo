@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-Practice (the owner's Practice boards and README): a test engine whose questions are generated
+Practice (Practice boards and README): a test engine whose questions are generated
 from the pack (lib/practice.ts). Home: the ready-made tests, Build a test (topics with their counts,
 stages, 10, 20 or 40 questions, feedback after each or at the end) and the last result. A test:
 the progress row (question N of M, the bar, the running score), a multiple-choice question (keys 1
@@ -80,7 +80,7 @@ the latest; a test's questions and answers last only for this visit.
   let ready = $derived([
     { title: "Memory items", sub: `${memoryLists} lists · every item, in order`, topics: ["memory"] as Topic[], stages, count: 10, feedback: "each" as Feedback },
     { title: "Lights of the flight deck", sub: `${fmt(lightCount)} lights and what they mean`, topics: ["lights"] as Topic[], stages, count: 20, feedback: "each" as Feedback },
-    // Preflight, and Departure up to and including Engine start, by the pack's phase ids (owner).
+    // Preflight, and Departure up to and including Engine start, by the pack's phase ids.
     { title: "Before engine start", sub: `${andList(engineStart.stages)}: values, order, locations`, topics: ["values", "order", "where"] as Topic[], stages: engineStart.stages, phases: engineStart.phases, count: 20, feedback: "each" as Feedback },
     { title: "Check ride", sub: "Every topic, every stage", topics: TOPICS.map((t) => t.id), stages, count: 40, feedback: "end" as Feedback },
   ]);
@@ -434,8 +434,8 @@ the latest; a test's questions and answers last only for this visit.
   {#if locked && t.feedback === "each" && answer !== x.answer}
     <div class="fb" role="status">
       <span class="fb-title">Not this one</span>
-      <!-- What the chosen option really is, then the right one (the board's feedback; owner). -->
-      <!-- Each on its own line (owner). -->
+      <!-- What the chosen option really is, then the right one (the board's feedback). -->
+      <!-- Each on its own line. -->
       {#each [x.about[x.options[answer as number] ?? ""], x.why].filter(Boolean) as line}<span class="fb-why">{line}</span>{/each}
       {@render links(x.links)}
     </div>
@@ -1340,7 +1340,7 @@ the latest; a test's questions and answers last only for this visit.
     padding: calc(var(--space-3) + var(--border-thick)) var(--space-4);
   }
   /* Phone: "Your answer" and "Correct answer" on their own line under the text, which keeps the
-     full width (owner). */
+     full width. */
   .practice:not(.wide) .opt {
     display: grid;
     grid-template-columns: var(--space-8) minmax(0, 1fr);

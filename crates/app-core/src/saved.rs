@@ -36,7 +36,18 @@ pub enum Loaded<T> {
 pub(crate) type Migration = fn(Value) -> Result<Value, String>;
 
 /// Migrations for [`Flight`]: entry `i` turns format `i + 1` into format `i + 2`.
-const FLIGHT_MIGRATIONS: &[Migration] = &[flight_1_to_2];
+const FLIGHT_MIGRATIONS: &[Migration] = &[flight_1_to_2, flight_2_to_3];
+
+/// Format 3 records how each decision was answered. Format 2 had no plan suggestions, so it
+/// starts with no records, and an answered option with no record reads as answered by the pilot.
+fn flight_2_to_3(mut value: Value) -> Result<Value, String> {
+    let object = value.as_object_mut().ok_or("the flight is not an object")?;
+    if object.contains_key("answers") {
+        return Ok(value);
+    }
+    object.insert("answers".into(), Value::Object(serde_json::Map::new()));
+    Ok(value)
+}
 
 /// Format 2 adds the steps a panel state ticked or skipped (none yet in an older flight) and new
 /// fill fields (destination QNH, arrival runway, STAR, alternate, tower frequency, thrust
@@ -179,7 +190,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn a_format_1_flight_loads_as_format_2_unchanged() {
+    fn a_format_1_flight_loads_as_the_current_format_unchanged() {
         let pack = crate::test_support::ifly_pack();
         let mut flight = crate::new_flight(&pack);
         flight
@@ -195,12 +206,54 @@ mod tests {
             panic!("did not load");
         };
         assert_eq!(migrated_from, Some(1));
-        assert_eq!(value.format, 2);
+        assert_eq!(value.format, FLIGHT_FORMAT);
         assert_eq!(
             value.values, flight.values,
             "the departure QNH stays; the destination's is new"
         );
         assert!(value.state_ticks.is_empty());
+        assert!(value.answers.is_empty());
+    }
+
+    #[test]
+    fn a_frozen_format_2_flight_keeps_everything_and_gains_empty_answers() {
+        // Written by the app at format 2 (kept as it was, never regenerated).
+        let text = include_str!("../tests/fixtures/flight-format-2.json");
+        let Loaded::Ready {
+            value,
+            migrated_from,
+        } = load_flight(text)
+        else {
+            panic!("the format 2 flight did not load");
+        };
+        assert_eq!(migrated_from, Some(2));
+        assert_eq!(value.format, FLIGHT_FORMAT);
+        assert_eq!(value.options["power"], "apu");
+        let battery = checklist_core::StepId::new("ifly-737-max8.cold-dark.battery-switch");
+        assert_eq!(value.session.done_at(&battery), Some(1_763_110_000_000));
+        assert_eq!(value.values[&checklist_core::FillField::Qnh], "29.92");
+        assert_eq!(value.notes, "Taxi via A, hold short 16L");
+        assert!(value.answers.is_empty());
+        // It saves back at the current format and reads again unchanged.
+        let again = serde_json::to_string(&value).unwrap();
+        assert_eq!(
+            load_flight(&again),
+            Loaded::Ready {
+                value,
+                migrated_from: None
+            }
+        );
+    }
+
+    #[test]
+    fn a_flight_from_a_newer_app_is_not_read() {
+        let mut flight =
+            serde_json::to_value(crate::new_flight(&crate::test_support::ifly_pack())).unwrap();
+        flight["format"] = json!(FLIGHT_FORMAT + 1);
+        assert!(matches!(
+            load_flight(&flight.to_string()),
+            Loaded::Newer { .. }
+        ));
     }
 
     #[test]

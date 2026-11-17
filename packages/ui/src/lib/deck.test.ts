@@ -19,7 +19,7 @@ const zone = (id: string) => {
   return z;
 };
 
-describe("the Flight deck's areas (owner; Deck board)", () => {
+describe("the Flight deck's areas (Deck board)", () => {
   const areas = deckAreas(index);
 
   it("are the board's seven, the console split by the pack's area names, then Around the flight deck", () => {

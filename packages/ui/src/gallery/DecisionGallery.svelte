@@ -33,6 +33,7 @@ choices, Confirm, Change, Keep this answer and Undo all work, as in the app.
     blanks: {},
     notes: "",
     timers: {},
+    answers: {},
   };
 
   // svelte-ignore state_referenced_locally

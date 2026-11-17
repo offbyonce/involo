@@ -35,7 +35,7 @@ const VIEWPORTS = {
 const THEMES = { dark: 0, light: 1 };
 
 const click = (selector, n = 0) => `document.querySelectorAll(${JSON.stringify(selector)})[${n}].click(); true`;
-/** Practice (owner's boards): plays tests until the screen is in a board's state. "light": a light
+/** Practice (boards): plays tests until the screen is in a board's state. "light": a light
  * meaning answered wrong with feedback after each; "order": a step order question with its second
  * step picked up; "results": a custom test without memory items, every question answered;
  * "earlier": the Lights test finished, back home with "Earlier this visit"; "engine": the Before
@@ -203,6 +203,9 @@ const BOARD_STATE = [
   stepNamed("MCP", ".tick"),
   stepNamed("DOOR LIGHTS", ".tick"),
   skipStep("TERR (EFIS"),
+  // Center tank fuel, as the Checklist boards answer it (1,000 lb or less: center pumps OFF), when
+  // the pack asks it.
+  `[...document.querySelectorAll("button.choice")].find((b) => b.textContent.includes("1,000 lb (450 kg) or less"))?.click(); true`,
 ];
 /** Opens the list step `title` and its narrow-screen details (its chevron first if it is closed). */
 /** Show map on the pane's location line (where the drawing took the map figure's room). */
@@ -493,7 +496,7 @@ const SHOTS = [
     only: ["desktop", "wide", "tablet-landscape"],
     app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go(`#/flight/${section}`)] },
   })),
-  // Every placeholder fits at the narrow sizes too (owner, batch 4 review).
+  // Every placeholder fits at the narrow sizes too (batch 4 review).
   ...["takeoff", "approach"].map((section) => ({
     name: `flight-${section}`,
     full: true,
@@ -527,6 +530,9 @@ const SHOTS = [
     app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE, tap(".fsline"), click("button.freq")] },
   },
   // The tablet and phone boards draw no menu; tablet portrait and phone open the step in place.
+  // Center tank fuel still asking, with the plan's suggestion (DecSuggested): the boards' state
+  // without its answer.
+  { name: "center-tank-suggested", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE.slice(0, -1)] } },
   { name: "board-checklist", full: true, only: ["tablet-landscape", "tablet", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE] } },
   // Batch 5: the menu drawer at every size (Menu, Tablet and Mobile boards), the stage and phase
   // picker (StagePicker), the tablet portrait and phone panel sheets, and phone's open-steps sheet.
@@ -559,13 +565,13 @@ const SHOTS = [
   // The decision step on phone (DecPhone), from the design gallery's invented fixture (the pack has
   // no decision step yet).
   { name: "board-decision", only: ["phone"], app: { hash: "", page: "design/?view=decision&state=phone&theme={theme}" } },
-  // Batch 6 panels (owner): a step's sheet and side-pane preview card, opened by P, for each step in
+  // Batch 6 panels: a step's sheet and side-pane preview card, opened by P, for each step in
   // INVOLO_STEPS (a local file of "phase|reference <tab> phase id <tab> step id [<tab> number]" lines), named
   // tiles-<n>.
   ...stepShots(),
   // The PanelTiles board's step: the wiper selectors, their sheet and the deck map open.
   { name: "board-tiles", only: ["desktop"], app: { hash: "#/phase/cold-dark", before: [openStep("phase", "cold-dark", "ifly-737-max8.cold-dark.wiper-selectors"), press("p")] } },
-  // The same sheet with the L WIPER selector picked: its one round selection ring (owner's fix).
+  // The same sheet with the L WIPER selector picked: its one round selection ring (fix).
   { name: "tiles-picked", only: ["desktop"], app: { hash: "#/phase/cold-dark", before: [openStep("phase", "cold-dark", "ifly-737-max8.cold-dark.wiper-selectors"), press("p"), pick("L WIPER", ".slideout")] } },
   // Each phone-sized panel sheet once (upright and sideways), for a row of tiles and a stack.
   ...["ifly-737-max8.cold-dark.wiper-selectors", "ifly-737-max8.landing.speedbrake-lever"].flatMap((id, n) => [
@@ -586,23 +592,23 @@ const SHOTS = [
     },
   })),
   { name: "board-menu-where", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click('[aria-controls="drawer"]'), click("#drawer .wlink")] } },
-  // The Flight deck (owner; Deck, PhoneDeck): the forward overhead with the fuel panel selected, as
+  // The Flight deck (Deck, PhoneDeck): the forward overhead with the fuel panel selected, as
   // the boards show; at 1280 px, the area list and the area, the panel in its slide-out.
   { name: "board-deck", only: ["desktop", "phone", "laptop"], app: { hash: "#/deck/forward-overhead/fuel" } },
-  // The owner's panel-highlight bug: the aft overhead's test switches with MACH TEST 1 picked, by
+  // The panel-highlight bug: the aft overhead's test switches with MACH TEST 1 picked, by
   // pointer and from the keyboard (its focus ring shown).
   { name: "deck-picked", only: ["desktop"], app: { hash: "#/deck/aft-overhead/atest", before: [pick("MACH TEST 1")] } },
   { name: "deck-picked-key", only: ["desktop"], app: { hash: "#/deck/aft-overhead/atest", before: pickByKey("MACH TEST 1") } },
   // The selected panel's "Full size ›": the panel sheet at full size, with its navigator when wider.
   { name: "board-deck-full", only: ["desktop", "phone"], app: { hash: "#/deck/forward-overhead/fuel", before: [click(".deck-panel .full")] } },
-  // Practice (owner; PracticeHome, PracticeQuestion, PracticeOrder, PracticeResults), each in its
+  // Practice (PracticeHome, PracticeQuestion, PracticeOrder, PracticeResults), each in its
   // board's state; the desktop home after a finished test shows "Earlier this visit", as PracticeHome.
   { name: "board-practice-home", only: ["desktop"], app: { hash: "#/practice", before: [practice("earlier")] } },
   { name: "board-practice-home-phone", only: ["phone"], app: { hash: "#/practice" } },
   { name: "board-practice-question", only: ["desktop", "phone"], app: { hash: "#/practice", before: [practice("light")] } },
   { name: "board-practice-order", only: ["desktop"], app: { hash: "#/practice", before: [practice("order")] } },
   { name: "board-practice-results", only: ["desktop", "phone"], app: { hash: "#/practice", before: [practice("results")] } },
-  // Before engine start: Preflight and Departure up to and including Engine start (owner).
+  // Before engine start: Preflight and Departure up to and including Engine start.
   // The tour (Tour boards): the welcome over the Checklist board's state, step 2, the end; and steps
   // 3 to 6 at desktop.
   { name: "board-tour-welcome", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenWelcome] } },
@@ -611,26 +617,26 @@ const SHOTS = [
   ...[3, 4, 5, 6].map((n) => ({ name: `tour-step-${n}`, tour: true, only: n <= 4 ? ["desktop", "phone"] : ["desktop"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(n - 2)] } })),
   { name: "practice-paired-light", only: ["desktop"], app: { hash: "#/practice", before: [practice("pair")] } },
   { name: "practice-engine-start", only: ["desktop"], app: { hash: "#/practice", before: [practice("engine")] } },
-  // The Glossary (owner): desktop at APU as the boards show, the phone's list, and APU on phone.
+  // The Glossary: desktop at APU as the boards show, the phone's list, and APU on phone.
   { name: "board-glossary", only: ["desktop"], app: { hash: "#/glossary/APU" } },
   { name: "board-glossary-list", only: ["phone"], app: { hash: "#/glossary" } },
   { name: "board-glossary-term", only: ["phone"], app: { hash: "#/glossary/APU" } },
-  // How procedures work (owner; HowDesk, HowPhone): part 2 as the boards show it, whole; and each
+  // How procedures work (HowDesk, HowPhone): part 2 as the boards show it, whole; and each
   // part at desktop.
   // From Before start, the boards' phase, so the In Involo links name it.
   { name: "board-how", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go("#/how/2")] } },
-  // The Flight log (owner; LogDesk, LogPhone, LogPhoneFlight): the board's flight ticked as the
+  // The Flight log (LogDesk, LogPhone, LogPhoneFlight): the board's flight ticked as the
   // boards show it, the stand-in log, the Sat 14 Nov flight opened on desktop and on its own page on
   // phone; and an empty log (round 6's Log view).
   { name: "board-log", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLog, go(`#/log/${LOG_OPEN}`)] } },
   { name: "board-log-list", full: true, only: ["phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLog, go("#/log")] } },
-  // References (owner; RefsDesk, RefsPhone): the whole page, and Find opened on its simulator
+  // References (RefsDesk, RefsPhone): the whole page, and Find opened on its simulator
   // model steps.
   { name: "board-refs", full: true, only: ["desktop", "phone", "tablet", "tablet-landscape"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/references")] } },
   { name: "refs-sim-find", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/references"), click(".sim .more")] } },
   { name: "board-log-empty", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/log")] } },
   ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ name: `how-part-${n}`, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go(`#/how/${n}`)] } })),
-  // The phone list with its fold opened: each later list starts with its label row (owner, batch 6).
+  // The phone list with its fold opened: each later list starts with its label row (batch 6).
   { name: "board-phone-fold", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("button.after"), click("button.card.folded"), `(() => { [...document.querySelectorAll("section.card > p.label")].find((p) => p.offsetParent)?.scrollIntoView({ block: "center" }); return true; })()`] } },
   { name: "board-phone-open", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click(".prow .open")] } },
   // Round 6's slide-out: Show panel (P), Where is this? (W), and a control's card (tap CTR L).

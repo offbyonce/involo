@@ -8,7 +8,7 @@ Date: 2026-11-12. Status: proposed. Replaces the proposed [0020](0020-design-sys
 withdrawn.
 
 ## Context
-The owner approved an interface design after five rounds of mockups and an independent review.
+An interface design was approved after five rounds of mockups and an independent review.
 The handoff is in [docs/design/](../design/README.md). 0020's tokens and breakpoints were drafted
 before it and differ from it. 3.0 stays the reference for features, not for layout.
 

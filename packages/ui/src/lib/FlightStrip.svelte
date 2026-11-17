@@ -4,8 +4,8 @@ SPDX-License-Identifier: MIT
 
 The flight strip (Checklist board, 48 px, closed): the route, Runway, SID, Initial altitude,
 Squawk and Departure frequency (a dash when empty), the notes count and a chevron. With nothing
-entered yet it reads "Add your flight: import from SimBrief or enter the clearance" (owner,
-batch 3). The whole strip, the prompt too, opens the strip panel (StripOpen, StripFreq): it drops
+entered yet it reads "Add your flight: import from SimBrief or enter the clearance" (batch
+3). The whole strip, the prompt too, opens the strip panel (StripOpen, StripFreq): it drops
 below the strip over a scrim with the clearance fields, Frequencies (ground, tower, departure),
 Notes from ATC, and a footer with Import latest from SimBrief, where the values came from, Reset
 flight plan (Undo after, in the shared toast) and All flight data, the Flight pages.
@@ -69,7 +69,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
 
   let open = $state(false);
   /** Opened with a pointer: the cursor goes to Runway, but its ring shows only once a key is
-   * pressed (owner: the ring is for keyboard focus). */
+   * pressed (the ring is for keyboard focus). */
   let quiet = $state(false);
   const message = (field: FillField) => rangeMessage(field, { values, plan: null, notes, unit: "" });
   let freqOpen = $state(false);
@@ -209,7 +209,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
         </div>
         <label class="notesbox">
           Notes from ATC
-          <textarea id="sp-notes" value={notes} placeholder="Jot down what ATC says: frequency changes, re-clearances, taxi route" oninput={(e) => onNotes(e.currentTarget.value)}></textarea>
+          <textarea id="sp-notes" value={notes} placeholder="Write down what ATC tells you." oninput={(e) => onNotes(e.currentTarget.value)}></textarea>
         </label>
         <!-- Phone (Mobile board): Import sits under the notes, the footer's is hidden. -->
         <button class="btn import below" type="button" onclick={onImport}>Import latest from SimBrief</button>

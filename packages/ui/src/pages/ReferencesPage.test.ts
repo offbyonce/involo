@@ -48,14 +48,14 @@ describe("References, desktop (RefsDesk)", () => {
     );
     expect([...container.querySelectorAll(".kind")].map((k) => cells(k.querySelector(".kt")))).toEqual([
       "Simulator documentation 36 lists",
-      "Regulator guidance 7 lists",
+      "Regulator guidance 8 lists",
     ]);
     expect(words(container.querySelector(".line"))).toBe(
-      "22 lists are marked Source being confirmed: they came from an earlier release and are being checked against the sources above.",
+      "21 lists are marked Source being confirmed: they came from an earlier release and are being checked against the sources above.",
     );
   });
 
-  it("filters by source with the chips, in the owner's order, and shows the first six until Show all", async () => {
+  it("filters by source with the chips, in the order, and shows the first six until Show all", async () => {
     const { container } = render(ReferencesPage, base);
     const chips = within(screen.getByRole("group", { name: "Show lists based on" })).getAllByRole("button");
     expect(chips.map((c) => c.textContent)).toEqual([
@@ -80,12 +80,12 @@ describe("References, desktop (RefsDesk)", () => {
     expect(chips[3]?.getAttribute("aria-pressed")).toBe("true");
     // A new filter starts at its first six again.
     expect(rows()).toHaveLength(6);
-    await fireEvent.click(screen.getByRole("button", { name: "Show all 22 lists" }));
-    expect(rows()).toHaveLength(22);
-    expect(container.querySelectorAll(".tag.confirming")).toHaveLength(22);
+    await fireEvent.click(screen.getByRole("button", { name: "Show all 21 lists" }));
+    expect(rows()).toHaveLength(21);
+    expect(container.querySelectorAll(".tag.confirming")).toHaveLength(21);
     await fireEvent.click(chips[2] as HTMLElement);
     expect(rows()).toHaveLength(6);
-    expect(screen.getByRole("button", { name: "Show all 7 lists" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Show all 8 lists" })).toBeTruthy();
   });
 
   it("opens a list at its first step, and Find on the simulator model steps", async () => {
@@ -140,7 +140,7 @@ describe("References, desktop (RefsDesk)", () => {
 });
 
 describe("References, phone (RefsPhone)", () => {
-  it("stacks the rows, keeps the chips (owner), and the shorter line under the heading", async () => {
+  it("stacks the rows, keeps the chips, and the shorter line under the heading", async () => {
     phone();
     const { container } = render(ReferencesPage, base);
     expect(screen.getByRole("link", { name: "Back to checklist" })).toBeTruthy();

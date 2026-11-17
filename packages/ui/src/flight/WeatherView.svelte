@@ -117,17 +117,16 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
   /** Where a decoded value goes in the cockpit, as the Weather board words it. */
   const LOC: Partial<Record<Element, string>> = { wind: "Enter on the CDU › TAKEOFF REF", temperature: "Enter on the CDU › TAKEOFF REF" };
   /**
-   * Where a row's code is defined, in plain words (the code table's verified section, owner
-   * 2026-11-14): "FM 15 · 15.5" is regulation 15.5 of the WMO's METAR code; "US · 3.1.5.6" is that
-   * section of the FAA's aviation weather guidance. A row with no verified section says nothing.
+   * Where a row's code comes from, as the kind of source only: the WMO's METAR or TAF code, or US
+   * practice. The verified section numbers stay in the code table (weather.rs), not on the page.
+   * A row with no verified section says nothing.
    */
   function definedIn(source: string): string {
     const [code, section] = source.split(" · ");
     if (!section) return "";
-    const part = section.startsWith("note") ? `${section} to the code` : `regulation ${section}`;
-    if (code === "FM 15") return `Defined in the WMO's METAR code (FM 15), ${part}.`;
-    if (code === "FM 51") return `Defined in the WMO's TAF code (FM 51), ${part}.`;
-    if (code === "US") return `US practice, defined in the FAA's aviation weather guidance, section ${section}.`;
+    if (code === "FM 15") return "Part of the international METAR code (WMO).";
+    if (code === "FM 51") return "Part of the international TAF code (WMO).";
+    if (code === "US") return "US practice (FAA weather guidance).";
     return "";
   }
   const ORDINAL = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth"];
@@ -185,7 +184,7 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
     return {
       section: 5,
       title: `${label} is in the weather section`,
-      body: "The OFP is the document SimBrief prints for the flight. Its sections come in the same order every time.",
+      body: "The OFP is the document SimBrief prints for the flight. The order of its sections depends on the layout you chose.",
       cap: "Close-up, weather section",
       close: () => parts,
       note: first >= 0 ? `${label} is the ${ORDINAL[first] ?? `${first + 1}th`} group${first === 2 ? ", after the airport and the time" : ""}.` : "",
@@ -252,7 +251,7 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
   let windsOfp = $derived<Ofp>({
     section: 3,
     title: "Winds are in the navigation log",
-    body: "The OFP is the document SimBrief prints for the flight. Its sections come in the same order every time.",
+    body: "The OFP is the document SimBrief prints for the flight. The order of its sections depends on the layout you chose.",
     cap: "Close-up, one navigation log line",
     close: () => {
       const cruise = fixes.filter((f) => f.windDir != null && (f.stage ?? "").toUpperCase() === "CRZ").slice(0, 2);

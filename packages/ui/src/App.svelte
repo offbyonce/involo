@@ -25,13 +25,15 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     type Rail,
     type OpenStep,
     type SavedPlan,
+    type Suggestion,
     type Settings,
   } from "@involo/bindings";
   import { getHost, type SavedItem } from "./host";
   import type { Opening } from "./lib/opening";
   import Slideout from "./lib/Slideout.svelte";
   import Toast from "./lib/Toast.svelte";
-  import { changedText, dependsOn, type DecisionSource, type Decisions } from "./lib/decision";
+  import { answered } from "./lib/answers.svelte";
+  import { changedText, dependsOn, labelOf, lowerFirst, shortLabel, type DecisionSource, type Decisions } from "./lib/decision";
   import { stepTitle } from "./lib/sentence";
   import StepPane from "./lib/StepPane.svelte";
   import Drawer from "./lib/Drawer.svelte";
@@ -71,7 +73,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
 
   /**
    * The list (the page) and the side pane scroll on their own with no scrollbar, as on the boards;
-   * edge fades show where there is more (the owner, batch 2). Wheel, trackpad, touch and keys
+   * edge fades show where there is more (batch 2). Wheel, trackpad, touch and keys
    * scroll them as usual.
    */
   let pageMore = $state({ up: false, down: false });
@@ -149,12 +151,12 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let findIndex = $state<FindIndex | null>(null);
   /** The loaded pack, for Practice's question generator. */
   let flatPack = $state.raw<FlatPack | null>(null);
-  /** The Glossary (owner): every term A to Z, with the steps that use it. */
+  /** The Glossary: every term A to Z, with the steps that use it. */
   let glossary = $derived(index && findIndex ? buildGlossary(index, findIndex.terms, findIndex.steps) : []);
   let findOpen = $state(false);
   /** Find opened on a set of steps (References' simulator model notes), or on everything. */
   let findScope = $state<{ label: string; steps: string[] } | null>(null);
-  /** References (owner's References boards), counted from the pack. */
+  /** References (References boards), counted from the pack. */
   let references = $derived(flatPack ? buildReferences(flatPack, rail) : null);
   let findOpener: HTMLElement | null = null;
   const findKey = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "⌘K" : "Ctrl K";
@@ -648,10 +650,50 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   /**
    * Decision steps (decision 0022): the answer sets the option for the flight and ticks the step;
    * Change reopens the choices on the row, in place, and a changed answer offers Undo. How each
-   * answer was given is kept for this session; a plan suggestion comes with batch 7's rule.
+   * answer was given is saved with the flight (decision 0027); an answered option with no record
+   * reads as answered by the pilot.
    */
   let changing = $state<string | null>(null);
-  let sources = $state<Record<string, DecisionSource>>({});
+  /**
+   * What each asked option's rule suggests (decision 0027), only from a SimBrief plan's own
+   * figures: with no plan, or once the block fuel or its unit is no longer the plan's (typed over,
+   * switched, or cleared by Reset flight plan), there is no suggestion and the pilot answers.
+   */
+  let suggestions = $state<Record<string, Suggestion | null>>({});
+  /** The plan figures the current suggestions were worked out from. */
+  let suggestedFrom = "";
+  $effect(() => {
+    const f = flight;
+    const ix = index;
+    const fills = planFills;
+    const fuel = f?.values?.fuel;
+    const unit = f?.values?.weight_unit ?? "LB";
+    const fromPlan = !!plan && !!fuel && fuel === fills.fuel && unit === (fills.weight_unit ?? "LB");
+    const key = fromPlan ? `${fuel} ${unit}` : "";
+    if (key !== suggestedFrom) {
+      suggestedFrom = key;
+      // Never an old suggestion for new figures, even for a moment.
+      suggestions = {};
+    }
+    if (!f || !ix || !fromPlan) return;
+    const asked = ix.options.filter((o) => ix.decider(o.id));
+    let live = true;
+    void Promise.all(asked.map(async (o) => [o.id, await host.suggestion(packId, f, o.id)] as const))
+      .then((list) => {
+        if (live && suggestedFrom === key) suggestions = Object.fromEntries(list);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  });
+  /** "263 kg", and near the line, "263 kg. Close to the line: check the gauge". */
+  const amountWords = (s: Suggestion) =>
+    `${s.amount.toLocaleString("en-US")} ${s.unit}${s.near ? ". Close to the line: check the gauge" : ""}`;
+  // Every view shows a step's value for the flight's answers (lib/answers.svelte.ts).
+  $effect(() => {
+    answered.options = { ...(flight?.options ?? {}) };
+  });
   let decisions = $derived.by((): Decisions | undefined => {
     const ix = index;
     const f = flight;
@@ -661,14 +703,20 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
         const option = step.decide ? ix.options.find((o) => o.id === step.decide) : undefined;
         if (!option) return null;
         const answer = f.options[option.id] ?? null;
-        return { option, answer, source: answer === null ? null : (sources[step.id] ?? "you"), suggestion: null, changing: answer !== null && changing === step.id };
+        const source: DecisionSource | null = answer === null ? null : (f.answers?.[option.id] ?? "you");
+        const s = suggestions[option.id];
+        const suggestion = s ? { value: s.value, amount: amountWords(s) } : null;
+        return { option, answer, source, suggestion, changing: answer !== null && changing === step.id };
       },
       dependent(step) {
         const id = dependsOn(step);
         const option = id ? ix.options.find((o) => o.id === id) : undefined;
         const asker = id ? ix.decider(id) : undefined;
         if (!id || !option || !asker) return null;
-        return { option, decisionStep: asker.id, answer: f.options[id] ?? null, value: null };
+        const answer = f.options[id] ?? null;
+        // The step's value for the answer (decision 0027), once answered.
+        const value = answer === null ? null : ((step.expect_when ?? []).find((e) => e.option === id && e.equals === answer)?.expect ?? null);
+        return { option, decisionStep: asker.id, answer, value };
       },
       answer: (id, value) => void answerDecision(id, value),
       change(id) {
@@ -687,17 +735,18 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     if (!index || !flight || !step?.decide || !option) return;
     const ix = index;
     const before = flight;
-    const kept = sources;
     const wasChanging = changing === id;
     changing = null;
-    await act({ type: "setOption", option: option.id, value });
+    const changed = wasChanging && before.options[option.id] !== undefined && before.options[option.id] !== value;
+    // The same answer again (Change, then the same choice) records nothing new, but still ticks a
+    // step whose tick was cleared.
+    // Confirming the plan's suggestion (its value, while first asked) is answered from the plan.
+    const fromPlan = !wasChanging && suggestions[option.id]?.value === value;
+    if (!wasChanging || changed) await act({ type: "answer", option: option.id, value, by: changed ? "changed" : fromPlan ? "plan" : "you" });
     if (flight && flight.session.done[id] === undefined) await act({ type: "tick", step: id, at: Date.now() });
-    if (!wasChanging) {
-      sources = { ...sources, [id]: "you" };
-    } else if (before.options[option.id] !== value) {
-      sources = { ...sources, [id]: "changed" };
+    if (changed) {
       const updated = [...new Set(ix.dependents(option.id).map((s) => stepTitle(ix, s)))];
-      offerUndo(changedText(option, value, updated), before, () => (sources = kept));
+      offerUndo(changedText(option, value, updated), before);
     }
   }
   /**
@@ -713,7 +762,17 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     plan = next;
     await host.savePlan(packId, next);
     const check = filled.checkClearance ? " Check the runway and departure against your clearance." : "";
-    offerUndo(`Imported ${filled.origin} → ${filled.destination}: ${filled.filled} values.${check}`, before, () => {
+    // An answer already given that the new plan's figures would not suggest: say so (the pilot
+    // decides; the answer stays).
+    let differs = "";
+    const now = flight;
+    const ix = index;
+    if (now && ix)
+      for (const o of ix.options.filter((x) => ix.decider(x.id) && now.options[x.id] !== undefined)) {
+        const s = await host.suggestion(packId, now, o.id);
+        if (s && s.value !== now.options[o.id]) differs += ` ${o.title}: the new plan suggests ${lowerFirst(shortLabel(labelOf(o, s.value)))}; check your answer.`;
+      }
+    offerUndo(`Imported ${filled.origin} → ${filled.destination}: ${filled.filled} values.${check}${differs}`, before, () => {
       plan = keptPlan;
       void host.savePlan(packId, keptPlan);
     });
@@ -793,7 +852,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     const ticked = view.lists.filter((l) => l.progress.done + l.progress.skipped > 0);
     return ticked.find((l) => l.current !== null) ?? ticked.at(-1) ?? null;
   });
-  /** Clear ticks on one list (its card header), with Undo instead of asking first (owner). */
+  /** Clear ticks on one list (its card header), with Undo instead of asking first. */
   async function clearTicks(list: string): Promise<void> {
     if (!flight) return;
     const before = flight;
@@ -830,7 +889,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     if (settings) void changeSettings({ ...settings, listView: v });
   };
 
-  // The tour (owner's Tour README). The welcome opens on the first visit, once the checklist has
+  // The tour (Tour README). The welcome opens on the first visit, once the checklist has
   // loaded; answering it is remembered in Settings, the only thing the tour stores.
   let welcomeAsked = false;
   $effect(() => {
@@ -871,7 +930,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       else (row ?? document.querySelector<HTMLElement>("main"))?.focus();
     });
   }
-  // How procedures work (owner's How README). Its "In Involo" links go to the pilot's current phase,
+  // How procedures work (How README). Its "In Involo" links go to the pilot's current phase,
   // found as Take the tour finds it, and that phase's current step.
   let howPhase = $derived.by(() => {
     const phases = rail?.stages.flatMap((s) => s.phases) ?? [];
@@ -1010,6 +1069,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       {flight}
       settings={s}
       {plan}
+      centerTank={suggestions.center_tank ? `${suggestions.center_tank.amount.toLocaleString("en-US")} ${suggestions.center_tank.unit}` : null}
       options={index.options}
       states={index.startStates}
       backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
@@ -1320,7 +1380,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     background: linear-gradient(0deg, var(--color-bg), transparent);
   }
   /* 3.0's toast: dark on light (light on dark), centered at the bottom. */
-  /* The offer to log a finished flight, in place under the steps (owner's Log README). */
+  /* The offer to log a finished flight, in place under the steps (Log README). */
   .offer {
     display: flex;
     flex-wrap: wrap;

@@ -118,7 +118,7 @@ describe("FlightDeckPage", () => {
     expect(location.hash).toBe("#/deck/forward-overhead/fuel");
   });
 
-  it("draws the selected panel fitted to the column, with Full size opening the panel sheet (owner)", async () => {
+  it("draws the selected panel fitted to the column, with Full size opening the panel sheet", async () => {
     width(1440);
     const opened: string[] = [];
     const was = HTMLDialogElement.prototype.showModal;

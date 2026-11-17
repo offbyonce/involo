@@ -64,7 +64,7 @@ describe("PracticePage", () => {
     const memory = screen.getByRole("button", { name: /^Memory items[\d,]+$/ });
     expect(memory.getAttribute("aria-pressed")).toBe("true");
     expect(screen.getByText(/^20 questions from [\d,]+ in these topics and stages$/)).toBeTruthy();
-    // Chips count sources, what a test can draw (owner): a light's meaning and its reverse are one.
+    // Chips count sources, what a test can draw: a light's meaning and its reverse are one.
     const phases = phasesOf(pack, ["Preflight", "Departure"]);
     const lights = sourcesIn(
       available(seeds(pack, index), { topics: ["lights"], phases, options: {} }, stepShows(pack, {})),
@@ -89,8 +89,8 @@ describe("PracticePage", () => {
     expect(within(options[q.answer] as HTMLElement).getByText("Correct answer")).toBeTruthy();
     const box = screen.getByRole("status");
     expect(within(box).getByText("Not this one")).toBeTruthy();
-    // What the chosen option really is, then the right one (owner).
-    // Each on its own line (owner).
+    // What the chosen option really is, then the right one.
+    // Each on its own line.
     const said = [...box.querySelectorAll(".fb-why")].map((x) => x.textContent);
     expect(said).toEqual([q.about[q.options[wrong] ?? ""], q.why]);
     expect(within(box).getAllByRole("link").length).toBeGreaterThan(0);

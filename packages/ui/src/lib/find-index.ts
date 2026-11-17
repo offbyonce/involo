@@ -3,7 +3,7 @@
 
 // Find (batch 6, Find.dc.html): every step, control and term in the pack, searched by plain text.
 
-import type { FlatPack, Rail } from "@involo/bindings";
+import type { ExpectWhen, FlatPack, Rail } from "@involo/bindings";
 import type { PackIndex } from "../pack-index";
 import { stepTitle } from "./sentence";
 
@@ -16,7 +16,13 @@ export type FindStep = {
   list?: string | undefined;
   /** The text of the step before it in that list (the Glossary tells repeated steps apart by it). */
   before?: string | undefined;
+  /** Its value for each answer of a decision (decision 0027). */
+  when?: ExpectWhen[] | undefined;
 };
+
+/** A found step's value for the flight's answers: the answer's value once answered (decision 0027). */
+export const foundValue = (s: FindStep, options: Record<string, string>): string =>
+  (s.when ?? []).find((e) => options[e.option] === e.equals)?.expect ?? s.value;
 export type FindControl = {
   id: string;
   name: string;
@@ -58,6 +64,7 @@ export function buildFind(pack: FlatPack, index: PackIndex): FindIndex {
           phase: phase.id,
           list: lists.get(id)?.title,
           before: all[n - 1]?.text,
+          ...(step.expect_when?.length ? { when: step.expect_when } : {}),
         });
       }
     }

@@ -20,16 +20,36 @@ steps:
     check: Door closed and locked
   - id: ifly-737-max8.before-start.fuel
     text: FUEL
-    expect: "REQUIRED ___ KG/LBS, ON BOARD ___ KG/LBS, FUEL PUMPS ON, CENTER PUMPS ON IF MORE THAN 1,000 LB (ABOUT 450 KG) IN THE CENTER TANK"
+    expect: "REQUIRED ___ KG/LBS, ON BOARD ___ KG/LBS, MAIN PUMPS ON · CENTER PUMPS ON OR OFF FROM YOUR CENTER TANK ANSWER (ON WHEN MORE THAN 1,000 LB, ABOUT 450 KG)"
+    expect_when:
+      - option: center_tank
+        equals: more
+        expect: "REQUIRED ___ KG/LBS, ON BOARD ___ KG/LBS, MAIN PUMPS ON · CENTER PUMPS ON"
+      - option: center_tank
+        equals: less
+        expect: "REQUIRED ___ KG/LBS, ON BOARD ___ KG/LBS, MAIN PUMPS ON · CENTER PUMPS OFF"
     terms: ["center tank"]
     controls:
       - fuelq
       - fuelpumps
+      - ctrpumps
     targets:
       - at: "oh/fuel/CTR L/1"
         open: true
+      - at: "oh/fuel/CTR L/1"
+        set: "ON"
+        when: { option: center_tank, equals: more }
+      - at: "oh/fuel/CTR L/1"
+        set: "OFF"
+        when: { option: center_tank, equals: less }
       - at: "oh/fuel/CTR R/1"
         open: true
+      - at: "oh/fuel/CTR R/1"
+        set: "ON"
+        when: { option: center_tank, equals: more }
+      - at: "oh/fuel/CTR R/1"
+        set: "OFF"
+        when: { option: center_tank, equals: less }
       - at: "oh/fuel/AFT 1/1"
         set: "ON"
       - at: "oh/fuel/FWD 1/1"

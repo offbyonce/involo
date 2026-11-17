@@ -7,6 +7,7 @@ marked Skipped or Missed (decision 0012). Each can be ticked here, a skipped one
 or found in its phase.
 -->
 <script lang="ts">
+  import { stepValue } from "../lib/answers.svelte";
   import type { OpenStep } from "@involo/bindings";
   import Icon from "../lib/Icon.svelte";
   import type { PackIndex } from "../pack-index";
@@ -57,7 +58,7 @@ or found in its phase.
         <li>
           <div class="txt">
             <b>{step?.text ?? o.step}</b>
-            <span class="val">{step?.expect}</span>
+            <span class="val">{step ? stepValue(step) : ""}</span>
             <small>{o.listTitle}</small>
           </div>
           <span class="badge" class:sk={o.skipped}>{o.skipped ? "Skipped" : "Missed"}</span>

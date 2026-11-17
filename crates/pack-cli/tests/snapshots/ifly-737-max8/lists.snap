@@ -4357,12 +4357,32 @@ source: crates/pack-cli/tests/snapshot.rs
         }
       },
       {
-        "id": "ifly-737-max8.before-start.fuel-pump-switches",
+        "id": "ifly-737-max8.before-start.center-tank-fuel",
         "number": 4,
-        "text": "FUEL PUMP SWITCHES",
-        "expect": "ALL ON, CENTER PUMPS ON IF MORE THAN 1,000 LB (ABOUT 450 KG) IN THE CENTER TANK",
+        "text": "CENTER TANK FUEL",
+        "expect": "CHECK THE CENTER TANK QUANTITY",
         "controls": [
-          "fuelpumps"
+          "fuelq"
+        ],
+        "targets": [
+          {
+            "at": "mn/cd/INBOARD DU: ND AND ENGINES/1"
+          }
+        ],
+        "decide": "center_tank",
+        "terms": [
+          "center tank"
+        ],
+        "why": "Center pumps run only when the center tank has fuel to give"
+      },
+      {
+        "id": "ifly-737-max8.before-start.fuel-pump-switches",
+        "number": 5,
+        "text": "FUEL PUMP SWITCHES",
+        "expect": "MAIN PUMPS ON · CENTER PUMPS ON OR OFF FROM YOUR CENTER TANK ANSWER (ON WHEN MORE THAN 1,000 LB, ABOUT 450 KG)",
+        "controls": [
+          "fuelpumps",
+          "ctrpumps"
         ],
         "targets": [
           {
@@ -4370,8 +4390,40 @@ source: crates/pack-cli/tests/snapshot.rs
             "open": true
           },
           {
+            "at": "oh/fuel/CTR L/1",
+            "set": "ON",
+            "when": {
+              "option": "center_tank",
+              "equals": "more"
+            }
+          },
+          {
+            "at": "oh/fuel/CTR L/1",
+            "set": "OFF",
+            "when": {
+              "option": "center_tank",
+              "equals": "less"
+            }
+          },
+          {
             "at": "oh/fuel/CTR R/1",
             "open": true
+          },
+          {
+            "at": "oh/fuel/CTR R/1",
+            "set": "ON",
+            "when": {
+              "option": "center_tank",
+              "equals": "more"
+            }
+          },
+          {
+            "at": "oh/fuel/CTR R/1",
+            "set": "OFF",
+            "when": {
+              "option": "center_tank",
+              "equals": "less"
+            }
           },
           {
             "at": "oh/fuel/AFT 1/1",
@@ -4391,6 +4443,18 @@ source: crates/pack-cli/tests/snapshot.rs
           }
         ],
         "quick": "always",
+        "expect_when": [
+          {
+            "option": "center_tank",
+            "equals": "more",
+            "expect": "MAIN PUMPS ON · CENTER PUMPS ON"
+          },
+          {
+            "option": "center_tank",
+            "equals": "less",
+            "expect": "MAIN PUMPS ON · CENTER PUMPS OFF"
+          }
+        ],
         "terms": [
           "center tank",
           "P5"
@@ -4437,7 +4501,7 @@ source: crates/pack-cli/tests/snapshot.rs
       },
       {
         "id": "ifly-737-max8.before-start.anti-collision-light",
-        "number": 5,
+        "number": 6,
         "text": "ANTI-COLLISION LIGHT",
         "expect": "ON",
         "controls": [
@@ -4464,7 +4528,7 @@ source: crates/pack-cli/tests/snapshot.rs
       },
       {
         "id": "ifly-737-max8.before-start.stabilizer-trim",
-        "number": 6,
+        "number": 7,
         "text": "STABILIZER TRIM",
         "expect": "SET TO TAKEOFF UNITS",
         "controls": [
@@ -4521,10 +4585,11 @@ source: crates/pack-cli/tests/snapshot.rs
       {
         "id": "ifly-737-max8.before-start.fuel",
         "text": "FUEL",
-        "expect": "REQUIRED ___ KG/LBS, ON BOARD ___ KG/LBS, FUEL PUMPS ON, CENTER PUMPS ON IF MORE THAN 1,000 LB (ABOUT 450 KG) IN THE CENTER TANK",
+        "expect": "REQUIRED ___ KG/LBS, ON BOARD ___ KG/LBS, MAIN PUMPS ON · CENTER PUMPS ON OR OFF FROM YOUR CENTER TANK ANSWER (ON WHEN MORE THAN 1,000 LB, ABOUT 450 KG)",
         "controls": [
           "fuelq",
-          "fuelpumps"
+          "fuelpumps",
+          "ctrpumps"
         ],
         "targets": [
           {
@@ -4532,8 +4597,40 @@ source: crates/pack-cli/tests/snapshot.rs
             "open": true
           },
           {
+            "at": "oh/fuel/CTR L/1",
+            "set": "ON",
+            "when": {
+              "option": "center_tank",
+              "equals": "more"
+            }
+          },
+          {
+            "at": "oh/fuel/CTR L/1",
+            "set": "OFF",
+            "when": {
+              "option": "center_tank",
+              "equals": "less"
+            }
+          },
+          {
             "at": "oh/fuel/CTR R/1",
             "open": true
+          },
+          {
+            "at": "oh/fuel/CTR R/1",
+            "set": "ON",
+            "when": {
+              "option": "center_tank",
+              "equals": "more"
+            }
+          },
+          {
+            "at": "oh/fuel/CTR R/1",
+            "set": "OFF",
+            "when": {
+              "option": "center_tank",
+              "equals": "less"
+            }
           },
           {
             "at": "oh/fuel/AFT 1/1",
@@ -4558,6 +4655,18 @@ source: crates/pack-cli/tests/snapshot.rs
         "fill": [
           "minimum_takeoff_fuel",
           "fuel"
+        ],
+        "expect_when": [
+          {
+            "option": "center_tank",
+            "equals": "more",
+            "expect": "REQUIRED ___ KG/LBS, ON BOARD ___ KG/LBS, MAIN PUMPS ON · CENTER PUMPS ON"
+          },
+          {
+            "option": "center_tank",
+            "equals": "less",
+            "expect": "REQUIRED ___ KG/LBS, ON BOARD ___ KG/LBS, MAIN PUMPS ON · CENTER PUMPS OFF"
+          }
         ],
         "terms": [
           "center tank"
@@ -5518,9 +5627,12 @@ source: crates/pack-cli/tests/snapshot.rs
         ],
         "quick": "always",
         "terms": [
-          "P5"
+          "P5",
+          "GEN OFF BUS"
         ],
         "why": "Engine generators take over the buses",
+        "if_not": "A GEN OFF BUS light stays on with its engine running",
+        "if_not_detail": "That generator isn't powering its transfer bus. Switch it on again, and check the DRIVE light if it stays on",
         "how": "gens",
         "explain": "gen",
         "confirmed_by": [
@@ -6003,9 +6115,12 @@ source: crates/pack-cli/tests/snapshot.rs
           }
         ],
         "terms": [
-          "P5"
+          "P5",
+          "GEN OFF BUS"
         ],
         "why": "Engine generators take over the buses",
+        "if_not": "A GEN OFF BUS light stays on",
+        "if_not_detail": "That generator isn't powering its transfer bus. Switch it on again, and check the DRIVE light if it stays on",
         "explain": "gen",
         "confirmed_by": [
           {
@@ -14628,7 +14743,7 @@ source: crates/pack-cli/tests/snapshot.rs
     "title": "Upset recovery",
     "kind": "non-normal",
     "basis": [
-      "prior-release"
+      "regulator-docs"
     ],
     "steps": [
       {

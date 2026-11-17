@@ -25,6 +25,7 @@ it. Every field of the old Flight setup lives in one section.
     flight,
     settings,
     plan,
+    centerTank = null,
     options,
     states,
     backHref,
@@ -43,6 +44,8 @@ it. Every field of the old Flight setup lives in one section.
     flight: Flight;
     settings: Settings;
     plan: SavedPlan | null;
+    /** The center tank's share of the block fuel, from the suggestion rule ("1,262 kg"). */
+    centerTank?: string | null;
     options: UserOption[];
     states: StartState[];
     backHref: string;
@@ -75,7 +78,7 @@ it. Every field of the old Flight setup lives in one section.
   };
 
   let wxPanel = $state<Ofp | null>(null);
-  let ctx = $derived<Ctx>({ values: flight.values ?? {}, plan, notes: flight.notes ?? "", unit: unitOf(flight) });
+  let ctx = $derived<Ctx>({ values: flight.values ?? {}, plan, notes: flight.notes ?? "", unit: unitOf(flight), centerTank });
   let def = $derived(SECTIONS.find((s) => s.id === section) ?? null);
   /** The selected row of each section, which the OFP panel follows. */
   let picked = $state<Record<string, string>>({});

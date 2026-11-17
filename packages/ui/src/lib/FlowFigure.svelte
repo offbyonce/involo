@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 How procedures work, part 2: the flow as a path across the panels (the HowItWorks board), drawn
 shape for shape in panel colors. The boxes are drawn as the Flight deck map draws its panels (fill
 and stroke), and the labels as its area labels: 11 px, semibold, panel label color, no tracking
-(owner). A schematic of the idea, not of any one flight deck.
+. A schematic of the idea, not of any one flight deck.
 -->
 <script lang="ts">
   import { HOW } from "./how-content";

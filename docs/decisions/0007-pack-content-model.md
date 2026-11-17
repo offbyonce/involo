@@ -178,7 +178,7 @@ Added 2026-11-09.
   other source is still never copied.
 - **Fixes are written from our own flow structure** and explain why the step matters where useful
   (for example, ground-crew safety).
-- **The findings log and the open list live in `~/private`, never in the repo.** Each procedure
+- **The findings log and the open list are kept outside the repo.** Each procedure
   section is reported as a batch, a short summary of changes plus the open list, and the maintainer
   approves each batch.
 

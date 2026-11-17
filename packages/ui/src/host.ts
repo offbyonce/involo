@@ -25,6 +25,7 @@ import type {
   Rail,
   SavedPlan,
   Settings,
+  Suggestion,
   Theme,
 } from "@involo/bindings";
 import { getContext } from "svelte";
@@ -45,6 +46,8 @@ export interface Host {
   phaseView(pack: string, flight: Flight, settings: Settings, phase: string): Promise<PhaseView>;
   /** Open steps: undone steps of started phases; with `before`, only from phases before it. */
   openSteps(pack: string, flight: Flight, settings: Settings, before?: string): Promise<OpenStep[]>;
+  /** The answer an option's rule suggests from the flight's values, or null (decision 0027). */
+  suggestion(pack: string, flight: Flight, option: string): Promise<Suggestion | null>;
   /**
    * What is saved on this device for a pack (decision 0012): each read by Rust as ready (migrated
    * if older), newer or unreadable, with the saved text so nothing is lost. Null when none.

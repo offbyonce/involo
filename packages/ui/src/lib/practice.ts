@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// Practice: questions generated from the pack (the owner's Practice README and answers,
+// Practice: questions generated from the pack (Practice README and answers,
 // 2026-11-16). Every question has exactly one correct answer, and every wrong option is a real
 // neighbor from the pack (never invented); a question that cannot find three wrong options that
 // differ from the answer and from each other is skipped. Each records its source and links there.
@@ -12,17 +12,17 @@
 // - Light meanings: a drawn light → its meaning, and a meaning → its light (other lights of the
 //   same panel, then the same panel drawing, then the same flight deck area).
 // - Faults: a symptom → the action or a cause (other faults' in the same flight deck area, the
-//   system; owner).
+//   system).
 // - Mnemonics: which mnemonic an item belongs to (the other mnemonics), the next item and the
-//   items in order (the mnemonic's own other items; owner).
+//   items in order (the mnemonic's own other items).
 // - Step values: a step → its value, only where the control's own other positions give a wrong
-//   option (then the values of the nearest steps; owner).
+//   option (then the values of the nearest steps).
 // - Step order: 4 to 6 steps of one list in order, and which step comes next (the list's others).
 // - Where controls are: a control → its panel (the area's other panels by distance, then the
-//   nearest area's), and → its Flight deck area (the other areas, nearest first; owner).
+//   nearest area's), and → its Flight deck area (the other areas, nearest first).
 // - Challenge and response: a checklist challenge → its response (the checklist's others).
 // - Terms: a term → its definition, and back (terms of the same system, taken from the controls
-//   of the steps that use the term; owner). Terms no step with a control uses stay out.
+//   of the steps that use the term). Terms no step with a control uses stay out.
 
 import type { FlatPack, OverviewArea, Step } from "@involo/bindings";
 import type { PackIndex } from "../pack-index";
@@ -95,7 +95,7 @@ export type ChoiceSeed = Base & {
    * pair rule doesn't apply. */
   tiers: { items: string[]; shuffle: boolean; sides?: boolean }[];
   /** What each wrong option really is, for the feedback ("That’s the VALVE OPEN light…"); `why`
-   * then says the right one, as the board's feedback does (owner). */
+   * then says the right one, as the board's feedback does. */
   about: Record<string, string>;
 };
 export type OrderSeed = Base & { kind: "order"; items: string[] };
@@ -163,13 +163,13 @@ export function twinKey(text: string): string | null {
   twinKeys.set(text, out);
   return out;
 }
-/** Whether two texts are the same item for another engine, side or seat (owner). */
+/** Whether two texts are the same item for another engine, side or seat. */
 export function twins(a: string, b: string): boolean {
   const k = twinKey(a);
   return k !== null && a !== b && k === twinKey(b) && norm(a) !== norm(b);
 }
 
-/** Whether the right option's length gives it away (owner): it is the only shortest or the only
+/** Whether the right option's length gives it away: it is the only shortest or the only
  * longest, by more than 40%. */
 export function standsOut(answer: string, wrong: string[]): boolean {
   const a = answer.length;
@@ -199,7 +199,7 @@ export function pickWrong(
     for (const { tier, items } of order)
       for (const x of items) {
         // Never the answer's twin, and never two wrong options that differ only by engine or side
-        // (owner).
+        //.
         const pair = (o: string) => !tier.sides && twins(o, x);
         if (!x || sameMeaning(x, answer) || pair(answer)) continue;
         if (valid.some((o) => sameMeaning(o, x) || pair(o))) continue;
@@ -398,9 +398,12 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       { ...l, panel, section, label, zone, area: zone?.area ?? panel, color: drawn?.color ?? "amber", users },
     ];
   });
-  // Which one of a pair (owner): the engine, side, seat or system its meaning names, where another
+  // Which one of a pair: the engine, side, seat or system its meaning names, where another
   // light with its label on the same panel names a different one.
   const sideIn = (meaning: string) => {
+    // A switch named in brackets ("The left aft pump (AFT 1) …") says which one exactly.
+    const named = /\(([A-Z][A-Z0-9]*(?: [A-Z0-9]+)?)\)/.exec(meaning);
+    if (named?.[1]) return named[1];
     const m =
       /\b(?:transfer bus|engine|generator|tank|electric hydraulic pump|pump|IRS|bus) [12]\b/i.exec(meaning) ??
       /\bsystem [AB]\b/i.exec(meaning) ??
@@ -453,7 +456,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
     ];
     const phases = union(l.users.map(stepPhases));
     const base = { phases, steps: [], links, source: `light:${l.locator}` };
-    // The light and its panel by name, never by an id or short title (owner).
+    // The light and its panel by name, never by an id or short title.
     const named = (x: (typeof lights)[number]) => `${x.label}${which(x) ? `, ${which(x)}` : ""}`;
     const label = `${named(l)}${l.zone ? `, on the ${l.zone.title}` : ""}`;
     const on = (x: (typeof lights)[number]) =>
@@ -490,7 +493,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       });
   }
 
-  // Faults: the flight deck area is the system (owner).
+  // Faults: the flight deck area is the system.
   const faults = (pack.content.faults?.faults ?? []).flatMap((f) => {
     const step = f.steps[0] ? index.step(f.steps[0]) : undefined;
     if (!step) return [];
@@ -552,7 +555,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
     });
   }
 
-  // Mnemonics (owner): which mnemonic an item belongs to; the next item and the order, within one.
+  // Mnemonics: which mnemonic an item belongs to; the next item and the order, within one.
   const briefings = (pack.content.briefings?.briefings ?? []).filter((b) => b.mnemonic);
   const word = (i: { lead: string; rest: string }) => `${i.lead}${i.rest}`;
   for (const b of briefings) {
@@ -625,7 +628,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
     if (memory.has(list.id)) continue;
     const phase = phaseOfList.get(list.id);
     const phases = phase ? [phase] : [];
-    // Step values (owner): only where the control's own positions give a wrong option.
+    // Step values: only where the control's own positions give a wrong option.
     list.steps.forEach((s, i) => {
       if (!s.expect) return;
       const own = (s.controls ?? []).flatMap((c) => positions.get(c) ?? []);
@@ -737,7 +740,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       }
   }
 
-  // Where controls are: → panel, and → Flight deck area (owner).
+  // Where controls are: → panel, and → Flight deck area.
   const areas = deckAreasOnce(index);
   const boxes = new Map<string, OverviewArea[]>();
   for (const a of index.overview?.areas ?? []) boxes.set(a.zone, [...(boxes.get(a.zone) ?? []), a]);
@@ -764,7 +767,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       : [];
     const base = { topic: "where" as const, kind: "choice" as const, phases, steps: [], links };
     const name = /^[A-Z0-9/]{2,}\b/.test(c.name) ? c.name : c.name.charAt(0).toLowerCase() + c.name.slice(1);
-    // "Where are" for a plural name (owner).
+    // "Where are" for a plural name.
     const plural = /[^su]s$/i.test(c.name.split(/\s+/).at(-1) ?? "");
     const prompt = `Where ${plural ? "are" : "is"} the ${name}?`;
     // Its panel: the area's other panels, nearest first; then the nearest area's panels.
@@ -777,7 +780,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       .map((x) => ({ ...x, d: Math.min(...x.zs.map((z) => gap(own, boxes.get(z.id) ?? []))) }))
       .filter((x) => Number.isFinite(x.d))
       .sort((p, q) => p.d - q.d);
-    // A panel whose name shares a word with the control's gives it away: no panel question (owner).
+    // A panel whose name shares a word with the control's gives it away: no panel question.
     if (!sharesWord(c.name, zone.title))
       out.push({
         ...base,
@@ -898,13 +901,13 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
 }
 
 /** A sentence after a colon starts in lowercase, unless it starts with a name ("Hydraulic system A"
- * → "hydraulic system A", but "APU", "Federal Aviation Administration") (owner). */
+ * → "hydraulic system A", but "APU", "Federal Aviation Administration"). */
 const afterColon = (s: string) =>
   /^(?:A|[A-Z][a-z]+)(?:[\s,]+[a-z0-9("“]|[.,]?$)/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s;
 const lowerFirst = (s: string) => (/^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s);
 
 /** Words that say nothing about where a control is, and words found on panels all over the deck
- * (owner). */
+ *. */
 const PLAIN = new Set([
   "AND",
   "THE",
@@ -934,7 +937,7 @@ const PLAIN = new Set([
   "LEVERS",
 ]);
 /** Whether two names share a meaningful word ("Fuel pump switches" and "Fuel panel"), singular or
- * plural (owner). */
+ * plural. */
 export function sharesWord(a: string, b: string): boolean {
   const words = (s: string) =>
     new Set(
@@ -1017,7 +1020,7 @@ export function phasesOf(pack: FlatPack, stages: string[]): string[] {
   ];
 }
 
-/** "Before engine start" (owner): every phase of the stage holding the phase `preflight`, then the
+/** "Before engine start": every phase of the stage holding the phase `preflight`, then the
  * phases of the stage holding `engine-start`, up to and including it. By the pack's phase ids. */
 export function beforeEngineStart(pack: FlatPack): { stages: string[]; phases: string[] } {
   const all = pack.content.phases?.stages ?? [];

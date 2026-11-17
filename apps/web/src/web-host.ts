@@ -29,6 +29,7 @@ import {
   planUrl,
   planValues,
   rail,
+  suggestion,
 } from "./core";
 import { readLog, writeLog } from "./log-store.js";
 import { loadSaved, save, setAside } from "./saved";
@@ -59,6 +60,7 @@ export const webHost: Host = {
   rail,
   phaseView,
   openSteps,
+  suggestion,
   loadSaved,
   save,
   setAside,

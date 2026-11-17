@@ -1,6 +1,6 @@
 # Interface design handoff, round 5
 
-This folder is the agreed interface design for Involo. The owner reviewed and approved it over five rounds of mockups plus an independent design review. Build the interface from it.
+This folder is the agreed interface design for Involo. It was reviewed and approved over five rounds of mockups plus an independent design review. Build the interface from it.
 
 ## Hard rules
 
@@ -68,7 +68,7 @@ its stage tabs and does not use it. The stages and phases come from the pack, in
 `Views.dc.html` (Settings) moves the version from the old menu to the foot of Settings: "Involo
 [version] · What’s new". The menu drawer is the same at every size (Menu, Tablet, Mobile); its items
 whose page does not exist yet stay hidden, with any group heading left empty, until that page is
-built (owner, 2026-11-15).
+built (2026-11-15).
 
 **Batch 6 additions (approved 2026-11-15).** `Find.dc.html` with twelve wrapper boards (`FindDesk`,
 `FindDeskNone`, `FindDeskStart`, `FindPhone`, `FindPhoneNone`, `FindPhoneStart`, dark and light)
@@ -78,7 +78,7 @@ a full-screen sheet below it. It searches every step, control and term in the pa
 opens it from any page. `Tablet.dc.html` and `Mobile.dc.html` add Clear ticks to the menu above
 Reset flight plan, and draw no procedure header. `Menu.dc.html` (with `MenuWhere`, in `boards/`)
 opens "Where is Flight setup?" on desktop. `StagePicker.dc.html` and `Mobile.dc.html` correct the
-dark scrim to 0.55, and `Decision.dc.html` redraws DecPhone to the Mobile board's rules. The owner's
+dark scrim to 0.55, and `Decision.dc.html` redraws DecPhone to the Mobile board's rules. The
 answers: matches are marked in a step's value and a term's definition too, values clamp to two
 lines, the header button is named "Find a step, control or term", and the system back closes Find;
 Try chips keep the 44 px touch size. At tablet and phone each list after the first starts with a
@@ -90,14 +90,14 @@ landscape), `GlossaryPhone` (the term list; tablet portrait uses it) and `Glossa
 term), dark and light, in `round6/boards`. Built from the pack's terms: a term's expansion is the
 first sentence of its definition only when the term is an abbreviation and that sentence is a
 short name (no verb, eight words or fewer); "In the steps" lists every step whose terms name it.
-Where is this? and Related stay out, as the pack has no data for them (owner). A term in Find opens
+Where is this? and Related stay out, as the pack has no data for them. A term in Find opens
 the Glossary at that term, each definition in a step's Terms has its own "Open in Glossary", and
 the menu shows Glossary under Reference. Two step rows that would read the same also name their
-list. No new tokens (owner): a term's text keeps the boards' 640 px reading width (written as
+list. No new tokens: a term's text keeps the boards' 640 px reading width (written as
 `size.drawer` plus `size.map-figure`) and its definition the 1.55 line height (`leading.normal`
 plus 0.05). Terms IGN L, IGN R, PERF INIT and MA take no expansion (reviewed exceptions).
 
-**Flight deck (owner, 2026-11-16).** Built from `Deck.dc.html` (1440 px and up: the side view
+**Flight deck (2026-11-16).** Built from `Deck.dc.html` (1440 px and up: the side view
 over the area list, the area's map with "Panels in this area, as a list" and "Light meanings for
 this area", the selected panel) and `PhoneDeck.dc.html` (below 900 px: the area picker in the
 header, the map, the list and the selected panel, "Used by"). From 900 to 1439 px the page shows the
@@ -112,32 +112,32 @@ with 6 px either side). The selected panel is an overview fitted to its column (
 navigator when wider; the 900 to 1439 px slide-out shows it at full size. The slide-out's and Where is this?'s "Whole flight deck" map is gone: "Open
 in Flight deck", as the Locator board draws it, opens the page at that panel.
 
-**The tour (owner, 2026-11-16).** Built from `Tour.dc.html` (in `round6/boards`): `TourWelcome`,
+**The tour (2026-11-16).** Built from `Tour.dc.html` (in `round6/boards`): `TourWelcome`,
 `TourStep` and `TourEnd`, with their Phone versions, each in dark and light. Seven steps: the welcome
 (step 1) and "You're set" (step 7) are centered cards over color.scrim; steps 2 to 6 light up one
 real element with a 2 px accent ring 8 px outside it and color.scrim over the rest, the card beside
 it (below by default, otherwise wherever fits) with its arrow. Below 900 px the card is a bottom
-sheet, except step 3, which lights the Done / Skip for now bar with the card just above it (owner).
-The desktop board's whole-header ring is a stand-in for the stage tabs (owner): the tabs at 1440 px,
+sheet, except step 3, which lights the Done / Skip for now bar with the card just above it.
+The desktop board's whole-header ring is a stand-in for the stage tabs: the tabs at 1440 px,
 the stage button below that, and a step with neither on screen is skipped. The welcome opens on a
 first visit once the checklist has loaded; "Take the tour" is the last item of "This flight and the
-app", as the Menu boards draw it (owner), and starts at step 2. Only whether the welcome has been
+app", as the Menu boards draw it, and starts at step 2. Only whether the welcome has been
 seen is stored (Settings.tourSeen; settings saved before format 6 count as seen). The step dots use
-color.toggle-off (owner: the board's own grays were an error). While the tour is open no key or click
+color.toggle-off (the board's own grays were an error). While the tour is open no key or click
 reaches the page, so it never ticks, skips or changes the flight.
 
-**How procedures work (owner, 2026-11-16).** Built from `HowItWorks.dc.html` (in `round6/boards`):
+**How procedures work (2026-11-16).** Built from `HowItWorks.dc.html` (in `round6/boards`):
 `HowDesk` (desktop and tablet landscape) and `HowPhone` (phone and tablet portrait), each in dark and
-light. Every word lives in `packages/ui/src/lib/how-content.ts`, a first draft the owner adjusts
+light. Every word lives in `packages/ui/src/lib/how-content.ts`, a first draft, to be adjusted
 there; the counts (stages, and the lists in each Emergency tab) come from the pack. 900 px and up: the
 parts list on the left follows the reading column, and a part picked there scrolls to it and goes in
 the address (`#/how/2`). Below: one part per screen, "All seven parts" at the top, Back and Next
 naming their parts. Each part ends in an "In Involo" box linking to the real place; "the current
 phase" is the one Take the tour opens. Part 2's figure is drawn in panel colors as the Flight deck
-map draws its panels and area labels (owner: the board's frame color and label tracking were an
-error), and every part uses part 2's 16 px spacing (owner). In the menu it follows Practice under Learn.
+map draws its panels and area labels (the board's frame color and label tracking were an
+error), and every part uses part 2's 16 px spacing. In the menu it follows Practice under Learn.
 
-**Flight log (owner, 2026-11-16).** Built from `FlightLog.dc.html` (in `round6/boards`), completing
+**Flight log (2026-11-16).** Built from `FlightLog.dc.html` (in `round6/boards`), completing
 round 6's Log view: `LogDesk` (desktop and tablet landscape), `LogPhone` (phone and tablet portrait)
 and `LogPhoneFlight` (one earlier flight on phone), each in dark and light. Saved on the device only
 (decision 0026). This flight, Earlier flights newest first (the opened one in color.current-row with
@@ -147,25 +147,25 @@ import actions open as a sheet from "···". Finished is color.done; Not finish
 color.open-text (the board's amber stands for the app's amber text token). In the menu it is first
 under This flight and the app.
 
-**References (owner, 2026-11-16).** Built from `References.dc.html` (in `round6/boards`): `RefsDesk`
+**References (2026-11-16).** Built from `References.dc.html` (in `round6/boards`): `RefsDesk`
 (desktop and tablet landscape) and `RefsPhone` (phone and tablet portrait), each in dark and light.
 Decision 0007 stands: the page names only the kind of source a list's basis tag stands for
 (Simulator documentation, Regulator guidance), never a citation, title, page or link. Lists tagged
 prior-release show "Source being confirmed" in a dashed, muted tag: a status, not a source, which
 goes away when the content batch re-tags them. The chips are All, each source, then Source being
-confirmed (owner, over the board's order), on phone too (owner). The simulation notice uses the
+confirmed (over the board's order), on phone too. The simulation notice uses the
 If-not box's amber. Simulator model notes opens Find on those steps; Open-source software opens the
 third-party licenses file, made from the app's dependencies at build time. In the menu it follows
 the Glossary under Reference.
 
-**Practice (owner, 2026-11-16).** Built from `Practice.dc.html` (in `round6/boards`):
+**Practice (2026-11-16).** Built from `Practice.dc.html` (in `round6/boards`):
 `PracticeHome` and `PracticeHomePhone` (the ready-made tests, Build a test, "Earlier this visit"),
 `PracticeQuestion` and `PracticeQuestionPhone` (a choice answered wrong, with feedback),
 `PracticeOrder` (a step order question) and `PracticeResults` and `PracticeResultsPhone`, each in
 dark and light. 900 px and up take the desktop layout (tablet landscape too); below, the phone
-layout. Every question is generated from the pack (`lib/practice.ts`) under the owner's README:
+layout. Every question is generated from the pack (`lib/practice.ts`) under the README:
 exactly one correct answer, three real neighbors as wrong options and never an invented one (a
-question that cannot find three is skipped), every question linked to its source. The owner's
+question that cannot find three is skipped), every question linked to its source. The
 answers: faults take the flight deck area as their system; mnemonics ask which mnemonic an item
 belongs to, the next item and the order (no letter questions); terms take the system of the
 controls of the steps that use them (the others stay in the Glossary only); a control's panel takes
@@ -178,7 +178,7 @@ no line height (the browser's normal one, as the page does) and draw the questio
 widths 1100, 820 and 1240 are the column's content inside its padding. Results last only for the
 visit.
 
-**Batch 6 panels (owner, 2026-11-15).** `PanelTiles.dc.html` (dark and light) draws a step whose
+**Batch 6 panels (2026-11-15).** `PanelTiles.dc.html` (dark and light) draws a step whose
 controls are on two panels, and the Whole flight deck map (replaced by the Flight deck page). A step draws only the panels that hold
 its controls or the lights its Check names, nothing between them; each is its own tile at its own
 scale, side by side when they fit at full size, otherwise stacked, 16 px apart, centered, never
@@ -225,7 +225,7 @@ steps) record it; the proposed 0020 is withdrawn. [audit.md](audit.md) and
 The boards load a `support.js` canvas runtime that is not part of the handoff, so they are read as
 source, not opened in a browser.
 
-### Owner's addendum: control drawings
+### Addendum: control drawings
 
 The switch, button, knob, selector, guard and light drawings in `boards/` are schematic stand-ins.
 They define position, states, the ON direction, the OFF and ON labels and the color rules, not the
@@ -237,7 +237,7 @@ shows a state or rule ours lack, it is added. The reviewer brief for batch 2 (th
 renderer) includes a side-by-side for each control type: the current drawing, the board, and the
 result.
 
-### Owner's answers on the handoff
+### Answers on the handoff
 
 - **Center tank:** the pilot answers until the pack has a sourced wing-tank capacity. After that
   the app may suggest an answer from the SimBrief plan, and the pilot confirms it.
@@ -248,9 +248,9 @@ result.
 
 ### Token additions
 
-`tokens.json` is the delivered file plus additions the owner approved on 2026-11-12: border
+`tokens.json` is the delivered file plus additions approved on 2026-11-12: border
 widths, line heights and eight sizes (icons, the tablet side pane, the drawer, the open-step dot,
 status icons, the progress bar and the Flow button). Each names its source board in a `$sources`
 entry. Approved the same day for batch 2: `radius.popover`, `color.popover-border` and
 `color.overlay-shadow` (WherePop's values, for every pop-over, sheet and drawer) and
-`size.map-figure` (280, the side pane's map figure on the Checklist and WherePop boards). Round 6 (2026-11-13), from `round6/boards/Locator.dc.html`: `size.slideout` (840), `size.slideout-tablet` (700) and `color.slideout-scrim`. Batch 5 (2026-11-15), from `round6/boards/StagePicker.dc.html`: `color.scrim-light`, the pop-over picker's scrim from 900 to 1439 px. New tokens are proposed to the owner with their source first, never added on their own.
+`size.map-figure` (280, the side pane's map figure on the Checklist and WherePop boards). Round 6 (2026-11-13), from `round6/boards/Locator.dc.html`: `size.slideout` (840), `size.slideout-tablet` (700) and `color.slideout-scrim`. Batch 5 (2026-11-15), from `round6/boards/StagePicker.dc.html`: `color.scrim-light`, the pop-over picker's scrim from 900 to 1439 px. New tokens are proposed with their source first, never added on their own.

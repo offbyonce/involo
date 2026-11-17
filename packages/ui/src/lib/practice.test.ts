@@ -106,26 +106,26 @@ describe("the question generator", () => {
     }
   });
 
-  it("produces the counts from today's pack (2026-11-16; reported to the owner, then refined as the generator applies the rules)", () => {
+  it("produces the counts from today's pack (2026-11-16, refined as the generator applies the rules)", () => {
     expect(count("memory", "next")).toBe(20);
     expect(count("memory", "order")).toBe(5);
-    expect(count("lights", "meaning")).toBe(148);
-    expect(count("lights", "light")).toBe(127);
-    expect(count("faults", "action")).toBe(9);
-    expect(count("faults", "cause")).toBe(23);
+    expect(count("lights", "meaning")).toBe(159);
+    expect(count("lights", "light")).toBe(145);
+    expect(count("faults", "action")).toBe(11);
+    expect(count("faults", "cause")).toBe(27);
     // Left out: steps whose other drawn positions all mean the value, steps whose list has a second
     // step of the same title with another value, and those whose right value's length stands out.
-    expect(count("values")).toBe(225);
-    expect(count("order", "next")).toBe(337);
+    expect(count("values")).toBe(223);
+    expect(count("order", "next")).toBe(338);
     expect(all.filter((q) => q.topic === "order" && q.kind === "order").length).toBe(80);
     expect(count("challenge")).toBe(43);
     expect(count("terms", "meaning")).toBe(100);
     expect(count("terms", "term")).toBe(80);
-    expect(count("where", "area")).toBe(148);
+    expect(count("where", "area")).toBe(149);
     expect(count("where", "panel")).toBe(77);
   });
 
-  it("asks which mnemonic an item belongs to, its next item and its order, with no letter questions (owner)", () => {
+  it("asks which mnemonic an item belongs to, its next item and its order, with no letter questions", () => {
     expect(count("mnemonics", "which")).toBe(24);
     expect(count("mnemonics", "next")).toBe(6);
     expect(count("mnemonics", "order")).toBe(5);
@@ -180,7 +180,7 @@ describe("the question generator", () => {
     expect(deal(few, 40, random(2))).toHaveLength(sourcesIn(few));
   });
 
-  it("Before engine start: the Preflight stage, then Departure up to and including Engine start, by phase id (owner)", () => {
+  it("Before engine start: the Preflight stage, then Departure up to and including Engine start, by phase id", () => {
     const b = beforeEngineStart(pack);
     expect(b.stages).toEqual(["Preflight", "Departure"]);
     expect(b.phases).toContain("preflight");
@@ -275,7 +275,7 @@ describe("the question generator", () => {
         expect(spellsOut(q.answer, q.stem.body ?? ""), q.id).toBe(false);
   });
 
-  it("never lets the right option's length stand out: not the only shortest or longest by more than 40% (owner)", () => {
+  it("never lets the right option's length stand out: not the only shortest or longest by more than 40%", () => {
     for (const seed of all) {
       if (seed.kind !== "choice") continue;
       for (const n of [1, 2, 3]) {
@@ -289,9 +289,9 @@ describe("the question generator", () => {
         expect(right.length > long && right.length > long * 1.4, `${q.id}: ${right}`).toBe(false);
       }
     }
-  }, 30_000); // Walks every question (owner: the exhaustive tests may take longer).
+  }, 30_000); // Walks every question (the exhaustive tests may take longer).
 
-  it("shows no pack id in any question or option (owner: GEN OFF BUS named its panel by a short title)", () => {
+  it("shows no pack id in any question or option (GEN OFF BUS named its panel by a short title)", () => {
     // Every id in the pack that is not also an ordinary word of its own text.
     const words = new Set(
       [
@@ -334,7 +334,7 @@ describe("the question generator", () => {
     expect([...new Set(found)].slice(0, 10)).toEqual([]);
   });
 
-  it("explains every wrong option, then the right one, never with a raw action line (owner)", () => {
+  it("explains every wrong option, then the right one, never with a raw action line", () => {
     const actions = new Set((pack.content.lights?.lights ?? []).map((l) => l.action));
     for (const seed of all) {
       if (seed.kind !== "choice") continue;
@@ -343,18 +343,23 @@ describe("the question generator", () => {
       for (const w of pickWrong(seed.answer, seed.tiers))
         expect(seed.about[w], `${seed.id}: ${w}`).toBeTruthy();
     }
-    const light = all.find((q) => q.id === "lights:meaning:oh/fuel/LOW PRESSURE/1");
-    if (light?.kind === "choice") {
-      expect(light.why).toMatch(/^LOW PRESSURE means: /);
-      expect(Object.values(light.about).every((a) => /^That’s the .+ light/.test(a))).toBe(true);
-    }
+    // Each fuel pump's light is named by its switch, so no two read the same ("left" was both CTR L
+    // and AFT 1).
+    const why = (n: number) => {
+      const q = all.find((x) => x.id === `lights:meaning:oh/fuel/LOW PRESSURE/${n}`);
+      expect(q?.kind, `LOW PRESSURE/${n}`).toBe("choice");
+      return q?.kind === "choice" ? (q.why ?? "") : "";
+    };
+    expect(why(1)).toMatch(/^LOW PRESSURE, CTR L means: the left center tank pump/);
+    expect(why(3)).toMatch(/^LOW PRESSURE, AFT 1 means: the left aft pump/);
+    expect(new Set([1, 2, 3, 4, 5, 6].map((n) => why(n).split(" means")[0])).size).toBe(6);
   });
 
-  it("Where controls are: no panel or area that shares a word with the control; Where are for plurals (owner)", () => {
+  it("Where controls are: no panel or area that shares a word with the control; Where are for plurals", () => {
     expect(sharesWord("Fuel pump switches", "Fuel panel")).toBe(true);
     expect(sharesWord("Flight deck windows", "Windows and oxygen masks")).toBe(true);
     expect(sharesWord("Battery switch", "Electrical panel, upper section")).toBe(false);
-    // Words on panels all over the deck give nothing away (owner).
+    // Words on panels all over the deck give nothing away.
     for (const w of [
       "light",
       "lights",
@@ -391,7 +396,7 @@ describe("the question generator", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("says which one of a pair, and never offers its twin or two twins (owner)", () => {
+  it("says which one of a pair, and never offers its twin or two twins", () => {
     expect(twins("Engine 1 start switch", "Engine 2 start switch")).toBe(true);
     expect(twins("L ELEV PITOT", "R ELEV PITOT")).toBe(true);
     expect(twins("The captain’s pitot probe", "The first officer’s pitot probe")).toBe(true);
@@ -427,9 +432,9 @@ describe("the question generator", () => {
     expect(pickWrong("IGN L", [{ items: ["IGN R", "BOTH", "OFF"], shuffle: false, sides: true }])).toContain(
       "IGN R",
     );
-  }, 30_000); // Walks every question (owner: the exhaustive tests may take longer).
+  }, 30_000); // Walks every question (the exhaustive tests may take longer).
 
-  it("starts each line after its colon in lowercase, unless it starts with a name (owner)", () => {
+  it("starts each line after its colon in lowercase, unless it starts with a name", () => {
     const light = all.find((q) => q.id === "lights:meaning:oh/fuel/FILTER BYPASS/1");
     expect(light?.why).toBe(
       "FILTER BYPASS, engine 1 means: the engine 1 fuel filter is clogging, often from contamination or ice, and fuel may soon go around it.",

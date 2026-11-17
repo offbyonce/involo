@@ -40,7 +40,7 @@ const tiles = (id: string) => {
   return stepTiles(index, step, targetsOf(step.id));
 };
 
-describe("stepTiles (owner, batch 6)", () => {
+describe("stepTiles (batch 6)", () => {
   it("draws only the panel that holds the control, never its zone's or a neighbor", () => {
     // STANDBY POWER is drawn on the meters' section, not on its zone's (ground power and generators);
     // the wiper panel between them was drawn before.
@@ -86,7 +86,7 @@ describe("stepTiles (owner, batch 6)", () => {
     expect(tilesTitle(stepTiles(index, step, out)).title).toBe("Control stand");
   });
 
-  it("draws a control the pack targets on its panel, and lists one with no drawing (owner, batch 6)", () => {
+  it("draws a control the pack targets on its panel, and lists one with no drawing (batch 6)", () => {
     // The oxygen mask is drawn on the side panel, now a target of crew communications.
     expect(tiles("memory.crew-communications").map((t) => t.id)).toContain("side");
     // The fuel pumps are set, so the fuel panel leads; the display it reads comes after.

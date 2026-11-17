@@ -333,11 +333,12 @@ pub fn log_entry(
     }
 }
 
-/// A step's expected response with its blanks filled from the flight, as the step shows it.
+/// A step's expected response with its blanks filled from the flight, as the step shows it: for
+/// a step whose value depends on a decision, the value for the flight's answer.
 fn filled_value(flight: &Flight, step: &checklist_core::Step) -> String {
     let values = blank_values(flight, step);
     let mut out = String::new();
-    let mut rest = step.expect.as_str();
+    let mut rest = step.value_for(&flight.options);
     let mut n = 0;
     while let Some(i) = rest.find("___") {
         out.push_str(&rest[..i]);
@@ -819,6 +820,41 @@ mod tests {
             step.expect.matches("___").count(),
             "{v}"
         );
+    }
+
+    #[test]
+    fn a_step_whose_value_depends_on_a_decision_is_logged_with_the_answer_s_value() {
+        let pack = ifly_pack();
+        let step = pack
+            .lists
+            .iter()
+            .flat_map(|l| &l.steps)
+            .find(|s| s.id.as_str() == "ifly-737-max8.before-start.fuel-pump-switches")
+            .unwrap()
+            .clone();
+        let mut flight = new_flight(&pack);
+        assert_eq!(filled_value(&flight, &step), step.expect, "unanswered");
+        flight.options.insert("center_tank".into(), "less".into());
+        assert_eq!(
+            filled_value(&flight, &step),
+            "MAIN PUMPS ON · CENTER PUMPS OFF"
+        );
+        // The Before start checklist's FUEL item keeps its blanks in the answer's value.
+        let fuel = pack
+            .lists
+            .iter()
+            .flat_map(|l| &l.steps)
+            .find(|s| s.id.as_str() == "ifly-737-max8.before-start.fuel")
+            .unwrap();
+        flight
+            .values
+            .insert(checklist_core::FillField::MinimumTakeoffFuel, "5160".into());
+        flight
+            .values
+            .insert(checklist_core::FillField::Fuel, "6400".into());
+        let v = filled_value(&flight, fuel);
+        assert!(v.ends_with("MAIN PUMPS ON · CENTER PUMPS OFF"), "{v}");
+        assert!(v.contains("5160") && v.contains("6400"), "{v}");
     }
 
     #[test]

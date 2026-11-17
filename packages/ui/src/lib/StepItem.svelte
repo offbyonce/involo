@@ -8,7 +8,7 @@ Mark done, Skip for now, Add to or Remove from Essentials). The whole row select
 target. The current step is larger, with where it is, Done, Skip for now and the keyboard hint; a
 skipped step has a Skipped pill and Do it now. States read without color too: the icon's shape
 and the words. Every step looks the same (decision 0013). Blanks stay inline fields in the value
-column until batch 4 (owner). Below 900 px (tablet portrait and phone, no side pane) the step the
+column until batch 4. Below 900 px (tablet portrait and phone, no side pane) the step the
 pane would show opens in place with the pane's content (`inline`), and the current step's Done and
 Skip for now sit in the bottom bar (Tablet and Mobile boards, batch 5).
 A decision step (decision 0022, Decision.dc.html) asks its option in the value column: a diamond
@@ -82,7 +82,7 @@ row in place. A step that depends on the answer links back to it.
 
   let menu = $state(false);
   /** A value with blanks: the parts with blanks first, the rest of the instruction after. */
-  let fill = $derived(fillParts(step.expect));
+  let fill = $derived(fillParts(dependent?.value ?? step.expect));
   let place = $derived(index.place(step));
   let title = $derived(stepTitle(index, step));
   let current = $derived(row.state === "current");
@@ -91,7 +91,7 @@ row in place. A step that depends on the answer links back to it.
   );
   const STATE_WORDS = { to_do: "to do", current: "current", done: "done", skipped: "skipped, still open" };
   let tickLabel = $derived(
-    row.state === "done" ? `Clear the tick on ${title}` : decision && decision.answer === null ? `${title}: decision step, to answer` : `Confirm ${title}: ${step.expect}`,
+    row.state === "done" ? `Clear the tick on ${title}` : decision && decision.answer === null ? `${title}: decision step, to answer` : `Confirm ${title}: ${dependent?.value ?? step.expect}`,
   );
   /** An unanswered decision step ticks only by answering. */
   function tickOrAsk(): void {
@@ -162,7 +162,11 @@ row in place. A step that depends on the answer links back to it.
       <span class="val">{step.expect}</span>
       <span class="ans">{labelOf(decision.option, decision.answer)}</span>
     {:else if dependent}
-      <span class="val">{dependent.value ?? step.expect}</span>
+      {#if fill}
+        <BlankFields name={step.text} blanks={fill.blanks} rest={fill.rest} values={row.values} links={blankLinks(step.fill ?? [])} {onBlank} />
+      {:else}
+        <span class="val">{dependent.value ?? step.expect}</span>
+      {/if}
       {#if dependent.answer === null}
         <button class="dlink muted" type="button" onclick={() => decisions?.change(dependent.decisionStep)}>Depends on the {lowerFirst(dependent.option.title)} answer</button>
       {:else}

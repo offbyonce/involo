@@ -42,7 +42,7 @@ import does to values the pilot typed.
 - The saved plan lives apart from the flight, so a flight never depends on it, and holds no
   personal fields and none of SimBrief's own text.
 
-## Amendment (2026-11-13, Phase 2 step 7 batch 4; owner)
+## Amendment (2026-11-13, Phase 2 step 7 batch 4)
 - **Arrival values live in one place.** The Arrival data box on the descent page is replaced by a
   link to Flight › Approach, where landing altitude, landing flaps, VREF (landing speed), autobrake
   and minimums are entered with the arrival runway and STAR.

@@ -22,9 +22,51 @@ data_types! {
         /// Phases that show the choice above their lists.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub ask_in: Vec<String>,
-        /// A flight value that suggests the answer, for the pilot to confirm (decision 0022).
+        /// How a flight value suggests the answer, for the pilot to confirm (decisions 0022 and
+        /// 0027).
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub suggests: Option<FillField>,
+        pub suggests: Option<Suggests>,
+    }
+
+    /// What suggests an option's answer: a rule (decision 0027), or, as format 4 wrote it, a bare
+    /// flight field, which suggests nothing.
+    #[serde(untagged)]
+    pub enum Suggests {
+        Rule(SuggestRule),
+        Field(FillField),
+    }
+
+    /// A weight from the flight, less `minus`, above `more_than` suggests `then`, otherwise
+    /// `otherwise`; within `near` of `more_than` the suggestion says it is close to the line
+    /// (decision 0027). The amounts are in `unit`. With `minus` at 0, nothing is suggested.
+    pub struct SuggestRule {
+        pub field: FillField,
+        pub unit: WeightUnit,
+        pub minus: u32,
+        pub more_than: u32,
+        #[serde(default)]
+        pub near: u32,
+        /// The line and margin for a flight in the other unit, when the choices name both
+        /// ("More than 1,000 lb (450 kg)"): a pound flight is held to 1,000 lb, not 992.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub other_unit: Option<SuggestLine>,
+        pub then: String,
+        pub otherwise: String,
+    }
+
+    /// A suggestion rule's line and margin in the other unit.
+    pub struct SuggestLine {
+        pub more_than: u32,
+        #[serde(default)]
+        pub near: u32,
+    }
+
+    /// A unit for a suggestion rule's amounts.
+    #[derive(Copy, Eq)]
+    #[serde(rename_all = "snake_case")]
+    pub enum WeightUnit {
+        Kg,
+        Lb,
     }
 
     /// How one value of an option is shown, e.g. "Ground power at the gate".

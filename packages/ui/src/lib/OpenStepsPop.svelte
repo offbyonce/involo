@@ -8,6 +8,7 @@ open. Pop-over tokens; it closes on its X, Esc or a press outside. On phone it i
 (Mobile board, open screen), opened from the progress row's "2 open".
 -->
 <script lang="ts">
+  import { stepValue } from "./answers.svelte";
   import type { OpenStep } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import Icon from "./Icon.svelte";
@@ -74,7 +75,7 @@ open. Pop-over tokens; it closes on its X, Esc or a press outside. On phone it i
                 <span class="status" class:skipped={o.skipped} aria-hidden="true"><i></i></span>
                 <span class="txt">
                   <span class="nm">{stepTitle(index, step)}</span>
-                  <span class="val">{step.expect}</span>
+                  <span class="val">{stepValue(step)}</span>
                 </span>
                 <button
                   class="go"

@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
 A panel drawing for one step: the panel sections that hold the step's controls, and nothing else
-(owner, batch 6: never a neighbor, even one between them). PanelTiles draws each panel as its own
+(batch 6: never a neighbor, even one between them). PanelTiles draws each panel as its own
 tile; a tile among several is titled with its panel's name. It is as wide as its card,
 keeping its proportions, unless that would draw a label under 11 px; then it is drawn at the
 smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width view.
@@ -78,7 +78,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     wider?: boolean | undefined;
     /** Out: the element that scrolls the drawing, for the navigator. */
     scroller?: HTMLDivElement | null | undefined;
-    /** An overview (the Flight deck page's selected panel, owner): fitted to its width, never
+    /** An overview (the Flight deck page's selected panel): fitted to its width, never
      * scrolling, its labels smaller than 11 px where they must be; the panel sheet has it at full size. */
     overview?: boolean | undefined;
     /** One tile among several: the whole section, titled with its name (PanelTiles board). */
@@ -92,7 +92,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
   } = $props();
 
   let focused = $derived(panel.sections.filter((s) => focus.includes(s.id)));
-  /** Only the step's sections (owner, batch 6). */
+  /** Only the step's sections (batch 6). */
   let drawn = $derived(focused);
 
   type Band = { y0: number; y1: number; x0: number; x1: number };
@@ -186,7 +186,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
   });
   let scale = $derived.by(() => {
     if (shared != null) {
-      // Panels shown together share one scale (owner); wider than its room, it scrolls as before.
+      // Panels shown together share one scale; wider than its room, it scrolls as before.
       const roomWidth = room?.width ?? width;
       const over = !overview && roomWidth > 0 && view.box.w * shared > roomWidth + 1;
       return room ? { k: shared, overflow: over, wider: over } : { k: shared, overflow: over };
@@ -214,7 +214,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
 
   /**
    * A drawing bigger than its room (wider than the card, or taller than the room the side pane
-   * leaves it) opens centered on the step's controls, both ways, at every size (the owner, batch 2),
+   * leaves it) opens centered on the step's controls, both ways, at every size (batch 2),
    * and fades at the edges where there is more.
    */
   let moreY = $state(false);
@@ -254,7 +254,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     enlargeable = !large && (scale.overflow || moreY || !!band);
   });
   /**
-   * Opens the larger view scrolled so the step's controls are in sight (the owner, batch 2). The
+   * Opens the larger view scrolled so the step's controls are in sight (batch 2). The
    * drawing takes its full size a frame or two after the sheet opens, so it centers again whenever
    * the drawing resizes in the first half second.
    */

@@ -12,7 +12,7 @@ steps:
   - id: ifly-737-max8.before-taxi.generators
     text: GENERATORS
     expect: "ON"
-    terms: ["P5"]
+    terms: ["P5", "GEN OFF BUS"]
     controls:
       - engen
     targets:
@@ -21,6 +21,8 @@ steps:
       - at: "oh/elecl/GEN 2/1"
         set: "ON"
     why: Engine generators take over the buses
+    if_not: A GEN OFF BUS light stays on
+    if_not_detail: "That generator isn't powering its transfer bus. Switch it on again, and check the DRIVE light if it stays on"
     explain: gen
     confirmed_by:
       - kind: vendor-docs
