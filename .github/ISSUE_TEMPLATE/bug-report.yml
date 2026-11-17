@@ -1,0 +1,66 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+
+name: Bug report
+description: Something in Involo doesn't work as it should.
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting this. For a wrong value or wording in a procedure step, use
+        "Problem with a procedure" instead; for a SimBrief or OFP import, use "SimBrief or OFP
+        file import problem".
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+      description: What you saw, including any message the app showed.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The shortest way to make it happen again.
+      placeholder: |
+        1. Open …
+        2. Tap …
+        3. See …
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where in the app
+      description: The page, and the stage, phase and step if it's in the checklist.
+  - type: input
+    id: version
+    attributes:
+      label: Involo version
+      description: Shown at the bottom of Settings.
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Browser and device
+      description: For example Chrome on Windows 11, Safari on iPad, or the installed app.
+    validations:
+      required: true
+  - type: input
+    id: sim
+    attributes:
+      label: Simulator and aircraft versions (if it matters)
+      description: For example MSFS 2024 and the iFly 737 MAX 8 version.
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or anything else
+      description: Drag images here. Please leave out anything personal.

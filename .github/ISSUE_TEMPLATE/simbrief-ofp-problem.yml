@@ -46,7 +46,7 @@ body:
     id: versions
     attributes:
       label: Versions
-      description: Involo version (Settings › About), browser, and whether the app is installed.
+      description: Involo version (bottom of Settings), browser, and whether the app is installed.
   - type: checkboxes
     id: privacy
     attributes:

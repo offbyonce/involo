@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+
+name: Task
+description: Planned work, with a clear definition of done.
+labels: ["task"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: The outcome, in one or two sentences, and why it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What's in, and what's explicitly out.
+      value: |
+        **In scope**
+        -
+
+        **Out of scope**
+        -
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checkable statements that are all true when this is done, including the tests that prove it.
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Files and lines, related issues or decisions, background, and anything else that helps.

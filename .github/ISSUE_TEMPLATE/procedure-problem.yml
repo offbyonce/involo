@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+
+name: Problem with a procedure
+description: A step's value, wording, location or order doesn't match the aircraft in the simulator.
+labels: ["content", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for checking the procedures against the aircraft.
+
+        **Please describe what you see in the simulator in your own words. Don't paste, quote or
+        link manuals or other documentation**: Involo's procedures are written independently, and
+        we can't take text from them.
+  - type: input
+    id: step
+    attributes:
+      label: Which step
+      description: Stage, phase and step title, for example "Departure › Before start › Fuel pump switches".
+    validations:
+      required: true
+  - type: textarea
+    id: says
+    attributes:
+      label: What Involo says
+      description: The value, wording, location line or order as the app shows it.
+    validations:
+      required: true
+  - type: textarea
+    id: correct
+    attributes:
+      label: What's correct
+      description: What it should say instead.
+    validations:
+      required: true
+  - type: textarea
+    id: how
+    attributes:
+      label: How you know
+      description: What you saw in the simulator, and where (panel, page or display). No manual quotes or links, please.
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Involo version (bottom of Settings), simulator, and aircraft version.
+    validations:
+      required: true
