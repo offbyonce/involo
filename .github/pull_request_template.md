@@ -10,5 +10,5 @@ Fixes #
 
 - [ ] Every commit is signed off (`git commit -s`)
 - [ ] `just ci` passes
-- [ ] Content changes are written in my own words from allowed sources (see CONTRIBUTING.md), with nothing copied or linked from a manual
+- [ ] Each list I changed has a `basis` tag naming only the kind of material it was checked against (no citations, no links), and its content is in my own words, with nothing copied from a manual (see CONTRIBUTING.md)
 - [ ] No images, PDFs or files from an aircraft developer or simulator
