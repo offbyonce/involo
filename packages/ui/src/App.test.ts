@@ -155,7 +155,7 @@ function host(overrides: Partial<Host> = {}): Host {
     suggestion: async () => null,
     loadSaved: async () => ({ flight: null, settings: null }),
     save: async () => 0,
-    setAside: async () => {},
+    setAside: async () => true,
     defaultSettings: async () =>
       ({ theme: "dark", dimming: 0, detail: "expanded", listView: "checklist", tourSeen: true }) as Settings,
     fetchPlan: async () => {
@@ -618,12 +618,14 @@ describe("App", () => {
       },
       setAside: async (_p, what) => {
         asides.push(what);
+        return true;
       },
     });
     render(App, { context: hostContext(h) });
 
     expect(await screen.findByText("Your saved progress is from a newer version of the app.")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Save a copy" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Start fresh" }).classList.contains("primary")).toBe(true);
     await fireEvent.click(await screen.findByRole("button", { name: "Confirm Standby power: AUTO" }));
     await new Promise((r) => setTimeout(r, 20));
     expect(saves).not.toContain("flight");
@@ -633,6 +635,195 @@ describe("App", () => {
     expect(asides).toEqual(["flight"]);
     expect(saves).toContain("flight");
     expect(screen.queryByText(/newer version of the app/)).toBeNull();
+  });
+
+  it("says progress isn't being saved when a save is refused, until a save works again", async () => {
+    let refuse = true;
+    const h = host({ save: async () => (refuse ? null : new Date(2026, 10, 11, 14, 5).getTime()) });
+    render(App, { context: hostContext(h) });
+
+    await fireEvent.click(await screen.findByRole("button", { name: "Confirm Standby power: AUTO" }));
+    expect(await screen.findByText("Progress isn’t being saved on this device.")).toBeTruthy();
+    expect(screen.queryByText(/^Saved /)).toBeNull();
+    expect(screen.getByText("Not saved")).toBeTruthy();
+    expect(document.querySelector("#drawer .who small")?.textContent).toMatch(/ · not saved · /);
+
+    refuse = false;
+    await fireEvent.click(screen.getByRole("button", { name: "Confirm Standby power: AUTO" }));
+    expect(await screen.findByText("Saved 14:05")).toBeTruthy();
+    expect(screen.queryByText("Progress isn’t being saved on this device.")).toBeNull();
+    expect(document.querySelector("#drawer .who small")?.textContent).toMatch(/saved 14:05/);
+  });
+
+  it("keeps the notice when Start fresh can't set saved data aside, and saves nothing", async () => {
+    const saves: string[] = [];
+    const h = host({
+      loadSaved: async () => ({
+        flight: { loaded: { state: "newer", format: 9 } as Loaded<Flight>, text: '{"format":9}' },
+        settings: null,
+      }),
+      save: async (_p, what) => {
+        saves.push(what);
+        return 0;
+      },
+      setAside: async () => false,
+    });
+    render(App, { context: hostContext(h) });
+
+    await fireEvent.click(await screen.findByRole("button", { name: "Start fresh" }));
+    expect(await screen.findByText("It couldn’t be set aside, so nothing was moved.")).toBeTruthy();
+    expect(screen.getByText("Your saved progress is from a newer version of the app.")).toBeTruthy();
+    expect(screen.getByText(/starting fresh sets it aside rather than deleting it/)).toBeTruthy();
+    expect(saves).not.toContain("flight");
+    // Saving a copy comes first now: it is the primary button.
+    expect(screen.getByRole("link", { name: "Save a copy" }).classList.contains("primary")).toBe(true);
+    expect(screen.getByRole("button", { name: "Start fresh" }).classList.contains("primary")).toBe(false);
+  });
+
+  describe("two windows (the installed app beside a tab)", () => {
+    const flightWith = (values: Record<string, string>, done: Record<string, number> = {}) =>
+      ({
+        pack: "demo",
+        options: { power: "gpu" },
+        session: { done, skipped: {} },
+        values,
+      }) as unknown as Flight;
+    const ready = (f: Flight) => ({
+      flight: {
+        loaded: { state: "ready", value: f, migratedFrom: null } as Loaded<Flight>,
+        text: JSON.stringify(f),
+      },
+      settings: null,
+    });
+    const ticking: Host["apply"] = async (_p, f, action) =>
+      action.type === "tick"
+        ? { ...f, session: { ...f.session, done: { ...f.session.done, [action.step]: action.at } } }
+        : f;
+
+    it("shows what another window saved when the storage event comes", async () => {
+      let stored = flightWith({});
+      const h = host({ loadSaved: async () => ready(stored) });
+      render(App, { context: hostContext(h) });
+      await screen.findByRole("heading", { level: 1, name: "Power up" });
+      expect(document.querySelector(".fsline")?.textContent).not.toMatch(/EGLL/);
+
+      stored = flightWith({ origin: "EGLL", destination: "LFPG" });
+      window.dispatchEvent(new StorageEvent("storage", { key: "involo.flight.demo" }));
+      await waitFor(() => expect(document.querySelector(".fsline")?.textContent).toMatch(/EGLL → LFPG/));
+    });
+
+    it("never saves over another window's ticks: loads them and adds this window's tick to them", async () => {
+      const other = flightWith({}, { battery: 1 });
+      let loads = 0;
+      const saved: Flight[] = [];
+      const h = host({
+        apply: ticking,
+        loadSaved: async () => (loads++ === 0 ? ready(flightWith({})) : ready(other)),
+        save: async (_p, what, value) => {
+          if (what !== "flight") return 0;
+          // The first save finds the other window's text: nothing is written.
+          if (saved.length === 0 && loads === 1) {
+            saved.push({} as Flight);
+            return "changed";
+          }
+          saved.push(value as Flight);
+          return 1;
+        },
+      });
+      render(App, { context: hostContext(h) });
+
+      await fireEvent.click(await screen.findByRole("button", { name: "Confirm Standby power: AUTO" }));
+      await waitFor(() => expect(saved).toHaveLength(2));
+      expect(Object.keys((saved[1] as Flight).session.done).sort()).toEqual(["battery", "standby"]);
+    });
+
+    it("doesn't save over progress another window saved in a newer format", async () => {
+      let loads = 0;
+      const saves: Flight[] = [];
+      const h = host({
+        apply: ticking,
+        loadSaved: async () =>
+          loads++ === 0
+            ? ready(flightWith({}))
+            : {
+                flight: { loaded: { state: "newer", format: 9 } as Loaded<Flight>, text: '{"format":9}' },
+                settings: null,
+              },
+        save: async (_p, what, value) => {
+          if (what !== "flight") return 0;
+          saves.push(value as Flight);
+          return loads === 1 ? "changed" : 1;
+        },
+      });
+      render(App, { context: hostContext(h) });
+
+      await fireEvent.click(await screen.findByRole("button", { name: "Confirm Standby power: AUTO" }));
+      expect(await screen.findByText("Your saved progress is from a newer version of the app.")).toBeTruthy();
+      await fireEvent.click(screen.getByRole("button", { name: "Confirm Standby power: AUTO" }));
+      await new Promise((r) => setTimeout(r, 20));
+      expect(saves).toHaveLength(1);
+    });
+  });
+
+  describe("a saved SimBrief plan this version can't read (decision 0019)", () => {
+    for (const [state, words] of [
+      ["newer", "Your saved SimBrief plan is from a newer version of the app."],
+      ["unreadable", "Your saved SimBrief plan could not be read."],
+    ] as const) {
+      it(`keeps a ${state} plan with the notice, saves no import over it, and sets it aside on Start fresh`, async () => {
+        const plans: (SavedPlan | null)[] = [];
+        const asides: string[] = [];
+        const text = '{"format":9}';
+        const imported = { format: 1, plan: {}, loadedAt: 5 } as unknown as SavedPlan;
+        const h = host({
+          loadPlan: async () => ({
+            loaded: (state === "newer"
+              ? { state, format: 9 }
+              : { state, reason: "bad" }) as Loaded<SavedPlan>,
+            text,
+          }),
+          savePlan: async (_p, plan) => {
+            plans.push(plan);
+          },
+          defaultSettings: async () =>
+            ({
+              theme: "dark",
+              dimming: 0,
+              detail: "expanded",
+              listView: "checklist",
+              tourSeen: true,
+              simbriefUser: "Pilot",
+            }) as Settings,
+          fetchPlan: async () => imported,
+          setAside: async (_p, what) => {
+            asides.push(what);
+            return true;
+          },
+        });
+        render(App, { context: hostContext(h) });
+
+        expect(await screen.findByText(words)).toBeTruthy();
+        const copy = screen.getByRole("link", { name: "Save a copy" });
+        expect(copy.getAttribute("download")).toBe("involo-plan.json");
+        // An import fills the flight for this visit; nothing is saved over the kept plan.
+        await fireEvent.click(
+          await screen.findByRole("button", {
+            name: "Add your flight: import from SimBrief or enter the clearance",
+          }),
+        );
+        await fireEvent.click(
+          screen.getAllByRole("button", { name: "Import latest from SimBrief" })[0] as HTMLElement,
+        );
+        expect(await screen.findByText(/^Imported /)).toBeTruthy();
+        expect(plans).toEqual([]);
+        expect(screen.getByText(words)).toBeTruthy();
+        // Start fresh sets it aside first, then keeps the plan just imported.
+        await fireEvent.click(screen.getByRole("button", { name: "Start fresh" }));
+        await waitFor(() => expect(asides).toEqual(["plan"]));
+        expect(screen.queryByText(words)).toBeNull();
+        expect(plans).toEqual([imported]);
+      });
+    }
   });
 
   it("clears a list's ticks at once and offers Undo", async () => {
@@ -758,7 +949,13 @@ describe("App", () => {
             },
             settings: null,
           }) as never,
-        loadPlan: async () => (withPlan ? ({ plan: {} } as unknown as SavedPlan) : null),
+        loadPlan: async () =>
+          withPlan
+            ? {
+                loaded: { state: "ready", value: { plan: {} } as unknown as SavedPlan, migratedFrom: null },
+                text: "{}",
+              }
+            : null,
         planValues: async () => ({
           values: { fuel: "8001", weight_unit: "KG" },
           filled: 2,

@@ -282,6 +282,13 @@ const LOG_OPEN = "ifly-737-max8@2";
 
 const TOUR_STATE = [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE];
 
+/** Makes every save to this device's storage fail as a full storage does. */
+const refuseSaves = `(() => { const set = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (k.startsWith("involo.")) throw new DOMException("full", "QuotaExceededError"); return set.call(this, k, v); }; return true; })()`;
+/** Saves `what` ("flight" or "plan") in a format from a newer version, then reloads. */
+const savedAs = (what) => [
+  `(() => { localStorage.setItem("involo.${what}.ifly-737-max8", '{"format":99}'); setTimeout(() => location.reload(), 50); return true; })()`,
+  "new Promise((done) => { const t = setInterval(() => { if (document.querySelector('[data-app-ready]') && document.querySelector('.kept')) { clearInterval(t); done(true); } }, 100); })",
+];
 const SHOTS = [
   { name: "phase", app: { hash: "" }, base: { hash: "#cold-dark" } },
   {
@@ -663,6 +670,20 @@ const SHOTS = [
     app: { hash: "", before: [click('[aria-controls="drawer"]')] },
     base: { hash: "#cold-dark", before: [click("#menu")] },
   },
+  // Saving (decisions 0012 and 0019): saves refused, with the notice and "Not saved"; the menu's
+  // sub-line on a phone; Start fresh that can't set saved data aside; a kept SimBrief plan.
+  { name: "unsaved", only: ["desktop", "phone"], app: { hash: "", before: [refuseSaves, click(".it .tick", 0)] } },
+  {
+    name: "unsaved-menu",
+    only: "phone",
+    app: { hash: "", before: [refuseSaves, click(".it .tick", 0), click('[aria-controls="drawer"]')] },
+  },
+  {
+    name: "kept-stuck",
+    only: "desktop",
+    app: { hash: "", before: [...savedAs("flight"), refuseSaves, pressText("Start fresh")] },
+  },
+  { name: "kept-plan", only: "desktop", app: { hash: "", before: savedAs("plan") } },
 ];
 
 /**

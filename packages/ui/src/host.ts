@@ -53,10 +53,21 @@ export interface Host {
    * if older), newer or unreadable, with the saved text so nothing is lost. Null when none.
    */
   loadSaved(pack: string): Promise<Saved>;
-  /** Saves the flight or the settings on this device; returns when, in milliseconds. */
-  save(pack: string, what: "flight" | "settings", value: Flight | Settings): Promise<number>;
-  /** Moves saved text the app cannot use aside (kept, not deleted), so a new save can start. */
-  setAside(pack: string, what: "flight" | "settings"): Promise<void>;
+  /**
+   * Saves the flight or the settings on this device. Resolves to when, in milliseconds; to null
+   * when it wasn't stored (storage blocked or full); or to "changed" when another window saved
+   * since this one last read or wrote, and then nothing is written: load what is saved instead.
+   */
+  save(
+    pack: string,
+    what: "flight" | "settings",
+    value: Flight | Settings,
+  ): Promise<number | null | "changed">;
+  /**
+   * Moves saved text the app cannot use aside (kept, not deleted), so a new save can start.
+   * Resolves false when its copy couldn't be stored: then nothing was moved.
+   */
+  setAside(pack: string, what: Kept): Promise<boolean>;
   defaultSettings(): Promise<Settings>;
   /**
    * The latest SimBrief plan for a username or Pilot ID, fetched from the pilot's browser and
@@ -67,8 +78,12 @@ export interface Host {
   readPlanFile(text: string): Promise<SavedPlan>;
   /** The flight values a plan fills in. */
   planValues(plan: SavedPlan): Promise<PlanValues>;
-  /** The plan kept on this device for a pack, or null. */
-  loadPlan(pack: string): Promise<SavedPlan | null>;
+  /**
+   * The plan kept on this device for a pack, read by Rust as ready, newer or unreadable, with the
+   * saved text, so a plan this version can't use is kept and reported (decision 0019). Null when
+   * none.
+   */
+  loadPlan(pack: string): Promise<SavedItem<SavedPlan>>;
   /** Keeps the plan on this device, or forgets it (null). */
   savePlan(pack: string, plan: SavedPlan | null): Promise<void>;
   /** A METAR or TAF decoded from the code table. */
@@ -102,6 +117,8 @@ export interface Host {
 }
 
 export type SavedItem<T> = { loaded: Loaded<T>; text: string } | null;
+/** What is saved on this device that the app may have to keep as it is. */
+export type Kept = "flight" | "settings" | "plan";
 export type Saved = { flight: SavedItem<Flight>; settings: SavedItem<Settings> };
 
 const HOST = Symbol("host");

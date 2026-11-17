@@ -17,7 +17,6 @@ import {
   editLog,
   loadLog,
   loadPack,
-  loadPlan,
   logCsv,
   logEntry,
   newFlight,
@@ -32,10 +31,7 @@ import {
   suggestion,
 } from "./core";
 import { readLog, writeLog } from "./log-store.js";
-import { loadSaved, save, setAside } from "./saved";
-import { storageKey } from "./storage-keys.js";
-
-const planKey = (pack: string) => storageKey(`plan.${pack}`);
+import { loadPlan, loadSaved, save, savePlan, setAside } from "./saved";
 
 /** Whether the browser has been asked this visit to keep the log (decision 0026). */
 let keepAsked = false;
@@ -73,25 +69,8 @@ export const webHost: Host = {
   },
   readPlanFile: compact,
   planValues: (plan) => planValues(plan.plan),
-  loadPlan: async (pack) => {
-    let text: string | null = null;
-    try {
-      text = window.localStorage.getItem(planKey(pack));
-    } catch {
-      return null;
-    }
-    if (text === null) return null;
-    const loaded = await loadPlan(text);
-    return loaded.state === "ready" ? loaded.value : null;
-  },
-  savePlan: async (pack, plan) => {
-    try {
-      if (plan) window.localStorage.setItem(planKey(pack), JSON.stringify(plan));
-      else window.localStorage.removeItem(planKey(pack));
-    } catch {
-      // Storage refused (private window): the plan lasts for this visit only.
-    }
-  },
+  loadPlan,
+  savePlan,
   decodeMetar,
   decodeTaf,
   newLog,
