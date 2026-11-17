@@ -12,6 +12,7 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
 <script lang="ts">
   import type { Decoded, DecodedRow, Element, FillField, Flight, SavedPlan } from "@involo/bindings";
   import { getHost } from "../host";
+  import { safely } from "../lib/safely";
   import Icon from "../lib/Icon.svelte";
   import { flightHref } from "../route.svelte";
   import { rangeMessage, type Ofp, type Part } from "./sections";
@@ -62,10 +63,27 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
   let taf = $derived(airport?.taf ?? null);
 
   let decoded = $state<Decoded | null>(null);
+  /** A report the decoder couldn't read: its groups as printed, none of them decoded. */
+  const asPrinted = (text: string): Decoded => ({
+    station: null,
+    time: null,
+    groups: text.split(/\s+/).filter(Boolean).map((g): [string, number] => [g, -1]),
+    rows: [],
+  });
   $effect(() => {
     const text = metar;
     decoded = null;
-    if (text) void host.decodeMetar(text).then((d) => (decoded = d));
+    if (!text) return;
+    safely(
+      host.decodeMetar(text),
+      (d) => {
+        if (metar === text) decoded = d;
+      },
+      // Not decoded at all: the report as printed, with no decoded rows.
+      () => {
+        if (metar === text) decoded = asPrinted(text);
+      },
+    );
   });
 
   /** The rows shown: the weather itself, not the report's kind, station or time. */
@@ -210,7 +228,10 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
       const t = /^(M?\d{2})\//.exec(tg)?.[1]?.replace("M", "-");
       return { w: w ? `${w[1]}/${w[2]?.padStart(2, "0")}` : "—", t: t ? temp(Number(t)) : "—" };
     };
-    void Promise.all([read(dep), read(dest)]).then(([a, b]) => (surface = { dep: `${a.w}|${a.t}`, dest: `${b.w}|${b.t}` }));
+    const none = { w: "—", t: "—" };
+    // A report the decoder couldn't read gives no surface wind: a dash, as with no report.
+    const safe = (m: string | null | undefined) => read(m).catch(() => none);
+    safely(Promise.all([safe(dep), safe(dest)]), ([a, b]) => (surface = { dep: `${a.w}|${a.t}`, dest: `${b.w}|${b.t}` }));
   });
   let windRows = $derived.by<WindRow[]>(() => {
     const out: WindRow[] = [];

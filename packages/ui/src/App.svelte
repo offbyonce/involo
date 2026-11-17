@@ -29,6 +29,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     type Settings,
   } from "@involo/bindings";
   import { getHost, type Kept, type SavedItem } from "./host";
+  import { fetchProblem, fileProblem } from "./lib/problems";
+  import { safely } from "./lib/safely";
   import type { Opening } from "./lib/opening";
   import Slideout from "./lib/Slideout.svelte";
   import Toast from "./lib/Toast.svelte";
@@ -292,13 +294,20 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     const s = settings;
     if (!s) return;
     if (s.essentials) {
-      host.phaseView(packId, f, { ...s, essentials: false }, id).then((v) => {
-        if (!stale) fullView = v;
-      });
+      safely(
+        host.phaseView(packId, f, { ...s, essentials: false }, id),
+        (v) => {
+          if (!stale) fullView = v;
+        },
+        (e) => {
+          if (!stale && !(isAppError(e) && e.kind === "InvalidAction")) fail(e);
+        },
+      );
     } else {
       fullView = null;
     }
-    host.phaseView(packId, f, s, id).then(
+    safely(
+      host.phaseView(packId, f, s, id),
       (v) => {
         if (!stale) view = v;
       },
@@ -602,9 +611,13 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     const p = planSource;
     if (screen !== "log" || !f || !s || !packId) return;
     let stale = false;
-    host.logEntry(packId, f, s, p, Date.now()).then((e) => {
-      if (!stale) currentEntry = e.ticks.length || e.skipped.length ? e : null;
-    }, fail);
+    safely(
+      host.logEntry(packId, f, s, p, Date.now()),
+      (e) => {
+        if (!stale) currentEntry = e.ticks.length || e.skipped.length ? e : null;
+      },
+      fail,
+    );
     return () => {
       stale = true;
     };
@@ -670,6 +683,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       const added = [c.addedFlights ? n(c.addedFlights, "flight", "flights") : "", c.addedPractice ? n(c.addedPractice, "practice result", "practice results") : ""].filter(Boolean);
       const parts = [added.length ? `Added ${added.join(" and ")}.` : "Nothing new to add."];
       if (c.already) parts.push(`${n(c.already, "entry was", "entries were")} already in the log.`);
+      if (c.refused) parts.push(`${n(c.refused, "entry was", "entries were")} left out because ${c.refused === 1 ? "it" : "they"} couldn’t be real.`);
       if (c.droppedFlights + c.droppedPractice) parts.push(`The oldest ${n(c.droppedFlights + c.droppedPractice, "entry", "entries")} made way, to keep the newest 500.`);
       return parts.join(" ");
     } catch (e) {
@@ -745,11 +759,14 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     if (!f || !ix || !fromPlan) return;
     const asked = ix.options.filter((o) => ix.decider(o.id));
     let live = true;
-    void Promise.all(asked.map(async (o) => [o.id, await host.suggestion(packId, f, o.id)] as const))
-      .then((list) => {
+    safely(
+      Promise.all(asked.map(async (o) => [o.id, await host.suggestion(packId, f, o.id)] as const)),
+      (list) => {
         if (live && suggestedFrom === key) suggestions = Object.fromEntries(list);
-      })
-      .catch(() => {});
+      },
+      // No suggestion: the pilot answers as with no plan.
+      () => {},
+    );
     return () => {
       live = false;
     };
@@ -845,23 +862,19 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     });
     return null;
   }
-  function problemOf(e: unknown): string {
-    if (isAppError(e)) return e.message;
-    return "Couldn't reach SimBrief. Check your connection, or use a saved OFP file.";
-  }
   async function importFor(user: string): Promise<string | null> {
     try {
       if (settings && settings.simbriefUser !== user) await changeSettings({ ...settings, simbriefUser: user });
       return await usePlan(await host.fetchPlan(user));
     } catch (e) {
-      return problemOf(e);
+      return fetchProblem(e);
     }
   }
   async function importFile(text: string): Promise<string | null> {
     try {
       return await usePlan(await host.readPlanFile(text));
     } catch (e) {
-      return problemOf(e);
+      return fileProblem(e);
     }
   }
   /** The strip's Import latest from SimBrief: with no username yet, SimBrief and OFP file asks for one. */
@@ -884,7 +897,12 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       planFills = {};
       return;
     }
-    void host.planValues(p).then((v) => (planFills = v.values));
+    safely(
+      host.planValues(p),
+      (v) => (planFills = v.values),
+      // A plan whose values can't be read fills nothing, rather than keeping another plan's.
+      () => (planFills = {}),
+    );
   });
   /** Where the strip's clearance came from: "Runway and SID from SimBrief, 10:02 · the rest typed". */
   let provenance = $derived.by(() => {
@@ -1023,7 +1041,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     howStep = null;
     if (screen !== "how" || !id || !f || !s) return;
     let stale = false;
-    host.phaseView(packId, f, s, id).then(
+    safely(
+      host.phaseView(packId, f, s, id),
       (v) => {
         const c = v.lists.find((l) => l.current)?.current ?? null;
         const st = c ? index?.step(c) : undefined;

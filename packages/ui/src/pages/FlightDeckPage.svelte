@@ -14,6 +14,7 @@ Around the flight deck, last, has no map region: its places are a list, each wit
 line and, where the pack draws it, its drawing; nothing is lit in the side view.
 -->
 <script lang="ts">
+  import { safely } from "../lib/safely";
   import DeckMap from "../lib/DeckMap.svelte";
   import DeckPanel from "../lib/DeckPanel.svelte";
   import { tick } from "svelte";
@@ -109,14 +110,14 @@ line and, where the pack draws it, its drawing; nothing is lit in the side view.
     if (!slideOpen) return;
     const from = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     opener = from && !from.closest(".slide") ? from : opener;
-    void tick().then(() => slideEl?.focus());
+    safely(tick(), () => slideEl?.focus());
   });
   function closeSlide() {
     if (!area) return;
     const back = opener;
     opener = null;
     go(deckHref(area.id));
-    void tick().then(() => (back?.isConnected ? back : document.querySelector<HTMLElement>(".deck .map [role='button']"))?.focus());
+    safely(tick(), () => (back?.isConnected ? back : document.querySelector<HTMLElement>(".deck .map [role='button']"))?.focus());
   }
   /** The phone's area picker closes on Esc, a tap outside, or a choice; focus goes back to it. */
   let pickButton = $state<HTMLButtonElement | null>(null);

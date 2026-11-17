@@ -211,6 +211,7 @@ function fakeLog(): Pick<Host, "newLog" | "loadLog" | "saveLog" | "logEntry" | "
         already: 0,
         droppedFlights: 0,
         droppedPractice: 0,
+        refused: edit.type === "merge" && edit.text.includes("impossible") ? 2 : 0,
       };
     },
     logCsv: async () => "",
@@ -1529,6 +1530,19 @@ describe("App", () => {
 });
 
 describe("the Flight log (decision 0026)", () => {
+  it("says how many entries of a loaded log file were left out because they couldn't be real", async () => {
+    window.location.hash = "#/log";
+    const { container } = render(App, { context: hostContext(host()) });
+    const input = (await waitForElement('input[type="file"]')) as HTMLInputElement;
+    const file = new File(['{"format":1,"impossible":true}'], "log.json", { type: "application/json" });
+    Object.defineProperty(input, "files", { value: [file], configurable: true });
+    await fireEvent.change(input);
+    expect(
+      await screen.findByText("Nothing new to add. 2 entries were left out because they couldn’t be real."),
+    ).toBeTruthy();
+    expect(container).toBeTruthy();
+  });
+
   /** A flight with one tick, so there is something to log. */
   const ticked = () =>
     ({

@@ -19,6 +19,7 @@ them.
 </script>
 
 <script lang="ts">
+  import { safely } from "../lib/safely";
   import type { Rail } from "@involo/bindings";
   import { type GlossaryTerm, filterTerms, glossaryHref, letterOf } from "../lib/glossary";
   import Icon from "../lib/Icon.svelte";
@@ -92,7 +93,7 @@ them.
   $effect(() => {
     const t = term;
     if (!t) return;
-    void tick().then(() => {
+    safely(tick(), () => {
       if (pane) pane.scrollTop = 0;
       if (phoneScroll) phoneScroll.scrollTop = 0;
       document.getElementById("g-term")?.focus({ preventScroll: true });

@@ -5,7 +5,7 @@
 // APIs (decisions 0010 and 0012). Packs and their index are files beside the app, written by
 // `pack build`; this page is app/index.html, so they are one folder up.
 
-import type { PackSummary, SavedPlan } from "@involo/bindings";
+import { isAppError, type PackSummary, type SavedPlan } from "@involo/bindings";
 import type { Host } from "@involo/ui";
 import { applyBrandTheme } from "./brand-theme";
 import {
@@ -32,6 +32,7 @@ import {
 } from "./core";
 import { readLog, writeLog } from "./log-store.js";
 import { loadPlan, loadSaved, save, savePlan, setAside } from "./saved";
+import { fetchPlanText } from "./simbrief-fetch.js";
 
 /** Whether the browser has been asked this visit to keep the log (decision 0026). */
 let keepAsked = false;
@@ -39,6 +40,16 @@ let keepAsked = false;
 /** The compact plan from a SimBrief reply or a saved file (decision 0019): the raw text is dropped. */
 async function compact(text: string): Promise<SavedPlan> {
   return { format: await planFormat(), plan: await parsePlan(text), loadedAt: Date.now() };
+}
+
+/** SimBrief's own message in a reply that isn't 2xx (an unknown username, say), or null. */
+async function simbriefSays(text: string): Promise<string | null> {
+  try {
+    await parsePlan(text);
+    return null;
+  } catch (e) {
+    return isAppError(e) && e.message.startsWith("SimBrief says") ? e.message : null;
+  }
 }
 
 async function fetchText(path: string): Promise<string> {
@@ -62,11 +73,7 @@ export const webHost: Host = {
   setAside,
   defaultSettings,
   themeChanged: (theme) => applyBrandTheme(theme),
-  fetchPlan: async (user) => {
-    // Straight from the pilot's browser to SimBrief: only the username or Pilot ID goes with it.
-    const response = await fetch(await planUrl(user), { credentials: "omit", referrerPolicy: "no-referrer" });
-    return compact(await response.text());
-  },
+  fetchPlan: async (user) => compact(await fetchPlanText(await planUrl(user), { own: simbriefSays })),
   readPlanFile: compact,
   planValues: (plan) => planValues(plan.plan),
   loadPlan,

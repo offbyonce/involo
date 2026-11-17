@@ -53,6 +53,14 @@ pub fn parse_plan(text: &str) -> Result<Plan, AppError> {
     Ok(simbrief::parse_ofp(text)?)
 }
 
+/// The most fuel a plan's figure is taken as, in its unit (lb or kg): more than the largest
+/// airliner holds in pounds (about 560,000 lb). A figure above it isn't a real plan's and is left
+/// for the pilot. The engine names no aircraft, so the limit fits every pack.
+const MAX_FUEL: i32 = 1_000_000;
+/// The most a plan's weight figure is taken as, in its unit: above the largest airliner's
+/// takeoff weight in pounds (about 1,270,000 lb).
+const MAX_WEIGHT: i32 = 1_500_000;
+
 /// Thousands, rounded up to the next tenth (what the CDU takes for ZFW and reserves).
 fn thousands_up(v: i32) -> String {
     format!("{:.1}", (f64::from(v) / 100.0 - 1e-9).ceil() / 10.0)
@@ -148,7 +156,9 @@ fn put(v: &mut BTreeMap<FillField, String>, f: FillField, s: String) {
 /// Fuel, weights, performance and the route, read as 3.0 read them.
 fn performance(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
     let g = &plan.general;
-    if let Some(f) = plan.fuel.plan_ramp.filter(|f| *f > 0) {
+    let fuel = |f: Option<i32>| f.filter(|f| (1..=MAX_FUEL).contains(f));
+    let weight = |w: Option<i32>| w.filter(|w| (1..=MAX_WEIGHT).contains(w));
+    if let Some(f) = fuel(plan.fuel.plan_ramp) {
         put(v, FillField::Fuel, f.to_string());
         if let Some(u) = plan.units {
             put(
@@ -166,17 +176,18 @@ fn performance(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
     {
         put(v, FillField::LandingAltitude, e.to_string());
     }
-    if let Some(z) = plan.weights.zfw.filter(|z| *z > 0) {
+    if let Some(z) = weight(plan.weights.zfw) {
         put(v, FillField::Zfw, thousands_up(z));
     }
-    if let Some(r) = plan.fuel.reserve.filter(|r| *r > 0) {
-        put(
-            v,
-            FillField::Reserves,
-            thousands_up(r + plan.fuel.alternate.filter(|a| *a > 0).unwrap_or(0)),
-        );
+    // Reserve plus alternate: each in range, so the sum is at most twice MAX_FUEL, and checked
+    // against MAX_FUEL again.
+    if let Some(r) = fuel(plan.fuel.reserve)
+        .map(|r| r.saturating_add(fuel(plan.fuel.alternate).unwrap_or(0)))
+        .filter(|r| *r <= MAX_FUEL)
+    {
+        put(v, FillField::Reserves, thousands_up(r));
     }
-    if let Some(m) = plan.fuel.min_takeoff.filter(|m| *m > 0) {
+    if let Some(m) = fuel(plan.fuel.min_takeoff) {
         put(v, FillField::MinimumTakeoffFuel, m.to_string());
     }
     if let Some(ci) = g.cost_index.filter(|c| (0..=9999).contains(c)) {
@@ -208,13 +219,13 @@ fn performance(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
     {
         put(v, FillField::TransitionLevel, ((t + 50) / 100).to_string());
     }
-    if let Some(w) = plan.weights.takeoff.filter(|w| *w > 0) {
+    if let Some(w) = weight(plan.weights.takeoff) {
         put(v, FillField::TakeoffWeight, thousands(w));
     }
     if let Some(p) = plan.weights.passengers.filter(|p| (0..=500).contains(p)) {
         put(v, FillField::Passengers, p.to_string());
     }
-    if let Some(c) = plan.weights.cargo.filter(|c| *c >= 0) {
+    if let Some(c) = plan.weights.cargo.filter(|c| (0..=MAX_WEIGHT).contains(c)) {
         put(v, FillField::Cargo, thousands(c));
     }
     if let Some(r) = g.route.as_deref() {
@@ -332,7 +343,11 @@ pub fn plan_values(plan: &Plan) -> Result<PlanValues, AppError> {
         );
     }
     if let Some(a) = g.cruise_altitude_ft {
-        let fl = if a >= 1000 { (a + 50) / 100 } else { a };
+        let fl = if a >= 1000 {
+            a.saturating_add(50) / 100
+        } else {
+            a
+        };
         if (100..=410).contains(&fl) {
             put(v, FillField::CruiseLevel, fl.to_string());
         }
@@ -494,5 +509,108 @@ mod tests {
                 .ends_with("username=Pilot&json=1")
         );
         assert!(matches!(plan_url(" "), Err(AppError::FlightPlan(_))));
+    }
+
+    /// A METAR with a character outside ASCII: the plan still loads, and that airport's
+    /// altimeter setting is left for the pilot (the weather page shows the report as printed).
+    #[test]
+    fn a_metar_with_non_ascii_text_still_loads_the_plan() {
+        let mut plan = parse_plan(&fixture("ofp-sample.json")).unwrap();
+        plan.origin.as_mut().unwrap().metar = Some("EGLL 010850Z 24008KT 9999 Qé15 15/08".into());
+        plan.destination.as_mut().unwrap().metar = Some("LFPG 010850Z 1é010KT Q1013".into());
+        let pv = plan_values(&plan).unwrap();
+        assert_eq!(pv.values.get(&FillField::Qnh), None);
+        assert_eq!(
+            pv.values
+                .get(&FillField::DestinationQnh)
+                .map(String::as_str),
+            Some("1013")
+        );
+    }
+
+    #[test]
+    fn fuel_and_weights_outside_what_an_airliner_can_hold_are_not_filled() {
+        let mut plan = parse_plan(&fixture("ofp-sample.json")).unwrap();
+        let get = |p: &Plan, f: FillField| plan_values(p).unwrap().values.get(&f).cloned();
+        // At the top of each range: filled.
+        plan.fuel.plan_ramp = Some(MAX_FUEL);
+        plan.fuel.min_takeoff = Some(MAX_FUEL);
+        plan.fuel.reserve = Some(MAX_FUEL - 700);
+        plan.weights.zfw = Some(MAX_WEIGHT);
+        plan.weights.takeoff = Some(MAX_WEIGHT);
+        plan.weights.cargo = Some(MAX_WEIGHT);
+        assert_eq!(get(&plan, FillField::Fuel), Some(MAX_FUEL.to_string()));
+        assert_eq!(
+            get(&plan, FillField::MinimumTakeoffFuel),
+            Some(MAX_FUEL.to_string())
+        );
+        assert_eq!(get(&plan, FillField::Reserves), Some("1000.0".into()));
+        assert_eq!(get(&plan, FillField::Zfw), Some("1500.0".into()));
+        assert_eq!(get(&plan, FillField::TakeoffWeight), Some("1500.0".into()));
+        assert_eq!(get(&plan, FillField::Cargo), Some("1500.0".into()));
+        // One over: left out.
+        plan.fuel.plan_ramp = Some(MAX_FUEL + 1);
+        plan.fuel.min_takeoff = Some(MAX_FUEL + 1);
+        plan.fuel.reserve = Some(MAX_FUEL - 699);
+        plan.weights.zfw = Some(MAX_WEIGHT + 1);
+        plan.weights.takeoff = Some(MAX_WEIGHT + 1);
+        plan.weights.cargo = Some(MAX_WEIGHT + 1);
+        for f in [
+            FillField::Fuel,
+            FillField::WeightUnit,
+            FillField::MinimumTakeoffFuel,
+            FillField::Reserves,
+            FillField::Zfw,
+            FillField::TakeoffWeight,
+            FillField::Cargo,
+        ] {
+            assert_eq!(get(&plan, f), None, "{f:?}");
+        }
+        // The parser's ceiling for a figure it can't hold: neither filled nor overflowing.
+        plan.fuel.reserve = Some(i32::MAX);
+        plan.fuel.alternate = Some(i32::MAX);
+        plan.general.cruise_altitude_ft = Some(i32::MAX);
+        let pv = plan_values(&plan).unwrap();
+        assert_eq!(pv.values.get(&FillField::Reserves), None);
+        assert_eq!(pv.values.get(&FillField::CruiseLevel), None);
+        // An alternate figure out of range adds nothing to the reserve.
+        plan.fuel.reserve = Some(1200);
+        plan.fuel.alternate = Some(MAX_FUEL + 1);
+        assert_eq!(get(&plan, FillField::Reserves), Some("1.2".into()));
+    }
+
+    fn figure() -> impl proptest::strategy::Strategy<Value = Option<i32>> {
+        proptest::option::of(proptest::prelude::any::<i32>())
+    }
+
+    proptest::proptest! {
+        /// Any numbers at all in the plan's figures: plan values return without overflowing (this
+        /// runs in debug builds, where an overflow panics).
+        #[test]
+        fn plan_values_never_overflow(
+            fuel in proptest::collection::vec(figure(), 11),
+            weights in proptest::collection::vec(figure(), 10),
+            general in proptest::collection::vec(figure(), 7),
+            airport in proptest::collection::vec(figure(), 3),
+        ) {
+            let mut plan = parse_plan(&fixture("ofp-sample.json")).unwrap();
+            let f = &mut plan.fuel;
+            [f.taxi, f.trip, f.contingency, f.alternate, f.reserve, f.etops, f.extra, f.min_takeoff, f.plan_takeoff, f.plan_ramp, f.plan_landing] =
+                fuel.try_into().unwrap();
+            let w = &mut plan.weights;
+            [w.oew, w.passengers, w.cargo, w.payload, w.zfw, w.max_zfw, w.takeoff, w.max_takeoff, w.landing, w.max_landing] =
+                weights.try_into().unwrap();
+            let g = &mut plan.general;
+            [g.cruise_altitude_ft, g.cost_index, g.avg_wind_dir, g.avg_wind_speed, g.avg_isa_deviation, g.air_distance_nm, g.route_distance_nm] =
+                general.try_into().unwrap();
+            for a in [plan.origin.as_mut(), plan.destination.as_mut()].into_iter().flatten() {
+                [a.elevation_ft, a.transition_altitude_ft, a.transition_level_ft] =
+                    airport.clone().try_into().unwrap();
+            }
+            let pv = plan_values(&plan).unwrap();
+            for v in pv.values.values() {
+                proptest::prop_assert!(!v.starts_with('-') || v.len() < 8, "{v}");
+            }
+        }
     }
 }

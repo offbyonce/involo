@@ -10,9 +10,10 @@ import type {
   StartState,
   UserOption,
 } from "@involo/bindings";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/svelte";
-import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/svelte";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { type Host, hostContext } from "../host";
+import { MAX_PLAN_FILE_BYTES } from "../lib/file-limits";
 import FlightPage from "./FlightPage.svelte";
 import { blankLinks, home, SECTIONS, toEnter } from "./sections";
 
@@ -75,7 +76,7 @@ const plan = {
 } as unknown as SavedPlan;
 const host = { decodeMetar: async () => METAR, decodeTaf: async () => METAR } as unknown as Host;
 
-function page(props: Record<string, unknown>) {
+function page(props: Record<string, unknown>, withHost: Host = host) {
   const sets: [string, string][] = [];
   const options: UserOption[] = [
     {
@@ -106,7 +107,7 @@ function page(props: Record<string, unknown>) {
   ] as unknown as StartState[];
   const calls: unknown[] = [];
   render(FlightPage, {
-    context: hostContext(host),
+    context: hostContext(withHost),
     props: {
       section: "overview",
       focus: null,
@@ -305,6 +306,26 @@ describe("FlightPage", () => {
     expect(screen.getByText("Wind is in the weather section")).toBeTruthy();
   });
 
+  it("Weather shows a METAR the decoder couldn't read as printed, with nothing decoded", async () => {
+    const refusing = {
+      decodeMetar: async () => {
+        throw new Error("not decoded");
+      },
+      decodeTaf: async () => METAR,
+    } as unknown as Host;
+    page({ section: "weather", plan, flight: flight({ origin: "KSEA", destination: "KSFO" }) }, refusing);
+    await waitFor(() =>
+      expect([...document.querySelectorAll(".groups span")].map((g) => g.textContent)).toEqual([
+        "KSEA",
+        "121753Z",
+        "18008KT",
+        "A3012",
+      ]),
+    );
+    expect(document.querySelector(".groups .hi")).toBeNull();
+    expect(screen.queryByText(/^Observed/)).toBeNull();
+  });
+
   it("keeps Weather's ? a button of its own, never inside the row's button", async () => {
     page({ section: "weather", plan, flight: flight({ origin: "KSEA", qnh: "30.12", qnh_unit: "inHg" }) });
     await screen.findByText("Observed 17:53 UTC");
@@ -359,5 +380,27 @@ describe("FlightPage", () => {
     });
     await fireEvent.click(screen.getByRole("button", { name: "Import latest flight" }));
     expect(await screen.findByRole("alert")).toBeTruthy();
+  });
+
+  it("refuses an OFP file over the limit without reading it", async () => {
+    const files: string[] = [];
+    page({
+      section: "simbrief",
+      onFile: async (t: string) => {
+        files.push(t);
+        return null;
+      },
+    });
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(["{}"], "ofp.json", { type: "application/json" });
+    Object.defineProperty(file, "size", { value: MAX_PLAN_FILE_BYTES + 1 });
+    const read = vi.spyOn(file, "text");
+    Object.defineProperty(input, "files", { value: [file], configurable: true });
+    await fireEvent.change(input);
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      "That file is too large to be a SimBrief OFP file (over 16 MB), so it wasn’t read.",
+    );
+    expect(read).not.toHaveBeenCalled();
+    expect(files).toEqual([]);
   });
 });

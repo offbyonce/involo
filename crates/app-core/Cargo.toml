@@ -21,5 +21,10 @@ simbrief.workspace = true
 thiserror.workspace = true
 ts-rs.workspace = true
 
+[dev-dependencies]
+# Already the workspace's property-test library (simbrief, pack): the weather decoder and plan
+# values must return normally for any input.
+proptest.workspace = true
+
 [lints]
 workspace = true

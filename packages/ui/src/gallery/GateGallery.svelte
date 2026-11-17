@@ -10,6 +10,7 @@ pack (its `at` locators read here, for review only). `?view=gate&theme=dark|ligh
 -->
 <script lang="ts">
   import type { FlatPack, ItemTarget, Panel } from "@involo/bindings";
+  import { safely } from "../lib/safely";
   import { MIN_SCALE, positionsOf } from "../lib/panel-layout";
   import PanelPreview from "../lib/PanelPreview.svelte";
   import PanelSchematic from "../lib/PanelSchematic.svelte";
@@ -24,11 +25,12 @@ pack (its `at` locators read here, for review only). `?view=gate&theme=dark|ligh
 
   let pack = $state<FlatPack | null>(null);
   $effect(() => {
-    fetch(packUrl)
-      .then((r) => r.json())
-      .then((p: FlatPack) => {
+    safely(
+      (async () => (await fetch(packUrl)).json() as Promise<FlatPack>)(),
+      (p) => {
         pack = p;
-      });
+      },
+    );
   });
 
   /** The sections under review and the step whose targets each shows. */

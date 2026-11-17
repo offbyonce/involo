@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+#
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 292e2e8a803c4ccc8fc6509819d418cdb6d0dd3b18803a3b6e658b8be0ddc070 # shrinks to groups = ["°-+-"]
+cc bd2fff90d65e65f4f478d28df67da016f28f53fbdff15e3e89e5658e1bd0711b # shrinks to input = "\0𐀀\0"

@@ -282,6 +282,35 @@ const LOG_OPEN = "ifly-737-max8@2";
 
 const TOUR_STATE = [...BOARD_FLIGHT, go("#/phase/before-start"), ...BOARD_STATE];
 
+/** Chooses a file in the file input `selector`: `text`, or "big" for one just over 64 MB. */
+const chooseFile = (selector, text, name) =>
+  `(() => { const input = document.querySelector(${JSON.stringify(selector)}); const body = ${JSON.stringify(text)} === "big" ? new Uint8Array(64 * 1024 * 1024 + 1) : ${JSON.stringify(text)}; const dt = new DataTransfer(); dt.items.add(new File([body], ${JSON.stringify(name)}, { type: "application/json" })); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true })); return true; })()`;
+/** A logged flight dated past the year 9999, which a merge leaves out. */
+const IMPOSSIBLE = {
+  id: "ifly-737-max8@999999999999999",
+  loggedAt: 999999999999999,
+  pack: "ifly-737-max8",
+  packVersion: "0.1.0",
+  aircraft: "iFly 737 MAX 8",
+  origin: "KSEA",
+  destination: "KSFO",
+  offBlocks: null,
+  onBlocks: null,
+  stages: [],
+  done: 0,
+  total: 0,
+  skipped: [],
+  plan: "manual",
+  finished: false,
+  ticks: [],
+};
+/** Imports from SimBrief with the request answered as `how`: a 503 reply, no answer, or a
+ * failure that is neither the network nor SimBrief. */
+const simbrief = (how) => [
+  `(() => { const real = window.fetch; window.fetch = (url, init) => { if (!String(url).includes("simbrief")) return real(url, init); if (${JSON.stringify(how)} === "reply503") return Promise.resolve(new Response("<html>Service unavailable</html>", { status: 503 })); if (${JSON.stringify(how)} === "hang") return new Promise((_, fail) => init.signal.addEventListener("abort", () => fail(new DOMException("aborted", "AbortError")))); return Promise.reject(new Error("unexpected")); }; return true; })()`,
+  typeInto("form.row input", "Pilot"),
+  pressText("Import latest flight"),
+];
 /** Makes every save to this device's storage fail as a full storage does. */
 const refuseSaves = `(() => { const set = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (k.startsWith("involo.")) throw new DOMException("full", "QuotaExceededError"); return set.call(this, k, v); }; return true; })()`;
 /** Saves `what` ("flight" or "plan") in a format from a newer version, then reloads. */
@@ -684,6 +713,22 @@ const SHOTS = [
     app: { hash: "", before: [...savedAs("flight"), refuseSaves, pressText("Start fresh")] },
   },
   { name: "kept-plan", only: "desktop", app: { hash: "", before: savedAs("plan") } },
+  // Imports: a file over the size limit, a merged log with an entry that can't be real, and the
+  // SimBrief request's failures (a 5xx reply, no answer in time, an unexpected error).
+  { name: "log-too-large", only: "desktop", app: { hash: "#/log", before: [chooseFile("input.file", "big", "log.json")] } },
+  {
+    name: "log-left-out",
+    only: "desktop",
+    app: { hash: "#/log", before: [chooseFile("input.file", JSON.stringify({ format: 1, flights: [IMPOSSIBLE], practice: [] }), "log.json")] },
+  },
+  {
+    name: "ofp-too-large",
+    only: "desktop",
+    app: { hash: "#/flight/simbrief", before: [chooseFile('.choose ~ input[type="file"]', "big", "ofp.json")] },
+  },
+  { name: "simbrief-503", only: "desktop", app: { hash: "#/flight/simbrief", before: simbrief("reply503") } },
+  { name: "simbrief-timeout", only: "desktop", app: { hash: "#/flight/simbrief", before: [...simbrief("hang"), "new Promise((done) => setTimeout(() => done(true), 21000))"] } },
+  { name: "simbrief-unexpected", only: "desktop", app: { hash: "#/flight/simbrief", before: simbrief("odd") } },
 ];
 
 /**
