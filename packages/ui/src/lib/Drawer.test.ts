@@ -33,11 +33,10 @@ describe("Drawer", () => {
     expect(container.querySelector(".who small")?.textContent).toBe("Test Jet · saved 10:14 · 41/366");
   });
 
-  it("hides the items whose page does not exist yet; Practice, How procedures work, the Flight deck, the Glossary and the Flight log have theirs", () => {
+  it("shows every item of the Menu boards, each going to its page (References was the last to come)", () => {
     const { container } = render(Drawer, base);
-    for (const name of ["References", "Take the tour"]) {
-      expect(screen.queryByRole("link", { name })).toBeNull();
-    }
+    // Take the tour is a button, not a link.
+    expect(screen.queryByRole("link", { name: "Take the tour" })).toBeNull();
     expect(screen.getByText("Learn")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Practice" }).getAttribute("href")).toBe("#/practice");
     // How procedures work: after Practice under Learn, as the Menu boards place it.
@@ -51,8 +50,16 @@ describe("Drawer", () => {
       ["How procedures work", "#/how"],
     ]);
     expect(screen.getByText("Reference")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Glossary" }).getAttribute("href")).toBe("#/glossary");
-    expect(screen.getByRole("link", { name: /^Flight deck/ }).getAttribute("href")).toBe("#/deck");
+    // Reference: Flight deck, Glossary, then References (Menu, Tablet and Mobile boards).
+    const reference = [...container.querySelectorAll(".group")].find(
+      (g) => g.querySelector(".label")?.textContent === "Reference",
+    );
+    expect([...(reference?.querySelectorAll("a") ?? [])].map((a) => a.getAttribute("href"))).toEqual([
+      "#/deck",
+      "#/glossary",
+      "#/references",
+    ]);
+    expect(screen.getByRole("link", { name: "References" }).getAttribute("href")).toBe("#/references");
     expect(screen.getByText("This flight and the app")).toBeTruthy();
     // Flight log first in its group, then Settings (Menu, Tablet and Mobile boards).
     const flight = [...container.querySelectorAll(".group")].find(

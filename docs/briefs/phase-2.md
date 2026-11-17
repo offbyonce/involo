@@ -240,7 +240,12 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       Then the Flight log (owner, 2026-11-16, Log boards; decision 0026): This flight, earlier
       flights and practice results, saved on the device only (IndexedDB), with exports, import,
       the 500-entry limit and a versioned format; Practice home shows the latest saved result.
-      References waits for its boards.
+      Then References (owner, 2026-11-16, References boards; decision 0007 stands): the
+      simulation notice, the kinds of source each list is based on, counted from the pack, the
+      lists with their "Based on" tag (prior-release lists show "Source being confirmed", a status,
+      until the content batch re-tags them), the simulator model notes (opening Find on those
+      steps) and about this pack and app, with a third-party licenses file made at build time.
+      Every menu item now has its page.
       First, from batch 5 (owner, 2026-11-15), once the boards show them: the procedure header
       hidden at tablet and phone, with Clear ticks in the menu as a row just above Reset flight
       plan (same style, same Undo toast); and the desktop menu's "Where is Flight setup?", which

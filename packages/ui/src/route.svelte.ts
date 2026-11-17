@@ -4,7 +4,7 @@
 // Screens have their own address after `#`, so Back works and a screen can be bookmarked,
 // offline too. `#/phase/<id>`, `#/reference` (optionally `/<phase id>`), `#/settings`,
 // `#/flight/<section>` (the Flight pages, batch 4; optionally `/<field>` to focus a field, or the
-// Weather tab), `#/open` (open steps), `#/glossary` (optionally `/<term>`), `#/deck` (optionally `/<area>/<place>`), `#/practice`, `#/how` (optionally `/<part>`, 1 to 7), `#/log` (optionally `/<flight id>`, or `/current` for This flight); anything else is the start. `#/setup` (Flight setup until
+// Weather tab), `#/open` (open steps), `#/glossary` (optionally `/<term>`), `#/deck` (optionally `/<area>/<place>`), `#/practice`, `#/how` (optionally `/<part>`, 1 to 7), `#/log` (optionally `/<flight id>`, or `/current` for This flight), `#/references`; anything else is the start. `#/setup` (Flight setup until
 // batch 4) leads to Flight › Overview.
 
 export type Route =
@@ -18,7 +18,8 @@ export type Route =
   | { screen: "deck"; area: string | null; zone: string | null }
   | { screen: "practice" }
   | { screen: "how"; part: number | null }
-  | { screen: "log"; entry: string | null };
+  | { screen: "log"; entry: string | null }
+  | { screen: "references" };
 
 export function parseRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
@@ -39,6 +40,7 @@ export function parseRoute(hash: string): Route {
     const n = Number(parts[1]);
     return { screen: "how", part: Number.isInteger(n) && n >= 1 ? n : null };
   }
+  if (parts[0] === "references") return { screen: "references" };
   if (parts[0] === "log") return { screen: "log", entry: parts[1] ?? null };
   if (parts[0] === "deck") return { screen: "deck", area: parts[1] ?? null, zone: parts[2] ?? null };
   return { screen: "start" };

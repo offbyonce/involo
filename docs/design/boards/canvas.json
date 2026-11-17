@@ -1825,6 +1825,46 @@
       "h": 1100,
       "title": "Shared source: Flight log (tweaks: layout, theme)",
       "page": "b10"
+    },
+    "RefsDesk.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1100,
+      "title": "References: desktop and tablet (dark)",
+      "page": "b11"
+    },
+    "RefsDeskLight.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 1100,
+      "title": "References: desktop and tablet (light)",
+      "page": "b11"
+    },
+    "RefsPhone.dc.html": {
+      "x": 3120,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "References: phone (dark)",
+      "page": "b11"
+    },
+    "RefsPhoneLight.dc.html": {
+      "x": 3590,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "References: phone (light)",
+      "page": "b11"
+    },
+    "References.dc.html": {
+      "x": 0,
+      "y": 1220,
+      "w": 1440,
+      "h": 1100,
+      "title": "Shared source: References (tweaks: layout, theme)",
+      "page": "b11"
     }
   },
   "createdOnFiles": {
@@ -1833,7 +1873,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b10",
+    "page": "b11",
     "view": "canvas"
   },
   "notes": {},
@@ -2065,7 +2105,12 @@
     "LogPhoneLight.dc.html",
     "LogPhoneFlight.dc.html",
     "LogPhoneFlightLight.dc.html",
-    "FlightLog.dc.html"
+    "FlightLog.dc.html",
+    "RefsDesk.dc.html",
+    "RefsDeskLight.dc.html",
+    "RefsPhone.dc.html",
+    "RefsPhoneLight.dc.html",
+    "References.dc.html"
   ],
   "pages": [
     {
@@ -2139,6 +2184,10 @@
     {
       "id": "b10",
       "name": "Flight log"
+    },
+    {
+      "id": "b11",
+      "name": "References"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"

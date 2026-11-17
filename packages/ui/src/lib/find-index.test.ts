@@ -4,7 +4,7 @@
 import type { FlatPack, Rail } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
-import { buildFind, findIn, marked } from "./find-index";
+import { buildFind, findIn, findOnly, marked } from "./find-index";
 
 const packs = import.meta.glob<FlatPack>("../../../../apps/web/public/packs/ifly-737-max8.json", {
   eager: true,
@@ -66,5 +66,47 @@ describe("find", () => {
     expect(marked("Fuel pump switches", "fuel")).toEqual(["", "Fuel", " pump switches"]);
     expect(marked("Battery", "fuel")).toBeNull();
     expect(findIn(find, "   ", rail).steps).toHaveLength(0);
+  });
+});
+
+describe("Find opened on a set of steps (References' simulator model notes)", () => {
+  const marked16 = pack.lists.flatMap((l) => l.steps.filter((s) => s.simulator_model).map((s) => s.id));
+
+  it("shows those steps only, in the order given, controls and terms left out", () => {
+    const backwards = [...marked16].reverse();
+    const found = findOnly(find, backwards, "", rail);
+    expect(found.steps.map((s) => s.id)).toEqual(backwards);
+    expect(found.controls).toEqual([]);
+    expect(found.terms).toEqual([]);
+    expect(found.steps.every((s) => s.stage && s.phaseTitle)).toBe(true);
+  });
+
+  it("names each step's place as this flight shows it, and a hidden phase's from the pack", () => {
+    const where = (r: Rail | null, phaseId: string) =>
+      findOnly(find, marked16, "", r).steps.find((s) => s.phase === phaseId);
+    // APU start sits in Departure on a ground-power flight (the rail) ...
+    expect(where(rail, "apu-power")?.stage).toBe("Departure");
+    // ... and in Preflight on one without ground power.
+    const noGpu: Rail = {
+      ...rail,
+      stages: [{ title: "Preflight", phases: ["cold-dark", "apu-power", "preflight"].map(phase) }],
+    };
+    expect(where(noGpu, "apu-power")?.stage).toBe("Preflight");
+    // A turnaround hides Power up: its steps are still listed, placed as the pack places them.
+    const turn: Rail = {
+      ...rail,
+      stages: rail.stages.map((st) => ({ ...st, phases: st.phases.filter((p) => p.id !== "cold-dark") })),
+    };
+    expect(where(turn, "cold-dark")).toMatchObject({
+      stage: "Preflight",
+      phaseTitle: titles.get("cold-dark"),
+    });
+  });
+
+  it("narrows them by the words typed", () => {
+    const some = findOnly(find, marked16, "battery", rail);
+    expect(some.steps.length).toBeGreaterThan(0);
+    expect(some.steps.length).toBeLessThan(marked16.length);
+    expect(some.steps.every((s) => /battery/i.test(`${s.title} ${s.value}`))).toBe(true);
   });
 });

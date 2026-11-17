@@ -57,6 +57,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import HowPage from "./pages/HowPage.svelte";
   import PracticePage from "./pages/PracticePage.svelte";
   import LogPage from "./pages/LogPage.svelte";
+  import ReferencesPage from "./pages/ReferencesPage.svelte";
+  import { buildReferences } from "./lib/references";
   import { download, fileDate, htmlCopy } from "./lib/flight-log";
   import { sentence } from "./lib/sentence";
   import Tour from "./lib/Tour.svelte";
@@ -150,11 +152,16 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   /** The Glossary (owner): every term A to Z, with the steps that use it. */
   let glossary = $derived(index && findIndex ? buildGlossary(index, findIndex.terms, findIndex.steps) : []);
   let findOpen = $state(false);
+  /** Find opened on a set of steps (References' simulator model notes), or on everything. */
+  let findScope = $state<{ label: string; steps: string[] } | null>(null);
+  /** References (owner's References boards), counted from the pack. */
+  let references = $derived(flatPack ? buildReferences(flatPack, rail) : null);
   let findOpener: HTMLElement | null = null;
   const findKey = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "⌘K" : "Ctrl K";
-  function openFind(): void {
+  function openFind(scope: { label: string; steps: string[] } | null = null): void {
     // Not over a modal drawing (Where is this?, the schematic): it would open out of reach.
     if (findOpen || !findIndex || document.querySelector("dialog[open]")) return;
+    findScope = scope;
     const from = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     // Focus goes back to the opener, unless it sits in a layer Find closes.
     findOpener = from && !from.closest('#drawer, .picker, .slide-box, [role="dialog"]') ? from : null;
@@ -335,7 +342,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   let current = $derived(view?.lists.find((l) => l.current)?.current ?? null);
   /** The step the context panel shows, its row, and the steps after it. */
   let pane = $derived.by(() => {
-    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck" || screen === "practice" || screen === "how" || screen === "log") return null;
+    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck" || screen === "practice" || screen === "how" || screen === "log" || screen === "references") return null;
     const id = flow ? (cursor ?? current) : (selected ?? (screen === "reference" ? null : current));
     const rows = view.lists.flatMap((l) => l.steps);
     const at = rows.findIndex((r) => r.id === id);
@@ -916,6 +923,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     {current}
     phase={phaseId}
     {findKey}
+    only={findScope}
     onStep={(id) => {
       closeFind(false);
       goToStep(id);
@@ -963,6 +971,18 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       onCsv={() => void exportCsv()}
       onJson={exportJson}
       onStep={goToStep}
+    />
+  </div>
+{:else if route.value.screen === "references" && references && flatPack}
+  <div class="flightwrap">
+    <ReferencesPage
+      refs={references}
+      pack={flatPack.manifest}
+      version={info?.version ?? null}
+      backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
+      licensesHref="third-party-licenses.txt"
+      onList={goToStep}
+      onSimulatorModel={() => references && openFind({ label: "Simulator model notes", steps: references.simulatorModel })}
     />
   </div>
 {:else if route.value.screen === "how" && rail}
@@ -1038,7 +1058,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     onMenu={() => (menuOpen = !menuOpen)}
     onView={changeView}
     onPicker={() => (pickerOpen = !pickerOpen)}
-    onFind={findIndex ? openFind : undefined}
+    onFind={findIndex ? () => openFind() : undefined}
     {findKey}
   />
   {#if error}
