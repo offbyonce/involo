@@ -705,6 +705,95 @@ describe("App", () => {
     expect(screen.getByRole("link", { name: "Glossary" }).getAttribute("href")).toBe("#/glossary");
   });
 
+  it("asks a decision in its row, saves how it was answered, and shows the dependent step's value for the answer (decision 0027)", async () => {
+    // Invented: Battery asks "Tank" (full or empty); Standby power's switch depends on it.
+    const decided = {
+      ...pack,
+      lists: pack.lists.map((l) => ({
+        ...l,
+        steps: [
+          { ...l.steps[0], decide: "tank" },
+          {
+            ...l.steps[1],
+            expect: "AUTO OR OFF FROM YOUR TANK ANSWER",
+            targets: [
+              { at: "oh/elec/STBY/1", open: true },
+              { at: "oh/elec/STBY/1", set: "AUTO", when: { option: "tank", equals: "full" } },
+              { at: "oh/elec/STBY/1", set: "OFF", when: { option: "tank", equals: "empty" } },
+            ],
+            expect_when: [
+              { option: "tank", equals: "full", expect: "AUTO" },
+              { option: "tank", equals: "empty", expect: "OFF" },
+            ],
+          },
+        ],
+      })),
+      content: {
+        ...pack.content,
+        phases: {
+          ...pack.content.phases,
+          options: [
+            ...(pack.content.phases?.options ?? []),
+            {
+              id: "tank",
+              title: "Tank",
+              values: ["full", "empty"],
+              default: "empty",
+              choices: [
+                { value: "full", label: "Full" },
+                { value: "empty", label: "Empty" },
+              ],
+            },
+          ],
+        },
+      },
+    } as unknown as FlatPack;
+    const actions: Action[] = [];
+    const h = host({
+      loadPack: async () => decided,
+      phaseView: async (_p, f) =>
+        view([f.session.done.battery ? "done" : "current", f.session.done.battery ? "current" : "to_do"]),
+      apply: async (_pack, flight, action) => {
+        actions.push(action);
+        if (action.type === "answer")
+          return {
+            ...flight,
+            options: { ...flight.options, [action.option]: action.value },
+            answers: { ...flight.answers, [action.option]: action.by },
+          };
+        if (action.type === "tick")
+          return {
+            ...flight,
+            session: { ...flight.session, done: { ...flight.session.done, [action.step]: action.at } },
+          };
+        return flight;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    const row = (id: string) => document.querySelector(`li[data-step="${id}"]`) as HTMLElement;
+    // Before the answer, the dependent step shows its own value and what it depends on.
+    expect(within(row("standby")).getByText("AUTO OR OFF FROM YOUR TANK ANSWER")).toBeTruthy();
+    await fireEvent.click(within(row("battery")).getByRole("button", { name: "Empty" }));
+    await waitFor(() => expect(actions.some((a) => a.type === "tick")).toBe(true));
+    expect(actions[0]).toEqual({ type: "answer", option: "tank", value: "empty", by: "you" });
+    // Answered: the source line under the name, and the dependent step's value for the answer.
+    expect(await within(row("battery")).findByText("Answered by you")).toBeTruthy();
+    expect(within(row("standby")).getByText("OFF")).toBeTruthy();
+    // A changed answer is saved as changed, and offers Undo.
+    await fireEvent.click(within(row("standby")).getByRole("button", { name: /^Tank empty/ }));
+    await fireEvent.click(within(row("battery")).getByRole("button", { name: /Full/ }));
+    await waitFor(() =>
+      expect(actions.at(-1)).toEqual({ type: "answer", option: "tank", value: "full", by: "changed" }),
+    );
+    expect(await within(row("battery")).findByText("Changed by you")).toBeTruthy();
+    expect(within(row("standby")).getByText("AUTO")).toBeTruthy();
+    // Undo puts the whole flight back, the answer and how it was given too.
+    await fireEvent.click(await screen.findByRole("button", { name: "Undo" }));
+    expect(await within(row("battery")).findByText("Answered by you")).toBeTruthy();
+    expect(within(row("standby")).getByText("OFF")).toBeTruthy();
+  });
+
   it("opens References from the menu, and Find on the steps that follow the simulator's model (References README)", async () => {
     const withBasis = {
       ...pack,

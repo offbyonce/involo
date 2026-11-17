@@ -203,6 +203,9 @@ const BOARD_STATE = [
   stepNamed("MCP", ".tick"),
   stepNamed("DOOR LIGHTS", ".tick"),
   skipStep("TERR (EFIS"),
+  // Center tank fuel, as the Checklist boards answer it (1,000 lb or less: center pumps OFF), when
+  // the pack asks it.
+  `[...document.querySelectorAll("button.choice")].find((b) => b.textContent.includes("1,000 lb (450 kg) or less"))?.click(); true`,
 ];
 /** Opens the list step `title` and its narrow-screen details (its chevron first if it is closed). */
 /** Show map on the pane's location line (where the drawing took the map figure's room). */

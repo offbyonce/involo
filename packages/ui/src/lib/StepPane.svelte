@@ -10,6 +10,7 @@ else is drawn; the rest of the pane stays empty. Approved additions: a Say line 
 and a caution note under If not. A step with no control shows the steps coming up instead.
 -->
 <script lang="ts">
+  import { stepValue } from "./answers.svelte";
   import { sentence as toSentence, stepTitle } from "./sentence";
   import type { ItemTarget, Step, StepState } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
@@ -97,7 +98,7 @@ and a caution note under If not. A step with no control shows the steps coming u
   {#if !inline}
   <div class="head">
     <span class="pos">Step {number} of {total} · {stepTitle(index, step)}</span>
-    <span class="value">{step.expect}</span>
+    <span class="value">{stepValue(step)}</span>
   </div>
   {/if}
   {#if check || ifNot}<div class="cells">
@@ -193,7 +194,7 @@ and a caution note under If not. A step with no control shows the steps coming u
     <h3 class="soon">Coming up</h3>
     <ol class="next">
       {#each upcoming as u (u.step.id)}
-        <li class={u.state}><span class="nm">{u.step.text}</span><span class="mono">{u.step.expect}</span></li>
+        <li class={u.state}><span class="nm">{u.step.text}</span><span class="mono">{stepValue(u.step)}</span></li>
       {/each}
     </ol>
   {/if}

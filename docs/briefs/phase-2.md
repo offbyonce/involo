@@ -286,6 +286,14 @@ every change to `.github/workflows/`. For those, prepare what the step needs and
       against the WMO and FAA documents, and the plain-language descriptions of the decoded rows.
       Show the center tank row on Fuel and weights then, with the exact figure (block fuel less
       the wing capacity, never below 0, never "about").
+      Applied first (2026-11-16): the center tank decision step before Fuel pump switches (its
+      wording and location still to be checked in the simulator), with the fuel step's value for each answer and its
+      center switches resolved (decision 0027: pack format 5, flight format 3); the suggestion
+      stays off until its rule ships with the wing capacity. Paired lights name their side or
+      engine; the engine generator steps say what shows when they fail; upset recovery is based
+      on regulator guidance; the Flight pages' wording, OFP close-ups and the Weather page's
+      sources (the kind of source only, no section numbers): the content that needs no simulator
+      check. The rest waits for the simulator.
 
 **After step 7: outside flight data, starting with SayIntentions (a separate phase; recorded
 2026-11-13, not started).** Decision [0024](../decisions/0024-outside-flight-data.md). While

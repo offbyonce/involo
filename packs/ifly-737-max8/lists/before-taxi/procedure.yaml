@@ -13,7 +13,7 @@ steps:
     number: 1
     text: ENGINE GENERATOR SWITCHES
     expect: BOTH ON
-    terms: ["P5"]
+    terms: ["P5", "GEN OFF BUS"]
     controls:
       - engen
     targets:
@@ -23,6 +23,8 @@ steps:
         set: "ON"
     quick: always
     why: Engine generators take over the buses
+    if_not: A GEN OFF BUS light stays on with its engine running
+    if_not_detail: "That generator isn't powering its transfer bus. Switch it on again, and check the DRIVE light if it stays on"
     how: gens
     explain: gen
     confirmed_by:

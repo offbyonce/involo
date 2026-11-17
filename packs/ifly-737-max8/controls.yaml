@@ -490,6 +490,11 @@ controls:
     zone: fuel
     location: "Fuel panel, left side of the forward overhead, below the navigation switches. Six switches: L and R forward and aft, plus two center tank switches."
     function: Each tank has pumps feeding the engines. Low pressure lights sit beside each switch.
+  - id: ctrpumps
+    name: Center tank fuel pump switch
+    zone: fuel
+    location: "Fuel panel: the two center tank switches, CTR L and CTR R, above the wing tank switches."
+    function: Runs a center tank pump. With fuel in the center tank, the center pumps feed the engines first.
   - id: cabutil
     name: CAB/UTIL and IFE/PASS SEAT switches
     zone: elecu

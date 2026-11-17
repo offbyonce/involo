@@ -42,6 +42,7 @@ pub(super) fn check_step_targets(pack: &Pack, issues: &mut Vec<Issue>) {
     for step in pack.checklists.iter().flat_map(|l| &l.steps) {
         check_step(panels, step, issues);
         check_decision(&options, step, issues);
+        check_expect_when(&options, step, issues);
         for term in &step.terms {
             if !glossary.contains(term.as_str()) {
                 issues.push(error(
@@ -119,6 +120,135 @@ fn check_decision(options: &BTreeMap<&str, Vec<&str>>, step: &Step, issues: &mut
                     "`{item}` depends on `{option}`, but has no `open` target for before the answer"
                 ),
             ));
+        }
+    }
+}
+
+/// A value per answer (decision 0027): a real option and value, each once, on a step whose targets
+/// depend on that option; and each value names the position of every target for its answer.
+fn check_expect_when(options: &BTreeMap<&str, Vec<&str>>, step: &Step, issues: &mut Vec<Issue>) {
+    let at = step.id.as_str();
+    let mut seen = BTreeSet::new();
+    for e in &step.expect_when {
+        match options.get(e.option.as_str()) {
+            None => issues.push(error(
+                at,
+                format!("`expect_when` names no option `{}`", e.option),
+            )),
+            Some(values) if !values.contains(&e.equals.as_str()) => issues.push(error(
+                at,
+                format!(
+                    "`expect_when`: `{}` is not a value of option `{}`",
+                    e.equals, e.option
+                ),
+            )),
+            Some(_) => {}
+        }
+        if !seen.insert((e.option.as_str(), e.equals.as_str())) {
+            issues.push(error(
+                at,
+                format!("`expect_when` has `{} = {}` twice", e.option, e.equals),
+            ));
+        }
+        let answered: Vec<_> = step
+            .targets
+            .iter()
+            .filter(|t| {
+                t.when
+                    .as_ref()
+                    .is_some_and(|w| w.option == e.option && w.equals == e.equals)
+            })
+            .collect();
+        if answered.is_empty() {
+            issues.push(error(
+                at,
+                format!(
+                    "`expect_when` for `{} = {}`, but no target depends on that answer",
+                    e.option, e.equals
+                ),
+            ));
+        }
+        for t in answered {
+            let Some(set) = &t.set else { continue };
+            if !names_position(&e.expect, set) {
+                issues.push(error(
+                    at,
+                    format!(
+                        "`{}` is set to `{set}` for `{} = {}`, but that answer's value does not say so",
+                        t.at, e.option, e.equals
+                    ),
+                ));
+            }
+        }
+    }
+    check_answers_differ(step, issues);
+}
+
+/// Two answers whose targets set an item differently must say so where their values differ: the
+/// parts of one answer's value that the other's lacks name its own position, not the other's
+/// ("MAIN PUMPS ON · CENTER PUMPS OFF" against "… · CENTER PUMPS ON"). A value that only shares
+/// a word with the position elsewhere ("MAIN PUMPS ON") does not count.
+fn check_answers_differ(step: &Step, issues: &mut Vec<Issue>) {
+    let at = step.id.as_str();
+    let parts = |v: &str| -> Vec<String> {
+        v.split(['·', ','])
+            .map(|c| c.trim().to_owned())
+            .filter(|c| !c.is_empty())
+            .collect()
+    };
+    let set_for = |item: &str, option: &str, equals: &str| {
+        step.targets.iter().find_map(|t| {
+            let w = t.when.as_ref()?;
+            (t.at == item && w.option == option && w.equals == equals)
+                .then(|| t.set.clone())
+                .flatten()
+        })
+    };
+    let items: BTreeSet<&str> = step
+        .targets
+        .iter()
+        .filter(|t| t.when.is_some())
+        .map(|t| t.at.as_str())
+        .collect();
+    for (n, a) in step.expect_when.iter().enumerate() {
+        for b in step.expect_when.iter().skip(n + 1) {
+            if a.option != b.option {
+                continue;
+            }
+            for item in &items {
+                let (Some(pa), Some(pb)) = (
+                    set_for(item, &a.option, &a.equals),
+                    set_for(item, &b.option, &b.equals),
+                ) else {
+                    continue;
+                };
+                if pa == pb {
+                    continue;
+                }
+                let (va, vb) = (parts(&a.expect), parts(&b.expect));
+                let only = |x: &[String], y: &[String]| -> Vec<String> {
+                    x.iter().filter(|c| !y.contains(c)).cloned().collect()
+                };
+                for (mine, other, equals) in [
+                    (only(&va, &vb), &pb, &a.equals),
+                    (only(&vb, &va), &pa, &b.equals),
+                ] {
+                    let own = if equals == &a.equals { &pa } else { &pb };
+                    let says_own = mine.iter().any(|c| names_position(c, own));
+                    let says_other = mine
+                        .iter()
+                        .any(|c| names_position(c, other) && !names_position(c, own));
+                    if !says_own || says_other {
+                        issues.push(error(
+                            at,
+                            format!(
+                                "`{item}` is `{own}` for `{} = {equals}`, but where that answer's value differs it does not say `{own}`",
+                                a.option
+                            ),
+                        ));
+                    }
+                }
+            }
         }
     }
 }
@@ -414,6 +544,74 @@ mod tests {
             "{}",
             messages(&covered)
         );
+    }
+
+    fn value_for(equals: &str, expect: &str) -> checklist_core::ExpectWhen {
+        checklist_core::ExpectWhen {
+            option: "power".into(),
+            equals: equals.into(),
+            expect: expect.into(),
+        }
+    }
+
+    #[test]
+    fn a_value_per_answer_names_its_answer_s_positions() {
+        let mut p = pack_with(
+            "ON IF ON GROUND POWER",
+            vec![open(), when(Some("ON"), "gpu"), when(Some("OFF"), "apu")],
+        );
+        p.checklists[0].steps[0].expect_when =
+            vec![value_for("gpu", "ON"), value_for("apu", "OFF")];
+        assert!(!messages(&p).contains("expect_when"), "{}", messages(&p));
+        assert!(!messages(&p).contains("answer's value"), "{}", messages(&p));
+        // The ground power answer's value must say ON, as its target does.
+        p.checklists[0].steps[0].expect_when = vec![value_for("gpu", "OFF")];
+        assert_flags(
+            &p,
+            "`oh/elec/BATTERY/1` is set to `ON` for `power = gpu`, but that answer's value does not say so",
+        );
+        p.checklists[0].steps[0].expect_when = vec![value_for("gpu", "ON"), value_for("gpu", "ON")];
+        assert_flags(&p, "`expect_when` has `power = gpu` twice");
+        p.checklists[0].steps[0].expect_when = vec![value_for("battery", "ON")];
+        assert_flags(
+            &p,
+            "`expect_when`: `battery` is not a value of option `power`",
+        );
+        p.checklists[0].steps[0].expect_when = vec![checklist_core::ExpectWhen {
+            option: "centre".into(),
+            ..value_for("gpu", "ON")
+        }];
+        assert_flags(&p, "`expect_when` names no option `centre`");
+        // A value for an answer no target depends on.
+        let mut plain = pack_with("ON", vec![target("oh/elec/BATTERY/1", Some("ON"), None)]);
+        plain.checklists[0].steps[0].expect_when = vec![value_for("gpu", "ON")];
+        assert_flags(
+            &plain,
+            "`expect_when` for `power = gpu`, but no target depends on that answer",
+        );
+    }
+
+    #[test]
+    fn swapped_values_are_caught_even_when_another_part_shares_the_word() {
+        // "BUS ON" names ON, but the part that differs between the answers says OFF for the
+        // answer that sets ON.
+        let mut p = pack_with(
+            "ON IF ON GROUND POWER",
+            vec![open(), when(Some("ON"), "gpu"), when(Some("OFF"), "apu")],
+        );
+        p.checklists[0].steps[0].expect_when = vec![
+            value_for("gpu", "BUS ON · BATTERY OFF"),
+            value_for("apu", "BUS ON · BATTERY ON"),
+        ];
+        assert_flags(
+            &p,
+            "is `ON` for `power = gpu`, but where that answer's value differs it does not say `ON`",
+        );
+        p.checklists[0].steps[0].expect_when = vec![
+            value_for("gpu", "BUS ON · BATTERY ON"),
+            value_for("apu", "BUS ON · BATTERY OFF"),
+        ];
+        assert!(!messages(&p).contains("differs"), "{}", messages(&p));
     }
 
     #[test]

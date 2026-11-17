@@ -31,6 +31,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import type { Opening } from "./lib/opening";
   import Slideout from "./lib/Slideout.svelte";
   import Toast from "./lib/Toast.svelte";
+  import { answered } from "./lib/answers.svelte";
   import { changedText, dependsOn, type DecisionSource, type Decisions } from "./lib/decision";
   import { stepTitle } from "./lib/sentence";
   import StepPane from "./lib/StepPane.svelte";
@@ -648,10 +649,14 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   /**
    * Decision steps (decision 0022): the answer sets the option for the flight and ticks the step;
    * Change reopens the choices on the row, in place, and a changed answer offers Undo. How each
-   * answer was given is kept for this session; a plan suggestion comes with batch 7's rule.
+   * answer was given is saved with the flight (decision 0027); an answered option with no record
+   * reads as answered by the pilot.
    */
   let changing = $state<string | null>(null);
-  let sources = $state<Record<string, DecisionSource>>({});
+  // Every view shows a step's value for the flight's answers (lib/answers.svelte.ts).
+  $effect(() => {
+    answered.options = { ...(flight?.options ?? {}) };
+  });
   let decisions = $derived.by((): Decisions | undefined => {
     const ix = index;
     const f = flight;
@@ -661,14 +666,18 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
         const option = step.decide ? ix.options.find((o) => o.id === step.decide) : undefined;
         if (!option) return null;
         const answer = f.options[option.id] ?? null;
-        return { option, answer, source: answer === null ? null : (sources[step.id] ?? "you"), suggestion: null, changing: answer !== null && changing === step.id };
+        const source: DecisionSource | null = answer === null ? null : (f.answers?.[option.id] ?? "you");
+        return { option, answer, source, suggestion: null, changing: answer !== null && changing === step.id };
       },
       dependent(step) {
         const id = dependsOn(step);
         const option = id ? ix.options.find((o) => o.id === id) : undefined;
         const asker = id ? ix.decider(id) : undefined;
         if (!id || !option || !asker) return null;
-        return { option, decisionStep: asker.id, answer: f.options[id] ?? null, value: null };
+        const answer = f.options[id] ?? null;
+        // The step's value for the answer (decision 0027), once answered.
+        const value = answer === null ? null : ((step.expect_when ?? []).find((e) => e.option === id && e.equals === answer)?.expect ?? null);
+        return { option, decisionStep: asker.id, answer, value };
       },
       answer: (id, value) => void answerDecision(id, value),
       change(id) {
@@ -687,17 +696,16 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     if (!index || !flight || !step?.decide || !option) return;
     const ix = index;
     const before = flight;
-    const kept = sources;
     const wasChanging = changing === id;
     changing = null;
-    await act({ type: "setOption", option: option.id, value });
+    const changed = wasChanging && before.options[option.id] !== undefined && before.options[option.id] !== value;
+    // The same answer again (Change, then the same choice) records nothing new, but still ticks a
+    // step whose tick was cleared.
+    if (!wasChanging || changed) await act({ type: "answer", option: option.id, value, by: changed ? "changed" : "you" });
     if (flight && flight.session.done[id] === undefined) await act({ type: "tick", step: id, at: Date.now() });
-    if (!wasChanging) {
-      sources = { ...sources, [id]: "you" };
-    } else if (before.options[option.id] !== value) {
-      sources = { ...sources, [id]: "changed" };
+    if (changed) {
       const updated = [...new Set(ix.dependents(option.id).map((s) => stepTitle(ix, s)))];
-      offerUndo(changedText(option, value, updated), before, () => (sources = kept));
+      offerUndo(changedText(option, value, updated), before);
     }
   }
   /**

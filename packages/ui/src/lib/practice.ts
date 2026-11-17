@@ -401,6 +401,9 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
   // Which one of a pair: the engine, side, seat or system its meaning names, where another
   // light with its label on the same panel names a different one.
   const sideIn = (meaning: string) => {
+    // A switch named in brackets ("The left aft pump (AFT 1) …") says which one exactly.
+    const named = /\(([A-Z][A-Z0-9]*(?: [A-Z0-9]+)?)\)/.exec(meaning);
+    if (named?.[1]) return named[1];
     const m =
       /\b(?:transfer bus|engine|generator|tank|electric hydraulic pump|pump|IRS|bus) [12]\b/i.exec(meaning) ??
       /\bsystem [AB]\b/i.exec(meaning) ??

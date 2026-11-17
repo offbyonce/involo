@@ -10,6 +10,7 @@ or Flow view, never repeated here. Shown beside
 the list on wide screens and inside the step on narrow ones.
 -->
 <script lang="ts">
+  import { stepValue } from "./answers.svelte";
   import type { ItemTarget, Step, StepState } from "@involo/bindings";
   import { type PackIndex, splitArea } from "../pack-index";
   import Locator from "./Locator.svelte";
@@ -121,9 +122,9 @@ the list on wide screens and inside the step on narrow ones.
       <h3 class="label">Coming up</h3>
       <ol class="next">
         {#each upcoming as u (u.step.id)}
-          <li class={u.state} class:long={u.step.expect.length > 28}>
+          <li class={u.state} class:long={stepValue(u.step).length > 28}>
             <span class="nm">{u.step.text}</span>
-            <span class="mono">{u.step.expect}</span>
+            <span class="mono">{stepValue(u.step)}</span>
           </li>
         {/each}
       </ol>

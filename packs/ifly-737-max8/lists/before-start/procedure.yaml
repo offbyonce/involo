@@ -108,18 +108,49 @@ steps:
     panel_lights:
       efispanel:
         - TERR
-  - id: ifly-737-max8.before-start.fuel-pump-switches
+  - id: ifly-737-max8.before-start.center-tank-fuel
     number: 4
+    text: CENTER TANK FUEL
+    expect: CHECK THE CENTER TANK QUANTITY
+    terms: ["center tank"]
+    decide: center_tank
+    controls:
+      - fuelq
+    targets:
+      - at: "mn/cd/INBOARD DU: ND AND ENGINES/1"
+    why: Center pumps run only when the center tank has fuel to give
+  - id: ifly-737-max8.before-start.fuel-pump-switches
+    number: 5
     text: FUEL PUMP SWITCHES
-    expect: "ALL ON, CENTER PUMPS ON IF MORE THAN 1,000 LB (ABOUT 450 KG) IN THE CENTER TANK"
+    expect: "MAIN PUMPS ON · CENTER PUMPS ON OR OFF FROM YOUR CENTER TANK ANSWER (ON WHEN MORE THAN 1,000 LB, ABOUT 450 KG)"
+    expect_when:
+      - option: center_tank
+        equals: more
+        expect: "MAIN PUMPS ON · CENTER PUMPS ON"
+      - option: center_tank
+        equals: less
+        expect: "MAIN PUMPS ON · CENTER PUMPS OFF"
     terms: ["center tank", "P5"]
     controls:
       - fuelpumps
+      - ctrpumps
     targets:
       - at: "oh/fuel/CTR L/1"
         open: true
+      - at: "oh/fuel/CTR L/1"
+        set: "ON"
+        when: { option: center_tank, equals: more }
+      - at: "oh/fuel/CTR L/1"
+        set: "OFF"
+        when: { option: center_tank, equals: less }
       - at: "oh/fuel/CTR R/1"
         open: true
+      - at: "oh/fuel/CTR R/1"
+        set: "ON"
+        when: { option: center_tank, equals: more }
+      - at: "oh/fuel/CTR R/1"
+        set: "OFF"
+        when: { option: center_tank, equals: less }
       - at: "oh/fuel/AFT 1/1"
         set: "ON"
       - at: "oh/fuel/FWD 1/1"
@@ -156,7 +187,7 @@ steps:
     if_not: LOW PRESSURE light stays on
     if_not_detail: That pump is not supplying pressure
   - id: ifly-737-max8.before-start.anti-collision-light
-    number: 5
+    number: 6
     text: ANTI-COLLISION LIGHT
     expect: "ON"
     terms: ["P5"]
@@ -172,7 +203,7 @@ steps:
       - kind: vendor-docs
         date: 2026-11-09
   - id: ifly-737-max8.before-start.stabilizer-trim
-    number: 6
+    number: 7
     text: STABILIZER TRIM
     expect: SET TO TAKEOFF UNITS
     controls:

@@ -8,6 +8,7 @@ value on the right. The pilot confirms each step; the app never knows a switch p
 (decision 0006). At the end of the phase come the completion calls.
 -->
 <script lang="ts">
+  import { stepValue } from "./answers.svelte";
   import { blankLinks } from "../flight/sections";
   import BlankFields from "./BlankFields.svelte";
   import { fillParts } from "./value-parts";
@@ -96,7 +97,7 @@ value on the right. The pilot confirms each step; the app never knows a switch p
           <BlankFields name={step.text} blanks={fill.blanks} rest={fill.rest} values={entry.row.values} links={blankLinks(step.fill ?? [])} onBlank={(n, v) => onBlank(step.id, n, v)} />
         </div>
       {:else}
-        <p class="value">{step.expect}</p>
+        <p class="value">{stepValue(step)}</p>
         {#if entry.row.hint}<p class="vh">{entry.row.hint}</p>{/if}
       {/if}
       <p class="state">
@@ -144,7 +145,7 @@ value on the right. The pilot confirms each step; the app never knows a switch p
       <span class="keys">Space: confirm · Left arrow: back · S: skip</span>
     </div>
     {#if next}
-      <p class="nx"><b>Next</b> <span class="nn">{next.text}</span> {#if !next.expect.includes("___")}<span class="mono">{next.expect}</span>{/if}</p>
+      <p class="nx"><b>Next</b> <span class="nn">{next.text}</span> {#if !next.expect.includes("___")}<span class="mono">{stepValue(next)}</span>{/if}</p>
     {/if}
   {:else}
     <p class="crumb">{view.title}</p>

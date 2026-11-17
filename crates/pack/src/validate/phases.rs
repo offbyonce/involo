@@ -5,11 +5,37 @@
 
 use std::collections::BTreeSet;
 
-use checklist_core::{Quick, UserOption};
+use checklist_core::{FillField, Quick, Suggests, UserOption};
 
 use super::index::Index;
 use super::{Issue, error};
 use crate::Pack;
+
+/// A suggestion rule (decision 0027) reads a planned fuel weight and suggests one of the option's
+/// own values.
+fn check_suggests(option: &UserOption, issues: &mut Vec<Issue>) {
+    let Some(Suggests::Rule(rule)) = &option.suggests else {
+        return;
+    };
+    let weights = [FillField::Fuel, FillField::MinimumTakeoffFuel];
+    if !weights.contains(&rule.field) {
+        issues.push(error(
+            &option.id,
+            format!(
+                "`suggests` reads `{:?}`, which is not a fuel weight",
+                rule.field
+            ),
+        ));
+    }
+    for value in [&rule.then, &rule.otherwise] {
+        if !option.values.contains(value) {
+            issues.push(error(
+                &option.id,
+                format!("`suggests` names `{value}`, which is not one of the option's values"),
+            ));
+        }
+    }
+}
 
 pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
     let Some(file) = &pack.content.phases else {
@@ -32,6 +58,7 @@ pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
     for option in &file.options {
         idx.check_option_value(&option.id, &option.id, &option.default, issues);
         check_choices(option, issues);
+        check_suggests(option, issues);
         for phase in &option.ask_in {
             idx.require_phase(&option.id, phase, issues);
         }
@@ -90,9 +117,9 @@ fn check_choices(option: &UserOption, issues: &mut Vec<Issue>) {
 
 #[cfg(test)]
 mod tests {
-    use checklist_core::{OptionChoice, OptionTest, ShowIf};
+    use checklist_core::{FillField, OptionChoice, OptionTest, ShowIf};
 
-    use super::super::test_support::{assert_flags, pack, step};
+    use super::super::test_support::{assert_flags, messages, pack, step};
 
     #[test]
     fn stage_places_are_checked_too() {
@@ -146,6 +173,44 @@ mod tests {
             crate::validate_pack(&p)
                 .iter()
                 .all(|i| !i.message.contains("turnaround"))
+        );
+    }
+
+    #[test]
+    fn a_suggestion_rule_reads_a_fuel_weight_and_suggests_the_option_s_values() {
+        let rule = |field, then: &str| {
+            Some(checklist_core::Suggests::Rule(
+                checklist_core::SuggestRule {
+                    field,
+                    minus_lb: 0,
+                    more_than_lb: 1000,
+                    then: then.into(),
+                    otherwise: "gpu".into(),
+                },
+            ))
+        };
+        let with = |suggests| {
+            let mut p = pack(vec![step("a")], vec![]);
+            if let Some(file) = p.content.phases.as_mut() {
+                file.options[0].suggests = suggests;
+            }
+            p
+        };
+        assert!(!messages(&with(rule(FillField::Fuel, "apu"))).contains("suggests"));
+        assert_flags(
+            &with(rule(FillField::Qnh, "apu")),
+            "`suggests` reads `Qnh`, which is not a fuel weight",
+        );
+        assert_flags(
+            &with(rule(FillField::Fuel, "battery")),
+            "`suggests` names `battery`, which is not one of the option's values",
+        );
+        // Format 4's bare field still reads, and suggests nothing.
+        assert!(
+            !messages(&with(Some(checklist_core::Suggests::Field(
+                FillField::Fuel
+            ))))
+            .contains("suggests")
         );
     }
 

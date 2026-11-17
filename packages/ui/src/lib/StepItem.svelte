@@ -91,7 +91,7 @@ row in place. A step that depends on the answer links back to it.
   );
   const STATE_WORDS = { to_do: "to do", current: "current", done: "done", skipped: "skipped, still open" };
   let tickLabel = $derived(
-    row.state === "done" ? `Clear the tick on ${title}` : decision && decision.answer === null ? `${title}: decision step, to answer` : `Confirm ${title}: ${step.expect}`,
+    row.state === "done" ? `Clear the tick on ${title}` : decision && decision.answer === null ? `${title}: decision step, to answer` : `Confirm ${title}: ${dependent?.value ?? step.expect}`,
   );
   /** An unanswered decision step ticks only by answering. */
   function tickOrAsk(): void {

@@ -209,7 +209,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
         </div>
         <label class="notesbox">
           Notes from ATC
-          <textarea id="sp-notes" value={notes} placeholder="Jot down what ATC says: frequency changes, re-clearances, taxi route" oninput={(e) => onNotes(e.currentTarget.value)}></textarea>
+          <textarea id="sp-notes" value={notes} placeholder="Write down what ATC tells you." oninput={(e) => onNotes(e.currentTarget.value)}></textarea>
         </label>
         <!-- Phone (Mobile board): Import sits under the notes, the footer's is hidden. -->
         <button class="btn import below" type="button" onclick={onImport}>Import latest from SimBrief</button>

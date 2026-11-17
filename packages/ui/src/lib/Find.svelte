@@ -14,7 +14,8 @@ matches “…”". Esc, the scrim and the back button close it.
 <script lang="ts">
   import type { Rail } from "@involo/bindings";
   import { onMount, tick } from "svelte";
-  import { type FindControl, type FindIndex, type FindTerm, type FoundStep, findIn, findOnly, marked } from "./find-index";
+  import { answered } from "./answers.svelte";
+  import { type FindControl, type FindIndex, type FindTerm, type FoundStep, findIn, findOnly, foundValue, marked } from "./find-index";
   import Icon from "./Icon.svelte";
   import { trapFocus } from "./trap";
 
@@ -225,7 +226,7 @@ matches “…”". Esc, the scrim and the back button close it.
               >
               <span class="txt"
                 ><span class="t">{@render title(s.title)}</span><span class="sub"
-                  ><span>{s.stage} › {s.phaseTitle}</span><span class="val">{@render title(s.value)}</span></span
+                  ><span>{s.stage} › {s.phaseTitle}</span><span class="val">{@render title(foundValue(s, answered.options))}</span></span
                 ></span
               >
               <span class="end">{#if st === "current"}<span class="now">Current</span>{/if}<Icon name="chevron-right" /></span>

@@ -1,0 +1,26 @@
+{
+  "format": 2,
+  "pack": "ifly-737-max8",
+  "packVersion": "0.1.0",
+  "options": {
+    "approach": "ils",
+    "exterior": "on",
+    "power": "apu",
+    "start": "cold"
+  },
+  "startState": null,
+  "session": {
+    "done": {
+      "ifly-737-max8.cold-dark.battery-switch": 1763110000000,
+      "ifly-737-max8.cold-dark.standby-power-switch": 1763110005000
+    },
+    "skipped": {}
+  },
+  "values": {
+    "qnh": "29.92",
+    "origin": "KSEA"
+  },
+  "blanks": {},
+  "notes": "Taxi via A, hold short 16L",
+  "timers": {}
+}

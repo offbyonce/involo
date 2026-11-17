@@ -18,9 +18,9 @@ describe("References, counted from the pack (decision 0007)", () => {
   it("counts each kind of source and the lists still being confirmed", () => {
     expect(refs.sources.map((s) => [s.name, s.count])).toEqual([
       ["Simulator documentation", 36],
-      ["Regulator guidance", 7],
+      ["Regulator guidance", 8],
     ]);
-    expect(refs.confirming).toBe(22);
+    expect(refs.confirming).toBe(21);
     expect(refs.rows).toHaveLength(pack.lists.length);
   });
 
@@ -70,7 +70,7 @@ describe("References, counted from the pack (decision 0007)", () => {
     };
     const after = buildReferences(retagged);
     expect(after.confirming).toBe(0);
-    expect(after.sources[0]?.count).toBe(58);
+    expect(after.sources[0]?.count).toBe(57);
     expect(after.rows.some((r) => r.basis === "prior-release")).toBe(false);
   });
 });

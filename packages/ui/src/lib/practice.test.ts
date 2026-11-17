@@ -109,19 +109,19 @@ describe("the question generator", () => {
   it("produces the counts from today's pack (2026-11-16, refined as the generator applies the rules)", () => {
     expect(count("memory", "next")).toBe(20);
     expect(count("memory", "order")).toBe(5);
-    expect(count("lights", "meaning")).toBe(148);
-    expect(count("lights", "light")).toBe(127);
-    expect(count("faults", "action")).toBe(9);
-    expect(count("faults", "cause")).toBe(23);
+    expect(count("lights", "meaning")).toBe(159);
+    expect(count("lights", "light")).toBe(145);
+    expect(count("faults", "action")).toBe(11);
+    expect(count("faults", "cause")).toBe(27);
     // Left out: steps whose other drawn positions all mean the value, steps whose list has a second
     // step of the same title with another value, and those whose right value's length stands out.
-    expect(count("values")).toBe(225);
-    expect(count("order", "next")).toBe(337);
+    expect(count("values")).toBe(223);
+    expect(count("order", "next")).toBe(338);
     expect(all.filter((q) => q.topic === "order" && q.kind === "order").length).toBe(80);
     expect(count("challenge")).toBe(43);
     expect(count("terms", "meaning")).toBe(100);
     expect(count("terms", "term")).toBe(80);
-    expect(count("where", "area")).toBe(148);
+    expect(count("where", "area")).toBe(149);
     expect(count("where", "panel")).toBe(77);
   });
 
@@ -343,11 +343,16 @@ describe("the question generator", () => {
       for (const w of pickWrong(seed.answer, seed.tiers))
         expect(seed.about[w], `${seed.id}: ${w}`).toBeTruthy();
     }
-    const light = all.find((q) => q.id === "lights:meaning:oh/fuel/LOW PRESSURE/1");
-    if (light?.kind === "choice") {
-      expect(light.why).toMatch(/^LOW PRESSURE means: /);
-      expect(Object.values(light.about).every((a) => /^That’s the .+ light/.test(a))).toBe(true);
-    }
+    // Each fuel pump's light is named by its switch, so no two read the same ("left" was both CTR L
+    // and AFT 1).
+    const why = (n: number) => {
+      const q = all.find((x) => x.id === `lights:meaning:oh/fuel/LOW PRESSURE/${n}`);
+      expect(q?.kind, `LOW PRESSURE/${n}`).toBe("choice");
+      return q?.kind === "choice" ? (q.why ?? "") : "";
+    };
+    expect(why(1)).toMatch(/^LOW PRESSURE, CTR L means: the left center tank pump/);
+    expect(why(3)).toMatch(/^LOW PRESSURE, AFT 1 means: the left aft pump/);
+    expect(new Set([1, 2, 3, 4, 5, 6].map((n) => why(n).split(" means")[0])).size).toBe(6);
   });
 
   it("Where controls are: no panel or area that shares a word with the control; Where are for plurals", () => {

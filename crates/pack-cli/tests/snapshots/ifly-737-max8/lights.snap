@@ -96,42 +96,42 @@ source: crates/pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fuel/LOW PRESSURE/1",
-      "meaning": "This center tank pump is switched on but not delivering fuel. With both center lights on, the center tank is empty.",
+      "meaning": "The left center tank pump (CTR L) is switched on but not delivering fuel. With both center lights on, the center tank is empty.",
       "when": "Expected near the end of the center tank fuel.",
       "action": "When both center lights are on, switch both center pumps OFF.",
       "normal": true
     },
     {
       "locator": "oh/fuel/LOW PRESSURE/2",
-      "meaning": "This center tank pump is switched on but not delivering fuel. With both center lights on, the center tank is empty.",
+      "meaning": "The right center tank pump (CTR R) is switched on but not delivering fuel. With both center lights on, the center tank is empty.",
       "when": "Expected near the end of the center tank fuel.",
       "action": "When both center lights are on, switch both center pumps OFF.",
       "normal": true
     },
     {
       "locator": "oh/fuel/LOW PRESSURE/3",
-      "meaning": "This wing tank pump is not delivering fuel, or it is switched off.",
+      "meaning": "The left aft pump (AFT 1) is not delivering fuel, or it is switched off.",
       "when": "Normal before start with the pumps off. Abnormal with the pump on. One light alone does not set MASTER CAUTION; both lights in the same tank do.",
       "action": "Before start, switch the pumps on and check the light goes out. In flight, switch that pump OFF and run the fuel pump low pressure checklist.",
       "normal": true
     },
     {
       "locator": "oh/fuel/LOW PRESSURE/4",
-      "meaning": "This wing tank pump is not delivering fuel, or it is switched off.",
+      "meaning": "The left forward pump (FWD 1) is not delivering fuel, or it is switched off.",
       "when": "Normal before start with the pumps off. Abnormal with the pump on. One light alone does not set MASTER CAUTION; both lights in the same tank do.",
       "action": "Before start, switch the pumps on and check the light goes out. In flight, switch that pump OFF and run the fuel pump low pressure checklist.",
       "normal": true
     },
     {
       "locator": "oh/fuel/LOW PRESSURE/5",
-      "meaning": "This wing tank pump is not delivering fuel, or it is switched off.",
+      "meaning": "The right forward pump (FWD 2) is not delivering fuel, or it is switched off.",
       "when": "Normal before start with the pumps off. Abnormal with the pump on. One light alone does not set MASTER CAUTION; both lights in the same tank do.",
       "action": "Before start, switch the pumps on and check the light goes out. In flight, switch that pump OFF and run the fuel pump low pressure checklist.",
       "normal": true
     },
     {
       "locator": "oh/fuel/LOW PRESSURE/6",
-      "meaning": "This wing tank pump is not delivering fuel, or it is switched off.",
+      "meaning": "The right aft pump (AFT 2) is not delivering fuel, or it is switched off.",
       "when": "Normal before start with the pumps off. Abnormal with the pump on. One light alone does not set MASTER CAUTION; both lights in the same tank do.",
       "action": "Before start, switch the pumps on and check the light goes out. In flight, switch that pump OFF and run the fuel pump low pressure checklist.",
       "normal": true
@@ -334,28 +334,28 @@ source: crates/pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/heat/ON/1",
-      "meaning": "Heat is going to that window.",
+      "meaning": "Heat is going to the left side window.",
       "when": "Normal with window heat on. It can cycle off when the window is warm enough.",
       "action": "No action needed.",
       "normal": true
     },
     {
       "locator": "oh/heat/ON/2",
-      "meaning": "Heat is going to that window.",
+      "meaning": "Heat is going to the left forward window.",
       "when": "Normal with window heat on. It can cycle off when the window is warm enough.",
       "action": "No action needed.",
       "normal": true
     },
     {
       "locator": "oh/heat/ON/3",
-      "meaning": "Heat is going to that window.",
+      "meaning": "Heat is going to the right forward window.",
       "when": "Normal with window heat on. It can cycle off when the window is warm enough.",
       "action": "No action needed.",
       "normal": true
     },
     {
       "locator": "oh/heat/ON/4",
-      "meaning": "Heat is going to that window.",
+      "meaning": "Heat is going to the right side window.",
       "when": "Normal with window heat on. It can cycle off when the window is warm enough.",
       "action": "No action needed.",
       "normal": true
@@ -628,14 +628,14 @@ source: crates/pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/bleed/PACK/1",
-      "meaning": "That air conditioning pack has shut down from overheating, or has failed.",
+      "meaning": "The left air conditioning pack has shut down from overheating, or has failed.",
       "when": "Abnormal.",
       "action": "Run the pack checklist. Once it has cooled, select a warmer temperature and press TRIP RESET. A control failure may not reset.",
       "normal": false
     },
     {
       "locator": "oh/bleed/PACK/2",
-      "meaning": "That air conditioning pack has shut down from overheating, or has failed.",
+      "meaning": "The right air conditioning pack has shut down from overheating, or has failed.",
       "when": "Abnormal.",
       "action": "Run the pack checklist. Once it has cooled, select a warmer temperature and press TRIP RESET. A control failure may not reset.",
       "normal": false
@@ -656,14 +656,14 @@ source: crates/pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/bleed/BLEED/1",
-      "meaning": "That engine bleed valve has shut because the bleed air was too hot, or its pressure too high or too low, or the bleed system has failed. It can also mean the bleeds are set wrong after takeoff or a go-around.",
+      "meaning": "The engine 1 bleed valve has shut because the bleed air was too hot, or its pressure too high or too low, or the bleed system has failed. It can also mean the bleeds are set wrong after takeoff or a go-around.",
       "when": "Abnormal.",
       "action": "Check both engine BLEED switches are ON. Then run the bleed checklist, and press TRIP RESET once it has cooled. A system failure may not reset.",
       "normal": false
     },
     {
       "locator": "oh/bleed/BLEED/2",
-      "meaning": "That engine bleed valve has shut because the bleed air was too hot, or its pressure too high or too low, or the bleed system has failed. It can also mean the bleeds are set wrong after takeoff or a go-around.",
+      "meaning": "The engine 2 bleed valve has shut because the bleed air was too hot, or its pressure too high or too low, or the bleed system has failed. It can also mean the bleeds are set wrong after takeoff or a go-around.",
       "when": "Abnormal.",
       "action": "Check both engine BLEED switches are ON. Then run the bleed checklist, and press TRIP RESET once it has cooled. A system failure may not reset.",
       "normal": false
@@ -796,28 +796,28 @@ source: crates/pack-cli/tests/snapshot.rs
     },
     {
       "locator": "aft/eng/REVERSER LIMITED/1",
-      "meaning": "A thrust reverser fault. In flight it means that reverser may not deploy, or reverse is limited to idle.",
+      "meaning": "An engine 1 thrust reverser fault. In flight it means that reverser may not deploy, or reverse is limited to idle.",
       "when": "Abnormal.",
       "action": "Plan for a longer landing roll and use the brakes and autobrake as needed.",
       "normal": false
     },
     {
       "locator": "aft/eng/REVERSER LIMITED/2",
-      "meaning": "A thrust reverser fault. In flight it means that reverser may not deploy, or reverse is limited to idle.",
+      "meaning": "An engine 2 thrust reverser fault. In flight it means that reverser may not deploy, or reverse is limited to idle.",
       "when": "Abnormal.",
       "action": "Plan for a longer landing roll and use the brakes and autobrake as needed.",
       "normal": false
     },
     {
       "locator": "aft/eng/ENGINE CONTROL/1",
-      "meaning": "The engine control system has a fault that stops the airplane being dispatched. It only shows on the ground with the engine running: below 80 knots before takeoff, or about 30 seconds after landing.",
+      "meaning": "The engine 1 control system has a fault that stops the airplane being dispatched. It only shows on the ground with the engine running: below 80 knots before takeoff, or about 30 seconds after landing.",
       "when": "Abnormal, ground only.",
       "action": "Do not take off. Return to the gate.",
       "normal": false
     },
     {
       "locator": "aft/eng/ENGINE CONTROL/2",
-      "meaning": "The engine control system has a fault that stops the airplane being dispatched. It only shows on the ground with the engine running: below 80 knots before takeoff, or about 30 seconds after landing.",
+      "meaning": "The engine 2 control system has a fault that stops the airplane being dispatched. It only shows on the ground with the engine running: below 80 knots before takeoff, or about 30 seconds after landing.",
       "when": "Abnormal, ground only.",
       "action": "Do not take off. Return to the gate.",
       "normal": false

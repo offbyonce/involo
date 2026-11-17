@@ -48,10 +48,10 @@ describe("References, desktop (RefsDesk)", () => {
     );
     expect([...container.querySelectorAll(".kind")].map((k) => cells(k.querySelector(".kt")))).toEqual([
       "Simulator documentation 36 lists",
-      "Regulator guidance 7 lists",
+      "Regulator guidance 8 lists",
     ]);
     expect(words(container.querySelector(".line"))).toBe(
-      "22 lists are marked Source being confirmed: they came from an earlier release and are being checked against the sources above.",
+      "21 lists are marked Source being confirmed: they came from an earlier release and are being checked against the sources above.",
     );
   });
 
@@ -80,12 +80,12 @@ describe("References, desktop (RefsDesk)", () => {
     expect(chips[3]?.getAttribute("aria-pressed")).toBe("true");
     // A new filter starts at its first six again.
     expect(rows()).toHaveLength(6);
-    await fireEvent.click(screen.getByRole("button", { name: "Show all 22 lists" }));
-    expect(rows()).toHaveLength(22);
-    expect(container.querySelectorAll(".tag.confirming")).toHaveLength(22);
+    await fireEvent.click(screen.getByRole("button", { name: "Show all 21 lists" }));
+    expect(rows()).toHaveLength(21);
+    expect(container.querySelectorAll(".tag.confirming")).toHaveLength(21);
     await fireEvent.click(chips[2] as HTMLElement);
     expect(rows()).toHaveLength(6);
-    expect(screen.getByRole("button", { name: "Show all 7 lists" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Show all 8 lists" })).toBeTruthy();
   });
 
   it("opens a list at its first step, and Find on the simulator model steps", async () => {

@@ -4,7 +4,7 @@
 import type { FlatPack, Rail } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
-import { buildFind, findIn, findOnly, marked } from "./find-index";
+import { buildFind, findIn, findOnly, foundValue, marked } from "./find-index";
 
 const packs = import.meta.glob<FlatPack>("../../../../apps/web/public/packs/ifly-737-max8.json", {
   eager: true,
@@ -108,5 +108,15 @@ describe("Find opened on a set of steps (References' simulator model notes)", ()
     expect(some.steps.length).toBeGreaterThan(0);
     expect(some.steps.length).toBeLessThan(marked16.length);
     expect(some.steps.every((s) => /battery/i.test(`${s.title} ${s.value}`))).toBe(true);
+  });
+});
+
+describe("a found step's value (decision 0027)", () => {
+  it("shows the answer's value once the decision is answered", () => {
+    const fuel = find.steps.find((s) => s.id === "ifly-737-max8.before-start.fuel-pump-switches");
+    expect(fuel?.when).toHaveLength(2);
+    if (!fuel) return;
+    expect(foundValue(fuel, {})).toBe(fuel.value);
+    expect(foundValue(fuel, { center_tank: "more" })).toBe("MAIN PUMPS ON · CENTER PUMPS ON");
   });
 });

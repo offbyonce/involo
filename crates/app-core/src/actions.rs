@@ -10,7 +10,7 @@ use serde::Deserialize;
 use ts_rs::TS;
 
 use crate::AppError;
-use crate::flight::Flight;
+use crate::flight::{AnswerSource, Flight};
 use crate::values::{allowed, blank_key};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, TS)]
@@ -43,6 +43,13 @@ pub enum Action {
     SetOption {
         option: String,
         value: String,
+    },
+    /// A decision step's answer (decisions 0022 and 0027): sets the option and records how it
+    /// was given.
+    Answer {
+        option: String,
+        value: String,
+        by: AnswerSource,
     },
     /// A flight value, typed by the pilot. An empty value removes it (decision 0019).
     SetValue {
@@ -164,6 +171,15 @@ fn set_value(flight: &mut Flight, field: FillField, value: &str) -> Result<(), A
     Ok(())
 }
 
+/// The options a decision step asks (decision 0022).
+fn decided(pack: &FlatPack) -> Vec<&str> {
+    pack.lists
+        .iter()
+        .flat_map(|l| &l.steps)
+        .filter_map(|s| s.decide.as_deref())
+        .collect()
+}
+
 fn set_option(
     pack: &FlatPack,
     flight: &mut Flight,
@@ -272,6 +288,13 @@ pub fn apply(pack: &FlatPack, mut flight: Flight, action: Action) -> Result<Flig
             flight.session.clear_list(list);
         }
         Action::SetOption { option, value } => set_option(pack, &mut flight, option, value)?,
+        Action::Answer { option, value, by } => {
+            if !decided(pack).contains(&option.as_str()) {
+                return Err(invalid(format!("no step asks option `{option}`")));
+            }
+            set_option(pack, &mut flight, option.clone(), value)?;
+            flight.answers.insert(option, by);
+        }
         Action::SetValue { field, value } => set_value(&mut flight, field, &value)?,
         Action::SetValues { values } => {
             for (field, value) in &values {
@@ -292,6 +315,11 @@ pub fn apply(pack: &FlatPack, mut flight: Flight, action: Action) -> Result<Flig
             flight.blanks.clear();
             flight.notes.clear();
             flight.timers.clear();
+            // A decision belongs to its flight: the next one asks again.
+            for option in decided(pack) {
+                flight.options.remove(option);
+            }
+            flight.answers.clear();
         }
     }
     Ok(flight)
@@ -395,7 +423,7 @@ mod tests {
             .is_err()
         );
     }
-    use crate::test_support::example_pack;
+    use crate::test_support::{example_pack, ifly_pack};
 
     fn step() -> StepId {
         StepId::new("example-trainer.before-start.battery")
@@ -428,6 +456,49 @@ mod tests {
         assert_eq!(ticked.session.done_at(&step()), Some(9));
         let cleared = apply(&pack, ticked, Action::Clear).unwrap();
         assert!(!cleared.session.is_done(&step()));
+    }
+
+    #[test]
+    fn an_answer_sets_the_option_and_records_how_it_was_given() {
+        let pack = ifly_pack();
+        let flight = new_flight(&pack);
+        assert!(
+            !flight.options.contains_key("center_tank"),
+            "asked, so unanswered"
+        );
+        let answered = apply(
+            &pack,
+            flight,
+            Action::Answer {
+                option: "center_tank".into(),
+                value: "less".into(),
+                by: AnswerSource::You,
+            },
+        )
+        .unwrap();
+        assert_eq!(answered.options["center_tank"], "less");
+        assert_eq!(answered.answers["center_tank"], AnswerSource::You);
+        let changed = apply(
+            &pack,
+            answered,
+            Action::Answer {
+                option: "center_tank".into(),
+                value: "more".into(),
+                by: AnswerSource::Changed,
+            },
+        )
+        .unwrap();
+        assert_eq!(changed.options["center_tank"], "more");
+        assert_eq!(changed.answers["center_tank"], AnswerSource::Changed);
+        let wrong = Action::Answer {
+            option: "center_tank".into(),
+            value: "half".into(),
+            by: AnswerSource::You,
+        };
+        assert!(matches!(
+            apply(&pack, changed, wrong),
+            Err(AppError::InvalidAction(_))
+        ));
     }
 
     #[test]

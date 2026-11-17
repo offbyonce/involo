@@ -249,6 +249,15 @@ data_types! {
         pub equals: String,
     }
 
+    /// A step's value once a decision has answered an option with this value (decision 0027),
+    /// e.g. "MAIN PUMPS ON · CENTER PUMPS OFF". Until it is answered, the step's own `expect`
+    /// shows.
+    pub struct ExpectWhen {
+        pub option: String,
+        pub equals: String,
+        pub expect: String,
+    }
+
     /// One challenge and response line.
     // These flags are independent facts from pack data; a step can have any mix of them.
     #[allow(clippy::struct_excessive_bools)]
@@ -292,6 +301,9 @@ data_types! {
         /// flight. Targets elsewhere may depend on the answer (decision 0022).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub decide: Option<String>,
+        /// The step's value for each answer of a decision its targets depend on (decision 0027).
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub expect_when: Vec<ExpectWhen>,
         /// Optional note shown under the step.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub note: Option<String>,
@@ -369,6 +381,15 @@ data_types! {
 }
 
 impl Step {
+    /// The step's value for these answers (decision 0027): the value for the answered option's
+    /// value, else its own `expect`.
+    pub fn value_for(&self, options: &std::collections::BTreeMap<String, String>) -> &str {
+        self.expect_when
+            .iter()
+            .find(|e| options.get(&e.option) == Some(&e.equals))
+            .map_or(self.expect.as_str(), |e| e.expect.as_str())
+    }
+
     /// A step with only the required fields set.
     pub fn new(id: impl Into<String>, text: impl Into<String>, expect: impl Into<String>) -> Self {
         Self {
@@ -383,6 +404,7 @@ impl Step {
             hint: Vec::new(),
             opens: None,
             non_recall: false,
+            expect_when: Vec::new(),
             quick: None,
             show_if: None,
             decide: None,

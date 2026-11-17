@@ -22,9 +22,28 @@ data_types! {
         /// Phases that show the choice above their lists.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub ask_in: Vec<String>,
-        /// A flight value that suggests the answer, for the pilot to confirm (decision 0022).
+        /// How a flight value suggests the answer, for the pilot to confirm (decisions 0022 and
+        /// 0027).
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub suggests: Option<FillField>,
+        pub suggests: Option<Suggests>,
+    }
+
+    /// What suggests an option's answer: a rule (decision 0027), or, as format 4 wrote it, a bare
+    /// flight field, which suggests nothing.
+    #[serde(untagged)]
+    pub enum Suggests {
+        Rule(SuggestRule),
+        Field(FillField),
+    }
+
+    /// A weight from the flight, less `minus_lb`, above `more_than_lb` suggests `then`, otherwise
+    /// `otherwise` (decision 0027). With `minus_lb` at 0 (not yet checked), nothing is suggested.
+    pub struct SuggestRule {
+        pub field: FillField,
+        pub minus_lb: u32,
+        pub more_than_lb: u32,
+        pub then: String,
+        pub otherwise: String,
     }
 
     /// How one value of an option is shown, e.g. "Ground power at the gate".

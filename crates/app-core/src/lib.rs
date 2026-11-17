@@ -16,6 +16,7 @@ mod plans;
 mod rail;
 mod saved;
 mod settings;
+mod suggest;
 mod targets;
 #[cfg(test)]
 mod test_support;
@@ -26,7 +27,7 @@ mod weather;
 pub use actions::{Action, apply};
 pub use app::{AppInfo, app_info, example_checklist};
 pub use error::AppError;
-pub use flight::{FLIGHT_FORMAT, Flight, new_flight};
+pub use flight::{AnswerSource, FLIGHT_FORMAT, Flight, new_flight};
 pub use log::{
     LOG_FORMAT, LOG_LIMIT, Log, LogChange, LogEdit, LoggedFlight, LoggedStep, LoggedTick,
     PlanSource, PracticeResult, StageTime, edit_log, load_log, log_csv, log_entry, new_log,
@@ -40,6 +41,7 @@ pub use saved::{Loaded, load_flight, load_plan, load_settings};
 pub use settings::{
     Detail, EssentialsChanges, ListView, MAX_DIMMING, SETTINGS_FORMAT, Settings, TextSize, Theme,
 };
+pub use suggest::{Suggestion, suggestion};
 pub use targets::{ItemTarget, step_targets};
 pub use visibility::{Shown, in_essentials, passes, shown_steps, step_shows, visible_steps};
 pub use weather::{Altimeter, Decoded, DecodedRow, Element, altimeter, decode_metar, decode_taf};
