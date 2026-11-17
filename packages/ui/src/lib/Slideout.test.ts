@@ -13,7 +13,13 @@ const packs = import.meta.glob<FlatPack>("../../../../apps/web/public/packs/ifly
 });
 const pack = Object.values(packs)[0] as FlatPack;
 const index = indexPack(pack);
-const step = index.step("ifly-737-max8.before-start.fuel-pump-switches");
+/** A step of the pack, which the tests need to exist. */
+function known(id: string) {
+  const found = index.step(id);
+  if (!found) throw new Error(`no step ${id} in the pack`);
+  return found;
+}
+const step = known("ifly-737-max8.before-start.fuel-pump-switches");
 const fuel = pack.content.panels.find((p) => p.id === "oh")?.sections.find((s) => s.id === "fuel");
 const ctrL = fuel?.items.findIndex((i) => i.label === "CTR L") ?? -1;
 const aft1 = fuel?.items.findIndex((i) => i.label === "AFT 1") ?? -1;
@@ -27,7 +33,7 @@ afterEach(cleanup);
 describe("Slideout", () => {
   const props = (entry: "panel" | "where" | "control") => ({
     index,
-    step: step!,
+    step,
     number: 6,
     targets,
     opening: entry === "control" ? { entry, control: { section: "fuel", item: ctrL } } : { entry },
@@ -133,7 +139,7 @@ describe("Slideout", () => {
   });
 
   it("titles the sheet with the main panel, adds Also for the others, and keeps an undrawn panel as a list (batch 6)", () => {
-    const efb = index.step("ifly-737-max8.gpu-power.ground-power-cart-efb");
+    const efb = known("ifly-737-max8.gpu-power.ground-power-cart-efb");
     const locate = (at: string) => {
       const [, section, label, n] = at.split("/");
       let seen = 0;
@@ -144,7 +150,7 @@ describe("Slideout", () => {
     };
     render(Slideout, {
       ...props("panel"),
-      step: efb!,
+      step: efb,
       number: 2,
       targets: (efb?.targets ?? []).map((t) => locate(t.at ?? "")),
     });
