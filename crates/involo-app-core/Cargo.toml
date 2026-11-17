@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+
+[package]
+name = "involo-app-core"
+description = "Host-agnostic app operations, called by the web host and a later desktop shell."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+involo-checklist-core = { workspace = true, features = ["ts"] }
+involo-pack = { workspace = true, features = ["ts"] }
+serde.workspace = true
+serde_json.workspace = true
+involo-simbrief.workspace = true
+thiserror.workspace = true
+ts-rs.workspace = true
+
+[dev-dependencies]
+# Already the workspace's property-test library (simbrief, pack): the weather decoder and plan
+# values must return normally for any input.
+proptest.workspace = true
+
+[lints]
+workspace = true

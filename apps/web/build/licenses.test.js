@@ -22,8 +22,8 @@ const dep = (name, kind = null) => ({ pkg: `${name} 1.0.0`, dep_kinds: [{ kind }
 test("lists the crates linked into the WebAssembly module, without build-only crates", () => {
   const metadata = {
     packages: [
-      pkg("web-host", null),
-      pkg("app-core", null),
+      pkg("involo-web-host", null),
+      pkg("involo-app-core", null),
       pkg("serde", "registry"),
       pkg("serde_derive", "registry", ["proc-macro"]),
       pkg("syn", "registry"),
@@ -32,8 +32,8 @@ test("lists the crates linked into the WebAssembly module, without build-only cr
     ],
     resolve: {
       nodes: [
-        { id: "web-host 1.0.0", deps: [dep("app-core"), dep("serde"), dep("insta", "dev")] },
-        { id: "app-core 1.0.0", deps: [dep("serde"), dep("cc", "build")] },
+        { id: "involo-web-host 1.0.0", deps: [dep("involo-app-core"), dep("serde"), dep("insta", "dev")] },
+        { id: "involo-app-core 1.0.0", deps: [dep("serde"), dep("cc", "build")] },
         { id: "serde 1.0.0", deps: [dep("serde_derive")] },
         { id: "serde_derive 1.0.0", deps: [dep("syn")] },
       ],

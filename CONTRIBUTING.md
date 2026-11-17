@@ -29,14 +29,14 @@ checks dependencies. The git hooks (installed by `pnpm install`) run the quick p
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/):
   `feat: …`, `fix: …`, `docs: …`, `pack(ifly-737-max8): …`.
 - Every bug fix comes with a test that would have caught it.
-- Keep logic in `crates/`. The host crates (`crates/web-host`) and the interface stay thin.
+- Keep logic in `crates/`. The host crates (`crates/involo-web-host`) and the interface stay thin.
 - Never put an aircraft name in engine code. Aircraft differences belong in pack data.
 - American English everywhere: code identifiers, pack field names, error messages, docs and pack content (color, behavior, license as a noun, optimize, pressurization).
   Exceptions keep their exact spelling: SPDX license IDs, file names such as `LICENSE` and `LICENSES/`, and anything quoted from outside sources.
 
 ## 3. Checklist content rules
 
-These protect the project and other people's work. `pack check` enforces most of them
+These protect the project and other people's work. `involo-pack check` enforces most of them
 automatically, and the maintainer reviews every content change. The reasoning is in
 [decision 0007](docs/decisions/0007-pack-content-model.md).
 
@@ -51,7 +51,7 @@ link.
 list of `{ kind, date }` entries saying what kind of source it was confirmed against and when
 (kinds defined in [decision 0013](docs/decisions/0013-step-presentation-and-provenance.md),
 for example `vendor-docs`). Record only the kind and the date, never who or which document. The
-app never shows these records or the list `basis`, and `pack check` never flags a step without a
+app never shows these records or the list `basis`, and `involo-pack check` never flags a step without a
 record: every step in a pack is presented the same way. Steps may also set `sim_simplified` where
 the simulator simplifies the real aircraft. Content imported from the 3.0 checklist starts with
 basis `prior-release`; each list moves to a real basis when the maintainer reviews it.
@@ -90,8 +90,8 @@ reworded or moved. A removed step's id is retired and never reused.
 
 **Overlap check.** `just overlap` flags any run of 8 or more words matching plain-text reference
 files (see `INVOLO_OVERLAP_REFS` under "Optional local files" below). It also compares each list's
-steps joined in order. Standard phrases can be accepted in `crates/pack-overlap/allow.txt` with a
-reason.
+steps joined in order. Standard phrases can be accepted in `crates/involo-pack-overlap/allow.txt`
+with a reason.
 
 If you are unsure whether something is acceptable, ask in your pull request before writing the
 content.
@@ -107,7 +107,7 @@ works; the extra check is just skipped.
 | `INVOLO_OVERLAP_REFS` | a folder of plain-text reference files | `just overlap`, which flags pack text matching them | the check prints "not run"; it is run before merging content |
 | `INVOLO_BASELINE` | a local copy of the earlier single-file HTML checklist (3.0) | `just screenshots`, which also shoots the same screens of it and writes side-by-side images | only the app's screenshots are taken |
 | `INVOLO_STEPS` | a list of steps, one per line: `phase` or `reference`, the phase id and the step id, tab-separated, with an optional number | `just screenshots`, which shoots each step's panel sheet and preview card | those shots are left out |
-| `INVOLO_PLAN` | a real SimBrief plan file (with `INVOLO_PLAN_OUT`, where to write its compact form) | the ignored test `measures_a_real_plan` in `crates/simbrief` (`cargo test -p simbrief -- --ignored`) | the test is ignored, as it is by default |
+| `INVOLO_PLAN` | a real SimBrief plan file (with `INVOLO_PLAN_OUT`, where to write its compact form) | the ignored test `measures_a_real_plan` in `crates/involo-simbrief` (`cargo test -p involo-simbrief -- --ignored`) | the test is ignored, as it is by default |
 
 ## Reporting problems
 

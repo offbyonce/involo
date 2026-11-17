@@ -51,14 +51,14 @@ Steps marked **(maintainer)** need repository settings or workflow changes
    and create `apps/web` around it, as approved in step 1. No behavior change. Update the pnpm
    workspace, the `justfile`, the `AGENTS.md` repository map and any docs naming moved paths.
    `just ci` green.
-   **Done 2026-11-11** (PR #10): `packages/ui` with a host interface, `apps/web`, `crates/app-core`
-   and `crates/web-host`; the Tauri shell and `crates/store` parked.
-5. **Packs as flattened JSON, and the web host.** Add a `pack-cli` command that writes one
-   flattened JSON file per aircraft, checked by `pack check` first, with a test that it matches
+   **Done 2026-11-11** (PR #10): `packages/ui` with a host interface, `apps/web`, `crates/involo-app-core`
+   and `crates/involo-web-host`; the Tauri shell and `crates/store` parked.
+5. **Packs as flattened JSON, and the web host.** Add a `involo-pack-cli` command that writes one
+   flattened JSON file per aircraft, checked by `involo-pack check` first, with a test that it matches
    the pack snapshots. Build the web host crate that exposes the core to the interface. Types
    still come from `ts-rs`. Once the `simbrief` crate runs as WebAssembly, remove the probe's
    temporary JavaScript plan reader (`ofp-probe.js` and its test).
-   **Done 2026-11-11:** `pack build` writes `<id>.json`; the web host runs as WebAssembly and the
+   **Done 2026-11-11:** `involo-pack build` writes `<id>.json`; the web host runs as WebAssembly and the
    app uses it; the `simbrief` crate reads fetched JSON and saved JSON or XML files, and the
    JavaScript reader is gone. `just site` builds the site with a strict content security policy
    injected into every page: the placeholder stays the front page, the work-in-progress app is at
@@ -252,7 +252,7 @@ Steps marked **(maintainer)** need repository settings or workflow changes
       step that needs a flight value." and "Open Flight ›" (Overview).
    7. Content. First on the sourcing list (2026-11-12): the resting position of FLT
       CONTROL A and B, which the pack rests at STBY RUD where they are normally guarded ON; and
-      the placards of the 11 positions not in capitals (`pack check` warns on each): "OFF to
+      the placards of the 11 positions not in capitals (`involo-pack check` warns on each): "OFF to
       BRIGHT" on eight lighting knobs, "Guarded" on generator DISCONNECT 1 and 2, and the air
       temperature SOURCE selector's "Supply duct, passenger cabin, pack". On the validation list
       under decision 0007: the 17 glossary entries written in batch 2 (P1, P2, P3, P5, P7, P9,

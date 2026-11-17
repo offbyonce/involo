@@ -24,7 +24,7 @@ light?: LightState | null,
 /**
  * The step's wording names one of the item's positions, but leaves it open: a condition
  * ("ON IF MORE THAN 1,000 LB"), an option, one engine of two, or the word belongs to
- * something else. The drawing claims no position, and `pack check` accepts the wording.
+ * something else. The drawing claims no position, and `involo-pack check` accepts the wording.
  */
 open?: boolean, 
 /**

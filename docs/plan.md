@@ -38,7 +38,7 @@ airplane like a trained crew, not just to run checklists (decision 0008).
 | Signing | Not needed for the web app; revisit with a desktop build (0005) |
 | Sim link | None (0006 supersedes 0004) |
 | Scope | Learn to operate the airplane like a trained crew; what we do not build is listed below (0008) |
-| References | List-level `basis` tags, no per-step citations or third-party links (0007); rules in `CONTRIBUTING.md`, enforced in part by `pack check` |
+| References | List-level `basis` tags, no per-step citations or third-party links (0007); rules in `CONTRIBUTING.md`, enforced in part by `involo-pack check` |
 
 ## Architecture
 
@@ -48,10 +48,10 @@ Shared Svelte interface  ──typed calls──▶  host adapter (thin)
               Phase 2: web host (WebAssembly) │ later: Tauri shell
                      ┌──────────────┬─────────┴────┐
                      ▼              ▼              ▼
-                checklist-core   simbrief    browser storage (web)
+                involo-checklist-core   simbrief    browser storage (web)
                 (pure: no I/O)   (parsing)   or store (desktop)
 
-pack + pack-cli run at build time: YAML in, checked, flattened JSON out.
+pack + involo-pack-cli run at build time: YAML in, checked, flattened JSON out.
 ```
 
 - Rust types are the source of truth; JSON Schemas (`schemars`) and TypeScript types (`ts-rs`)
@@ -73,7 +73,7 @@ pack + pack-cli run at build time: YAML in, checked, flattened JSON out.
   A pack may extend at most one parent and override items **by id** (change, remove, insert
   before/after), never by list position. Conflicts are build errors. Packs are flattened to
   one JSON per aircraft before the app uses them.
-- `pack check` enforces: valid schema, unique ids, a `basis` on every list, no banned or
+- `involo-pack check` enforces: valid schema, unique ids, a `basis` on every list, no banned or
   unapproved links, no images or PDFs (0007; being updated in Phase 1). Golden snapshot tests
   catch unintended content changes.
 - Planned additions (Phase 1 and later): phases and flows, panel maps, CDU page models,
@@ -82,7 +82,7 @@ pack + pack-cli run at build time: YAML in, checked, flattened JSON out.
 ## Quality
 
 - `just ci` runs: formatting (rustfmt, Biome), clippy with `-D warnings` (pedantic), svelte-check,
-  all tests (nextest, doctests, Vitest), generated-file drift check, `pack check`,
+  all tests (nextest, doctests, Vitest), generated-file drift check, `involo-pack check`,
   `cargo deny`, `pnpm audit`.
 - GitHub Actions runs `just ci` on Windows, macOS and Ubuntu 22.04 for every push and pull
   request, plus a REUSE license check. `main` is protected: pull requests with all four checks
@@ -95,10 +95,10 @@ pack + pack-cli run at build time: YAML in, checked, flattened JSON out.
 | Phase | Work | Gate |
 | --- | --- | --- |
 | 0. Foundation (done) | Workspace, crates, shell, interface skeleton, CI, licenses, docs | `just ci` green on Linux, Windows, macOS |
-| 1. Engine and iFly pack | Extend the pack format; move all 3.0 content into `packs/ifly-737-max8` with no sources or links carried over | Every 3.0 step accounted for; `pack check` passes |
+| 1. Engine and iFly pack | Extend the pack format; move all 3.0 content into `packs/ifly-737-max8` with no sources or links carried over | Every 3.0 step accounted for; `involo-pack check` passes |
 | 2. Web beta with 3.0 parity | Hosted web app (0009) matching 3.0: phases, flows, panel states, SimBrief import, CDU walkthrough, timers, saved progress with export and import, 3.0 import. Also: installable and offline, first-launch "simulator training only" notice, in-app privacy note, a way to report a problem with a step; every step presented the same way (0013) | A public web beta that does everything 3.0 does and works offline after the first visit |
 | 3. Training features | Memory items trainer, flow practice, systems explorer and step-to-system links, scenario drills, progress tracking. Also: briefings built from the SimBrief plan (threats, runway, departure, what-ifs); crew roles (pilot flying and pilot monitoring duties, standard callouts, challenge-and-response) taught within flow practice and briefings; non-normal scenarios built on the memory items; a technique layer (descent planning, energy management, stabilized-approach criteria, autopilot mode use); a structured course with spaced repetition; a flight plan and fuel module (a walkthrough of the pilot's own SimBrief plan, fuel and weight drills, find-the-error exercises, and the difference between EASA and US fuel rules); a CDU and EFB trainer; a refresher mode on top of spaced repetition for pilots returning after time away. The non-normal trainer depends on the pilot review of the procedure open list | Each feature reviewed with beta pilots |
-| 4. More aircraft | Library packs first in each family, then the aircraft in the order under "Aircraft order"; a desktop build if wanted (0009, later options) | Each aircraft passes `pack check` and review |
+| 4. More aircraft | Library packs first in each family, then the aircraft in the order under "Aircraft order"; a desktop build if wanted (0009, later options) | Each aircraft passes `involo-pack check` and review |
 
 Phase 2 parity ships before any Phase 3 work.
 

@@ -3,7 +3,7 @@
 
 // The web host: the interface's host, built on the WebAssembly module (./core.ts) and browser
 // APIs (decisions 0010 and 0012). Packs and their index are files beside the app, written by
-// `pack build`; this page is app/index.html, so they are one folder up.
+// `involo-pack build`; this page is app/index.html, so they are one folder up.
 
 import { isAppError, type PackSummary, type SavedPlan } from "@involo/bindings";
 import type { Host } from "@involo/ui";

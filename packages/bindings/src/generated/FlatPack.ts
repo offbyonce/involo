@@ -4,8 +4,8 @@ import type { PackContent } from "./PackContent";
 import type { PackManifest } from "./PackManifest";
 
 /**
- * A pack as the app receives it: everything in one JSON file, written by `pack build` once the
- * pack has passed `pack check`. Library packs and overrides will be resolved into it when they
+ * A pack as the app receives it: everything in one JSON file, written by `involo-pack build` once the
+ * pack has passed `involo-pack check`. Library packs and overrides will be resolved into it when they
  * exist, so the app never reads YAML or follows references between packs.
  */
 export type FlatPack = { manifest: PackManifest, lists: Array<Checklist>, content: PackContent, };

@@ -2,7 +2,7 @@
 import type { PackKind } from "./PackKind";
 
 /**
- * One built pack in `index.json`, which `pack build` writes beside the packs so the app can
+ * One built pack in `index.json`, which `involo-pack build` writes beside the packs so the app can
  * find them without naming any aircraft.
  */
 export type PackSummary = { id: string, name: string, version: string, kind: PackKind, };

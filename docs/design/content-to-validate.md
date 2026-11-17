@@ -1,6 +1,6 @@
 # Content to source and validate before it ships
 
-The mockups contain wording and data written to show the format. None of it may ship until it is sourced and checked under the project's sourcing policy (decision 0007 and its amendments) and passes `pack check`.
+The mockups contain wording and data written to show the format. None of it may ship until it is sourced and checked under the project's sourcing policy (decision 0007 and its amendments) and passes `involo-pack check`.
 
 ## New step: Center tank fuel
 
