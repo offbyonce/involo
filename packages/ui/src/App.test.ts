@@ -705,6 +705,56 @@ describe("App", () => {
     expect(screen.getByRole("link", { name: "Glossary" }).getAttribute("href")).toBe("#/glossary");
   });
 
+  it("opens References from the menu, and Find on the steps that follow the simulator's model (References README)", async () => {
+    const withBasis = {
+      ...pack,
+      manifest: {
+        ...pack.manifest,
+        version: "0.1.0",
+        license: "CC-BY-NC-SA-4.0",
+        attribution: ["Invented for tests."],
+      },
+      lists: pack.lists.map((l) => ({
+        ...l,
+        basis: ["ifly-docs"],
+        steps: l.steps.map((st) =>
+          st.id === "standby"
+            ? { ...st, note: "The simulator powers it at once.", simulator_model: true }
+            : st,
+        ),
+      })),
+      content: {
+        ...pack.content,
+        phases: {
+          ...pack.content.phases,
+          stages: [{ title: "Preflight", phases: [{ phase: "power-up" }] }],
+          phases: [{ id: "power-up", title: "Power up", lists: ["power-up-flow"] }],
+        },
+      },
+    } as unknown as FlatPack;
+    render(App, { context: hostContext(host({ loadPack: async () => withBasis })) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    const link = screen.getByRole("link", { name: "References" });
+    expect(link.getAttribute("href")).toBe("#/references");
+    location.hash = "#/references";
+    expect(await screen.findByRole("heading", { level: 1, name: "References" })).toBeTruthy();
+    expect(screen.getByText("Involo 0.1.0 · open source")).toBeTruthy();
+    expect(screen.getByText("Demo aircraft · pack 0.1.0")).toBeTruthy();
+    expect(screen.queryByText(/Source being confirmed/)).toBeNull();
+    await fireEvent.click(screen.getByRole("button", { name: "See the 1 step ›" }));
+    const find = screen.getByRole("dialog", { name: "Find" });
+    expect(within(find).getByText("Simulator model notes")).toBeTruthy();
+    const options = within(find).getAllByRole("option");
+    expect(options).toHaveLength(1);
+    expect(options[0]?.textContent).toContain("Standby power");
+    // × leaves the set: Find searches everything again, from its start.
+    await fireEvent.click(within(find).getByRole("button", { name: "Search every step, control and term" }));
+    expect(within(find).queryByRole("option")).toBeNull();
+    expect(within(find).getByText(/Search every step, control and term for this aircraft/)).toBeTruthy();
+    location.hash = "#/";
+  });
+
   it("opens How procedures work from the menu, with the pack's counts and links to the pilot's phase and step (How README)", async () => {
     const lists = (id: string, n: number) => ({
       id,

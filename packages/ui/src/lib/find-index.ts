@@ -31,7 +31,14 @@ export type FindControl = {
   step: string | null;
 };
 export type FindTerm = { term: string; meaning: string };
-export type FindIndex = { steps: FindStep[]; controls: FindControl[]; terms: FindTerm[] };
+/** Every phase's stage and title, from the pack (the phases this flight hides too). */
+export type FindPhase = { stage: string; title: string };
+export type FindIndex = {
+  steps: FindStep[];
+  controls: FindControl[];
+  terms: FindTerm[];
+  phases?: Record<string, FindPhase>;
+};
 
 /** The searchable text of a pack, built once when it loads. */
 export function buildFind(pack: FlatPack, index: PackIndex): FindIndex {
@@ -89,7 +96,13 @@ export function buildFind(pack: FlatPack, index: PackIndex): FindIndex {
     };
   });
   const terms = (pack.content.glossary?.terms ?? []).map((t) => ({ term: t.term, meaning: t.meaning }));
-  return { steps, controls, terms };
+  const phases: Record<string, FindPhase> = {};
+  const titles = new Map((pack.content.phases?.phases ?? []).map((p) => [p.id, p]));
+  for (const stage of pack.content.phases?.stages ?? [])
+    for (const sp of stage.phases)
+      phases[sp.phase] = { stage: stage.title, title: titles.get(sp.phase)?.title ?? "" };
+  for (const p of titles.values()) if (p.reference) phases[p.id] = { stage: "Emergency", title: p.title };
+  return { steps, controls, terms, phases };
 }
 
 export type FoundStep = FindStep & { stage: string; phaseTitle: string };
@@ -156,6 +169,37 @@ export function findIn(
       (t) => [t.meaning],
     ),
   };
+}
+
+/**
+ * Find opened on a set of steps (References' simulator model notes): those steps only, in the
+ * order given (flight order), each with its stage and phase as this flight shows them (`rail`),
+ * else as the pack places them, so a step in a phase this flight hides is there too; typed words
+ * narrow them. No controls or terms.
+ */
+export function findOnly(
+  find: FindIndex,
+  ids: readonly string[],
+  query: string,
+  rail: Rail | null = null,
+): Found {
+  const q = norm(query.trim());
+  const shown = new Map<string, FindPhase>();
+  for (const s of rail?.stages ?? [])
+    for (const p of s.phases) shown.set(p.id, { stage: s.title, title: p.title });
+  for (const p of rail?.reference ?? []) shown.set(p.id, { stage: "Emergency", title: p.title });
+  const byId = new Map(find.steps.map((s) => [s.id, s]));
+  const steps = ids
+    .flatMap((id) => {
+      const s = byId.get(id);
+      return s ? [s] : [];
+    })
+    .filter((s) => !q || norm(s.title).includes(q) || norm(s.value).includes(q))
+    .map((s) => {
+      const p = shown.get(s.phase) ?? find.phases?.[s.phase];
+      return { ...s, stage: p?.stage ?? "", phaseTitle: p?.title ?? "" };
+    });
+  return { steps, controls: [], terms: [] };
 }
 
 /** The text split around its first match, for the mark (Find board). */

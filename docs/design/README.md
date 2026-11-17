@@ -147,6 +147,17 @@ import actions open as a sheet from "···". Finished is color.done; Not finish
 color.open-text (the board's amber stands for the app's amber text token). In the menu it is first
 under This flight and the app.
 
+**References (owner, 2026-11-16).** Built from `References.dc.html` (in `round6/boards`): `RefsDesk`
+(desktop and tablet landscape) and `RefsPhone` (phone and tablet portrait), each in dark and light.
+Decision 0007 stands: the page names only the kind of source a list's basis tag stands for
+(Simulator documentation, Regulator guidance), never a citation, title, page or link. Lists tagged
+prior-release show "Source being confirmed" in a dashed, muted tag: a status, not a source, which
+goes away when the content batch re-tags them. The chips are All, each source, then Source being
+confirmed (owner, over the board's order), on phone too (owner). The simulation notice uses the
+If-not box's amber. Simulator model notes opens Find on those steps; Open-source software opens the
+third-party licenses file, made from the app's dependencies at build time. In the menu it follows
+the Glossary under Reference.
+
 **Practice (owner, 2026-11-16).** Built from `Practice.dc.html` (in `round6/boards`):
 `PracticeHome` and `PracticeHomePhone` (the ready-made tests, Build a test, "Earlier this visit"),
 `PracticeQuestion` and `PracticeQuestionPhone` (a choice answered wrong, with feedback),

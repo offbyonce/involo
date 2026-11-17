@@ -14,7 +14,7 @@ matches “…”". Esc, the scrim and the back button close it.
 <script lang="ts">
   import type { Rail } from "@involo/bindings";
   import { onMount, tick } from "svelte";
-  import { type FindControl, type FindIndex, type FindTerm, type FoundStep, findIn, marked } from "./find-index";
+  import { type FindControl, type FindIndex, type FindTerm, type FoundStep, findIn, findOnly, marked } from "./find-index";
   import Icon from "./Icon.svelte";
   import { trapFocus } from "./trap";
 
@@ -29,6 +29,7 @@ matches “…”". Esc, the scrim and the back button close it.
     onControl,
     onTerm = () => {},
     onClose,
+    only = null,
   }: {
     find: FindIndex;
     rail: Rail | null;
@@ -43,6 +44,8 @@ matches “…”". Esc, the scrim and the back button close it.
     /** A term opens the Glossary at that term (owner), in place of its definition. */
     onTerm?: (term: string) => void;
     onClose: () => void;
+    /** Opened on a set of steps (References' simulator model notes): their name, and the steps. */
+    only?: { label: string; steps: string[] } | null;
   } = $props();
 
   const TRY = ["Fuel panel", "Parking brake", "MCP", "Transponder"];
@@ -50,7 +53,12 @@ matches “…”". Esc, the scrim and the back button close it.
 
   let query = $state("");
   let input = $state<HTMLInputElement | null>(null);
-  let found = $derived(findIn(find, query, rail, { phase, step: current }));
+  /** The set of steps Find opened on, until the pilot clears it. */
+  // svelte-ignore state_referenced_locally
+  let scope = $state(only);
+  let found = $derived(scope ? findOnly(find, scope.steps, query, rail) : findIn(find, query, rail, { phase, step: current }));
+  /** Results show: on typed words, or at once when Find opened on a set of steps. */
+  let showing = $derived(!!scope || query.trim() !== "");
   let all = $state({ steps: false, controls: false });
   /** A control no step on this flight uses, opened in place. */
   let opened = $state<string | null>(null);
@@ -60,7 +68,7 @@ matches “…”". Esc, the scrim and the back button close it.
     opened = null;
     active = 0;
   });
-  let steps = $derived(all.steps ? found.steps : found.steps.slice(0, FIRST));
+  let steps = $derived(all.steps || scope ? found.steps : found.steps.slice(0, FIRST));
   let controls = $derived(all.controls ? found.controls : found.controls.slice(0, FIRST));
   type Row = { kind: "step"; s: FoundStep } | { kind: "control"; c: FindControl } | { kind: "term"; t: FindTerm };
   let rows = $derived<Row[]>([
@@ -69,11 +77,12 @@ matches “…”". Esc, the scrim and the back button close it.
     ...found.terms.map((t) => ({ kind: "term" as const, t })),
   ]);
   let active = $state(0);
-  let none = $derived(query.trim() !== "" && rows.length === 0);
+  let none = $derived(showing && rows.length === 0);
   /** What a screen reader hears as the results change. */
   let said = $derived.by(() => {
-    if (!query.trim()) return "";
+    if (!showing) return "";
     if (none) return `Nothing matches “${query.trim()}”`;
+    if (scope) return `${scope.label}: ${found.steps.length} step${found.steps.length === 1 ? "" : "s"}`;
     const n = (k: number, one: string) => `${k} ${one}${k === 1 ? "" : "s"}`;
     return [n(found.steps.length, "step"), n(found.controls.length, "control"), n(found.terms.length, "term")].join(", ");
   });
@@ -169,8 +178,26 @@ matches “…”". Esc, the scrim and the back button close it.
     <kbd class="esc">Esc</kbd>
   </div>
   <p class="said" role="status">{said}</p>
+  {#if scope}
+    <!-- Opened on a set of steps: its name and count, and × to search everything again. -->
+    <div class="scope">
+      <span><b>{scope.label}</b> · {found.steps.length} step{found.steps.length === 1 ? "" : "s"}</span>
+      <button
+        type="button"
+        class="unscope"
+        aria-label="Search every step, control and term"
+        onclick={() => {
+          scope = null;
+          all = { steps: false, controls: false };
+          opened = null;
+          active = 0;
+          input?.focus();
+        }}><Icon name="x" /></button
+      >
+    </div>
+  {/if}
   <div class="results">
-    {#if !query.trim()}
+    {#if !showing}
       <div class="start">
         <p class="help">Search every step, control and term for this aircraft: a step’s title or value, a control, a panel or a word you don’t know.</p>
         <div class="try">
@@ -205,7 +232,7 @@ matches “…”". Esc, the scrim and the back button close it.
             </div>
           {/each}
         </div>
-        {#if found.steps.length > FIRST && !all.steps}
+        {#if found.steps.length > FIRST && !all.steps && !scope}
           <button class="all" type="button" onclick={() => void showAll("steps")}>Show all {found.steps.length} steps</button>
         {/if}
       {/if}
@@ -261,7 +288,7 @@ matches “…”". Esc, the scrim and the back button close it.
       {/if}
     {/if}
   </div>
-  {#if query.trim() && !none}
+  {#if showing && !none}
     <div class="keys" aria-hidden="true">
       <span><kbd>↑</kbd><kbd>↓</kbd><i>Move</i></span>
       <span><kbd>Enter</kbd><i>Open</i></span>
@@ -313,6 +340,34 @@ matches “…”". Esc, the scrim and the back button close it.
   }
   .back {
     display: none;
+  }
+  /* Opened on a set of steps: a line under the field naming it, with × to leave it. */
+  .scope {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    min-height: var(--size-touch-min);
+    padding: 0 var(--space-2) 0 calc(var(--space-4) + var(--border-thick));
+    border-bottom: var(--border-thin) solid var(--color-line);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-secondary);
+  }
+  .scope b {
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+  }
+  .unscope {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-touch-min);
+    height: var(--size-touch-min);
+    border: 0;
+    background: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
   }
   .field {
     display: flex;

@@ -26,6 +26,10 @@ describe("parseRoute", () => {
     expect(howHref(3)).toBe("#/how/3");
   });
 
+  it("reads References", () => {
+    expect(parseRoute("#/references")).toEqual({ screen: "references" });
+  });
+
   it("reads the Flight log and the flight it opens; a flight's id goes in and comes back whole", () => {
     expect(parseRoute("#/log")).toEqual({ screen: "log", entry: null });
     expect(parseRoute("#/log/current")).toEqual({ screen: "log", entry: "current" });

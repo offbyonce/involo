@@ -624,6 +624,10 @@ const SHOTS = [
   // phone; and an empty log (round 6's Log view).
   { name: "board-log", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLog, go(`#/log/${LOG_OPEN}`)] } },
   { name: "board-log-list", full: true, only: ["phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLog, go("#/log")] } },
+  // References (owner; RefsDesk, RefsPhone): the whole page, and Find opened on its simulator
+  // model steps.
+  { name: "board-refs", full: true, only: ["desktop", "phone", "tablet", "tablet-landscape"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/references")] } },
+  { name: "refs-sim-find", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/references"), click(".sim .more")] } },
   { name: "board-log-empty", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/log")] } },
   ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ name: `how-part-${n}`, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go(`#/how/${n}`)] } })),
   // The phone list with its fold opened: each later list starts with its label row (owner, batch 6).
@@ -730,7 +734,7 @@ async function shootWhole(browser, file) {
   // body on narrow screens), or How procedures work's reading column or phone page, sliced top to
   // bottom.
   const sel = await js(
-    `["aside.pane", "main.fmain", ".flight .cols", ".how main.read", ".how main.page", ".log .body", ".log main.list", ".log main.page"].find((s) => { const e = document.querySelector(s); return e && e.clientHeight > 0 && (s === "aside.pane" || e.scrollHeight > e.clientHeight + 1); }) ?? null`,
+    `["aside.pane", "main.fmain", ".flight .cols", ".how main.read", ".how main.page", ".log .body", ".log main.list", ".log main.page", ".refs .body"].find((s) => { const e = document.querySelector(s); return e && e.clientHeight > 0 && (s === "aside.pane" || e.scrollHeight > e.clientHeight + 1); }) ?? null`,
   );
   if (!sel) return;
   const q = JSON.stringify(sel);

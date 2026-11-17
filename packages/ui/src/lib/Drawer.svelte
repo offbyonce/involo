@@ -4,9 +4,8 @@ SPDX-License-Identifier: MIT
 The menu drawer, at every size (boards: Menu at 1440, Tablet's menu overlay from 600 to 1439 px,
 Mobile's menu screen below 600 px). Its header holds the small mark, "involo", a sub-line
 (aircraft, the time of the last save this visit, and on tablet the overall count) and Close. Then
-the step settings, the menu groups and Reset flight plan. Items whose page does not exist yet
-(References) stay hidden until that page is built, with any group heading left empty (owner, batch 5). The version
-line lives at the foot of Settings.
+the step settings, the menu groups and Reset flight plan. Every item on the Menu boards has its page
+now (References was the last). The version line lives at the foot of Settings.
 -->
 <script lang="ts">
   import type { Detail, ListView, Progress } from "@involo/bindings";
@@ -112,11 +111,12 @@ line lives at the foot of Settings.
       <a href="#/practice" onclick={onClose}>Practice</a>
       <a href="#/how" onclick={onClose}>How procedures work</a>
     </div>
-    <!-- Reference (Menu board): Flight deck and Glossary; References waits for its page. -->
+    <!-- Reference (Menu board): Flight deck, Glossary, References. -->
     <div class="group">
       <span class="label">Reference</span>
       <a class="deck" href="#/deck" onclick={onClose}>Flight deck<small>Panels and lights</small></a>
       <a href="#/glossary" onclick={onClose}>Glossary</a>
+      <a href="#/references" onclick={onClose}>References</a>
     </div>
     <div class="group">
       <span class="label">This flight and the app</span>

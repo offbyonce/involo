@@ -3,6 +3,7 @@
 
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { defineConfig, type Plugin } from "vite";
+import { thirdPartyText } from "./build/licenses.js";
 import { writeServiceWorker } from "./build/precache.js";
 
 // The site's content security policy (decision 0009): everything from this site only, except
@@ -55,12 +56,35 @@ function serviceWorker(): Plugin {
   };
 }
 
+// The third-party licenses file the References page opens (References README): made from what the
+// app ships, so it is never out of date. Written into app/, so the service worker precaches it.
+function thirdPartyLicenses(): Plugin {
+  let root = "";
+  return {
+    name: "third-party-licenses",
+    apply: "build",
+    configResolved(config) {
+      root = config.root;
+    },
+    generateBundle(_, bundle) {
+      const ids = Object.values(bundle).flatMap((out) =>
+        out.type === "chunk" && !out.fileName.startsWith("assets/design-") ? Object.keys(out.modules) : [],
+      );
+      this.emitFile({
+        type: "asset",
+        fileName: "app/third-party-licenses.txt",
+        source: thirdPartyText(root, ids),
+      });
+    },
+  };
+}
+
 // `base: "./"` keeps paths relative, so the built site works under the Pages project path
 // (decision 0010). `just site` builds the WebAssembly module and the packs first; the packs are
 // copied from ./public. Pages: the placeholder front page, the app at app/ and the SimBrief
 // probe page.
 export default defineConfig({
-  plugins: [svelte(), contentSecurityPolicy(), serviceWorker()],
+  plugins: [svelte(), contentSecurityPolicy(), thirdPartyLicenses(), serviceWorker()],
   base: "./",
   server: { port: 1420, strictPort: true },
   build: {

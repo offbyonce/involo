@@ -223,6 +223,8 @@ const SHOTS = [
   ["LogPhone", { layout: "phone" }, 390, 844, "FlightLog", round6],
   ["LogPhoneFlight", { layout: "phoneFlight" }, 390, 844, "FlightLog", round6],
   ["R6Log", { view: "log", r6: true }, 1440, 900, "Views", round6],
+  ["RefsDesk", { layout: "desktop" }, 1440, 1100, "References", round6],
+  ["RefsPhone", { layout: "phone" }, 390, 844, "References", round6],
 ];
 
 async function main() {
