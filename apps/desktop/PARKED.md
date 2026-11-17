@@ -4,6 +4,10 @@ SPDX-License-Identifier: MIT
 -->
 # Parked: the desktop app
 
+> [Decision 0031](../../docs/decisions/0031-desktop-app.md) revives the desktop app for Windows and
+> macOS. Step 7 below is not needed: no desktop build was released under the old identifier.
+> `crates/store` is removed rather than revived (0031).
+
 Phase 2 ships as a web app (decisions 0009 and 0010), so the Tauri shell in `src-tauri` is kept
 but not built: it is excluded from the Cargo workspace, and CI does not compile it. Its Tauri
 versions stay pinned in the root `Cargo.toml`.
