@@ -213,7 +213,7 @@ describe("the question generator", () => {
     expect(orderMiss(["A", "B"], ["A", "B"])).toBeNull();
   });
 
-  it("never offers a light with the same label as the one drawn (review: two right answers)", () => {
+  it("never offers a light with the same label as the one drawn, which would make two answers right", () => {
     for (const q of all.filter((x) => x.id.startsWith("lights:meaning:"))) {
       if (q.kind !== "choice") continue;
       const label = q.id.split("/")[2] ?? "";
@@ -229,7 +229,7 @@ describe("the question generator", () => {
     }
   });
 
-  it("never offers a mnemonic that also has the item (review: ATCT and ACTT share items)", () => {
+  it("never offers a mnemonic that also has the item (ATCT and ACTT share items)", () => {
     const briefs = pack.content.briefings?.briefings ?? [];
     for (const q of all.filter((x) => x.id.startsWith("mnemonics:which:"))) {
       if (q.kind !== "choice") continue;
@@ -244,7 +244,7 @@ describe("the question generator", () => {
     }
   });
 
-  it("asks no step value whose list has another step of the same title with another value (review)", () => {
+  it("asks no step value whose list has another step of the same title with another value", () => {
     const fireTest = all.filter(
       (q) =>
         q.topic === "values" &&
@@ -255,7 +255,7 @@ describe("the question generator", () => {
     expect(fireTest).toEqual([]);
   });
 
-  it("asks no next item across a branch, and orders items within one branch (review)", () => {
+  it("asks no next item across a branch, and orders items within one branch", () => {
     for (const q of all.filter((x) => x.topic === "memory")) {
       if (q.kind === "choice") expect(/^IF\b/.test(q.answer), q.id).toBe(false);
       else
@@ -266,7 +266,7 @@ describe("the question generator", () => {
     }
   });
 
-  it("asks no term whose definition spells it out (review)", () => {
+  it("asks no term whose definition spells it out", () => {
     expect(spellsOut("PA", "Passenger address.")).toBe(true);
     expect(spellsOut("BARO", "Barometric altitude.")).toBe(true);
     expect(spellsOut("APU", "A small turbine in the tail.")).toBe(false);

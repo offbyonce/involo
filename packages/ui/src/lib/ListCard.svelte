@@ -119,7 +119,7 @@ folded to one line with its count until the phase's procedure is done.
     <span class="count">{counts}</span>
     {#if touched}<button class="clear" type="button" onclick={() => onClear(list.id)}>Clear ticks</button>{/if}
   </header>
-  <!-- Tablet and phone: a later list starts with a plain label, the fold's text (batch 6). -->
+  <!-- Tablet and phone: a later list starts with a plain label, the fold's text. -->
   <p class="label" aria-hidden="true">{list.title} · {list.progress.done} of {list.progress.total}</p>
   {#if source?.when || source?.why}
     <div class="when">

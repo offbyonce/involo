@@ -4,8 +4,8 @@ SPDX-License-Identifier: MIT
 
 The panel sheet: a drawing at full size in a sheet from the bottom, its name and the standard
 sheet close (×; Esc closes it too, as a modal dialog) in a head that stays in view. The drawing's own "See the whole panel larger" opens it, and so does the Flight
-deck page's "Full size ›". It opens scrolled so the step's controls are in sight (batch
-2), centering again while the drawing takes its size in the first half second.
+deck page's "Full size ›". It opens scrolled so the step's controls are in sight,
+centering again while the drawing takes its size in the first half second.
 -->
 <script lang="ts">
   import type { Snippet } from "svelte";

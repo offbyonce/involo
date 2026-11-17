@@ -136,7 +136,7 @@ describe("Flight log, desktop (LogDesk)", () => {
       ["10:14", "Center tank fuel", "CHECK QUANTITY"],
       ["10:11", "Door lights", "ALL OUT"],
       ["10:10", "Mcp", "SET"],
-      // An open step keeps its value, as the boards show it (review).
+      // An open step keeps its value, as the boards show it.
       ["open", "Crew oxygen", "ON"],
     ]);
     await fireEvent.click(within(card).getByRole("button", { name: "Show every tick ⌄" }));
@@ -285,14 +285,14 @@ describe("Flight log, desktop (LogDesk)", () => {
     ).toBe(true);
   });
 
-  it("offers Undo only once a delete is saved (review)", async () => {
+  it("offers Undo only once a delete is saved", async () => {
     render(LogPage, { ...base, entry: "f2", onDelete: async () => false, problem: "Not saved." });
     await fireEvent.click(screen.getByRole("button", { name: "Delete this flight" }));
     expect(screen.queryByText("Flight deleted.")).toBeNull();
     expect(screen.getByRole("alert").textContent).toBe("Not saved.");
   });
 
-  it("with a saved log kept as it is, offers only Export JSON, which saves that copy (review)", () => {
+  it("with a saved log kept as it is, offers only Export JSON, which saves that copy", () => {
     render(LogPage, { ...base, blocked: "Kept as it is." });
     expect(
       [...screen.getByRole("complementary", { name: "Log actions" }).querySelectorAll("button.act")].map(
@@ -306,7 +306,7 @@ describe("Flight log, desktop (LogDesk)", () => {
     expect(container.querySelector(".practice")).toBeNull();
   });
 
-  it("shows a hand-edited log file with a step twice, rather than failing (review)", () => {
+  it("shows a hand-edited log file with a step twice, rather than failing", () => {
     const twice = flight("dup", at(14, 9, 0), [5, 5], { skipped: [terr, terr] });
     twice.ticks.push(twice.ticks[0] as LoggedFlight["ticks"][number]);
     const { container } = render(LogPage, { ...base, log: { ...log, flights: [twice] }, entry: "dup" });

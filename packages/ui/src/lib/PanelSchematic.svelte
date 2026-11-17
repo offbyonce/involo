@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
 A panel drawing for one step: the panel sections that hold the step's controls, and nothing else
-(batch 6: never a neighbor, even one between them). PanelTiles draws each panel as its own
+(never a neighbor, even one between them). PanelTiles draws each panel as its own
 tile; a tile among several is titled with its panel's name. It is as wide as its card,
 keeping its proportions, unless that would draw a label under 11 px; then it is drawn at the
 smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width view.
@@ -92,7 +92,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
   } = $props();
 
   let focused = $derived(panel.sections.filter((s) => focus.includes(s.id)));
-  /** Only the step's sections (batch 6). */
+  /** Only the step's sections. */
   let drawn = $derived(focused);
 
   type Band = { y0: number; y1: number; x0: number; x1: number };
@@ -214,7 +214,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
 
   /**
    * A drawing bigger than its room (wider than the card, or taller than the room the side pane
-   * leaves it) opens centered on the step's controls, both ways, at every size (batch 2),
+   * leaves it) opens centered on the step's controls, both ways, at every size,
    * and fades at the edges where there is more.
    */
   let moreY = $state(false);
@@ -254,7 +254,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     enlargeable = !large && (scale.overflow || moreY || !!band);
   });
   /**
-   * Opens the larger view scrolled so the step's controls are in sight (batch 2). The
+   * Opens the larger view scrolled so the step's controls are in sight. The
    * drawing takes its full size a frame or two after the sheet opens, so it centers again whenever
    * the drawing resizes in the first half second.
    */

@@ -695,7 +695,7 @@ describe("PanelSchematic", () => {
     expect(container.querySelector("svg.schematic")?.textContent).toContain("INBD");
   });
 
-  it("draws only the step's panels as tiles, never one between them (batch 6)", () => {
+  it("draws only the step's panels as tiles, never one between them", () => {
     // TERR: the two EFIS panels at either end of the glareshield; the MCP between them is not the
     // step's and is not drawn, and each EFIS panel is its own tile.
     const item = (label: string) => ({

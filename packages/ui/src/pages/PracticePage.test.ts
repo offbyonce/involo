@@ -115,7 +115,7 @@ describe("PracticePage", () => {
     expect(screen.queryByText("Not this one")).toBeNull();
   });
 
-  it("Enter on the option just clicked moves on, and the arrow keys move between the options (review)", async () => {
+  it("Enter on the option just clicked moves on, and the arrow keys move between the options", async () => {
     render(PracticePage, base);
     await fireEvent.click(screen.getByRole("button", { name: /^Lights of the flight deck/ }));
     const options = screen.getAllByRole("radio");
@@ -127,7 +127,7 @@ describe("PracticePage", () => {
     expect(screen.getByText("Question 2 of 20")).toBeTruthy();
   });
 
-  it("End test with answers moves focus to the results' heading; with none, back home (review)", async () => {
+  it("End test with answers moves focus to the results' heading; with none, back home", async () => {
     render(PracticePage, base);
     await fireEvent.click(screen.getByRole("button", { name: /^Lights of the flight deck/ }));
     await fireEvent.click(screen.getByRole("button", { name: "End test" }));
@@ -208,7 +208,7 @@ describe("PracticePage", () => {
       ended: null,
     };
     render(PracticePage, base);
-    // Space on a row's ↓ button is the button's, not a pick-up (review).
+    // Space on a row's ↓ button is the button's, not a pick-up.
     const down = screen.getByRole("button", { name: `Move ${q.items[0]} down` });
     await fireEvent.keyDown(down, { key: " " });
     expect(screen.getAllByRole("listitem")[0]?.classList.contains("grabbed")).toBe(false);

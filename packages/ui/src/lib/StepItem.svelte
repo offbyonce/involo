@@ -7,10 +7,10 @@ its E marker, the value in an aligned mono column, and the row menu (Make this t
 Mark done, Skip for now, Add to or Remove from Essentials). The whole row selects the step, a 44 px
 target. The current step is larger, with where it is, Done, Skip for now and the keyboard hint; a
 skipped step has a Skipped pill and Do it now. States read without color too: the icon's shape
-and the words. Every step looks the same (decision 0013). Blanks stay inline fields in the value
-column until batch 4. Below 900 px (tablet portrait and phone, no side pane) the step the
+and the words. Every step looks the same (decision 0013). Blanks show in the value column
+(BlankFields). Below 900 px (tablet portrait and phone, no side pane) the step the
 pane would show opens in place with the pane's content (`inline`), and the current step's Done and
-Skip for now sit in the bottom bar (Tablet and Mobile boards, batch 5).
+Skip for now sit in the bottom bar (Tablet and Mobile boards).
 A decision step (decision 0022, Decision.dc.html) asks its option in the value column: a diamond
 icon while unanswered, the choices as secondary buttons (choosing one ticks the step), a plan
 suggestion ringed with Confirm, the answer once done, and Change, which reopens the choices on the
@@ -791,7 +791,7 @@ row in place. A step that depends on the answer links back to it.
       font-weight: var(--weight-regular);
     }
   }
-  /* Non-normal and reference lists use larger type (step 7). */
+  /* Non-normal and reference lists use larger type. */
   .large .nm,
   .large .val {
     font-size: var(--font-size-body);

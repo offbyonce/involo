@@ -40,7 +40,7 @@ review), and centered in it; it is never cropped or stretched.
     marker?: { x0: number; y0: number; x1: number; y1: number } | undefined;
     /** A control tapped in the phone's controls list: it alone keeps the halo (R6PhoneCtl). */
     ringed?: { section: string; item: number } | null | undefined;
-    /** The step's panels as tiles (batch 6): each section on its own, side by side when that
+    /** The step's panels as tiles: each section on its own, side by side when that
      * draws them larger than stacked, 16 px apart, never the deck's gaps; `panel` and `focus` are
      * then ignored. */
     tiles?: PanelSectionT[] | undefined;

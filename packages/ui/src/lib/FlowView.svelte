@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
 Flow view, as in 3.0: one step at a time in large type, with the buttons at the bottom where a
-thumb reaches them on a tablet. The current-item box (step 7) puts the item on the left and the
+thumb reaches them on a tablet. The current-item box puts the item on the left and the
 value on the right. The pilot confirms each step; the app never knows a switch position
 (decision 0006). At the end of the phase come the completion calls.
 -->

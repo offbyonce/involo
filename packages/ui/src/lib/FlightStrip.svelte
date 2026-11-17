@@ -4,8 +4,8 @@ SPDX-License-Identifier: MIT
 
 The flight strip (Checklist board, 48 px, closed): the route, Runway, SID, Initial altitude,
 Squawk and Departure frequency (a dash when empty), the notes count and a chevron. With nothing
-entered yet it reads "Add your flight: import from SimBrief or enter the clearance" (batch
-3). The whole strip, the prompt too, opens the strip panel (StripOpen, StripFreq): it drops
+entered yet it reads "Add your flight: import from SimBrief or enter the clearance".
+The whole strip, the prompt too, opens the strip panel (StripOpen, StripFreq): it drops
 below the strip over a scrim with the clearance fields, Frequencies (ground, tower, departure),
 Notes from ATC, and a footer with Import latest from SimBrief, where the values came from, Reset
 flight plan (Undo after, in the shared toast) and All flight data, the Flight pages.
@@ -470,7 +470,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
     font-weight: var(--weight-semibold);
     text-decoration: none;
   }
-  /* Tablet portrait and phone (batch 5 brings their own boards): the notes go under the
+  /* Tablet portrait and phone: the notes go under the
      clearance, the fields wrap three or two to a row, and the footer wraps. */
   @media (max-width: 899px) {
     /* Open, the strip and its panel sit over the bottom bar (and on phone over the bars). */

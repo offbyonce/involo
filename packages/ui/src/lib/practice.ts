@@ -325,7 +325,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
   const memLists = [...memory].flatMap((id) => lists.get(id) ?? []);
   const item = (s: Step) => (s.expect ? `${s.text} … ${s.expect}` : s.text);
   /** A branch ("IF RUNAWAY STOPS …") opens its own run of items: the order between branches depends on
-   * the case, so no next-item question crosses into one and order questions stay within one (review). */
+   * the case, so no next-item question crosses into one and order questions stay within one. */
   const branch = (s: Step) => /^IF\b/i.test(s.text);
   for (const list of memLists) {
     const others = memLists.filter((l) => l !== list).flatMap((l) => l.steps.map(item));
@@ -437,7 +437,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       )
     )
       continue;
-    // Another light with the same label could be the one meant: never an option (review).
+    // Another light with the same label could be the one meant: never an option.
     const o = lights.filter((x) => x !== l && !sameMeaning(x.label, l.label));
     const groups = [
       o.filter((x) => x.section === l.section),
@@ -574,7 +574,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         why: `${word(it)} is part of ${b.mnemonic}, the ${b.title} briefing.`,
         about: tell(briefings.map((x) => [x.mnemonic, `${x.mnemonic} is the ${x.title} briefing.`])),
         answer: b.mnemonic,
-        // A mnemonic that also has this item would be right too: never an option (review).
+        // A mnemonic that also has this item would be right too: never an option.
         tiers: [
           {
             items: briefings

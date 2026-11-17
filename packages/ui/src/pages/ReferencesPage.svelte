@@ -6,7 +6,7 @@ References (References boards: RefsDesk from 900 px, RefsPhone below; decision 0
 the simulation notice, what each list is based on (the kinds of source, never a citation, title,
 page or link), the lists with their "Based on" tag, the simulator model notes and about this pack
 and app. Everything is counted from the pack. Lists still marked "Source being confirmed" show a
-status, not a source; when the content batch re-tags them, the status goes away on its own.
+status, not a source; once a list is re-tagged with its basis, the status goes away on its own.
 -->
 <script lang="ts">
   import Icon from "../lib/Icon.svelte";

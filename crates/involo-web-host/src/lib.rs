@@ -229,7 +229,7 @@ pub fn log_csv(log: &str) -> String {
     reply((|| Ok(involo_app_core::log_csv(&read("log", log)?)))())
 }
 
-/// A METAR decoded from the code table (batch 4).
+/// A METAR decoded from the code table.
 #[wasm_bindgen]
 pub fn decode_metar(text: &str) -> String {
     reply(Ok::<_, involo_app_core::AppError>(
@@ -237,7 +237,7 @@ pub fn decode_metar(text: &str) -> String {
     ))
 }
 
-/// A TAF decoded from the code table (batch 4).
+/// A TAF decoded from the code table.
 #[wasm_bindgen]
 pub fn decode_taf(text: &str) -> String {
     reply(Ok::<_, involo_app_core::AppError>(

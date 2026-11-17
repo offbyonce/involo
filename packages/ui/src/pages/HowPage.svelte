@@ -52,7 +52,7 @@ Each part ends in an "In Involo" box whose link goes to the real place: the pilo
   });
 
   /** The part on screen: from the address, then as the desktop column is read or a part picked.
-   * Kept here, not only in the address, so it survives a change between the layouts (review). */
+   * Kept here, not only in the address, so it survives a change between the layouts. */
   let at = $state(1);
   /** Phone: the parts list, open. */
   let listOpen = $state(false);
@@ -489,7 +489,7 @@ Each part ends in an "In Involo" box whose link goes to the real place: the pilo
     display: contents;
   }
   /* Side by side where both columns fit (the 300 px flow and at least 280 px of checklist, as at
-     1440 px); one above the other in a narrower column (review: tablet landscape). */
+     1440 px); one above the other in a narrower column, as on tablet landscape. */
   .wide .fig {
     flex-flow: row wrap;
     align-items: flex-start;

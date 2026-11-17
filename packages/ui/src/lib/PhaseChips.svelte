@@ -5,8 +5,8 @@ SPDX-License-Identifier: MIT
 The phase track (Checklist board, 60 px): the stage's phases as tabs, each with its progress bar
 (a complete phase green with a check, the current one boxed with its count and blue progress), an
 amber dot on a phase holding an open step, then the Full · Detailed pill, the overall count and
-the saved time. The bars' empty track uses the to-do ring color, 3:1 against the page (batch
-3). From 600 to 1439 px it is the Tablet board's 56 px row: the tabs scroll sideways under a
+the saved time. The bars' empty track uses the to-do ring color, 3:1 against the page.
+From 600 to 1439 px it is the Tablet board's 56 px row: the tabs scroll sideways under a
 fade, with More phases, then the pill; the overall count and saved time move to the menu's header.
 Phone has the progress row instead (ProgressRow).
 -->

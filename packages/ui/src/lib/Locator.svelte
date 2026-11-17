@@ -4,8 +4,7 @@ SPDX-License-Identifier: MIT
 
 "Where is this?" (WherePop board, decision 0023). Beside a side pane (tablet landscape and up) it
 is a pop-over that opens leftward over the step list where the board places it, so the side pane with
-Check, If not and Why stays in view; elsewhere (tablet portrait, phone) it is a dialog until the
-TabWhere and PhoneWhere boards arrive in batch 5. Inside: the region's title and where to look
+Check, If not and Why stays in view; elsewhere (tablet portrait, phone) it is a dialog. Inside: the region's title and where to look
 from the seat, the side and seat views, the legend, and "Open in Flight deck", which opens the
 Flight deck page at this panel. All from the pack, in the panel palette.
 -->

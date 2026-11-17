@@ -96,7 +96,8 @@ packs:
     cargo run -q -p involo-pack-cli -- check packs
     cargo run -q -p involo-pack-cli -- terms packs/ifly-737-max8
 
-# Compare pack text with private reference files named by INVOLO_OVERLAP_REFS.
+# Compare pack text with local reference files named by INVOLO_OVERLAP_REFS (optional; see
+# CONTRIBUTING.md, "Optional local files").
 overlap:
     cargo run -q -p involo-pack-cli -- overlap packs --allow crates/involo-pack-overlap/allow.txt
 

@@ -218,8 +218,9 @@ mod tests {
         );
     }
 
-    /// Reads a real plan the maintainer keeps outside the repository and reports the compact
-    /// plan's size: `INVOLO_PLAN=<file> cargo test -p involo-simbrief -- --ignored --nocapture`.
+    /// Reads a real plan from an optional local file and reports the compact plan's size:
+    /// `INVOLO_PLAN=<file> cargo test -p involo-simbrief -- --ignored --nocapture` (CONTRIBUTING.md,
+    /// "Optional local files"). Ignored, so it doesn't run without one.
     #[test]
     #[ignore = "needs a real SimBrief plan file outside the repository"]
     fn measures_a_real_plan() {

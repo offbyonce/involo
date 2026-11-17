@@ -3,8 +3,8 @@ SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
 Start options (Start.dc.html): the Exterior inspection toggle with Preview the inspection (the
-Exterior phase until batch 6's inspection view), Power source (also asked at Power up), the iFly
-panel state, and Turnaround. The descriptions are the board's, on batch 7's validation list.
+Exterior phase), Power source (also asked at Power up), the iFly panel state, and Turnaround. The
+descriptions are the board's.
 -->
 <script lang="ts">
   import type { Flight, StartState, UserOption } from "@involo/bindings";

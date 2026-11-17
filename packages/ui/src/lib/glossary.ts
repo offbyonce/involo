@@ -22,7 +22,7 @@ export type GlossaryTerm = {
 };
 
 /** Terms that meet the rule but whose first sentence reads as a description, not a name: no
- * expansion (reviewed 2026-11-15). A test holds the list to the pack. */
+ * expansion. A test holds the list to the pack. */
 export const NO_EXPANSION = ["IGN L", "IGN R", "PERF INIT", "MA"];
 
 /** Words that make a first sentence a statement, not a name (no verb). */
