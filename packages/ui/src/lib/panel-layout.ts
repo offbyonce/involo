@@ -505,7 +505,7 @@ function place(
   const items = new Map<number, ItemLayout>();
   for (const i of order) {
     const it = moved.items[i] as PanelItem;
-    const { on, t, rest, lit, open } = target(i);
+    const { on, t, rest, lit } = target(i);
     const layout: ItemLayout = { name: null, positions: [] };
     if (it.kind === "light" && lit) {
       // "EXPECTED ON" under a light the step expects on.

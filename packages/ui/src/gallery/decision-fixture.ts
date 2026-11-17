@@ -110,7 +110,7 @@ export const PACK: FlatPack = {
 
 /** The procedure card's list for an answer (null: unanswered): five done, then the decision. */
 export function fixtureList(answered: boolean): PhaseList {
-  const states: StepState[] = STEPS.map((s, n) => {
+  const states: StepState[] = STEPS.map((_s, n) => {
     if (n < 5) return "done";
     if (n === 5) return answered ? "done" : "current";
     if (n === 6) return answered ? "current" : "to_do";

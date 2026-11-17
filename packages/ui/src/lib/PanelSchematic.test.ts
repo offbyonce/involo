@@ -836,7 +836,10 @@ describe("PanelSchematic", () => {
     } as unknown as Panel;
     const frames: FrameRequestCallback[] = [];
     const raf = globalThis.requestAnimationFrame;
-    globalThis.requestAnimationFrame = (cb) => (frames.push(cb), frames.length);
+    globalThis.requestAnimationFrame = (cb) => {
+      frames.push(cb);
+      return frames.length;
+    };
     const proto = HTMLDialogElement.prototype as unknown as { showModal: () => void };
     const showModal = proto.showModal;
     proto.showModal = function (this: HTMLDialogElement) {

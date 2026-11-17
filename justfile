@@ -32,7 +32,7 @@ fmt-check:
 # Lints and type checks (warnings fail).
 lint: wasm
     cargo clippy --workspace --all-targets -- -D warnings
-    pnpm exec biome check .
+    pnpm exec biome check --error-on-warnings .
     pnpm --filter @involo/ui check
     pnpm --filter @involo/web check
 

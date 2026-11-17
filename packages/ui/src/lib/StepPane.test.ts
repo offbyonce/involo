@@ -13,14 +13,18 @@ const packs = import.meta.glob<FlatPack>("../../../../apps/web/public/packs/ifly
 });
 const pack = Object.values(packs)[0] as FlatPack;
 const index = indexPack(pack);
-const step = (id: string) => index.step(`ifly-737-max8.${id}`);
+const step = (id: string) => {
+  const found = index.step(`ifly-737-max8.${id}`);
+  if (!found) throw new Error(`no step ${id} in the pack`);
+  return found;
+};
 
 afterEach(cleanup);
 
 describe("StepPane", () => {
   const fuel = () => ({
     index,
-    step: step("before-start.fuel-pump-switches")!,
+    step: step("before-start.fuel-pump-switches"),
     targets: [{ section: "fuel", item: 17, position: 1, lit: false, open: false, resolved: false }],
     number: 6,
     total: 9,

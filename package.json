@@ -8,7 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "check": "biome check . && pnpm -r --if-present run check",
+    "check": "biome check --error-on-warnings . && pnpm -r --if-present run check",
     "test": "pnpm -r --if-present run test"
   },
   "devDependencies": {

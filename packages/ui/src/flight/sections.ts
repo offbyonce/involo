@@ -214,7 +214,6 @@ const weights = (c: Ctx, hi: "zfw" | "tow" | "law" | "pax"): Part[] => {
   ];
 };
 
-const OFP_NOTE = "Section order depends on the OFP layout chosen in SimBrief.";
 const fromHeader = (title: string, close: Ofp["close"], note: string): Ofp => ({
   section: 0,
   title,

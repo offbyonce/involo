@@ -42,7 +42,10 @@ function fakeIndexedDB({ failWrites = false } = {}) {
             const finish = (req) => {
               const done = () => queueMicrotask(() => (req.error ? tx.onerror?.() : tx.oncomplete?.()));
               const ok = req.onsuccess;
-              req.onsuccess = () => (ok?.(), done());
+              req.onsuccess = () => {
+                ok?.();
+                done();
+              };
               req.onerror = () => {
                 tx.error = req.error;
                 done();
