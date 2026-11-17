@@ -33,6 +33,17 @@ describe("Drawer", () => {
     expect(container.querySelector(".who small")?.textContent).toBe("Test Jet · saved 10:14 · 41/366");
   });
 
+  it("after a refused save, says progress isn't being saved in place of the save time", () => {
+    const { container } = render(Drawer, {
+      ...base,
+      savedAt: new Date(2026, 10, 15, 10, 14).getTime(),
+      saveFailed: true,
+    });
+    expect(container.querySelector(".who small")?.textContent).toBe(
+      "Test Jet · progress isn’t being saved on this device · 41/366",
+    );
+  });
+
   it("shows every item of the Menu boards, each going to its page (References was the last to come)", () => {
     const { container } = render(Drawer, base);
     // Take the tour is a button, not a link.

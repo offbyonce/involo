@@ -28,7 +28,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     type Suggestion,
     type Settings,
   } from "@involo/bindings";
-  import { getHost, type SavedItem } from "./host";
+  import { getHost, type Kept, type SavedItem } from "./host";
   import type { Opening } from "./lib/opening";
   import Slideout from "./lib/Slideout.svelte";
   import Toast from "./lib/Toast.svelte";
@@ -37,6 +37,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   import { stepTitle } from "./lib/sentence";
   import StepPane from "./lib/StepPane.svelte";
   import Drawer from "./lib/Drawer.svelte";
+  import SaveFailedNotice from "./lib/SaveFailedNotice.svelte";
   import Find from "./lib/Find.svelte";
   import { buildFind, type FindControl, type FindIndex } from "./lib/find-index";
   import ProgressRow from "./lib/ProgressRow.svelte";
@@ -130,6 +131,8 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   /** Open steps from the phases before the one on screen. */
   /** When progress or settings were last saved on this device. */
   let savedAt = $state<number | null>(null);
+  /** The last save was refused (storage blocked or full): progress isn't being saved. */
+  let saveFailed = $state(false);
   /** Saved data the app could not use, kept until the pilot decides (decision 0012). */
   /** The SimBrief plan kept on this device (decision 0019), and the values it fills. */
   let plan = $state<SavedPlan | null>(null);
@@ -137,7 +140,9 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   /** The flight log (decision 0026), and why it can't be changed when the saved one is kept as is. */
   let log = $state<Log | null>(null);
   let logBlocked = $state<string | null>(null);
-  let kept = $state<{ what: "flight" | "settings"; state: "newer" | "unreadable"; text: string }[]>([]);
+  /** Saved data the app could not use, kept until the pilot decides (decisions 0012 and 0019);
+   * `stuck` when starting fresh couldn't set it aside, so nothing was moved. */
+  let kept = $state<{ what: Kept; state: "newer" | "unreadable"; text: string; stuck?: boolean }[]>([]);
   let view = $state<PhaseView | null>(null);
   /** In Essentials, the same phase in Full, for "Show N more steps from Full". */
   let fullView = $state<PhaseView | null>(null);
@@ -220,7 +225,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       intros = new Map((pack.content.phases?.phases ?? []).map((p) => [p.id, p.intro ?? []]));
       // What is saved on this device, if anything; what cannot be used is kept, never dropped.
       const saved = await host.loadSaved(aircraft.id);
-      const usable = <T,>(what: "flight" | "settings", item: SavedItem<T>): T | null => {
+      const usable = <T,>(what: Kept, item: SavedItem<T>): T | null => {
         if (!item) return null;
         if (item.loaded.state === "ready") return item.loaded.value;
         kept = [...kept, { what, state: item.loaded.state, text: item.text }];
@@ -232,7 +237,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       settings = usable("settings", saved.settings) ?? (await host.defaultSettings());
       const savedFlight = usable("flight", saved.flight);
       flight = savedFlight && savedFlight.pack === aircraft.id ? savedFlight : await host.newFlight(aircraft.id);
-      plan = await host.loadPlan(aircraft.id);
+      plan = usable("plan", await host.loadPlan(aircraft.id));
       await loadLog();
       await refresh();
     } catch (e) {
@@ -437,19 +442,81 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     open = await host.openSteps(packId, flight, settings);
   }
 
-  /** Saves on this device, unless saved data the app cannot use is waiting for the pilot. */
-  async function persist(what: "flight" | "settings"): Promise<void> {
+  /**
+   * Saves on this device, unless saved data the app cannot use is waiting for the pilot. A save is
+   * never written over another window's: when one saved since, what it saved is loaded, and
+   * `redo` (the change just made) is applied to it and saved.
+   */
+  async function persist<W extends "flight" | "settings">(
+    what: W,
+    redo?: (saved: W extends "flight" ? Flight : Settings) => Promise<W extends "flight" ? Flight : Settings>,
+  ): Promise<void> {
     const value = what === "flight" ? flight : settings;
     if (!value || kept.some((k) => k.what === what)) return;
-    savedAt = await host.save(packId, what, value);
+    const result = await host.save(packId, what, value);
+    if (result === "changed") {
+      await reloadSaved();
+      const now = what === "flight" ? flight : settings;
+      if (!redo || !now || kept.some((k) => k.what === what)) return;
+      try {
+        const next = await redo($state.snapshot(now) as W extends "flight" ? Flight : Settings);
+        if (what === "flight") flight = next as Flight;
+        else settings = next as Settings;
+        await refresh();
+      } catch {
+        // The change no longer applies to what the other window saved: theirs stands.
+        return;
+      }
+      return persist(what);
+    }
+    saveFailed = result === null;
+    if (result !== null) savedAt = result;
   }
+
+  /**
+   * Loads progress and settings as saved now, after another window saved them (its ticks are
+   * kept, and nothing is saved over them). Saved data this version can't use is kept and reported.
+   */
+  async function reloadSaved(): Promise<void> {
+    if (!packId) return;
+    const saved = await host.loadSaved(packId);
+    let changed = false;
+    const adopt = <T,>(what: "flight" | "settings", item: SavedItem<T>, current: T | null): T | null => {
+      if (!item) return null;
+      if (item.loaded.state !== "ready") {
+        kept = [...kept.filter((k) => k.what !== what), { what, state: item.loaded.state, text: item.text }];
+        return null;
+      }
+      kept = kept.filter((k) => k.what !== what);
+      const value = item.loaded.value;
+      if (JSON.stringify(value) === JSON.stringify($state.snapshot(current))) return null;
+      changed = true;
+      return value;
+    };
+    const s = adopt("settings", saved.settings, settings);
+    if (s) settings = s;
+    const f = adopt("flight", saved.flight, flight);
+    if (f && f.pack === packId) {
+      flight = f;
+      // An Undo from before the other window's change would take its ticks back.
+      undo = null;
+    }
+    if (changed) await refresh();
+  }
+
+  // Another window (the installed app beside a tab) saved: show what it saved.
+  $effect(() => {
+    const onStorage = () => void reloadSaved().catch(fail);
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  });
 
   async function act(action: Action): Promise<void> {
     if (!flight) return;
     try {
       flight = await host.apply(packId, flight, action);
       await refresh();
-      await persist("flight");
+      await persist("flight", (saved) => host.apply(packId, saved, action));
     } catch (e) {
       fail(e);
     }
@@ -760,7 +827,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
     const filled = await host.planValues(next);
     await act({ type: "setValues", values: filled.values });
     plan = next;
-    await host.savePlan(packId, next);
+    if (!kept.some((k) => k.what === "plan")) await host.savePlan(packId, next);
     const check = filled.checkClearance ? " Check the runway and departure against your clearance." : "";
     // An answer already given that the new plan's figures would not suggest: say so (the pilot
     // decides; the answer stays).
@@ -774,7 +841,7 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       }
     offerUndo(`Imported ${filled.origin} → ${filled.destination}: ${filled.filled} values.${check}${differs}`, before, () => {
       plan = keptPlan;
-      void host.savePlan(packId, keptPlan);
+      if (!kept.some((k) => k.what === "plan")) void host.savePlan(packId, keptPlan);
     });
     return null;
   }
@@ -861,19 +928,30 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   }
 
   async function changeSettings(next: Settings): Promise<void> {
+    const before = settings;
     settings = next;
+    // What this change sets, to apply over settings another window saved meanwhile.
+    const delta = Object.fromEntries(
+      Object.entries(next).filter(([k, v]) => !before || JSON.stringify(v) !== JSON.stringify(before[k as keyof Settings])),
+    ) as Partial<Settings>;
     try {
       await refresh();
-      await persist("settings");
+      await persist("settings", async (saved) => ({ ...saved, ...delta }));
     } catch (e) {
       fail(e);
     }
   }
 
-  async function startFresh(what: "flight" | "settings"): Promise<void> {
-    await host.setAside(packId, what);
+  /** Sets the kept data aside and saves anew; if it can't be set aside, it stays as it is. */
+  async function startFresh(what: Kept): Promise<void> {
+    if (!(await host.setAside(packId, what))) {
+      kept = kept.map((k) => (k.what === what ? { ...k, stuck: true } : k));
+      return;
+    }
     kept = kept.filter((k) => k.what !== what);
-    await persist(what);
+    if (what === "plan") {
+      if (plan) await host.savePlan(packId, plan);
+    } else await persist(what);
   }
 
   const tick = (id: string, done: boolean) => tickAndOffer(done ? { type: "untick", step: id } : { type: "tick", step: id, at: Date.now() });
@@ -1126,11 +1204,12 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
   {:else if !rail || !settings || !flight || !index}
     <p class="msg">Loading…</p>
   {:else}
-    <PhaseChips phases={stagePhases} current={phaseId} {detail} essentials={settings.essentials} {total} {savedAt} open={openShown.map((o) => o.phase)} />
+    <PhaseChips phases={stagePhases} current={phaseId} {detail} essentials={settings.essentials} {total} {savedAt} {saveFailed} open={openShown.map((o) => o.phase)} />
     <Drawer
       open={menuOpen}
       aircraft={index.name}
       {savedAt}
+      {saveFailed}
       {total}
       view={view && (screen === "phase" || screen === "start") ? listView : null}
       {detail}
@@ -1165,8 +1244,11 @@ in Rust. Progress lives in memory until batch 1 saves it on the device.
       <main>
         <div class="inner">
           {#each kept as k (k.what)}
-            <KeptNotice what={k.what} state={k.state} text={k.text} onFresh={() => startFresh(k.what)} />
+            <KeptNotice what={k.what} state={k.state} text={k.text} stuck={k.stuck ?? false} onFresh={() => startFresh(k.what)} />
           {/each}
+          {#if saveFailed}
+            <SaveFailedNotice />
+          {/if}
           {#if screen === "settings"}
             <SettingsPage {settings} version={info?.version ?? null} onChange={(s) => void changeSettings(s)} />
           {:else if screen === "open"}

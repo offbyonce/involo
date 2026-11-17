@@ -147,9 +147,9 @@ test("the app moves the data before it mounts, and builds every key through stor
   const read = (f) => readFileSync(new URL(f, import.meta.url), "utf8");
   const main = read("./main.ts");
   assert.ok(main.indexOf("prepareStorage(") < main.indexOf("mount(App"));
-  for (const f of ["./saved.ts", "./web-host.ts"]) {
-    const text = read(f);
-    assert.ok(text.includes("storageKey("), f);
-    assert.ok(!/["'`](involo|chocktochock)\./.test(text), `${f} writes a raw storage key`);
+  // Progress, settings and the plan are all saved through saved.ts.
+  assert.ok(read("./saved.ts").includes("storageKey("));
+  for (const f of ["./saved.ts", "./saved-store.js", "./web-host.ts"]) {
+    assert.ok(!/["'`](involo|chocktochock)\./.test(read(f)), `${f} writes a raw storage key`);
   }
 });

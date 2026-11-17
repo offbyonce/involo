@@ -22,6 +22,7 @@ Phone has the progress row instead (ProgressRow).
     essentials,
     total,
     savedAt,
+    saveFailed = false,
     open = [],
   }: {
     phases: RailPhase[];
@@ -31,6 +32,8 @@ Phone has the progress row instead (ProgressRow).
     total: Progress;
     /** When progress was last saved on this device. */
     savedAt: number | null;
+    /** The last save was refused: no save time, and "Not saved" in its place. */
+    saveFailed?: boolean;
     /** Phases holding an open step, for the amber dots. */
     open?: string[];
   } = $props();
@@ -73,7 +76,7 @@ Phone has the progress row instead (ProgressRow).
       >{essentials ? "Essentials" : "Full"} · {detail === "expanded" ? "Detailed" : "Simple"}</a
     >
     <span class="count-all" aria-label="{total.done} of {total.total} steps done">{total.done}/{total.total}</span>
-    {#if saved}<span class="saved" role="status">Saved {saved}</span>{/if}
+    {#if saveFailed}<span class="saved" role="status">Not saved</span>{:else if saved}<span class="saved" role="status">Saved {saved}</span>{/if}
   </div>
 </div>
 

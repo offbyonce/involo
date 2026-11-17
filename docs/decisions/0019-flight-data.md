@@ -52,3 +52,12 @@ import does to values the pilot typed.
   alternate, the arrival runway and STAR, and each airport's altimeter setting from its METAR.
 - **Flight setup becomes the Flight pages** (batch 4): every field it held has a row in one of their
   sections.
+
+## Amendment (2026-11-17): a saved plan this version can't read is kept
+- **Kept and reported, like progress and settings (0012).** A saved plan in a newer format, or one
+  that can't be read, is not treated as absent. The app shows the same notice as for progress and
+  settings, with Save a copy and Start fresh, and saves nothing over it.
+- **An import still works.** A plan imported meanwhile fills the flight for this visit but is not
+  saved. Start fresh moves the kept plan aside under its own key (`.kept-<time>`) and then saves
+  the plan in use, if there is one. If it can't be moved aside, nothing is moved and the notice
+  says so.
