@@ -433,6 +433,7 @@ mod tests {
                 memory: false,
                 when: None,
                 why: None,
+                method: None,
                 steps,
             }],
             content: PackContent::default(),

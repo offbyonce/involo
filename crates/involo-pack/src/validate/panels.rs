@@ -57,13 +57,7 @@ pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec
         }
         check_short_captions(overview, issues);
         if let Some(views) = &overview.views {
-            let regions: BTreeSet<&str> =
-                overview.regions.iter().map(|r| r.name.as_str()).collect();
-            for (name, frame) in [("side", &views.side), ("seat", &views.seat)] {
-                if let Some(frame) = frame {
-                    check_view(name, frame, &regions, issues);
-                }
-            }
+            check_views(overview, views, &c.labels, issues);
         }
     }
     unique("panel", c.panels.iter().map(|p| p.id.as_str()), issues);
@@ -334,6 +328,39 @@ fn check_short_captions(overview: &involo_checklist_core::Overview, issues: &mut
                 ));
             }
         }
+    }
+}
+
+/// The side view and the seat views: real regions inside their frames, each seat frame keyed by
+/// a seat the labels list.
+fn check_views(
+    overview: &involo_checklist_core::Overview,
+    views: &involo_checklist_core::OverviewViews,
+    labels: &involo_checklist_core::Labels,
+    issues: &mut Vec<Issue>,
+) {
+    let regions: BTreeSet<&str> = overview.regions.iter().map(|r| r.name.as_str()).collect();
+    if let Some(frame) = &views.side {
+        check_view("side", frame, &regions, issues);
+    }
+    match &views.seat {
+        Some(involo_checklist_core::SeatViews::One(frame)) => {
+            check_view("seat", frame, &regions, issues);
+        }
+        Some(involo_checklist_core::SeatViews::BySeat(frames)) => {
+            for (seat, frame) in frames {
+                if !labels.seats.iter().any(|s| &s.id == seat) {
+                    issues.push(error(
+                        "overview seat view",
+                        format!(
+                            "`{seat}` is not a seat the pack's labels list, so its frame is never shown"
+                        ),
+                    ));
+                }
+                check_view(&format!("seat ({seat})"), frame, &regions, issues);
+            }
+        }
+        None => {}
     }
 }
 
@@ -742,10 +769,10 @@ pub(super) mod tests {
                         vec![place("Overhead", 90.0), place("Galley", 0.0)],
                         vec![shape(ViewRole::Glass, vec![[0.0, 0.0], [120.0, 10.0]])],
                     )),
-                    seat: Some(frame(
+                    seat: Some(involo_checklist_core::SeatViews::One(frame(
                         vec![place("Overhead", 10.0)],
                         vec![shape(ViewRole::Structure, vec![[0.0, 0.0], [100.0, 60.0]])],
-                    )),
+                    ))),
                 }),
             });
         }
@@ -764,6 +791,36 @@ pub(super) mod tests {
         );
         assert!(joined.contains("needs exactly one `eye` point"), "{joined}");
         assert!(!joined.contains("overview seat view"), "{joined}");
+
+        // A frame per seat: each keyed by a seat the labels list.
+        let seat_frame = frame(
+            vec![place("Overhead", 10.0)],
+            vec![shape(ViewRole::Structure, vec![[0.0, 0.0], [100.0, 60.0]])],
+        );
+        p.content.labels.seats = vec![involo_checklist_core::SeatLabel {
+            id: "left".into(),
+            title: "Left seat".into(),
+        }];
+        if let Some(views) = p
+            .content
+            .controls
+            .as_mut()
+            .and_then(|c| c.overview.as_mut())
+            .and_then(|o| o.views.as_mut())
+        {
+            views.seat = Some(involo_checklist_core::SeatViews::BySeat(
+                std::collections::BTreeMap::from([
+                    ("left".to_owned(), seat_frame.clone()),
+                    ("captain".to_owned(), seat_frame),
+                ]),
+            ));
+        }
+        let joined = messages(&p);
+        assert!(
+            joined.contains("`captain` is not a seat the pack's labels list"),
+            "{joined}"
+        );
+        assert!(!joined.contains("`left` is not a seat"), "{joined}");
     }
 
     #[test]

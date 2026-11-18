@@ -25,7 +25,7 @@ pub use cdu::{
 };
 pub use controls::{
     Control, ControlsFile, LabelAnchor, Overview, OverviewArea, OverviewCaption, OverviewRegion,
-    OverviewViews, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, Zone,
+    OverviewViews, SeatViews, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, Zone,
 };
 pub use faults::{Fault, FaultsFile};
 pub use glossary::{GlossaryEntry, GlossaryFile};

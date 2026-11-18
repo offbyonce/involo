@@ -48,6 +48,20 @@ data_types! {
         NonNormal,
     }
 
+    /// How a list is used (decision 0029). Its display name comes from the pack's labels.
+    #[derive(Copy, Eq)]
+    #[serde(rename_all = "snake_case")]
+    pub enum ListMethod {
+        /// Each step done as it is read.
+        Do,
+        /// Read aloud, then done.
+        ReadAndDo,
+        /// One crew member reads each item, the other answers (a step's `respond`).
+        ChallengeResponse,
+        /// Done from memory, then checked.
+        FromMemory,
+    }
+
     /// What a step or light note was confirmed against (decision 0013, which defines each kind).
     /// The list grows by adding a kind there and here.
     #[derive(Copy, Eq, PartialOrd, Ord)]
@@ -308,6 +322,13 @@ data_types! {
         /// The step's value for each answer of a decision its targets depend on (decision 0027).
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub expect_when: Vec<ExpectWhen>,
+        /// Who does the step: a role id from the pack's labels (decision 0029). Optional.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub role: Option<String>,
+        /// In a challenge-and-response list, who answers the challenge: a role id from the
+        /// pack's labels.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub respond: Option<String>,
         /// Optional note shown under the step.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub note: Option<String>,
@@ -380,6 +401,9 @@ data_types! {
         /// Why this list matters.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub why: Option<String>,
+        /// How the list is used. Optional.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub method: Option<ListMethod>,
         pub steps: Vec<Step>,
     }
 }
@@ -409,6 +433,8 @@ impl Step {
             opens: None,
             non_recall: false,
             expect_when: Vec::new(),
+            role: None,
+            respond: None,
             quick: None,
             show_if: None,
             decide: None,

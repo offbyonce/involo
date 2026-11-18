@@ -33,13 +33,13 @@ pub use content::{
     LabelsFile, LightColor, LightNote, LightsFile, NotesFile, OptionChoice, Overview, OverviewArea,
     OverviewCaption, OverviewRegion, OverviewViews, Panel, PanelItem, PanelItemKind, PanelSection,
     PanelState, PanelStatesFile, Phase, PhasesFile, RoleLabel, RouteLegCount, RouteLegPart,
-    SeatLabel, Stage, StagePhase, SuggestLine, SuggestRule, Suggests, UserOption, ViewFrame,
-    ViewLabel, ViewPlace, ViewRole, ViewShape, WeightUnit, Zone,
+    SeatLabel, SeatViews, Stage, StagePhase, SuggestLine, SuggestRule, Suggests, UserOption,
+    ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, WeightUnit, Zone,
 };
 pub use model::{
     AutoStart, AutoStartPick, Checklist, Confirmation, ConfirmationKind, ExpectWhen, FillField,
-    HintPart, LightState, ListKind, MAX_ROUTE_LEG, OptionTest, Quick, ShowIf, Step, StepId,
-    StepTarget, TargetWhen, Timer, WalkaroundPoint,
+    HintPart, LightState, ListKind, ListMethod, MAX_ROUTE_LEG, OptionTest, Quick, ShowIf, Step,
+    StepId, StepTarget, TargetWhen, Timer, WalkaroundPoint,
 };
 pub use positions::{
     clauses, locate, locator, named_position, names, names_position, says_light_on, says_on,

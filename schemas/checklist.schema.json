@@ -21,6 +21,17 @@
       "description": "Part of the memory items.",
       "type": "boolean"
     },
+    "method": {
+      "description": "How the list is used. Optional.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ListMethod"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "steps": {
       "type": "array",
       "items": {
@@ -319,6 +330,31 @@
         }
       ]
     },
+    "ListMethod": {
+      "description": "How a list is used (decision 0029). Its display name comes from the pack's labels.",
+      "oneOf": [
+        {
+          "description": "Each step done as it is read.",
+          "type": "string",
+          "const": "do"
+        },
+        {
+          "description": "Read aloud, then done.",
+          "type": "string",
+          "const": "read_and_do"
+        },
+        {
+          "description": "One crew member reads each item, the other answers (a step's `respond`).",
+          "type": "string",
+          "const": "challenge_response"
+        },
+        {
+          "description": "Done from memory, then checked.",
+          "type": "string",
+          "const": "from_memory"
+        }
+      ]
+    },
     "OptionTest": {
       "description": "One test against a pilot-chosen option. The options are declared by the pack.",
       "anyOf": [
@@ -569,6 +605,20 @@
             {
               "type": "null"
             }
+          ]
+        },
+        "respond": {
+          "description": "In a challenge-and-response list, who answers the challenge: a role id from the\npack's labels.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "role": {
+          "description": "Who does the step: a role id from the pack's labels (decision 0029). Optional.",
+          "type": [
+            "string",
+            "null"
           ]
         },
         "section": {

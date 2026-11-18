@@ -156,12 +156,20 @@ data_types! {
         pub labels: Vec<ViewLabel>,
     }
 
+    /// The seat view: one frame, or one per seat, keyed by the seat ids the pack's labels list
+    /// (decision 0029).
+    #[serde(untagged)]
+    pub enum SeatViews {
+        One(ViewFrame),
+        BySeat(std::collections::BTreeMap<String, ViewFrame>),
+    }
+
     /// The side and seat views for "Where is this?".
     pub struct OverviewViews {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub side: Option<ViewFrame>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub seat: Option<ViewFrame>,
+        pub seat: Option<SeatViews>,
     }
 
     /// A schematic of the whole cockpit, in our own layout.
@@ -184,5 +192,140 @@ data_types! {
         pub controls: Vec<Control>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub overview: Option<Overview>,
+    }
+}
+
+impl OverviewViews {
+    /// The seat frame "Where is this?" shows for a step (decision 0029). One frame is always
+    /// that frame. With a frame per seat: the seat the step's `role` sits in, if the role names
+    /// one with a frame; then the pilot's chosen seat; then the first frame, in the order the
+    /// labels list the seats.
+    pub fn seat_frame<'a>(
+        &'a self,
+        labels: &crate::Labels,
+        role: Option<&str>,
+        chosen: Option<&str>,
+    ) -> Option<&'a ViewFrame> {
+        let frames = match self.seat.as_ref()? {
+            SeatViews::One(frame) => return Some(frame),
+            SeatViews::BySeat(frames) => frames,
+        };
+        let seat_of_role = role
+            .and_then(|r| labels.roles.iter().find(|x| x.id == r))
+            .and_then(|r| r.seat.as_deref());
+        seat_of_role
+            .and_then(|s| frames.get(s))
+            .or_else(|| chosen.and_then(|s| frames.get(s)))
+            .or_else(|| labels.seats.iter().find_map(|s| frames.get(&s.id)))
+            .or_else(|| frames.values().next())
+    }
+}
+
+#[cfg(test)]
+mod seat_tests {
+    use std::collections::BTreeMap;
+
+    use super::*;
+    use crate::{Labels, RoleLabel, SeatLabel};
+
+    fn frame(width: f64) -> ViewFrame {
+        ViewFrame {
+            width,
+            height: 10.0,
+            shapes: vec![],
+            places: vec![],
+            labels: vec![],
+        }
+    }
+
+    fn labels() -> Labels {
+        let seats = vec![
+            SeatLabel {
+                id: "left".into(),
+                title: "Left seat".into(),
+            },
+            SeatLabel {
+                id: "right".into(),
+                title: "Right seat".into(),
+            },
+        ];
+        let role = |id: &str, seat: Option<&str>| RoleLabel {
+            id: id.into(),
+            title: id.into(),
+            short: id.into(),
+            seat: seat.map(Into::into),
+        };
+        let roles = vec![
+            role("capt", Some("left")),
+            role("fo", Some("right")),
+            role("pf", None),
+        ];
+        Labels {
+            seats,
+            roles,
+            ..Labels::default()
+        }
+    }
+
+    fn by_seat() -> OverviewViews {
+        OverviewViews {
+            side: None,
+            seat: Some(SeatViews::BySeat(BTreeMap::from([
+                ("left".to_owned(), frame(1.0)),
+                ("right".to_owned(), frame(2.0)),
+            ]))),
+        }
+    }
+
+    fn width(f: Option<&ViewFrame>) -> Option<f64> {
+        f.map(|f| f.width)
+    }
+
+    #[test]
+    fn one_frame_is_always_the_frame() {
+        let one = OverviewViews {
+            side: None,
+            seat: Some(SeatViews::One(frame(5.0))),
+        };
+        assert_eq!(
+            width(one.seat_frame(&labels(), Some("fo"), Some("right"))),
+            Some(5.0)
+        );
+        assert_eq!(
+            width(one.seat_frame(&Labels::default(), None, None)),
+            Some(5.0)
+        );
+    }
+
+    #[test]
+    fn the_role_s_seat_comes_first() {
+        assert_eq!(
+            width(by_seat().seat_frame(&labels(), Some("fo"), Some("left"))),
+            Some(2.0)
+        );
+    }
+
+    #[test]
+    fn a_duty_role_with_no_seat_falls_to_the_chosen_seat() {
+        assert_eq!(
+            width(by_seat().seat_frame(&labels(), Some("pf"), Some("right"))),
+            Some(2.0)
+        );
+        assert_eq!(
+            width(by_seat().seat_frame(&labels(), None, Some("right"))),
+            Some(2.0)
+        );
+    }
+
+    #[test]
+    fn with_no_role_seat_and_no_choice_the_first_seat_s_frame() {
+        assert_eq!(
+            width(by_seat().seat_frame(&labels(), Some("pf"), None)),
+            Some(1.0)
+        );
+        assert_eq!(
+            width(by_seat().seat_frame(&labels(), None, Some("jumpseat"))),
+            Some(1.0)
+        );
     }
 }

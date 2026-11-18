@@ -100,6 +100,7 @@ pub(super) fn pack(steps: Vec<Step>, other_files: Vec<&str>) -> Pack {
             memory: false,
             when: None,
             why: None,
+            method: None,
             steps,
         }],
         content: PackContent {

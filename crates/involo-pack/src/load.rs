@@ -329,6 +329,28 @@ steps:
     }
 
     #[test]
+    fn the_ifly_pack_s_one_seat_frame_is_the_frame_for_every_step() {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/ifly-737-max8");
+        let pack = load_pack_dir(&dir).unwrap();
+        let views = pack
+            .content
+            .controls
+            .as_ref()
+            .and_then(|c| c.overview.as_ref())
+            .and_then(|o| o.views.as_ref())
+            .unwrap();
+        let Some(involo_checklist_core::SeatViews::One(frame)) = &views.seat else {
+            panic!("the iFly pack has one seat frame");
+        };
+        let labels = &pack.content.labels;
+        assert_eq!(views.seat_frame(labels, None, None), Some(frame));
+        assert_eq!(
+            views.seat_frame(labels, Some("pf"), Some("right")),
+            Some(frame)
+        );
+    }
+
+    #[test]
     fn a_pack_without_labels_carries_the_app_s_words() {
         let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
         let pack = load_pack_dir(&dir).unwrap();

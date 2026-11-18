@@ -381,8 +381,8 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
           {#if index.overview?.views?.side}
             <ViewDrawing frame={index.overview.views.side} region={region?.name ?? null} kind="side" title="From the side: how high, how far" />
           {/if}
-          {#if index.overview?.views?.seat}
-            <ViewDrawing frame={index.overview.views.seat} region={region?.name ?? null} kind="seat" title="From the captain seat: which side" />
+          {#if index.seatFrame}
+            <ViewDrawing frame={index.seatFrame} region={region?.name ?? null} kind="seat" title="From the captain seat: which side" />
           {/if}
           {#if zone}
             <figure class="area-map">

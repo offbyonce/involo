@@ -66,6 +66,15 @@ decide?: string | null,
  */
 expectWhen?: Array<ExpectWhen>, 
 /**
+ * Who does the step: a role id from the pack's labels (decision 0029). Optional.
+ */
+role?: string | null, 
+/**
+ * In a challenge-and-response list, who answers the challenge: a role id from the
+ * pack's labels.
+ */
+respond?: string | null, 
+/**
  * Optional note shown under the step.
  */
 note?: string | null, 
