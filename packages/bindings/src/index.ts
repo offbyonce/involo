@@ -65,6 +65,7 @@ export type { Rail } from "./generated/Rail";
 export type { RailPhase } from "./generated/RailPhase";
 export type { RailStage } from "./generated/RailStage";
 export type { Reply } from "./generated/Reply";
+export type { ResolvedParent } from "./generated/ResolvedParent";
 export type { SavedPlan } from "./generated/SavedPlan";
 export type { SeatViews } from "./generated/SeatViews";
 export type { Settings } from "./generated/Settings";

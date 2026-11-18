@@ -277,6 +277,25 @@ mod tests {
     }
 
     #[test]
+    fn a_built_pack_s_step_ids_may_start_with_any_pack_up_its_chain() {
+        let id = |s: &str| involo_checklist_core::Step::new(s, "Battery", "ON");
+        let mut p = pack(vec![id("lib.family.preflight.a")], vec![]);
+        p.manifest.extends.insert(
+            "lib.demo".into(),
+            semver::VersionReq::parse(">=1.0").unwrap(),
+        );
+        assert_flags(&p, "where the prefix is `demo-aircraft` or `lib.demo`");
+        // Built: the parent extends a family library, so its steps keep that prefix.
+        p.manifest.resolved = ["lib.demo", "lib.family"]
+            .map(|id| crate::ResolvedParent {
+                id: id.into(),
+                version: semver::Version::new(1, 0, 0),
+            })
+            .to_vec();
+        assert!(!messages(&p).contains("step id"), "{}", messages(&p));
+    }
+
+    #[test]
     fn a_list_why_does_not_repeat_the_training_notice() {
         let mut p = pack(vec![step("ifly-737-max8.preflight.a")], vec![]);
         p.checklists[0].why =

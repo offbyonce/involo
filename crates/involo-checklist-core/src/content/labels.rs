@@ -264,6 +264,31 @@ impl Labels {
         out
     }
 
+    /// A child pack's words (decision 0029): its parent's built words, with the child's own
+    /// `labels.yaml` over them, by the same rules. Basis tag labels come from the child's file,
+    /// then the parent's, then the app's defaults, for each of `tags`.
+    pub fn extend(parent: &Self, file: Option<&LabelsFile>, tags: &[String]) -> Self {
+        let mut out = parent.clone();
+        let inherited = std::mem::take(&mut out.basis_tags);
+        if let Some(f) = file {
+            out.apply(f);
+        }
+        let given = file.map(|f| f.basis_tags.as_slice()).unwrap_or_default();
+        let defaults = Self::default().basis_tags;
+        out.basis_tags = tags
+            .iter()
+            .filter_map(|tag| {
+                given
+                    .iter()
+                    .chain(&inherited)
+                    .chain(&defaults)
+                    .find(|l| &l.id == tag)
+                    .cloned()
+            })
+            .collect();
+        out
+    }
+
     fn apply(&mut self, f: &LabelsFile) {
         let set = |to: &mut String, from: &Option<String>| {
             if let Some(v) = from {

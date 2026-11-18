@@ -42,6 +42,9 @@ serde-saphyr = "2.1.1"
 roxmltree = "0.21.2"
 schemars = "1.2"
 semver = { version = "1.0.28", features = ["serde"] }
+# The content hash a built pack records (decision 0029): SHA-256 from RustCrypto, rather than our
+# own hashing code.
+sha2 = "0.10"
 ts-rs = { version = "12.0", features = ["no-serde-warnings"] }
 # WebAssembly glue. Exact pin: the wasm-bindgen CLI must be the same version (decision 0010).
 wasm-bindgen = "=0.2.130"

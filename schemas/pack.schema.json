@@ -29,7 +29,7 @@
       ]
     },
     "attribution": {
-      "description": "Credit and terms notes.",
+      "description": "Credit and terms notes. A built child carries its parents' notes first, then its own,\neach once.",
       "type": "array",
       "default": [],
       "items": {
@@ -37,7 +37,7 @@
       }
     },
     "basisTags": {
-      "description": "The `basis` tags this pack's lists may use: kinds of material, never document names.",
+      "description": "The `basis` tags this pack's lists may use: kinds of material, never document names. A\nbuilt child may use its parents' tags and its own: theirs first, then its own, each once.",
       "type": "array",
       "default": [],
       "items": {
@@ -62,6 +62,13 @@
       "items": {
         "type": "string"
       }
+    },
+    "contentHash": {
+      "description": "Written by `involo-pack build`, never by an author: the SHA-256 of the built pack's\ncontent (its lists and content files, flattened), in hex.",
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "controls": {
       "type": [
@@ -114,7 +121,7 @@
       ]
     },
     "license": {
-      "description": "SPDX license id for the pack content, e.g. `CC-BY-NC-SA-4.0`.",
+      "description": "SPDX license id for the pack content, e.g. `CC-BY-NC-SA-4.0`. A child's license is the\nbuilt pack's.",
       "type": "string"
     },
     "lights": {
@@ -145,12 +152,26 @@
         "type": "string"
       }
     },
+    "patches": {
+      "description": "A child's changes to its parent, by id (`patches.yaml`). Only with `extends`.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "phases": {
       "description": "Phases, stages and options. Required for an aircraft pack.",
       "type": [
         "string",
         "null"
       ]
+    },
+    "resolved": {
+      "description": "Written by `involo-pack build`, never by an author: each pack this one was built from,\nthe parent first, with its exact version.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ResolvedParent"
+      }
     },
     "schemaVersion": {
       "description": "Pack format. The app reads every format from 6 (the first public one) up to its own and\nrefuses an older or newer pack with the reason. From 6 on, a later format only adds.",
@@ -223,6 +244,23 @@
           "type": "string",
           "const": "library"
         }
+      ]
+    },
+    "ResolvedParent": {
+      "description": "One pack a built pack was built from: its id and exact version (decision 0029).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version"
       ]
     }
   }

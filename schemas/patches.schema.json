@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PatchesFile",
+  "description": "`patches.yaml`.",
+  "type": "object",
+  "properties": {
+    "patches": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Patch"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "patches"
+  ],
+  "$defs": {
+    "Patch": {
+      "description": "One change to the parent. It names exactly one target, by id:\n- `stage`, `list`, `step`, `panel`, `flight_field`, `panel_state`: the entry's `id`;\n- `section`: `panel/section`; `item`: `panel/section/item`, the item's `id` (an item without an\n  id cannot be patched: add the id in the parent);\n- `glossary_term`: the entry's `term`;\n- `label`: a dotted path into the pack's labels, a list entry named by its `id`, e.g.\n  `list_kinds.checklist` or `roles.pf.title`.",
+      "type": "object",
+      "properties": {
+        "flight_field": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "glossary_term": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "item": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "list": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "op": {
+          "$ref": "#/$defs/PatchOp"
+        },
+        "panel": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "panel_state": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "section": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "step": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "to": {
+          "description": "`set`: the fields to change."
+        },
+        "with": {
+          "description": "`replace`, `insert_before`, `insert_after`: the new entry, or entries."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "op"
+      ]
+    },
+    "PatchOp": {
+      "description": "What a patch does to its target.",
+      "oneOf": [
+        {
+          "description": "Changes some of the target's fields (`to`, a map; a field set to null is removed). A label\nthat is plain text takes its new text as `to`.",
+          "type": "string",
+          "const": "set"
+        },
+        {
+          "description": "Puts `with` in the target's place.",
+          "type": "string",
+          "const": "replace"
+        },
+        {
+          "description": "Removes the target.",
+          "type": "string",
+          "const": "remove"
+        },
+        {
+          "description": "Puts `with` (one new entry, or a list of them) just before the target.",
+          "type": "string",
+          "const": "insert_before"
+        },
+        {
+          "description": "Puts `with` (one new entry, or a list of them) just after the target.",
+          "type": "string",
+          "const": "insert_after"
+        }
+      ]
+    }
+  }
+}
