@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: MIT
 
 //! SimBrief plans. The host fetches the text from the address given here, or reads a saved
-//! file, and hands it back to be read into the compact plan (decision 0019), whose values then go
-//! into the flight as 3.0 put them there.
+//! file, and hands it back to be read into the compact plan (decision 0019). The app reads its own
+//! list of SimBrief sources from a plan; each pack field that names sources is filled from them,
+//! scaled and rounded as the field says (decision 0029).
 
 use std::collections::BTreeMap;
 
-use involo_checklist_core::FillField;
+use involo_checklist_core::{FieldId, FlightField, Rounding, SimbriefSource as Src};
+use involo_pack::FlatPack;
 use involo_simbrief::{Plan, Units};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -34,7 +36,8 @@ pub struct SavedPlan {
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct PlanValues {
-    pub values: BTreeMap<FillField, String>,
+    #[ts(type = "Record<string, string>")]
+    pub values: BTreeMap<FieldId, String>,
     /// The fields the pilot sees filled (3.0 counted these in its notice).
     pub filled: usize,
     pub origin: String,
@@ -60,16 +63,6 @@ const MAX_FUEL: i32 = 1_000_000;
 /// The most a plan's weight figure is taken as, in its unit: above the largest airliner's
 /// takeoff weight in pounds (about 1,270,000 lb).
 const MAX_WEIGHT: i32 = 1_500_000;
-
-/// Thousands, rounded up to the next tenth (what the CDU takes for ZFW and reserves).
-fn thousands_up(v: i32) -> String {
-    format!("{:.1}", (f64::from(v) / 100.0 - 1e-9).ceil() / 10.0)
-}
-
-/// Thousands, rounded to the nearest tenth.
-fn thousands(v: i32) -> String {
-    format!("{:.1}", (f64::from(v) / 100.0).round() / 10.0)
-}
 
 fn icao(code: Option<&String>) -> Option<String> {
     let c = code?.to_uppercase();
@@ -149,21 +142,68 @@ fn departure(plan: &Plan) -> (Option<String>, Option<String>) {
     (Some(sid), trans)
 }
 
-fn put(v: &mut BTreeMap<FillField, String>, f: FillField, s: String) {
-    v.insert(f, s);
+/// A plan value as read: text the field takes as it is, or a number its `display` may scale.
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Raw<'a> {
+    Text(&'a str),
+    Number(i32),
 }
 
-/// Fuel, weights, performance and the route, read as 3.0 read them.
-fn performance(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
+/// The values the app reads from a plan, by source, as 3.0 read them. Numbers outside what an
+/// airliner can hold are left out (#43); a pack field's own range decides what it shows.
+#[allow(clippy::too_many_lines)]
+fn sources(plan: &Plan, origin: &str, destination: &str) -> BTreeMap<Src, String> {
+    let mut v = BTreeMap::new();
     let g = &plan.general;
+    v.insert(Src::Origin, origin.to_owned());
+    v.insert(Src::Destination, destination.to_owned());
+    if let Some(n) = g.flight_number.as_deref() {
+        let n: String = n.to_uppercase().split_whitespace().collect();
+        let full = format!(
+            "{}{n}",
+            g.airline.as_deref().unwrap_or_default().to_uppercase()
+        );
+        v.insert(
+            Src::FlightNumber,
+            if full.len() <= 7 {
+                full
+            } else {
+                n.chars().take(7).collect()
+            },
+        );
+    }
+    if let Some(a) = g.cruise_altitude_ft {
+        let fl = if a >= 1000 {
+            a.saturating_add(50) / 100
+        } else {
+            a
+        };
+        if (100..=410).contains(&fl) {
+            v.insert(Src::CruiseLevel, fl.to_string());
+        }
+    }
+    if let Some(r) = plan
+        .origin
+        .as_ref()
+        .and_then(|o| o.runway.as_deref())
+        .and_then(runway)
+    {
+        v.insert(Src::Runway, r);
+    }
+    let (sid, trans) = departure(plan);
+    if let Some(s) = sid {
+        v.insert(Src::Sid, s);
+    }
+    if let Some(t) = trans {
+        v.insert(Src::Transition, t);
+    }
     let fuel = |f: Option<i32>| f.filter(|f| (1..=MAX_FUEL).contains(f));
     let weight = |w: Option<i32>| w.filter(|w| (1..=MAX_WEIGHT).contains(w));
     if let Some(f) = fuel(plan.fuel.plan_ramp) {
-        put(v, FillField::Fuel, f.to_string());
+        v.insert(Src::BlockFuel, f.to_string());
         if let Some(u) = plan.units {
-            put(
-                v,
-                FillField::WeightUnit,
+            v.insert(
+                Src::WeightUnit,
                 if u == Units::Kg { "KG" } else { "LB" }.into(),
             );
         }
@@ -174,34 +214,32 @@ fn performance(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
         .and_then(|d| d.elevation_ft)
         .filter(|e| (-1000..=14000).contains(e))
     {
-        put(v, FillField::LandingAltitude, e.to_string());
+        v.insert(Src::DestinationElevation, e.to_string());
     }
     if let Some(z) = weight(plan.weights.zfw) {
-        put(v, FillField::Zfw, thousands_up(z));
+        v.insert(Src::ZeroFuelWeight, z.to_string());
     }
-    // Reserve plus alternate: each in range, so the sum is at most twice MAX_FUEL, and checked
-    // against MAX_FUEL again.
-    if let Some(r) = fuel(plan.fuel.reserve)
-        .map(|r| r.saturating_add(fuel(plan.fuel.alternate).unwrap_or(0)))
-        .filter(|r| *r <= MAX_FUEL)
-    {
-        put(v, FillField::Reserves, thousands_up(r));
+    if let Some(r) = fuel(plan.fuel.reserve) {
+        v.insert(Src::ReserveFuel, r.to_string());
+    }
+    if let Some(a) = fuel(plan.fuel.alternate) {
+        v.insert(Src::AlternateFuel, a.to_string());
     }
     if let Some(m) = fuel(plan.fuel.min_takeoff) {
-        put(v, FillField::MinimumTakeoffFuel, m.to_string());
+        v.insert(Src::MinimumTakeoffFuel, m.to_string());
     }
     if let Some(ci) = g.cost_index.filter(|c| (0..=9999).contains(c)) {
-        put(v, FillField::CostIndex, ci.to_string());
+        v.insert(Src::CostIndex, ci.to_string());
     }
     if let (Some(d), Some(s)) = (g.avg_wind_dir, g.avg_wind_speed)
         && (0..=360).contains(&d)
         && (0..400).contains(&s)
     {
         let d = if d % 360 == 0 { 360 } else { d % 360 };
-        put(v, FillField::CruiseWind, format!("{d:03}/{s:03}"));
+        v.insert(Src::CruiseWind, format!("{d:03}/{s:03}"));
     }
     if let Some(i) = g.avg_isa_deviation.filter(|i| i.abs() <= 60) {
-        put(v, FillField::IsaDeviation, i.to_string());
+        v.insert(Src::IsaDeviation, i.to_string());
     }
     if let Some(t) = plan
         .origin
@@ -209,7 +247,7 @@ fn performance(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
         .and_then(|o| o.transition_altitude_ft)
         .filter(|t| (1000..=20000).contains(t))
     {
-        put(v, FillField::TransitionAltitude, t.to_string());
+        v.insert(Src::TransitionAltitude, t.to_string());
     }
     if let Some(t) = plan
         .destination
@@ -217,16 +255,16 @@ fn performance(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
         .and_then(|d| d.transition_level_ft)
         .filter(|t| (1000..=60000).contains(t))
     {
-        put(v, FillField::TransitionLevel, ((t + 50) / 100).to_string());
+        v.insert(Src::TransitionLevel, ((t + 50) / 100).to_string());
     }
     if let Some(w) = weight(plan.weights.takeoff) {
-        put(v, FillField::TakeoffWeight, thousands(w));
+        v.insert(Src::TakeoffWeight, w.to_string());
     }
     if let Some(p) = plan.weights.passengers.filter(|p| (0..=500).contains(p)) {
-        put(v, FillField::Passengers, p.to_string());
+        v.insert(Src::Passengers, p.to_string());
     }
     if let Some(c) = plan.weights.cargo.filter(|c| (0..=MAX_WEIGHT).contains(c)) {
-        put(v, FillField::Cargo, thousands(c));
+        v.insert(Src::Cargo, c.to_string());
     }
     if let Some(r) = g.route.as_deref() {
         let r = r
@@ -235,7 +273,7 @@ fn performance(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
             .collect::<Vec<_>>()
             .join(" ");
         if !r.is_empty() && r.len() <= 400 {
-            put(v, FillField::Route, r);
+            v.insert(Src::Route, r);
         }
     }
     if let Some(o) = plan.origin.as_ref()
@@ -243,22 +281,24 @@ fn performance(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
         && lat.abs() <= 90.0
         && lon.abs() <= 180.0
     {
-        put(v, FillField::OriginPosition, format!("{lat} {lon}"));
+        v.insert(Src::OriginPosition, format!("{lat} {lon}"));
     }
     if let Some(a) = g
         .airac
         .as_deref()
         .filter(|a| a.len() == 4 && a.chars().all(|c| c.is_ascii_digit()))
     {
-        put(v, FillField::NavDatabase, a.to_owned());
+        v.insert(Src::NavDatabase, a.to_owned());
     }
+    arrival(plan, &mut v);
+    v
 }
 
 /// The alternate, the arrival and each airport's altimeter setting (decision 0019, amended).
 /// The destination's setting takes the departure's unit, converted when its METAR uses the other.
-fn arrival(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
+fn arrival(plan: &Plan, v: &mut BTreeMap<Src, String>) {
     if let Some(a) = icao(plan.alternates.first().and_then(|a| a.icao.as_ref())) {
-        put(v, FillField::Alternate, a);
+        v.insert(Src::Alternate, a);
     }
     if let Some(r) = plan
         .destination
@@ -266,7 +306,7 @@ fn arrival(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
         .and_then(|d| d.runway.as_deref())
         .and_then(runway)
     {
-        put(v, FillField::ArrivalRunway, r);
+        v.insert(Src::ArrivalRunway, r);
     }
     if let Some(star) = plan
         .general
@@ -275,7 +315,7 @@ fn arrival(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
         .map(str::to_uppercase)
         .filter(|s| (2..=8).contains(&s.len()) && s.chars().all(|c| c.is_ascii_alphanumeric()))
     {
-        put(v, FillField::Star, star);
+        v.insert(Src::Star, star);
     }
     let metar = |a: Option<&involo_simbrief::Airport>| {
         a.and_then(|a| a.metar.as_deref())
@@ -285,14 +325,73 @@ fn arrival(plan: &Plan, v: &mut BTreeMap<FillField, String>) {
     let dest = metar(plan.destination.as_ref());
     let unit = dep.as_ref().or(dest.as_ref()).map(|a| a.unit.clone());
     if let Some(u) = &unit {
-        put(v, FillField::QnhUnit, u.clone());
+        v.insert(Src::AltimeterUnit, u.clone());
     }
     if let Some(a) = dep {
-        put(v, FillField::Qnh, a.value);
+        v.insert(Src::OriginAltimeter, a.value);
     }
     if let (Some(a), Some(u)) = (dest, unit) {
-        put(v, FillField::DestinationQnh, in_unit(&a, &u));
+        v.insert(Src::DestinationAltimeter, in_unit(&a, &u));
     }
+}
+
+/// Sources that are numbers a field's `display` may scale; the rest are text.
+fn raw(source: Src, value: &str) -> Raw<'_> {
+    let number = matches!(
+        source,
+        Src::BlockFuel
+            | Src::ReserveFuel
+            | Src::AlternateFuel
+            | Src::MinimumTakeoffFuel
+            | Src::ZeroFuelWeight
+            | Src::TakeoffWeight
+            | Src::Cargo
+    );
+    match value.parse() {
+        Ok(n) if number => Raw::Number(n),
+        _ => Raw::Text(value),
+    }
+}
+
+/// A number as the field stores it: divided by its scale and rounded to a multiple of its step,
+/// written with the step's decimals. Without a `display`, as read.
+fn shown(field: &FlightField, n: i32) -> String {
+    let Some(d) = &field.display else {
+        return n.to_string();
+    };
+    let steps = f64::from(n) / d.scale / d.step;
+    // A hair's margin, so a value already on a step is not pushed to the next one.
+    let steps = match d.round {
+        Rounding::Up => (steps - 1e-9).ceil(),
+        Rounding::Down => (steps + 1e-9).floor(),
+        Rounding::Nearest => steps.round(),
+    };
+    let decimals = format!("{}", d.step)
+        .split_once('.')
+        .map_or(0, |(_, f)| f.len());
+    format!("{:.*}", decimals, steps * d.step)
+}
+
+/// A field's value from the plan's sources: one source as read, or several numbers added
+/// together (saturating, and left out past what an airliner holds), when the first is there.
+fn field_value(field: &FlightField, read: &BTreeMap<Src, String>) -> Option<String> {
+    let first = *field.simbrief.first()?;
+    let value = read.get(&first)?;
+    if field.simbrief.len() == 1 {
+        return Some(match raw(first, value) {
+            Raw::Number(n) => shown(field, n),
+            Raw::Text(t) => t.to_owned(),
+        });
+    }
+    let mut sum: i32 = 0;
+    for source in &field.simbrief {
+        match read.get(source).map(|v| raw(*source, v)) {
+            Some(Raw::Number(n)) => sum = sum.saturating_add(n),
+            Some(Raw::Text(_)) => return None,
+            None => {}
+        }
+    }
+    (sum <= MAX_FUEL).then(|| shown(field, sum))
 }
 
 /// An altimeter setting in the flight's unit: 1 inHg is 33.8639 hPa.
@@ -310,9 +409,9 @@ fn in_unit(a: &crate::weather::Altimeter, unit: &str) -> String {
     }
 }
 
-/// The flight values a plan fills in, read as 3.0 read them. A plan without both airports is
-/// refused, as 3.0 refused it.
-pub fn plan_values(plan: &Plan) -> Result<PlanValues, AppError> {
+/// The flight values a plan fills in for a pack: each field that names SimBrief sources, filled
+/// from the plan as 3.0 read it. A plan without both airports is refused, as 3.0 refused it.
+pub fn plan_values(pack: &FlatPack, plan: &Plan) -> Result<PlanValues, AppError> {
     let (Some(origin), Some(destination)) = (
         icao(plan.origin.as_ref().and_then(|a| a.icao.as_ref())),
         icao(plan.destination.as_ref().and_then(|a| a.icao.as_ref())),
@@ -321,67 +420,27 @@ pub fn plan_values(plan: &Plan) -> Result<PlanValues, AppError> {
             "that plan has no departure and destination airports".into(),
         ));
     };
-    let g = &plan.general;
-    let mut v = BTreeMap::new();
-    let v = &mut v;
-    put(v, FillField::Origin, origin.clone());
-    put(v, FillField::Destination, destination.clone());
-    if let Some(n) = g.flight_number.as_deref() {
-        let n: String = n.to_uppercase().split_whitespace().collect();
-        let full = format!(
-            "{}{n}",
-            g.airline.as_deref().unwrap_or_default().to_uppercase()
-        );
-        put(
-            v,
-            FillField::FlightNumber,
-            if full.len() <= 7 {
-                full
-            } else {
-                n.chars().take(7).collect()
-            },
-        );
-    }
-    if let Some(a) = g.cruise_altitude_ft {
-        let fl = if a >= 1000 {
-            a.saturating_add(50) / 100
-        } else {
-            a
+    let read = sources(plan, &origin, &destination);
+    let mut values = BTreeMap::new();
+    let mut filled = 0;
+    let mut check_clearance = false;
+    for field in pack.content.flight.iter().flat_map(|f| &f.fields) {
+        let Some(value) = field_value(field, &read) else {
+            continue;
         };
-        if (100..=410).contains(&fl) {
-            put(v, FillField::CruiseLevel, fl.to_string());
+        // The pilot's fields, as 3.0 counted them: not the position, the database or the unit.
+        let quiet = [Src::OriginPosition, Src::NavDatabase, Src::WeightUnit];
+        if !field.simbrief.iter().all(|s| quiet.contains(s)) {
+            filled += 1;
         }
+        check_clearance |= field
+            .simbrief
+            .iter()
+            .any(|s| matches!(s, Src::Runway | Src::Sid));
+        values.insert(FieldId::new(field.id.as_str()), value);
     }
-    if let Some(r) = plan
-        .origin
-        .as_ref()
-        .and_then(|o| o.runway.as_deref())
-        .and_then(runway)
-    {
-        put(v, FillField::Runway, r);
-    }
-    let (sid, trans) = departure(plan);
-    if let Some(s) = sid {
-        put(v, FillField::Sid, s);
-    }
-    if let Some(t) = trans {
-        put(v, FillField::Transition, t);
-    }
-    performance(plan, v);
-    arrival(plan, v);
-    // The pilot's fields: not the position, the database or the weight unit, as 3.0 counted.
-    let filled = v
-        .keys()
-        .filter(|f| {
-            !matches!(
-                f,
-                FillField::OriginPosition | FillField::NavDatabase | FillField::WeightUnit
-            )
-        })
-        .count();
-    let check_clearance = v.contains_key(&FillField::Runway) || v.contains_key(&FillField::Sid);
     Ok(PlanValues {
-        values: std::mem::take(v),
+        values,
         filled,
         origin,
         destination,
@@ -403,27 +462,27 @@ mod tests {
     #[test]
     fn a_plan_fills_flight_values_as_3_0_did() {
         let plan = parse_plan(&fixture("ofp-sample.json")).unwrap();
-        let pv = plan_values(&plan).unwrap();
-        let get = |f: FillField| pv.values.get(&f).map(String::as_str);
+        let pv = plan_values(&crate::test_support::ifly_pack(), &plan).unwrap();
+        let get = |f: FieldId| pv.values.get(&f).map(String::as_str);
         // TSTX and 4567 make eight characters, over 3.0's seven: the number alone.
-        assert_eq!(get(FillField::FlightNumber), Some("4567"));
-        assert_eq!(get(FillField::Origin), Some("EGLL"));
-        assert_eq!(get(FillField::CruiseLevel), Some("370"));
-        assert_eq!(get(FillField::Runway), Some("09R"));
-        assert_eq!(get(FillField::Sid), Some("SUMMA2"));
-        assert_eq!(get(FillField::Fuel), Some("6400"));
-        assert_eq!(get(FillField::WeightUnit), Some("KG"));
-        assert_eq!(get(FillField::Zfw), Some("52.3"));
+        assert_eq!(get(FieldId::from("flight_number")), Some("4567"));
+        assert_eq!(get(FieldId::from("origin")), Some("EGLL"));
+        assert_eq!(get(FieldId::from("cruise_level")), Some("370"));
+        assert_eq!(get(FieldId::from("runway")), Some("09R"));
+        assert_eq!(get(FieldId::from("sid")), Some("SUMMA2"));
+        assert_eq!(get(FieldId::from("fuel")), Some("6400"));
+        assert_eq!(get(FieldId::from("weight_unit")), Some("KG"));
+        assert_eq!(get(FieldId::from("zfw")), Some("52.3"));
         // Reserve plus alternate, in thousands rounded up: 1,200 + 700 is 1.9.
-        assert_eq!(get(FillField::Reserves), Some("1.9"));
-        assert_eq!(get(FillField::CruiseWind), Some("265/042"));
-        assert_eq!(get(FillField::TransitionLevel), Some("70"));
-        assert_eq!(get(FillField::TakeoffWeight), Some("58.5"));
-        assert_eq!(get(FillField::Cargo), Some("2.1"));
-        assert_eq!(get(FillField::NavDatabase), Some("2406"));
+        assert_eq!(get(FieldId::from("reserves")), Some("1.9"));
+        assert_eq!(get(FieldId::from("cruise_wind")), Some("265/042"));
+        assert_eq!(get(FieldId::from("transition_level")), Some("70"));
+        assert_eq!(get(FieldId::from("takeoff_weight")), Some("58.5"));
+        assert_eq!(get(FieldId::from("cargo")), Some("2.1"));
+        assert_eq!(get(FieldId::from("nav_database")), Some("2406"));
         assert!(pv.check_clearance);
         assert!(
-            !pv.values.contains_key(&FillField::Transition),
+            !pv.values.contains_key(&FieldId::from("transition")),
             "the plan's SID has no transition"
         );
     }
@@ -431,14 +490,16 @@ mod tests {
     #[test]
     fn a_plan_fills_the_alternate_arrival_and_both_altimeter_settings() {
         let mut plan = parse_plan(&fixture("ofp-sample.json")).unwrap();
-        let pv = plan_values(&plan).unwrap();
+        let pv = plan_values(&crate::test_support::ifly_pack(), &plan).unwrap();
         assert_eq!(
-            pv.values.get(&FillField::Alternate).map(String::as_str),
+            pv.values
+                .get(&FieldId::from("alternate"))
+                .map(String::as_str),
             Some("LFPO")
         );
         assert_eq!(
             pv.values
-                .get(&FillField::LandingAltitude)
+                .get(&FieldId::from("landing_altitude"))
                 .map(String::as_str),
             Some("392")
         );
@@ -448,21 +509,23 @@ mod tests {
         d.metar = Some("KSFO 010856Z 28010KT 10SM FEW017 15/11 A2992".into());
         d.runway = Some("RW28R".into());
         plan.general.star = Some("bdega4".into());
-        let pv = plan_values(&plan).unwrap();
-        let get = |f: FillField| pv.values.get(&f).map(String::as_str);
-        assert_eq!(get(FillField::QnhUnit), Some("hPa"));
-        assert_eq!(get(FillField::Qnh), Some("1015"));
+        let pv = plan_values(&crate::test_support::ifly_pack(), &plan).unwrap();
+        let get = |f: FieldId| pv.values.get(&f).map(String::as_str);
+        assert_eq!(get(FieldId::from("qnh_unit")), Some("hPa"));
+        assert_eq!(get(FieldId::from("qnh")), Some("1015"));
         // The destination's 29.92 inHg in the departure's unit.
-        assert_eq!(get(FillField::DestinationQnh), Some("1013"));
-        assert_eq!(get(FillField::ArrivalRunway), Some("28R"));
-        assert_eq!(get(FillField::Star), Some("BDEGA4"));
+        assert_eq!(get(FieldId::from("destination_qnh")), Some("1013"));
+        assert_eq!(get(FieldId::from("arrival_runway")), Some("28R"));
+        assert_eq!(get(FieldId::from("star")), Some("BDEGA4"));
     }
 
     #[test]
     fn a_plan_goes_into_the_flight_in_one_action() {
         let pack = crate::test_support::ifly_pack();
         let plan = parse_plan(&fixture("ofp-sample.json")).unwrap();
-        let values = plan_values(&plan).unwrap().values;
+        let values = plan_values(&crate::test_support::ifly_pack(), &plan)
+            .unwrap()
+            .values;
         let flight = crate::apply(
             &pack,
             crate::new_flight(&pack),
@@ -483,14 +546,14 @@ mod tests {
         let mut plan = parse_plan(&fixture("ofp-sample.json")).unwrap();
         plan.general.airline = Some("TSTX".into());
         plan.general.flight_number = Some("45678".into());
-        let pv = plan_values(&plan).unwrap();
+        let pv = plan_values(&crate::test_support::ifly_pack(), &plan).unwrap();
         assert_eq!(
-            pv.values[&FillField::FlightNumber],
+            pv.values[&FieldId::from("flight_number")],
             "45678",
             "airline and number exceed 7"
         );
         plan.destination = None;
-        assert!(plan_values(&plan).is_err());
+        assert!(plan_values(&crate::test_support::ifly_pack(), &plan).is_err());
     }
 
     #[test]
@@ -518,11 +581,11 @@ mod tests {
         let mut plan = parse_plan(&fixture("ofp-sample.json")).unwrap();
         plan.origin.as_mut().unwrap().metar = Some("EGLL 010850Z 24008KT 9999 Qé15 15/08".into());
         plan.destination.as_mut().unwrap().metar = Some("LFPG 010850Z 1é010KT Q1013".into());
-        let pv = plan_values(&plan).unwrap();
-        assert_eq!(pv.values.get(&FillField::Qnh), None);
+        let pv = plan_values(&crate::test_support::ifly_pack(), &plan).unwrap();
+        assert_eq!(pv.values.get(&FieldId::from("qnh")), None);
         assert_eq!(
             pv.values
-                .get(&FillField::DestinationQnh)
+                .get(&FieldId::from("destination_qnh"))
                 .map(String::as_str),
             Some("1013")
         );
@@ -531,7 +594,13 @@ mod tests {
     #[test]
     fn fuel_and_weights_outside_what_an_airliner_can_hold_are_not_filled() {
         let mut plan = parse_plan(&fixture("ofp-sample.json")).unwrap();
-        let get = |p: &Plan, f: FillField| plan_values(p).unwrap().values.get(&f).cloned();
+        let get = |p: &Plan, f: FieldId| {
+            plan_values(&crate::test_support::ifly_pack(), p)
+                .unwrap()
+                .values
+                .get(&f)
+                .cloned()
+        };
         // At the top of each range: filled.
         plan.fuel.plan_ramp = Some(MAX_FUEL);
         plan.fuel.min_takeoff = Some(MAX_FUEL);
@@ -539,15 +608,21 @@ mod tests {
         plan.weights.zfw = Some(MAX_WEIGHT);
         plan.weights.takeoff = Some(MAX_WEIGHT);
         plan.weights.cargo = Some(MAX_WEIGHT);
-        assert_eq!(get(&plan, FillField::Fuel), Some(MAX_FUEL.to_string()));
         assert_eq!(
-            get(&plan, FillField::MinimumTakeoffFuel),
+            get(&plan, FieldId::from("fuel")),
             Some(MAX_FUEL.to_string())
         );
-        assert_eq!(get(&plan, FillField::Reserves), Some("1000.0".into()));
-        assert_eq!(get(&plan, FillField::Zfw), Some("1500.0".into()));
-        assert_eq!(get(&plan, FillField::TakeoffWeight), Some("1500.0".into()));
-        assert_eq!(get(&plan, FillField::Cargo), Some("1500.0".into()));
+        assert_eq!(
+            get(&plan, FieldId::from("minimum_takeoff_fuel")),
+            Some(MAX_FUEL.to_string())
+        );
+        assert_eq!(get(&plan, FieldId::from("reserves")), Some("1000.0".into()));
+        assert_eq!(get(&plan, FieldId::from("zfw")), Some("1500.0".into()));
+        assert_eq!(
+            get(&plan, FieldId::from("takeoff_weight")),
+            Some("1500.0".into())
+        );
+        assert_eq!(get(&plan, FieldId::from("cargo")), Some("1500.0".into()));
         // One over: left out.
         plan.fuel.plan_ramp = Some(MAX_FUEL + 1);
         plan.fuel.min_takeoff = Some(MAX_FUEL + 1);
@@ -556,27 +631,27 @@ mod tests {
         plan.weights.takeoff = Some(MAX_WEIGHT + 1);
         plan.weights.cargo = Some(MAX_WEIGHT + 1);
         for f in [
-            FillField::Fuel,
-            FillField::WeightUnit,
-            FillField::MinimumTakeoffFuel,
-            FillField::Reserves,
-            FillField::Zfw,
-            FillField::TakeoffWeight,
-            FillField::Cargo,
+            FieldId::from("fuel"),
+            FieldId::from("weight_unit"),
+            FieldId::from("minimum_takeoff_fuel"),
+            FieldId::from("reserves"),
+            FieldId::from("zfw"),
+            FieldId::from("takeoff_weight"),
+            FieldId::from("cargo"),
         ] {
-            assert_eq!(get(&plan, f), None, "{f:?}");
+            assert_eq!(get(&plan, f.clone()), None, "{f:?}");
         }
         // The parser's ceiling for a figure it can't hold: neither filled nor overflowing.
         plan.fuel.reserve = Some(i32::MAX);
         plan.fuel.alternate = Some(i32::MAX);
         plan.general.cruise_altitude_ft = Some(i32::MAX);
-        let pv = plan_values(&plan).unwrap();
-        assert_eq!(pv.values.get(&FillField::Reserves), None);
-        assert_eq!(pv.values.get(&FillField::CruiseLevel), None);
+        let pv = plan_values(&crate::test_support::ifly_pack(), &plan).unwrap();
+        assert_eq!(pv.values.get(&FieldId::from("reserves")), None);
+        assert_eq!(pv.values.get(&FieldId::from("cruise_level")), None);
         // An alternate figure out of range adds nothing to the reserve.
         plan.fuel.reserve = Some(1200);
         plan.fuel.alternate = Some(MAX_FUEL + 1);
-        assert_eq!(get(&plan, FillField::Reserves), Some("1.2".into()));
+        assert_eq!(get(&plan, FieldId::from("reserves")), Some("1.2".into()));
     }
 
     fn figure() -> impl proptest::strategy::Strategy<Value = Option<i32>> {
@@ -607,10 +682,75 @@ mod tests {
                 [a.elevation_ft, a.transition_altitude_ft, a.transition_level_ft] =
                     airport.clone().try_into().unwrap();
             }
-            let pv = plan_values(&plan).unwrap();
+            let pv = plan_values(&crate::test_support::ifly_pack(), &plan).unwrap();
             for v in pv.values.values() {
                 proptest::prop_assert!(!v.starts_with('-') || v.len() < 8, "{v}");
             }
+        }
+    }
+
+    /// The same plans fill the same values with the iFly pack's flight.yaml as they did when
+    /// the fields were a fixed list (the values frozen before, field by field).
+    #[test]
+    fn the_ifly_pack_fills_what_the_fixed_list_filled() {
+        let frozen: serde_json::Value =
+            serde_json::from_str(include_str!("../tests/fixtures/plan-values-ifly.json")).unwrap();
+        let pack = crate::test_support::ifly_pack();
+        let mut weather = parse_plan(&fixture("ofp-sample.json")).unwrap();
+        weather.origin.as_mut().unwrap().metar =
+            Some("EGLL 010850Z 24008KT 9999 FEW030 15/08 Q1015".into());
+        let d = weather.destination.as_mut().unwrap();
+        d.metar = Some("KSFO 010856Z 28010KT 10SM FEW017 15/11 A2992".into());
+        d.runway = Some("RW28R".into());
+        weather.general.star = Some("bdega4".into());
+        weather.general.airline = Some("TSTX".into());
+        weather.general.flight_number = Some("45678".into());
+        weather.weights.passengers = Some(150);
+        weather.general.route = Some("summa2 dvr ul9 kok".into());
+        let plans = [
+            (
+                "ofp-sample.json",
+                parse_plan(&fixture("ofp-sample.json")).unwrap(),
+            ),
+            (
+                "ofp-sample.xml",
+                parse_plan(&fixture("ofp-sample.xml")).unwrap(),
+            ),
+            ("ofp-sample.json with weather, arrival and route", weather),
+        ];
+        for (name, plan) in plans {
+            let now = serde_json::to_value(plan_values(&pack, &plan).unwrap()).unwrap();
+            let before = &frozen["plans"][name];
+            let fields: std::collections::BTreeSet<&String> = before["values"]
+                .as_object()
+                .unwrap()
+                .keys()
+                .chain(now["values"].as_object().unwrap().keys())
+                .collect();
+            for f in fields {
+                assert_eq!(now["values"][f], before["values"][f], "{name}: {f}");
+            }
+            for key in ["filled", "origin", "destination", "checkClearance"] {
+                assert_eq!(now[key], before[key], "{name}: {key}");
+            }
+        }
+    }
+
+    /// A field stored in thousands rounded up to a tenth gives what the fixed ZFW rounding gave.
+    #[test]
+    fn display_in_thousands_rounded_up_matches_the_old_zfw_rounding() {
+        let old = |v: i32| format!("{:.1}", (f64::from(v) / 100.0 - 1e-9).ceil() / 10.0);
+        let mut field = crate::test_support::ifly_pack()
+            .content
+            .flight
+            .unwrap()
+            .fields
+            .into_iter()
+            .find(|f| f.id == "zfw")
+            .unwrap();
+        field.id = "gross_mass".into();
+        for v in [1, 52_300, 52_301, 52_399, 99_999, 100_000, MAX_WEIGHT] {
+            assert_eq!(shown(&field, v), old(v), "{v}");
         }
     }
 }

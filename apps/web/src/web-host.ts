@@ -75,7 +75,7 @@ export const webHost: Host = {
   themeChanged: (theme) => applyBrandTheme(theme),
   fetchPlan: async (user) => compact(await fetchPlanText(await planUrl(user), { own: simbriefSays })),
   readPlanFile: compact,
-  planValues: (plan) => planValues(plan.plan),
+  planValues: (pack, plan) => planValues(pack, plan.plan),
   loadPlan,
   savePlan,
   decodeMetar,

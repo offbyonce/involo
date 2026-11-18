@@ -5,12 +5,12 @@
 // edits (or a read-only value, or a link to the section that holds it), its description,
 // destination chip and where the OFP prints it.
 
-import type { FillField, Flight, SavedPlan } from "@involo/bindings";
+import type { FieldId, Flight, SavedPlan } from "@involo/bindings";
 import type { FlightSection } from "../route.svelte";
 
 /** What a row's OFP panel reads. */
 export type Ctx = {
-  values: Partial<Record<FillField, string>>;
+  values: Partial<Record<FieldId, string>>;
   plan: SavedPlan | null;
   notes: string;
   /** "lb" or "kg". */
@@ -50,7 +50,7 @@ export type Row = {
   id: string;
   label: string;
   /** The field this row edits. */
-  field?: FillField;
+  field?: FieldId;
   /** A read-only value (plain mono text, no box). */
   read?: (c: Ctx) => string;
   /** A row that belongs to another section: its value is read-only and the chip is a link. */
@@ -59,7 +59,7 @@ export type Row = {
   phase?: string;
   /** A second field in the same row (Passengers and cargo). */
   second?: {
-    field: FillField;
+    field: FieldId;
     placeholder: string;
     /** Its own accessible name ("assumed temperature"). */
     name: string;
@@ -89,14 +89,14 @@ export type Row = {
   /** The link text of a row whose value belongs to a phase ("Before start ›"). */
   chip?: string;
   /** A two-way control under the description (Minimums: BARO / RADIO). */
-  seg?: { field: FillField; values: [string, string]; label: string };
+  seg?: { field: FieldId; values: [string, string]; label: string };
   ofp: Ofp;
 };
 
 export type Group = { title: string; note?: (c: Ctx) => string; units?: boolean; rows: Row[] };
 export type Section = { id: FlightSection; title: string; sub: string; groups: Group[]; selected: string };
 
-const v = (c: Ctx, f: FillField) => c.values[f] ?? "";
+const v = (c: Ctx, f: FieldId) => c.values[f] ?? "";
 const dash = (s: string | undefined | null) => (s ? s : "—");
 const grouped = (n: number) => Math.round(n).toLocaleString("en-US");
 /** "+2" for a positive deviation, as the boards print it. */
@@ -281,7 +281,7 @@ export const THRUST = ["TO", "TO-1", "TO-2"];
 export const AUTOBRAKE = ["OFF", "1", "2", "3", "MAX"];
 
 /** Fields the steps' blanks use, and the STAR: what "N to enter" and Still to enter count. */
-export const NEEDED: FillField[] = [
+export const NEEDED: FieldId[] = [
   "runway",
   "initial_altitude",
   "heading",
@@ -1016,7 +1016,7 @@ export const SECTIONS: Section[] = [
 ];
 
 /** The section that holds a field, and its row, for "— enter …" links and Still to enter. */
-export function home(field: FillField): { section: FlightSection; row: Row } | null {
+export function home(field: FieldId): { section: FlightSection; row: Row } | null {
   for (const s of SECTIONS)
     for (const g of s.groups)
       for (const r of g.rows) if (r.field === field && !r.link) return { section: s.id, row: r };
@@ -1024,7 +1024,7 @@ export function home(field: FillField): { section: FlightSection; row: Row } | n
 }
 
 /** Empty fields the steps need, per section ("2 to enter"). */
-export function toEnter(values: Partial<Record<FillField, string>>, section?: FlightSection): Row[] {
+export function toEnter(values: Partial<Record<FieldId, string>>, section?: FlightSection): Row[] {
   return SECTIONS.filter((s) => !section || s.id === section)
     .flatMap((s) => s.groups.flatMap((g) => g.rows))
     .filter((r) => r.field && !r.link && NEEDED.includes(r.field) && !values[r.field]);
@@ -1036,7 +1036,7 @@ export function unitOf(flight: Flight): string {
 }
 
 /** What a step's "— enter …" link names: "takeoff trim", "V2", "QNH". */
-const SPOKEN: Partial<Record<FillField, string>> = {
+const SPOKEN: Partial<Record<FieldId, string>> = {
   v1: "V1",
   vr: "VR",
   v2: "V2",
@@ -1051,7 +1051,7 @@ const SPOKEN: Partial<Record<FillField, string>> = {
  * trim"), or null for a blank typed in place: the pilot's own, or a value the Flight pages only
  * show. The altimeter settings live on Weather's Departure and Destination tabs.
  */
-export function blankLinks(fill: FillField[]): ({ href: string; name: string } | null)[] {
+export function blankLinks(fill: FieldId[]): ({ href: string; name: string } | null)[] {
   return fill.map((field) => {
     if (field === "manual") return null;
     const name = SPOKEN[field] ?? field.replace(/_/g, " ");
@@ -1077,7 +1077,7 @@ const QNH = (v: string, c: Ctx) =>
  * outside one shows "Enter X to Y" under its box while it stays out of range. Fields 3.0 gave no
  * range have no check.
  */
-export const RANGES: Partial<Record<FillField, (value: string, c: Ctx) => string | null>> = {
+export const RANGES: Partial<Record<FieldId, (value: string, c: Ctx) => string | null>> = {
   cruise_level: within(100, 410, "Enter FL100 to FL410"),
   initial_altitude: within(0, 41000, "Enter 0 to 41,000 ft"),
   heading: within(1, 360, "Enter 001 to 360"),
@@ -1104,7 +1104,7 @@ export const RANGES: Partial<Record<FillField, (value: string, c: Ctx) => string
 };
 
 /** The message for a field's value, or null when it's in range or empty. */
-export function rangeMessage(field: FillField, c: Ctx): string | null {
+export function rangeMessage(field: FieldId, c: Ctx): string | null {
   const value = c.values[field] ?? "";
   return value ? (RANGES[field]?.(value, c) ?? null) : null;
 }

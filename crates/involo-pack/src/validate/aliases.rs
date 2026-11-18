@@ -5,8 +5,7 @@
 
 use std::collections::BTreeSet;
 
-use involo_checklist_core::{Alias, AliasKind, FillField};
-use serde_json::Value;
+use involo_checklist_core::{Alias, AliasKind};
 
 use super::index::Index;
 use super::{Issue, error};
@@ -38,12 +37,7 @@ pub(super) fn check_alias(alias: &Alias, idx: &Index, issues: &mut Vec<Issue>) {
             Some((option, value)) => idx.check_option_value(at, option, value, issues),
             None => issues.push(error(at, "option alias must be `<option>:<value>`")),
         },
-        AliasKind::FillField
-            if !matches!(
-                serde_json::from_value::<FillField>(Value::String(to.to_owned())),
-                Ok(f) if f != FillField::Manual && f != FillField::RouteLeg
-            ) =>
-        {
+        AliasKind::FillField if !idx.fields.contains(to) => {
             issues.push(unknown("fill field"));
         }
         _ => {}

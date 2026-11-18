@@ -198,6 +198,8 @@ pub fn load_settings(json: &str) -> Loaded<Settings> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
+
     use serde::Deserialize;
     use serde_json::json;
 
@@ -209,7 +211,7 @@ mod tests {
         let mut flight = crate::new_flight(&pack);
         flight
             .values
-            .insert(involo_checklist_core::FillField::Qnh, "29.92".into());
+            .insert(involo_checklist_core::FieldId::from("qnh"), "29.92".into());
         let mut old = serde_json::to_value(&flight).unwrap();
         old["format"] = json!(1);
         let Loaded::Ready {
@@ -227,6 +229,35 @@ mod tests {
         );
         assert!(value.state_ticks.is_empty());
         assert!(value.answers.is_empty());
+    }
+
+    #[test]
+    fn a_flight_saved_before_packs_defined_their_fields_keeps_every_value() {
+        // Format 4, as the app saved it while flight fields were a fixed list (kept as it was,
+        // never regenerated). Values are keyed by field id, as text, so nothing moves.
+        let text = include_str!("../tests/fixtures/flight-format-4.json");
+        let saved: serde_json::Value = serde_json::from_str(text).unwrap();
+        let Loaded::Ready {
+            value,
+            migrated_from,
+        } = load_flight(text)
+        else {
+            panic!("the format 4 flight did not load");
+        };
+        assert_eq!(migrated_from, None);
+        let values: BTreeMap<String, String> = value
+            .values
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.clone()))
+            .collect();
+        let expected: BTreeMap<String, String> =
+            serde_json::from_value(saved["values"].clone()).unwrap();
+        assert_eq!(values, expected);
+        assert_eq!(values.len(), 22);
+        assert_eq!(
+            serde_json::to_value(&value).unwrap()["values"],
+            saved["values"]
+        );
     }
 
     #[test]
@@ -273,7 +304,7 @@ mod tests {
         let battery = involo_checklist_core::StepId::new("ifly-737-max8.cold-dark.battery-switch");
         assert_eq!(value.session.done_at(&battery), Some(1_763_110_000_000));
         assert_eq!(
-            value.values[&involo_checklist_core::FillField::Qnh],
+            value.values[&involo_checklist_core::FieldId::from("qnh")],
             "29.92"
         );
         assert_eq!(value.notes, "Taxi via A, hold short 16L");

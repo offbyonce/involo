@@ -5,7 +5,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use involo_checklist_core::{FillField, Millis, Session, StepId};
+use involo_checklist_core::{FieldId, Millis, Session, StepId};
 use involo_pack::FlatPack;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -33,7 +33,8 @@ pub struct Flight {
     pub state_skips: BTreeSet<StepId>,
     pub session: Session,
     /// Flight values, from the pilot or from SimBrief.
-    pub values: BTreeMap<FillField, String>,
+    #[ts(type = "Record<string, string>")]
+    pub values: BTreeMap<FieldId, String>,
     /// What the pilot typed into blanks with no linked value: `<step-id>#<n>` to text.
     pub blanks: BTreeMap<String, String>,
     /// Clearance and other notes from the flight strip.

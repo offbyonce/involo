@@ -96,6 +96,12 @@ reused. Stages have an `id` too, reference phases a `group` (`memory`, `quick` o
 and a panel item may have an `id` so a step target or light note can name it
 `panel/section/#id` (decision 0029).
 
+**Flight fields.** The values steps fill (`fill`, `hint`, CDU text) are fields the pack defines
+in `flight.yaml`, listed in `pack.json` as `flight`: each with its label, kind (number, text or
+choice), unit and ranges, where it goes in the aircraft, where else it shows (the flight strip, the
+Arrival data box), how a plan's number is stored (`display`) and the SimBrief values that fill it.
+SimBrief sources are the app's list (see `flight.schema.json`); a pack picks among them.
+
 **Labels.** Words the interface shows that belong to the aircraft (list kind names, the reference
 area's title and groups, crew roles and seats, the panel-state picker, basis tag labels) can go in
 an optional `labels.yaml`, listed in `pack.json` as `labels`. Every key is optional, and a key left

@@ -147,149 +147,16 @@
         "expect"
       ]
     },
-    "FillField": {
-      "description": "The fixed list of flight values the app can fill in. Packs cannot add names; a new one\nneeds an app release.",
-      "oneOf": [
-        {
-          "type": "string",
-          "enum": [
-            "origin",
-            "destination",
-            "flight_number",
-            "route",
-            "runway",
-            "sid",
-            "transition",
-            "initial_altitude",
-            "squawk",
-            "ground_frequency",
-            "tower_frequency",
-            "departure_frequency",
-            "heading",
-            "takeoff_flaps",
-            "landing_flaps",
-            "v1",
-            "vr",
-            "v2",
-            "vref",
-            "cg",
-            "takeoff_trim",
-            "autobrake",
-            "minimums",
-            "landing_altitude",
-            "minimum_takeoff_fuel",
-            "fuel",
-            "zfw",
-            "takeoff_weight",
-            "passengers",
-            "cargo",
-            "reserves",
-            "cost_index",
-            "cruise_level",
-            "cruise_wind",
-            "assumed_temperature",
-            "thrust_reduction_altitude",
-            "acceleration_altitude",
-            "isa_deviation",
-            "transition_altitude",
-            "transition_level",
-            "utc_time",
-            "utc_date"
-          ]
-        },
-        {
-          "description": "A blank the pilot types in, with no linked value. Only valid in a step's `fill`.",
-          "type": "string",
-          "const": "manual"
-        },
-        {
-          "description": "The first alternate airport (decision 0019, amended).",
-          "type": "string",
-          "const": "alternate"
-        },
-        {
-          "description": "The departure airport's altimeter setting.",
-          "type": "string",
-          "const": "qnh"
-        },
-        {
-          "description": "The destination airport's altimeter setting.",
-          "type": "string",
-          "const": "destination_qnh"
-        },
-        {
-          "description": "The runway the pilot expects to land on.",
-          "type": "string",
-          "const": "arrival_runway"
-        },
-        {
-          "description": "The arrival procedure.",
-          "type": "string",
-          "const": "star"
-        },
-        {
-          "description": "The takeoff thrust rating, e.g. `26K`.",
-          "type": "string",
-          "const": "thrust_rating"
-        },
-        {
-          "description": "`LB` or `KG`, for fuel and weights.",
-          "type": "string",
-          "const": "weight_unit"
-        },
-        {
-          "description": "`inHg` or `hPa`, for the QNH.",
-          "type": "string",
-          "const": "qnh_unit"
-        },
-        {
-          "description": "`BARO` or `RADIO`, for the minimums.",
-          "type": "string",
-          "const": "minimums_type"
-        },
-        {
-          "description": "Fuel in thousands, rounded up to the next tenth (calculated).",
-          "type": "string",
-          "const": "fuel_thousands"
-        },
-        {
-          "description": "Fuel plus zero fuel weight, in thousands (calculated).",
-          "type": "string",
-          "const": "gross_weight"
-        },
-        {
-          "description": "Outside air temperature at top of climb (calculated).",
-          "type": "string",
-          "const": "top_of_climb_oat"
-        },
-        {
-          "description": "Latitude and longitude of the departure airport.",
-          "type": "string",
-          "const": "origin_position"
-        },
-        {
-          "description": "The navigation database cycle (calculated).",
-          "type": "string",
-          "const": "nav_database"
-        },
-        {
-          "description": "The dates that cycle is active (calculated).",
-          "type": "string",
-          "const": "nav_active_dates"
-        },
-        {
-          "description": "One row of the route. Only valid in CDU text, with an `index` and a `part`.",
-          "type": "string",
-          "const": "route_leg"
-        }
-      ]
+    "FieldId": {
+      "description": "A flight field's id, e.g. `zfw`: one of the fields the pack defines in `flight.yaml`\n(decision 0029), or one of the app's own, [`FieldId::MANUAL`] and [`FieldId::ROUTE_LEG`].\nSaved flights key their values by it, as text.",
+      "type": "string"
     },
     "HintPart": {
       "description": "One piece of a hint shown beside a step, e.g. `GND` and the ground frequency.",
       "type": "object",
       "properties": {
         "field": {
-          "$ref": "#/$defs/FillField"
+          "$ref": "#/$defs/FieldId"
         },
         "prefix": {
           "description": "Literal text before the value, including any space, e.g. `SQUAWK `.",
@@ -507,7 +374,7 @@
           "description": "One field per `___` in `expect`, in order.",
           "type": "array",
           "items": {
-            "$ref": "#/$defs/FillField"
+            "$ref": "#/$defs/FieldId"
           }
         },
         "hint": {

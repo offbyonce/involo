@@ -328,10 +328,9 @@ pub fn log_entry(
         .find(|s| !s.phases.is_empty())
         .and_then(|s| s.phases.last())
         .is_some_and(|p| p.complete);
-    let value = |f| {
-        flight
-            .values
-            .get(&f)
+    let value = |source| {
+        crate::values::field_from(pack, source)
+            .and_then(|f| flight.values.get(f.id.as_str()))
             .map(|v| v.trim().to_owned())
             .unwrap_or_default()
     };
@@ -341,8 +340,8 @@ pub fn log_entry(
         pack: pack.manifest.id.clone(),
         pack_version: pack.manifest.version.to_string(),
         aircraft: pack.manifest.name.clone(),
-        origin: value(involo_checklist_core::FillField::Origin),
-        destination: value(involo_checklist_core::FillField::Destination),
+        origin: value(involo_checklist_core::SimbriefSource::Origin),
+        destination: value(involo_checklist_core::SimbriefSource::Destination),
         off_blocks,
         on_blocks,
         stages: stage_times(&r, &starts, on_blocks),
@@ -717,8 +716,8 @@ mod tests {
         let s = Settings::default();
         let mut flight = new_flight(&pack);
         for (f, v) in [
-            (involo_checklist_core::FillField::Origin, "KSEA"),
-            (involo_checklist_core::FillField::Destination, "KSFO"),
+            (involo_checklist_core::FieldId::from("origin"), "KSEA"),
+            (involo_checklist_core::FieldId::from("destination"), "KSFO"),
         ] {
             flight = apply(
                 &pack,
@@ -917,14 +916,17 @@ mod tests {
             .lists
             .iter()
             .flat_map(|l| &l.steps)
-            .find(|s| s.fill.contains(&involo_checklist_core::FillField::Qnh))
+            .find(|s| {
+                s.fill
+                    .contains(&involo_checklist_core::FieldId::from("qnh"))
+            })
             .unwrap()
             .clone();
         let mut flight = new_flight(&pack);
         assert_eq!(filled_value(&flight, &step), step.expect);
         flight
             .values
-            .insert(involo_checklist_core::FillField::Qnh, "29.92".into());
+            .insert(involo_checklist_core::FieldId::from("qnh"), "29.92".into());
         let v = filled_value(&flight, &step);
         assert!(v.contains("29.92"), "{v}");
         assert_eq!(
@@ -959,12 +961,12 @@ mod tests {
             .find(|s| s.id.as_str() == "ifly-737-max8.before-start.fuel")
             .unwrap();
         flight.values.insert(
-            involo_checklist_core::FillField::MinimumTakeoffFuel,
+            involo_checklist_core::FieldId::from("minimum_takeoff_fuel"),
             "5160".into(),
         );
         flight
             .values
-            .insert(involo_checklist_core::FillField::Fuel, "6400".into());
+            .insert(involo_checklist_core::FieldId::from("fuel"), "6400".into());
         let v = filled_value(&flight, fuel);
         assert!(v.ends_with("MAIN PUMPS ON · CENTER PUMPS OFF"), "{v}");
         assert!(v.contains("5160") && v.contains("6400"), "{v}");

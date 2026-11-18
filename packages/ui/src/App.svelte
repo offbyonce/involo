@@ -12,7 +12,7 @@ in Rust. The host saves progress and settings on the device.
     type Action,
     type AppInfo,
     type Checklist,
-    type FillField,
+    type FieldId,
     type FlatPack,
     type Flight,
     isAppError,
@@ -139,7 +139,7 @@ in Rust. The host saves progress and settings on the device.
   /** Saved data the app could not use, kept until the pilot decides (decision 0012). */
   /** The SimBrief plan kept on this device (decision 0019), and the values it fills. */
   let plan = $state<SavedPlan | null>(null);
-  let planFills = $state<Partial<Record<FillField, string>>>({});
+  let planFills = $state<Partial<Record<FieldId, string>>>({});
   /** The flight log (decision 0026), and why it can't be changed when the saved one is kept as is. */
   let log = $state<Log | null>(null);
   let logBlocked = $state<string | null>(null);
@@ -601,8 +601,8 @@ in Rust. The host saves progress and settings on the device.
   }
   /** Where the flight's plan came from: SimBrief when the kept plan filled any of its values. */
   let planSource = $derived.by((): PlanSource => {
-    const values = (flight?.values ?? {}) as Partial<Record<FillField, string>>;
-    return plan && Object.entries(planFills).some(([f, v]) => v && values[f as FillField] === v) ? "simbrief" : "manual";
+    const values = (flight?.values ?? {}) as Partial<Record<FieldId, string>>;
+    return plan && Object.entries(planFills).some(([f, v]) => v && values[f as FieldId] === v) ? "simbrief" : "manual";
   });
   /** This flight as it would be logged now, for the log page; null before anything is ticked. */
   let currentEntry = $state<LoggedFlight | null>(null);
@@ -842,7 +842,7 @@ in Rust. The host saves progress and settings on the device.
     if (!flight) return null;
     const before = flight;
     const keptPlan = plan;
-    const filled = await host.planValues(next);
+    const filled = await host.planValues(packId, next);
     await act({ type: "setValues", values: filled.values });
     plan = next;
     if (!kept.some((k) => k.what === "plan")) await host.savePlan(packId, next);
@@ -899,7 +899,7 @@ in Rust. The host saves progress and settings on the device.
       return;
     }
     safely(
-      host.planValues(p),
+      host.planValues(packId, p),
       (v) => (planFills = v.values),
       // A plan whose values can't be read fills nothing, rather than keeping another plan's.
       () => (planFills = {}),
@@ -908,14 +908,14 @@ in Rust. The host saves progress and settings on the device.
   /** Where the strip's clearance came from: "Runway and SID from SimBrief, 10:02 · the rest typed". */
   let provenance = $derived.by(() => {
     if (!flight) return "";
-    const labels: [FillField, string][] = [
+    const labels: [FieldId, string][] = [
       ["runway", "Runway"],
       ["sid", "SID"],
       ["transition", "Transition"],
       ["initial_altitude", "Initial altitude"],
       ["squawk", "Squawk"],
     ];
-    const values = (flight.values ?? {}) as Partial<Record<FillField, string>>;
+    const values = (flight.values ?? {}) as Partial<Record<FieldId, string>>;
     const set = labels.filter(([f]) => values[f]);
     const fromPlan = set.filter(([f]) => plan && planFills[f] === values[f]).map(([, l]) => l);
     const typed = set.length - fromPlan.length;

@@ -3,7 +3,7 @@
 
 //! `phases.yaml`: options, stages and phases.
 
-use crate::model::{FillField, ShowIf};
+use crate::model::{FieldId, ShowIf};
 
 data_types! {
     /// A choice the pilot makes that decides what is shown, e.g. the power source.
@@ -34,7 +34,7 @@ data_types! {
     #[serde(untagged)]
     pub enum Suggests {
         Rule(SuggestRule),
-        Field(FillField),
+        Field(FieldId),
     }
 
     /// A weight from the flight, less `minus`, above `more_than` suggests `then`, otherwise
@@ -42,7 +42,7 @@ data_types! {
     /// (decision 0027). The amounts are in `unit`. With `minus` at 0, nothing is suggested.
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct SuggestRule {
-        pub field: FillField,
+        pub field: FieldId,
         pub unit: WeightUnit,
         pub minus: u32,
         pub more_than: u32,

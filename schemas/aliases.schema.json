@@ -66,7 +66,7 @@
           "const": "option_value"
         },
         {
-          "description": "A saved flight value. `to` is a name from the app's fill list.",
+          "description": "A saved flight value. `to` is one of the pack's flight fields.",
           "type": "string",
           "const": "fill_field"
         },

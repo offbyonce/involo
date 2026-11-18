@@ -9,7 +9,7 @@ step at a time (lib/FlowView.svelte).
 -->
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import type { Checklist, Detail, FillField, Flight, OpenStep, PhaseView } from "@involo/bindings";
+  import type { Checklist, Detail, FieldId, Flight, OpenStep, PhaseView } from "@involo/bindings";
   import OpenStepsPop from "../lib/OpenStepsPop.svelte";
   import { openSteps } from "../lib/open-steps.svelte";
   import Icon from "../lib/Icon.svelte";
@@ -60,7 +60,7 @@ step at a time (lib/FlowView.svelte).
     fullView?: PhaseView | null;
     onOption: (option: string, value: string) => void;
     /** A flight value typed in a box on the page, such as Arrival data. */
-    onValue: (field: FillField, value: string) => void;
+    onValue: (field: FieldId, value: string) => void;
     /** Every open step, for "N open steps". */
     open?: OpenStep[];
     /** Goes to a step (the open-steps list). */

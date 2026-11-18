@@ -7,7 +7,7 @@ with its rows; Fuel's card header carries "Weights in lb / kg"; Approach has its
 above the cards. The selected row drives the OFP panel beside it.
 -->
 <script lang="ts">
-  import type { FillField, UserOption } from "@involo/bindings";
+  import type { FieldId, UserOption } from "@involo/bindings";
   import FieldRow from "./FieldRow.svelte";
   import { SECTIONS, toEnter, type Ctx, type Section } from "./sections";
 
@@ -29,7 +29,7 @@ above the cards. The selected row drives the OFP panel beside it.
     /** The pack's approach type option, with the flight's choice (Approach only). */
     approach?: { option: UserOption; value: string } | null;
     onSelect: (row: string) => void;
-    onSet: (field: FillField, value: string) => void;
+    onSet: (field: FieldId, value: string) => void;
     onOption: (option: string, value: string) => void;
     onNotes: (notes: string) => void;
   } = $props();

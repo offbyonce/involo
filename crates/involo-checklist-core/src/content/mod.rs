@@ -9,6 +9,7 @@ mod briefings;
 mod cdu;
 mod controls;
 mod faults;
+mod flight;
 mod glossary;
 mod labels;
 mod lights;
@@ -28,6 +29,10 @@ pub use controls::{
     OverviewViews, SeatViews, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, Zone,
 };
 pub use faults::{Fault, FaultsFile};
+pub use flight::{
+    FieldChoice, FieldDisplay, FieldKind, FieldRange, FlightField, FlightFile, Rounding, ShowIn,
+    SimbriefSource, StripText,
+};
 pub use glossary::{GlossaryEntry, GlossaryFile};
 pub use labels::{
     BasisTagLabel, GroupLabel, Labels, LabelsFile, ListKindLabels, ListKindLabelsFile,

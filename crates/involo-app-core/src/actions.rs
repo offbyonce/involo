@@ -3,14 +3,14 @@
 
 //! The only way the interface changes a flight (decision 0012).
 
-use involo_checklist_core::{FillField, Millis, StepId};
+use involo_checklist_core::{FieldId, Millis, StepId};
 use involo_pack::FlatPack;
 use serde::Deserialize;
 use ts_rs::TS;
 
 use crate::AppError;
 use crate::flight::{AnswerSource, Flight};
-use crate::values::{allowed, blank_key};
+use crate::values::blank_key;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, TS)]
 #[serde(tag = "type", rename_all = "camelCase", deny_unknown_fields)]
@@ -52,14 +52,14 @@ pub enum Action {
     },
     /// A flight value, typed by the pilot. An empty value removes it (decision 0019).
     SetValue {
-        field: FillField,
+        field: FieldId,
         value: String,
     },
     /// Several flight values at once, such as those a SimBrief plan fills in; each replaces the
     /// value it covers, and the whole change is one step to undo (decision 0019).
     SetValues {
-        #[ts(type = "Partial<Record<FillField, string>>")]
-        values: std::collections::BTreeMap<FillField, String>,
+        #[ts(type = "Record<string, string>")]
+        values: std::collections::BTreeMap<FieldId, String>,
     },
     /// What the pilot typed into a step's blank (`index` from 0). Empty removes the entry, so the
     /// blank shows the linked flight value again.
@@ -148,17 +148,24 @@ fn set_panel_state(
     Ok(())
 }
 
-fn set_value(flight: &mut Flight, field: FillField, value: &str) -> Result<(), AppError> {
-    if matches!(field, FillField::Manual | FillField::RouteLeg) {
-        return Err(invalid(format!("`{field:?}` is not a flight value")));
-    }
+fn set_value(
+    pack: &FlatPack,
+    flight: &mut Flight,
+    field: &FieldId,
+    value: &str,
+) -> Result<(), AppError> {
+    let Some(def) = crate::values::field(pack, field) else {
+        return Err(invalid(format!(
+            "`{field}` is not a flight field of this pack"
+        )));
+    };
     // Kept as typed: the interface saves on every keystroke, so a space typed between words must
     // stay. A blank value removes the entry.
     if value.trim().is_empty() {
-        flight.values.remove(&field);
+        flight.values.remove(field);
         return Ok(());
     }
-    if let Some(ok) = allowed(field)
+    if let Some(ok) = crate::values::allowed(def)
         && !ok.contains(&value)
     {
         return Err(invalid(format!(
@@ -166,7 +173,7 @@ fn set_value(flight: &mut Flight, field: FillField, value: &str) -> Result<(), A
             ok.join(", ")
         )));
     }
-    flight.values.insert(field, value.to_owned());
+    flight.values.insert(field.clone(), value.to_owned());
     Ok(())
 }
 
@@ -294,10 +301,10 @@ pub fn apply(pack: &FlatPack, mut flight: Flight, action: Action) -> Result<Flig
             set_option(pack, &mut flight, option.clone(), value)?;
             flight.answers.insert(option, by);
         }
-        Action::SetValue { field, value } => set_value(&mut flight, field, &value)?,
+        Action::SetValue { field, value } => set_value(pack, &mut flight, &field, &value)?,
         Action::SetValues { values } => {
             for (field, value) in &values {
-                set_value(&mut flight, *field, value)?;
+                set_value(pack, &mut flight, field, value)?;
             }
         }
         Action::SetBlank { step, index, value } => {

@@ -5,11 +5,40 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use involo_checklist_core::{OptionTest, ShowIf, StepId};
+use involo_checklist_core::{FieldId, OptionTest, ShowIf, StepId};
 
 use super::ids::unique;
 use super::{BLANK, Issue, error};
 use crate::Pack;
+
+/// The flight fields the pack defines.
+fn fields(pack: &Pack) -> BTreeSet<&str> {
+    let flight = pack.content.flight.iter();
+    flight
+        .flat_map(|f| &f.fields)
+        .map(|f| f.id.as_str())
+        .collect()
+}
+
+/// Each option's values, reporting options and values given twice.
+fn options<'a>(pack: &'a Pack, issues: &mut Vec<Issue>) -> BTreeMap<&'a str, BTreeSet<&'a str>> {
+    let all = pack
+        .content
+        .phases
+        .as_ref()
+        .map_or(&[][..], |p| p.options.as_slice());
+    unique("option", all.iter().map(|o| o.id.as_str()), issues);
+    let mut options = BTreeMap::new();
+    for option in all {
+        let values = unique(
+            &format!("option `{}` value", option.id),
+            option.values.iter().map(String::as_str),
+            issues,
+        );
+        options.insert(option.id.as_str(), values);
+    }
+    options
+}
 
 /// The crew roles the pack's labels list.
 fn roles(pack: &Pack) -> BTreeSet<&str> {
@@ -31,6 +60,8 @@ pub(super) struct Index<'a> {
     pub(super) step_prefixes: Vec<&'a str>,
     /// The crew roles the pack's labels list.
     pub(super) roles: BTreeSet<&'a str>,
+    /// The flight fields the pack defines.
+    pub(super) fields: BTreeSet<&'a str>,
     pub(super) tags: BTreeSet<&'a str>,
     pub(super) lists: BTreeSet<&'a str>,
     pub(super) steps: BTreeSet<&'a str>,
@@ -52,20 +83,11 @@ impl<'a> Index<'a> {
         let phases = c.phases.as_ref();
         let controls = c.controls.as_ref();
         let notes = c.notes.as_ref();
-        let mut options = BTreeMap::new();
-        let all_options = phases.map_or(&[][..], |p| p.options.as_slice());
-        unique("option", all_options.iter().map(|o| o.id.as_str()), issues);
-        for option in all_options {
-            let values = unique(
-                &format!("option `{}` value", option.id),
-                option.values.iter().map(String::as_str),
-                issues,
-            );
-            options.insert(option.id.as_str(), values);
-        }
+        let options = options(pack, issues);
         Self {
             step_prefixes: step_prefixes(pack),
             roles: roles(pack),
+            fields: fields(pack),
             tags: unique(
                 "basis tag",
                 pack.manifest.basis_tags.iter().map(String::as_str),
@@ -159,6 +181,17 @@ impl<'a> Index<'a> {
     pub(super) fn require_phase(&self, at: &str, id: &str, issues: &mut Vec<Issue>) {
         if !self.phases.contains(id) {
             issues.push(error(at, format!("refers to unknown phase `{id}`")));
+        }
+    }
+
+    /// A field a step or CDU text names: one the pack defines in `flight.yaml`. The app's own
+    /// fields are checked where they are allowed.
+    pub(super) fn require_field(&self, at: &str, field: &str, issues: &mut Vec<Issue>) {
+        if !self.fields.contains(field) && field != FieldId::MANUAL && field != FieldId::ROUTE_LEG {
+            issues.push(error(
+                at,
+                format!("`{field}` is not a flight field the pack defines in flight.yaml"),
+            ));
         }
     }
 

@@ -11,7 +11,7 @@ Notes from ATC, and a footer with Import latest from SimBrief, where the values 
 flight plan (Undo after, in the shared toast) and All flight data, the Flight pages.
 -->
 <script lang="ts">
-  import type { FillField } from "@involo/bindings";
+  import type { FieldId } from "@involo/bindings";
   import Icon from "./Icon.svelte";
   import { rangeMessage } from "../flight/sections";
 
@@ -24,11 +24,11 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
     onClear,
     onImport,
   }: {
-    values: Partial<Record<FillField, string>>;
+    values: Partial<Record<FieldId, string>>;
     notes: string;
     /** Where the values came from, e.g. "Runway and SID from SimBrief, 10:02 · the rest typed". */
     provenance?: string;
-    onSet: (field: FillField, value: string) => void;
+    onSet: (field: FieldId, value: string) => void;
     onNotes: (notes: string) => void;
     /** Resets the flight plan; the page offers Undo. */
     onClear: () => void;
@@ -36,7 +36,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
     onImport: () => void;
   } = $props();
 
-  type Field = { field: FillField; label: string; max: number; mode?: "numeric" | "decimal" };
+  type Field = { field: FieldId; label: string; max: number; mode?: "numeric" | "decimal" };
   const CLEARANCE: Field[] = [
     { field: "runway", label: "Runway", max: 4 },
     { field: "sid", label: "SID", max: 8 },
@@ -51,7 +51,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
   ];
 
   /** The closed strip's fields, as the board lists them. */
-  const FIELDS: { field: FillField; label: string }[] = [
+  const FIELDS: { field: FieldId; label: string }[] = [
     { field: "runway", label: "Runway" },
     { field: "sid", label: "SID" },
     { field: "initial_altitude", label: "Initial altitude" },
@@ -59,11 +59,11 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
     { field: "departure_frequency", label: "Departure frequency" },
   ];
   /** A field as the strip shows it: the SID with its transition, "SUMMA2.SUMMA" (Checklist board). */
-  function shownValue(field: FillField): string {
+  function shownValue(field: FieldId): string {
     const value = values[field] ?? "";
     return field === "sid" && value && values.transition ? `${value}.${values.transition}` : value;
   }
-  let filled = $derived(["origin", "destination", ...FIELDS.map((f) => f.field)].some((f) => values[f as FillField]));
+  let filled = $derived(["origin", "destination", ...FIELDS.map((f) => f.field)].some((f) => values[f as FieldId]));
   let route = $derived(`${values.origin || "—"} → ${values.destination || "—"}`);
   let noteCount = $derived(notes.split("\n").filter((l) => l.trim()).length);
 
@@ -71,12 +71,12 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
   /** Opened with a pointer: the cursor goes to Runway, but its ring shows only once a key is
    * pressed (the ring is for keyboard focus). */
   let quiet = $state(false);
-  const message = (field: FillField) => rangeMessage(field, { values, plan: null, notes, unit: "" });
+  const message = (field: FieldId) => rangeMessage(field, { values, plan: null, notes, unit: "" });
   let freqOpen = $state(false);
   let strip: HTMLElement | undefined = $state();
   let line: HTMLButtonElement | undefined = $state();
 
-  function show(field: FillField | null): void {
+  function show(field: FieldId | null): void {
     open = true;
     if (field && FREQUENCIES.some((f) => f.field === field)) freqOpen = true;
     queueMicrotask(() => {
@@ -94,7 +94,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
     // A click has a detail (the click count); Enter or Space on the button has none.
     quiet = e.detail > 0;
     const part = (e.target as HTMLElement).closest<HTMLElement>("[data-field]");
-    show((part?.dataset.field as FillField | undefined) ?? null);
+    show((part?.dataset.field as FieldId | undefined) ?? null);
   }
   /** Closes on a press outside the strip or on Escape, as 3.0 did. */
   function outside(e: PointerEvent): void {
@@ -107,7 +107,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
       hide();
     }
   }
-  const trimmed = (field: FillField, el: HTMLInputElement) => {
+  const trimmed = (field: FieldId, el: HTMLInputElement) => {
     const v = el.value.trim();
     if (v !== el.value) onSet(field, v);
   };

@@ -49,6 +49,7 @@ pub(super) fn manifest() -> PackManifest {
         panel_states: None,
         cdu: None,
         aliases: None,
+        flight: None,
         labels: None,
     }
 }
@@ -89,6 +90,56 @@ pub(super) fn phases() -> PhasesFile {
     }
 }
 
+/// The demo pack's flight fields: a weight with its unit, an altimeter setting, a speed, the
+/// runway, the route and the takeoff flaps.
+pub(super) fn flight() -> involo_checklist_core::FlightFile {
+    use involo_checklist_core::{FieldChoice, FieldKind};
+    let field = |id: &str, kind| involo_checklist_core::FlightField {
+        id: id.into(),
+        label: id.into(),
+        description: None,
+        kind,
+        unit: None,
+        ranges: vec![],
+        choices: vec![],
+        location: None,
+        page: None,
+        group: None,
+        show_in: vec![],
+        strip: None,
+        display: None,
+        simbrief: vec![],
+    };
+    let choice = |id: &str, values: &[&str]| {
+        let mut f = field(id, FieldKind::Choice);
+        f.choices = values
+            .iter()
+            .map(|v| FieldChoice {
+                value: (*v).into(),
+                label: None,
+            })
+            .collect();
+        f
+    };
+    let mut fuel = field("fuel", FieldKind::Number);
+    fuel.unit = Some("weight_unit".into());
+    let mut min_fuel = fuel.clone();
+    min_fuel.id = "minimum_takeoff_fuel".into();
+    involo_checklist_core::FlightFile {
+        fields: vec![
+            fuel,
+            min_fuel,
+            choice("weight_unit", &["LB", "KG"]),
+            field("qnh", FieldKind::Number),
+            field("v1", FieldKind::Number),
+            field("runway", FieldKind::Text),
+            field("route", FieldKind::Text),
+            field("sid", FieldKind::Text),
+            choice("takeoff_flaps", &["1", "5"]),
+        ],
+    }
+}
+
 pub(super) fn pack(steps: Vec<Step>, other_files: Vec<&str>) -> Pack {
     Pack {
         manifest: manifest(),
@@ -105,6 +156,7 @@ pub(super) fn pack(steps: Vec<Step>, other_files: Vec<&str>) -> Pack {
         }],
         content: PackContent {
             phases: Some(phases()),
+            flight: Some(flight()),
             ..PackContent::default()
         },
         labels_file: None,

@@ -5,7 +5,7 @@
 
 use std::collections::BTreeSet;
 
-use involo_checklist_core::{FillField, Quick, Suggests, UserOption};
+use involo_checklist_core::{FieldKind, Quick, Suggests, UserOption};
 
 use super::index::Index;
 use super::{Issue, error};
@@ -13,16 +13,23 @@ use crate::Pack;
 
 /// A suggestion rule (decision 0027) reads a planned fuel weight and suggests one of the option's
 /// own values.
-fn check_suggests(option: &UserOption, issues: &mut Vec<Issue>) {
+fn check_suggests(pack: &Pack, option: &UserOption, issues: &mut Vec<Issue>) {
     let Some(Suggests::Rule(rule)) = &option.suggests else {
         return;
     };
-    let weights = [FillField::Fuel, FillField::MinimumTakeoffFuel];
-    if !weights.contains(&rule.field) {
+    // A weight: a number field whose unit field offers LB and KG.
+    let fields = || pack.content.flight.iter().flat_map(|f| &f.fields);
+    let field = fields().find(|f| f.id == rule.field.as_str());
+    let unit = field
+        .and_then(|f| f.unit.as_deref())
+        .and_then(|u| fields().find(|f| f.id == u));
+    let weighs =
+        |c: &str| unit.is_some_and(|u| u.choices.iter().any(|x| x.value.eq_ignore_ascii_case(c)));
+    if field.is_none_or(|f| f.kind != FieldKind::Number) || !(weighs("LB") && weighs("KG")) {
         issues.push(error(
             &option.id,
             format!(
-                "`suggests` reads `{:?}`, which is not a fuel weight",
+                "`suggests` reads `{}`, which is not a weight field (a number whose unit is LB or KG)",
                 rule.field
             ),
         ));
@@ -58,7 +65,10 @@ pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
     for option in &file.options {
         idx.check_option_value(&option.id, &option.id, &option.default, issues);
         check_choices(option, issues);
-        check_suggests(option, issues);
+        check_suggests(pack, option, issues);
+        if let Some(Suggests::Field(field)) = &option.suggests {
+            idx.require_field(&option.id, field.as_str(), issues);
+        }
         for phase in &option.ask_in {
             idx.require_phase(&option.id, phase, issues);
         }
@@ -163,7 +173,7 @@ fn check_choices(option: &UserOption, issues: &mut Vec<Issue>) {
 
 #[cfg(test)]
 mod tests {
-    use involo_checklist_core::{FillField, OptionChoice, OptionTest, ShowIf};
+    use involo_checklist_core::{FieldId, OptionChoice, OptionTest, ShowIf};
 
     use super::super::test_support::{assert_flags, messages, pack, step};
 
@@ -278,19 +288,19 @@ mod tests {
             }
             p
         };
-        assert!(!messages(&with(rule(FillField::Fuel, "apu"))).contains("suggests"));
+        assert!(!messages(&with(rule(FieldId::from("fuel"), "apu"))).contains("suggests"));
         assert_flags(
-            &with(rule(FillField::Qnh, "apu")),
-            "`suggests` reads `Qnh`, which is not a fuel weight",
+            &with(rule(FieldId::from("qnh"), "apu")),
+            "`suggests` reads `qnh`, which is not a weight field",
         );
         assert_flags(
-            &with(rule(FillField::Fuel, "battery")),
+            &with(rule(FieldId::from("fuel"), "battery")),
             "`suggests` names `battery`, which is not one of the option's values",
         );
         // Format 4's bare field still reads, and suggests nothing.
         assert!(
             !messages(&with(Some(involo_checklist_core::Suggests::Field(
-                FillField::Fuel
+                FieldId::from("fuel")
             ))))
             .contains("suggests")
         );

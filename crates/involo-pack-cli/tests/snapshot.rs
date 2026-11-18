@@ -44,6 +44,7 @@ mod tests {
             insta::assert_json_snapshot!("cdu", content.cdu);
             insta::assert_json_snapshot!("aliases", content.aliases);
             insta::assert_json_snapshot!("labels", content.labels);
+            insta::assert_json_snapshot!("flight", content.flight);
         });
     }
 

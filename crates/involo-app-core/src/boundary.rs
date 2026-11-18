@@ -379,9 +379,10 @@ mod tests {
         let pack = crate::test_support::ifly_pack();
         let mut flight = new_flight(&pack);
         flight.panel_state = Some("gpu".into());
-        flight
-            .values
-            .insert(involo_checklist_core::FillField::WeightUnit, "KG".into());
+        flight.values.insert(
+            involo_checklist_core::FieldId::from("weight_unit"),
+            "KG".into(),
+        );
         let flight = crate::apply(
             &pack,
             flight,

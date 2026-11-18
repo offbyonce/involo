@@ -1,0 +1,575 @@
+# SPDX-FileCopyrightText: 2026 offbyonce and Involo contributors
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../schemas/flight.schema.json
+# The flight fields this pack's steps fill, with what a SimBrief plan fills (decision 0029).
+# Weights the CDU takes in thousands are stored that way (display); the rest as entered.
+fields:
+- id: origin
+  label: Departure
+  description: The airport you depart from. Its weather is on the Weather page.
+  kind: text
+  location: Enter on the CDU › RTE
+  page: route
+  group: Airports
+  show_in:
+  - strip
+  simbrief:
+  - origin
+- id: destination
+  label: Destination
+  description: Where you plan to land.
+  kind: text
+  location: Enter on the CDU › RTE
+  page: route
+  group: Airports
+  show_in:
+  - strip
+  strip:
+    join: ' → '
+  simbrief:
+  - destination
+- id: alternate
+  label: Alternate
+  description: Where you'd divert if you couldn't land at the destination.
+  kind: text
+  location: Enter on the CDU › RTE 2
+  page: route
+  group: Airports
+  simbrief:
+  - alternate
+- id: flight_number
+  label: Flight number
+  description: Your flight's number, as filed.
+  kind: text
+  location: Enter on the CDU › RTE
+  page: route
+  group: Airports
+  simbrief:
+  - flight_number
+- id: route
+  label: Route
+  description: The filed route from the SID to the arrival, as you enter it in the CDU.
+  kind: text
+  location: Enter on the CDU › RTE
+  page: route
+  group: The route
+  simbrief:
+  - route
+- id: runway
+  label: Runway
+  description: The runway you depart from.
+  kind: text
+  location: Enter on the CDU › DEP/ARR
+  page: clearance
+  group: Departure clearance
+  show_in:
+  - strip
+  strip:
+    prefix: 'RWY '
+  simbrief:
+  - runway
+- id: sid
+  label: SID
+  description: The departure procedure.
+  kind: text
+  location: Enter on the CDU › DEP/ARR
+  page: clearance
+  group: Departure clearance
+  show_in:
+  - strip
+  simbrief:
+  - sid
+- id: transition
+  label: Transition
+  description: Where the SID joins your route.
+  kind: text
+  location: Enter on the CDU › DEP/ARR
+  page: clearance
+  group: Departure clearance
+  show_in:
+  - strip
+  strip:
+    join: .
+  simbrief:
+  - transition
+- id: initial_altitude
+  label: Initial altitude
+  description: The altitude you're cleared to climb to first.
+  kind: number
+  ranges:
+  - min: 0
+    max: 41000
+  location: Set on the MCP › ALTITUDE
+  page: clearance
+  group: Departure clearance
+  show_in:
+  - strip
+  strip:
+    suffix: ' FT'
+- id: squawk
+  label: Squawk
+  description: Your transponder code.
+  kind: text
+  location: Set on the transponder
+  page: clearance
+  group: Departure clearance
+  show_in:
+  - strip
+  strip:
+    prefix: 'SQK '
+- id: ground_frequency
+  label: Ground
+  description: For pushback and taxi.
+  kind: text
+  location: Set on the radio panel
+  page: clearance
+  group: Frequencies
+  show_in:
+  - strip
+  strip:
+    prefix: 'GND '
+- id: tower_frequency
+  label: Tower
+  description: For takeoff.
+  kind: text
+  location: Set on the radio panel
+  page: clearance
+  group: Frequencies
+- id: departure_frequency
+  label: Departure frequency
+  description: The frequency to call after takeoff.
+  kind: text
+  location: Set on the radio panel
+  page: clearance
+  group: Frequencies
+  show_in:
+  - strip
+  strip:
+    prefix: 'DEP '
+- id: qnh
+  label: Altimeter setting (departure)
+  kind: number
+  unit: qnh_unit
+  ranges:
+  - unit: inHg
+    min: 28
+    max: 31
+  - unit: hPa
+    min: 948
+    max: 1050
+  simbrief:
+  - origin_altimeter
+- id: destination_qnh
+  label: Altimeter setting (destination)
+  kind: number
+  unit: qnh_unit
+  ranges:
+  - unit: inHg
+    min: 28
+    max: 31
+  - unit: hPa
+    min: 948
+    max: 1050
+  simbrief:
+  - destination_altimeter
+- id: heading
+  label: Runway heading
+  description: The heading of your takeoff runway.
+  kind: number
+  ranges:
+  - min: 1
+    max: 360
+  location: Set on the MCP › HEADING
+  page: takeoff
+  group: Runway
+- id: takeoff_flaps
+  label: Flaps
+  description: Takeoff flaps for your weight and runway.
+  kind: choice
+  choices:
+  - value: '1'
+  - value: '5'
+  - value: '10'
+  - value: '15'
+  - value: '25'
+  location: Enter on the CDU › TAKEOFF REF
+  page: takeoff
+  group: Settings and speeds
+- id: landing_flaps
+  label: Landing flaps
+  description: The flaps you land with. Landing speed is VREF for this setting.
+  kind: choice
+  choices:
+  - value: '15'
+  - value: '30'
+  - value: '40'
+  location: Enter on the CDU › APPROACH REF
+  page: approach
+  group: Landing
+  show_in:
+  - arrival
+- id: v1
+  label: V1
+  description: Decision speed. Before it you can stop; after it you go.
+  kind: number
+  ranges:
+  - min: 80
+    max: 250
+  location: Enter on the CDU › TAKEOFF REF
+  page: takeoff
+  group: Settings and speeds
+- id: vr
+  label: VR
+  description: Rotation speed.
+  kind: number
+  ranges:
+  - min: 80
+    max: 250
+  location: Enter on the CDU › TAKEOFF REF
+  page: takeoff
+  group: Settings and speeds
+- id: v2
+  label: V2
+  description: Takeoff safety speed for your takeoff flaps.
+  kind: number
+  ranges:
+  - min: 100
+    max: 250
+  location: Enter on the CDU › TAKEOFF REF
+  page: takeoff
+  group: Settings and speeds
+- id: vref
+  label: Landing speed
+  description: VREF for your landing flaps, plus any wind additive.
+  kind: number
+  ranges:
+  - min: 100
+    max: 250
+  location: Enter on the CDU › APPROACH REF
+  page: approach
+  group: Landing
+  show_in:
+  - arrival
+- id: cg
+  label: ZFW CG
+  description: Center of gravity without fuel, used for takeoff trim.
+  kind: number
+  ranges:
+  - min: 0
+    max: 50
+  location: Enter on the CDU › TAKEOFF REF
+  page: fuel
+  group: Weights
+- id: takeoff_trim
+  label: Stabilizer trim
+  description: Takeoff trim for your weight and balance.
+  kind: number
+  ranges:
+  - min: 0
+    max: 15
+  location: Enter on the CDU › TAKEOFF REF
+  page: takeoff
+  group: Settings and speeds
+- id: autobrake
+  label: Autobrake
+  description: How hard the brakes apply on touchdown.
+  kind: choice
+  choices:
+  - value: 'OFF'
+  - value: '1'
+  - value: '2'
+  - value: '3'
+  - value: MAX
+  location: Set on the autobrake selector
+  page: approach
+  group: Landing
+  show_in:
+  - arrival
+- id: minimums
+  label: Minimums
+  description: The height where you must see the runway to continue, from the approach chart. BARO for
+    most approaches; RADIO when the chart gives a radio altimeter height.
+  kind: number
+  ranges:
+  - min: 0
+    max: 14000
+  location: Set on the EFIS › MINS
+  page: approach
+  group: Landing
+  show_in:
+  - arrival
+- id: landing_altitude
+  label: Landing altitude
+  description: The destination field elevation, from the plan.
+  kind: number
+  ranges:
+  - min: -1000
+    max: 14000
+  location: Set on the pressurization panel › LAND ALT
+  page: approach
+  group: Landing
+  show_in:
+  - arrival
+  simbrief:
+  - destination_elevation
+- id: arrival_runway
+  label: Arrival runway
+  description: The runway you expect to land on. Check it against the ATIS before you brief.
+  kind: text
+  location: Enter on the CDU › DEP/ARR
+  page: approach
+  group: Arrival
+  simbrief:
+  - arrival_runway
+- id: star
+  label: Arrival (STAR)
+  description: The published route from the airway to the approach.
+  kind: text
+  location: Enter on the CDU › DEP/ARR
+  page: approach
+  group: Arrival
+  simbrief:
+  - star
+- id: minimum_takeoff_fuel
+  label: Minimum takeoff fuel
+  kind: number
+  unit: weight_unit
+  simbrief:
+  - minimum_takeoff_fuel
+- id: fuel
+  label: Block fuel
+  description: All the fuel on board before engine start.
+  kind: number
+  unit: weight_unit
+  location: Check on the fuel gauges
+  page: fuel
+  group: Fuel
+  simbrief:
+  - block_fuel
+- id: zfw
+  label: Zero fuel weight
+  description: The airplane's weight without fuel.
+  kind: number
+  unit: weight_unit
+  ranges:
+  - min: 0
+    max: 400
+  location: Enter on the CDU › PERF INIT
+  page: fuel
+  group: Weights
+  display:
+    scale: 1000
+    round: up
+    step: 0.1
+  simbrief:
+  - zero_fuel_weight
+- id: takeoff_weight
+  label: Planned takeoff weight
+  description: Zero fuel weight plus fuel at takeoff, from the plan.
+  kind: number
+  unit: weight_unit
+  ranges:
+  - min: 0
+    max: 400
+  location: Enter on the CDU › PERF INIT
+  page: fuel
+  group: Weights
+  display:
+    scale: 1000
+    round: nearest
+    step: 0.1
+  simbrief:
+  - takeoff_weight
+- id: passengers
+  label: Passengers and cargo
+  description: Passengers and cargo, from the plan's load sheet.
+  kind: number
+  ranges:
+  - min: 0
+    max: 500
+  page: fuel
+  group: Weights
+  simbrief:
+  - passengers
+- id: cargo
+  label: Cargo
+  kind: number
+  unit: weight_unit
+  ranges:
+  - min: 0
+    max: 100
+  page: fuel
+  group: Weights
+  display:
+    scale: 1000
+    round: nearest
+    step: 0.1
+  simbrief:
+  - cargo
+- id: reserves
+  label: Reserves
+  description: 'Alternate plus final reserve: what must be left at landing.'
+  kind: number
+  unit: weight_unit
+  ranges:
+  - min: 0
+    max: 100
+  location: Enter on the CDU › PERF INIT
+  page: fuel
+  group: Fuel
+  display:
+    scale: 1000
+    round: up
+    step: 0.1
+  simbrief:
+  - reserve_fuel
+  - alternate_fuel
+- id: cost_index
+  label: Cost index
+  description: Trades fuel against time. Lower saves fuel.
+  kind: number
+  ranges:
+  - min: 0
+    max: 9999
+  location: Enter on the CDU › PERF INIT
+  page: cruise
+  group: Cruise
+  simbrief:
+  - cost_index
+- id: cruise_level
+  label: Cruise level
+  description: The level you plan to cruise at.
+  kind: number
+  ranges:
+  - min: 100
+    max: 410
+  location: Enter on the CDU › PERF INIT
+  page: cruise
+  group: Cruise
+  simbrief:
+  - cruise_level
+- id: cruise_wind
+  label: Cruise wind
+  description: Average wind at cruise level, from the plan.
+  kind: text
+  location: Enter on the CDU › PERF INIT
+  page: cruise
+  group: Cruise
+  simbrief:
+  - cruise_wind
+- id: thrust_rating
+  label: Takeoff thrust
+  description: The rating from your takeoff performance in the EFB. TO is full thrust; TO-1 and TO-2 are
+    fixed derates that give less.
+  kind: choice
+  choices:
+  - value: TO
+  - value: TO-1
+  - value: TO-2
+  location: Enter on the CDU › N1 LIMIT
+  page: takeoff
+  group: Settings and speeds
+- id: assumed_temperature
+  label: Assumed temperature (SEL)
+  description: From your takeoff performance in the EFB. A temperature hotter than the real one, so the
+    FMC sets less thrust and saves the engines.
+  kind: number
+  location: Enter on the CDU › N1 LIMIT
+  page: takeoff
+  group: Settings and speeds
+- id: thrust_reduction_altitude
+  label: Thrust reduction altitude
+  kind: number
+- id: acceleration_altitude
+  label: Acceleration altitude
+  kind: number
+- id: isa_deviation
+  label: ISA deviation
+  description: How much warmer (plus) or colder (minus) than standard the air is at cruise.
+  kind: number
+  ranges:
+  - min: -60
+    max: 60
+  location: Enter on the CDU › PERF INIT
+  page: cruise
+  group: Cruise
+  simbrief:
+  - isa_deviation
+- id: transition_altitude
+  label: Transition altitude
+  description: Where you set standard pressure on the way up.
+  kind: number
+  ranges:
+  - min: 1000
+    max: 20000
+  location: Enter on the CDU › PERF INIT
+  page: cruise
+  group: Levels
+  simbrief:
+  - transition_altitude
+- id: transition_level
+  label: Transition level
+  description: Where you switch back to the local setting on the way down. Also on Approach.
+  kind: number
+  ranges:
+  - min: 10
+    max: 600
+  page: cruise
+  group: Levels
+  simbrief:
+  - transition_level
+- id: weight_unit
+  label: Weight unit
+  kind: choice
+  choices:
+  - value: LB
+  - value: KG
+  simbrief:
+  - weight_unit
+- id: qnh_unit
+  label: Altimeter unit
+  kind: choice
+  choices:
+  - value: inHg
+  - value: hPa
+  simbrief:
+  - altimeter_unit
+- id: minimums_type
+  label: Minimums type
+  kind: choice
+  choices:
+  - value: BARO
+  - value: RADIO
+  page: approach
+  group: Landing
+- id: fuel_thousands
+  label: Fuel in thousands
+  kind: number
+  unit: weight_unit
+- id: gross_weight
+  label: Gross weight
+  kind: number
+  unit: weight_unit
+- id: top_of_climb_oat
+  label: Top of climb outside air temperature
+  kind: number
+- id: origin_position
+  label: Departure position
+  kind: text
+  simbrief:
+  - origin_position
+- id: nav_database
+  label: Navigation database
+  kind: text
+  simbrief:
+  - nav_database
+- id: nav_active_dates
+  label: Navigation database dates
+  kind: text
+- id: utc_time
+  label: UTC time
+  kind: text
+- id: utc_date
+  label: UTC date
+  kind: text

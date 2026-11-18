@@ -1,15 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import type {
-  Decoded,
-  FillField,
-  Flight,
-  PanelState,
-  SavedPlan,
-  Settings,
-  UserOption,
-} from "@involo/bindings";
+import type { Decoded, FieldId, Flight, PanelState, SavedPlan, Settings, UserOption } from "@involo/bindings";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { type Host, hostContext } from "../host";
@@ -19,7 +11,7 @@ import { blankLinks, home, SECTIONS, toEnter } from "./sections";
 
 afterEach(cleanup);
 
-const flight = (values: Partial<Record<FillField, string>> = {}, notes = ""): Flight =>
+const flight = (values: Partial<Record<FieldId, string>> = {}, notes = ""): Flight =>
   ({
     format: 2,
     pack: "p",

@@ -18,7 +18,7 @@ data_types! {
         PanelState,
         /// A chosen option. `from` and `to` are `<option>:<value>`.
         OptionValue,
-        /// A saved flight value. `to` is a name from the app's fill list.
+        /// A saved flight value. `to` is one of the pack's flight fields.
         FillField,
         /// `to` is a list id.
         List,

@@ -18,6 +18,8 @@ pub(crate) fn example_pack() -> FlatPack {
     load("example-trainer")
 }
 
+/// The iFly pack, read from disk once per test run (a fresh copy each call).
 pub(crate) fn ifly_pack() -> FlatPack {
-    load("ifly-737-max8")
+    static PACK: std::sync::OnceLock<FlatPack> = std::sync::OnceLock::new();
+    PACK.get_or_init(|| load("ifly-737-max8")).clone()
 }
