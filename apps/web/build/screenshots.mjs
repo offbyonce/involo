@@ -228,8 +228,8 @@ const pickByKey = (label) => [
   { keys: ["\uE007"] },
 ];
 const press = (key) => `window.dispatchEvent(new KeyboardEvent("keydown", { key: ${JSON.stringify(key)}, bubbles: true })); true`;
-/** The Flow view button in the top bar. */
-const toFlow = `[...document.querySelectorAll("header.top .seg button")].find((b) => b.textContent.trim() === "Flow").click(); true`;
+/** The Step by step view button in the top bar. */
+const toFlow = `[...document.querySelectorAll("header.top .seg button")].find((b) => b.textContent.trim() === "Step by step").click(); true`;
 
 /** The tour's welcome opens on a first visit (each shot starts from nothing saved): it is closed
  * before every step, so the steps reach the page. */
@@ -356,7 +356,7 @@ const SHOTS = [
   },
   { name: "checklist", app: { hash: "#/phase/before-start" }, base: { hash: "#before-start" } },
   {
-    // N1 BUGS in Flow on both sides: the app ticks Landing gear pins first.
+    // N1 BUGS in Step by step on both sides: the app ticks Landing gear pins first.
     name: "flow",
     app: { hash: "#/phase/before-start", before: [click(".it .tick", 0), toFlow] },
     base: { hash: "#before-start", before: [click("#flowb")] },

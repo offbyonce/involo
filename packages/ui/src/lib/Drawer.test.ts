@@ -94,7 +94,7 @@ describe("Drawer", () => {
       onReset: () => calls.push("reset"),
       onClose: () => calls.push("close"),
     });
-    await fireEvent.click(screen.getByRole("button", { name: "Flow" }));
+    await fireEvent.click(screen.getByRole("button", { name: "Step by step" }));
     await fireEvent.click(screen.getByRole("button", { name: "Essentials" }));
     await fireEvent.click(screen.getByRole("button", { name: "Simple" }));
     await fireEvent.click(screen.getByRole("button", { name: /Reset flight plan/ }));

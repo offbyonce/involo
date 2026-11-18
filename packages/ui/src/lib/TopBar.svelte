@@ -110,8 +110,8 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
     {/if}
     {#if view}
       <div class="seg" role="group" aria-label="View">
-        <button type="button" aria-pressed={view === "checklist"} onclick={() => onView("checklist")}>Checklist</button>
-        <button type="button" aria-pressed={view === "flow"} onclick={() => onView("flow")}>Flow</button>
+        <button type="button" aria-pressed={view === "checklist"} onclick={() => onView("checklist")}>List</button>
+        <button type="button" aria-pressed={view === "flow"} onclick={() => onView("flow")}>Step by step</button>
       </div>
     {/if}
     <a class="emg" href="#/reference">Emergency</a>

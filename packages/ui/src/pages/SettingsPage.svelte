@@ -27,10 +27,10 @@ on the device (decision 0012).
     {
       key: "listView",
       title: "View",
-      text: "Checklist shows full lists you tick. Flow shows one step at a time in large text.",
+      text: "List shows full lists you tick. Step by step shows one step at a time in large text.",
       choices: [
-        ["checklist", "Checklist"],
-        ["flow", "Flow"],
+        ["checklist", "List"],
+        ["flow", "Step by step"],
       ],
     },
     {

@@ -5,12 +5,12 @@ Every 3.0 feature and where it lives at each size. Use this as a release check: 
 | 3.0 feature | Desktop and wide | Tablet landscape | Tablet portrait | Phone |
 |---|---|---|---|---|
 | Five stages, phases, procedures and checklists | Stage tabs, phase track, procedure card, collapsed checklist section | Stage picker, scrolling phase tabs | Same | Stage and phase picker, progress row |
-| Checklist or Flow | Header segmented control; Flow view | Header | Header | Menu |
+| List or Step by step | Header segmented control; Step by step view | Header | Header | Menu |
 | Full or Essentials | Mode pill, menu | Mode pill, menu | Mode pill, menu | Menu |
 | Make Essentials your own | Row menu: Add to / Remove from Essentials | Row menu | Row menu | Row menu |
 | Essentials marker (E) | Every Essentials row | Every row | Every row | Every row |
 | Detailed or Simple | Mode pill, menu | Same | Same | Menu |
-| Step map and panel views (round 6) | Panel preview in the side pane and Flow; the full labeled panel in the slide-out | Panel preview in the side pane and Flow; the full panel in the slide-out | Panel preview card in the expanded step; the full panel in the sheet | Panel preview card in the expanded step; the sheet's preview and controls list upright; the full labeled panel sideways |
+| Step map and panel views (round 6) | Panel preview in the side pane and Step by step; the full labeled panel in the slide-out | Panel preview in the side pane and Step by step; the full panel in the slide-out | Panel preview card in the expanded step; the full panel in the sheet | Panel preview card in the expanded step; the sheet's preview and controls list upright; the full labeled panel sideways |
 | Flight deck page | Menu › Flight deck | Menu › Flight deck | Menu › Flight deck | Menu › Flight deck |
 | Light meanings (round 6) | Control card in the slide-out (tap the light); Flight deck | Same | Control card in the sheet; Flight deck | Control card from the sheet's controls list upright, or the panel sideways; Flight deck |
 | Control details: tap any control (round 6) | Control card in the slide-out | Same | Control card in the sheet | Control card from the sheet's controls list upright, or the panel sideways |

@@ -153,7 +153,7 @@ in Rust. The host saves progress and settings on the device.
   let menuOpen = $state(false);
   /** The step shown in the context panel; null means the current step. */
   let selected = $state<string | null>(null);
-  /** The step Flow view shows; null follows the current step. */
+  /** The step Step by step view shows; null follows the current step. */
   let cursor = $state<string | null>(null);
   /** Find: its index, built once per pack, and whether it is open. */
   let findIndex = $state<FindIndex | null>(null);

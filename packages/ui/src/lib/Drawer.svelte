@@ -95,8 +95,8 @@ now (References was the last). The version line lives at the foot of Settings.
       <span class="label">Steps</span>
       {#if view && open}
         <div class="seg view" role="group" aria-label="View">
-          <button type="button" aria-pressed={view === "checklist"} onclick={() => onView("checklist")}>Checklist</button>
-          <button type="button" aria-pressed={view === "flow"} onclick={() => onView("flow")}>Flow</button>
+          <button type="button" aria-pressed={view === "checklist"} onclick={() => onView("checklist")}>List</button>
+          <button type="button" aria-pressed={view === "flow"} onclick={() => onView("flow")}>Step by step</button>
         </div>
       {/if}
       <div class="seg" role="group" aria-label="Steps shown">
@@ -428,7 +428,7 @@ now (References was the last). The version line lives at the foot of Settings.
     }
   }
 
-  /* Phone (below 600 px): Mobile's menu screen, 320 wide, with Checklist / Flow. */
+  /* Phone (below 600 px): Mobile's menu screen, 320 wide, with List / Step by step. */
   @media (max-width: 599px) {
     nav {
       width: calc(var(--size-drawer) - var(--space-10));

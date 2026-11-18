@@ -115,7 +115,7 @@ export const HOW = {
           p: "**Full** shows every step. **Essentials** shows only the steps marked E, the ones that matter most for this flight. **Detailed** shows each step’s Check, If not and Why; **Simple** shows just the value.",
         },
         {
-          p: "**Checklist** lists the steps; **Flow** follows the same steps across the panels, in the order you sweep through them. Change any of these at any time; your ticks stay as they are.",
+          p: "**List** shows the steps as lists; **Step by step** follows the same steps one at a time, across the panels in the order you sweep through them. Change any of these at any time; your ticks stay as they are.",
         },
       ],
       inInvolo: { text: "The Full · Detailed button above the steps.", link: "settings" },
