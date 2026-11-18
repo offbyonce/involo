@@ -131,6 +131,10 @@
       "description": "One part of the flight, holding its lists in order.",
       "type": "object",
       "properties": {
+        "engine_start": {
+          "description": "The phase that starts the engines, on at most one flight phase: Practice's \"Before\nengine start\" covers the flight up to and including it.",
+          "type": "boolean"
+        },
         "group": {
           "description": "Which reference group the phase is, required on a reference phase: `memory` (memory\nitems), `quick` (quick reference) or `procedures` (non-normal procedures). The app\nreads reference phases by group, never by their order or title (decision 0029).",
           "type": [

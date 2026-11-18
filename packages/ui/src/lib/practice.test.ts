@@ -29,6 +29,8 @@ import {
   TOPICS,
   type Topic,
   twins,
+  useTwins,
+  useTwinsOf,
   windows,
 } from "./practice";
 
@@ -72,9 +74,16 @@ describe("reference groups (decision 0029)", () => {
     const refs = file.phases.filter((p) => p.reference).reverse();
     for (const p of refs) p.id = `ref-${p.id}`;
     file.phases = [...file.phases.filter((p) => !p.reference), ...refs];
-    expect(howCountsOf(moved, 5)).toEqual(howCountsOf(pack, 5));
-    expect(howCountsOf(pack, 5)).toMatchObject({ memory: expect.any(Number), qrh: expect.any(Number) });
-    expect(howCountsOf(pack, 5).memory).toBeGreaterThan(0);
+    const stages = (pack.content.phases?.stages ?? []).map((st) => st.title);
+    expect(howCountsOf(moved, stages)).toEqual(howCountsOf(pack, stages));
+    expect(howCountsOf(pack, stages).groups).toMatch(
+      /^\d+ memory-item lists, \d+ quick reference lists and \d+ procedures$/,
+    );
+    expect(howCountsOf(pack, stages)).toMatchObject({
+      stages: 5,
+      stageNames: "Preflight, Departure, Enroute, Arrival and Post-flight",
+      reference: "Emergency",
+    });
     const memory = (p: typeof pack) => bank(p, indexPack(p)).filter((s) => s.topic === "memory").length;
     expect(memory(moved)).toBe(memory(pack));
     expect(memory(pack)).toBeGreaterThan(0);
@@ -220,7 +229,7 @@ describe("the question generator", () => {
     expect(deal(few, 40, random(2))).toHaveLength(sourcesIn(few));
   });
 
-  it("Before engine start: the Preflight stage, then Departure up to and including Engine start, by phase id", () => {
+  it("Before engine start: the flight up to and including the phase the pack marks engine_start", () => {
     const b = beforeEngineStart(pack);
     expect(b.stages).toEqual(["Preflight", "Departure"]);
     expect(b.phases).toContain("preflight");
@@ -485,5 +494,54 @@ describe("the question generator", () => {
         for (const m of line.matchAll(/(?:means|on the [^:]+|light[^:]*): ([A-Z][a-z]+) ([a-z]\w*)/g))
           expect.soft(`${m[1]} ${m[2]}`, `${q.id}: ${line}`).toBe("");
     }
+  });
+});
+
+describe("Practice for any pack", () => {
+  it("finds twins by the pack's numbered items (engines 1 to 4) and its own side words", () => {
+    // Invented: a four-engine airplane whose sides are port and starboard.
+    useTwins(["PORT", "STBD"], ["ENG 1 FIRE", "ENG 2 FIRE", "ENG 3 FIRE", "ENG 4 FIRE", "FLAPS"]);
+    expect(twins("ENG 1 FIRE", "ENG 4 FIRE")).toBe(true);
+    expect(twins("ENG 3 FIRE", "ENG 2 FIRE")).toBe(true);
+    expect(twins("PORT WING LIGHT", "STBD WING LIGHT")).toBe(true);
+    // Its words, not another pack's: left and right are not this pack's sides.
+    expect(twins("LEFT WING LIGHT", "RIGHT WING LIGHT")).toBe(false);
+    // A setting that is a number is never a pair.
+    expect(twins("FLAPS 1", "FLAPS 5")).toBe(false);
+    useTwinsOf(pack);
+  });
+
+  it("Before engine start in a pack with three stages and its own phase names", () => {
+    const three = structuredClone(pack);
+    const phases = three.content.phases;
+    if (!phases) throw new Error("phases");
+    phases.stages = [
+      { id: "ground", title: "On the ground", phases: [{ phase: "preflight" }, { phase: "before-start" }] },
+      { id: "air", title: "In the air", phases: [{ phase: "engine-start" }, { phase: "taxi" }] },
+      { id: "after", title: "After", phases: [{ phase: "shutdown" }] },
+    ] as typeof phases.stages;
+    for (const p of phases.phases) p.engineStart = p.id === "before-start";
+    expect(beforeEngineStart(three)).toEqual({
+      stages: ["On the ground"],
+      phases: ["preflight", "before-start"],
+    });
+    for (const p of phases.phases) p.engineStart = false;
+    expect(beforeEngineStart(three)).toEqual({ stages: [], phases: [] });
+  });
+
+  it("the How page reads three stages and the pack's own reference words", () => {
+    const three = structuredClone(pack);
+    three.content.labels.reference.title = "Abnormal";
+    three.content.labels.reference.groups = [{ id: "fire", title: "fire" }];
+    for (const p of three.content.phases?.phases ?? []) if (p.reference) p.group = "fire";
+    const n = (three.content.phases?.phases ?? [])
+      .filter((p) => p.reference)
+      .reduce((k, p) => k + p.lists.length, 0);
+    expect(howCountsOf(three, ["Ground", "Air", "Ground again"])).toEqual({
+      stages: 3,
+      stageNames: "Ground, Air and Ground again",
+      groups: `${n} fire lists`,
+      reference: "Abnormal",
+    });
   });
 });

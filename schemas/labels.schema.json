@@ -103,6 +103,15 @@
       "items": {
         "$ref": "#/$defs/SeatLabel"
       }
+    },
+    "side_words": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "string"
+      }
     }
   },
   "additionalProperties": false,

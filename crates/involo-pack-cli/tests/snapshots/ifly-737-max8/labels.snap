@@ -69,6 +69,17 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     "PERF INIT",
     "MA"
   ],
+  "side_words": [
+    "LEFT",
+    "RIGHT",
+    "L",
+    "R",
+    "CAPTAIN",
+    "CAPT",
+    "FIRST OFFICER",
+    "F/O",
+    "FO"
+  ],
   "basis_tags": [
     {
       "id": "prior-release",

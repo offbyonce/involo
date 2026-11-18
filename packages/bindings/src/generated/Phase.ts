@@ -16,6 +16,11 @@ reference?: boolean,
  */
 group?: string | null, 
 /**
+ * The phase that starts the engines, on at most one flight phase: Practice's "Before
+ * engine start" covers the flight up to and including it.
+ */
+engineStart?: boolean, 
+/**
  * Shown at the top of the phase.
  */
 intro?: Array<IntroParagraph>, 

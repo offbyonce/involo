@@ -1060,9 +1060,9 @@ in Rust. The host saves progress and settings on the device.
       stale = true;
     };
   });
-  /** The counts the page names: the stages, and the lists in each reference group (memory items,
-   * quick reference and non-normal procedures), read by group, never by order (decision 0029). */
-  let howCounts = $derived(howCountsOf(flatPack, rail?.stages.length ?? 0));
+  /** The values the How page names: the stages and their titles, the lists in each reference group
+   * (read by group, never by order; decision 0029) and the reference area's title. */
+  let howCounts = $derived(howCountsOf(flatPack, (rail?.stages ?? []).map((st) => st.title)));
   let tourStages = $derived<[string, string]>([rail?.stages[0]?.title ?? "", rail?.stages.at(-1)?.title ?? ""]);
 </script>
 
@@ -1177,6 +1177,7 @@ in Rust. The host saves progress and settings on the device.
       centerTank={suggestions.center_tank ? `${suggestions.center_tank.amount.toLocaleString("en-US")} ${suggestions.center_tank.unit}` : null}
       options={index.options}
       states={index.panelStates}
+      panelStateLabels={index.labels.panelStates}
       backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
       onSet={(field, value) => act({ type: "setValue", field, value })}
       onNotes={(notes) => act({ type: "setNotes", notes })}

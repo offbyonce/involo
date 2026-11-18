@@ -291,6 +291,7 @@ expression: flat
         {
           "id": "start",
           "title": "Start",
+          "engine_start": true,
           "lists": [
             "start-flow"
           ]
@@ -1192,6 +1193,17 @@ expression: flat
         "IGN R",
         "PERF INIT",
         "MA"
+      ],
+      "side_words": [
+        "LEFT",
+        "RIGHT",
+        "L",
+        "R",
+        "CAPTAIN",
+        "CAPT",
+        "FIRST OFFICER",
+        "F/O",
+        "FO"
       ],
       "basis_tags": [
         {

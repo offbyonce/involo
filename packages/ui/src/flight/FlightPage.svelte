@@ -8,7 +8,7 @@ On / Off), the section list (232) with "N to enter", the section, and "Find it i
 it. Every field of the old Flight setup lives in one section.
 -->
 <script lang="ts">
-  import type { FieldId, Flight, SavedPlan, Settings, PanelState, UserOption } from "@involo/bindings";
+  import type { FieldId, Flight, SavedPlan, Settings, PanelState, PanelStateLabels, UserOption } from "@involo/bindings";
   import Icon from "../lib/Icon.svelte";
   import { FLIGHT_SECTIONS, flightHref, type FlightSection } from "../route.svelte";
   import OfpPanel from "./OfpPanel.svelte";
@@ -28,6 +28,7 @@ it. Every field of the old Flight setup lives in one section.
     centerTank = null,
     options,
     states,
+    panelStateLabels,
     backHref,
     onSet,
     onNotes,
@@ -48,6 +49,8 @@ it. Every field of the old Flight setup lives in one section.
     centerTank?: string | null;
     options: UserOption[];
     states: PanelState[];
+    /** The panel state row's words, from the pack's labels. */
+    panelStateLabels: PanelStateLabels;
     backHref: string;
     onSet: (field: FieldId, value: string) => void;
     onNotes: (notes: string) => void;
@@ -160,7 +163,7 @@ it. Every field of the old Flight setup lives in one section.
       {:else if section === "weather"}
         <WeatherView {flight} {plan} descriptions={settings.descriptions} tab={focus} {onSet} bind:panel={wxPanel} />
       {:else if section === "start"}
-        <StartView {flight} {options} {states} {onOption} {onPanelState} />
+        <StartView {flight} {options} {states} labels={panelStateLabels} {onOption} {onPanelState} />
       {:else if section === "simbrief"}
         <SimBriefView user={settings.simbriefUser ?? null} {plan} {onImport} {onFile} {onClear} />
       {:else if def}

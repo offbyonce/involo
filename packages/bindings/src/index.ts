@@ -57,6 +57,7 @@ export type { Panel } from "./generated/Panel";
 export type { PanelItem } from "./generated/PanelItem";
 export type { PanelSection } from "./generated/PanelSection";
 export type { PanelState } from "./generated/PanelState";
+export type { PanelStateLabels } from "./generated/PanelStateLabels";
 export type { Phase } from "./generated/Phase";
 export type { PhaseLink } from "./generated/PhaseLink";
 export type { PhaseList } from "./generated/PhaseList";

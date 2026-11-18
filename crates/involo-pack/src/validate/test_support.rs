@@ -89,6 +89,7 @@ pub(super) fn phases() -> PhasesFile {
             title: "Preflight".into(),
             reference: false,
             group: None,
+            engine_start: false,
             intro: vec![],
             lists: vec!["preflight".into()],
         }],

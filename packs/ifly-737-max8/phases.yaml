@@ -211,6 +211,7 @@ phases:
       - pushback-pushback
   - id: engine-start
     title: Engine start
+    engine_start: true
     lists:
       - engine-start-engine-start
   - id: before-taxi

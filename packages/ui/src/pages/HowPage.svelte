@@ -136,7 +136,7 @@ Each part ends in an "In Involo" box whose link goes to the real place: the pilo
       case "step":
         return step && phase ? { href: phaseHref(phase.id), text: fill(HOW.links.step, { step: step.title }), step: step.id } : phaseLink;
       case "emergency":
-        return { href: "#/reference", text: HOW.links.emergency };
+        return { href: "#/reference", text: fill(HOW.links.emergency, values) };
       case "settings":
         return { href: "#/settings", text: HOW.links.settings };
       case "open":

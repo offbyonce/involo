@@ -72,7 +72,7 @@ pub enum Action {
     SetNotes {
         notes: String,
     },
-    /// The iFly panel state the flight starts from, or none. It sets the state's options and
+    /// The pack's panel state the flight starts from, or none. It sets the state's options and
     /// ticks and skips the steps it has already set; picking another state, or none, takes back
     /// only the marks the earlier state made. The pilot's own ticks and skips are never changed.
     SetPanelState {

@@ -21,10 +21,6 @@ describe("pack labels", () => {
   it("match the words the interface shows today", () => {
     expect(source["Slideout.svelte"]).toContain(`title="${labels.seatViewTitle}"`);
     expect(source["Locator.svelte"]).toContain(`title="${labels.seatViewTitle}"`);
-    const start = source["StartView.svelte"] ?? "";
-    expect(start).toContain(`<span class="t">${labels.panelStates.title}</span>`);
-    expect(start.replace(/\s+/g, " ")).toContain(labels.panelStates.description);
-    expect(start).toContain(`<option value="">${labels.panelStates.placeholder}</option>`);
     for (const example of labels.findExamples) expect(source["Find.svelte"]).toContain(`"${example}"`);
     expect(labels.glossaryExceptions).toEqual(NO_EXPANSION);
   });

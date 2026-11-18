@@ -39,7 +39,7 @@ export type PackIndex = {
   /** The seat view "Where is this?" draws (see `seatFrame`). */
   seatFrame: ViewFrame | null;
   options: UserOption[];
-  /** The iFly panel states (panel states) the pack offers. */
+  /** The panel states the pack offers (a simulator's saved starting points). */
   panelStates: PanelState[];
   /** A shared "how to do it" note's steps, by id. */
   how(id: string): string[] | undefined;

@@ -15,7 +15,7 @@ describe("How procedures work's text", () => {
     expect(HOW.parts[1]?.blocks.some((b) => "figure" in b)).toBe(true);
   });
 
-  it("names only the counts the pack gives, and closes every bold mark", () => {
+  it("names only the values the pack gives, and closes every bold mark", () => {
     const names = new Set<string>();
     for (const p of HOW.parts) {
       for (const b of p.blocks) {
@@ -24,7 +24,7 @@ describe("How procedures work's text", () => {
         expect(b.p.split("**").length % 2, b.p).toBe(1);
       }
     }
-    expect([...names].sort()).toEqual(["memory", "procedures", "qrh", "stages"]);
+    expect([...names].sort()).toEqual(["groups", "reference", "stageNames", "stages"]);
   });
 
   it("fills counts and splits bold runs", () => {

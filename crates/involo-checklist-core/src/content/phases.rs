@@ -135,6 +135,7 @@ data_types! {
     }
 
     /// One part of the flight, holding its lists in order.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct Phase {
         pub id: String,
         pub title: String,
@@ -146,6 +147,10 @@ data_types! {
         /// reads reference phases by group, never by their order or title (decision 0029).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub group: Option<String>,
+        /// The phase that starts the engines, on at most one flight phase: Practice's "Before
+        /// engine start" covers the flight up to and including it.
+        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        pub engine_start: bool,
         /// Shown at the top of the phase.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub intro: Vec<IntroParagraph>,

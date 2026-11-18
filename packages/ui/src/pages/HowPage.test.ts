@@ -13,7 +13,12 @@ afterEach(() => {
   history.replaceState(null, "", "#/");
 });
 
-const counts = { stages: 5, memory: 3, qrh: 13, procedures: 11 };
+const counts = {
+  stages: 5,
+  stageNames: "Preflight, Departure, Enroute, Arrival and Post-flight",
+  groups: "3 memory-item lists, 13 quick reference lists and 11 procedures",
+  reference: "Emergency",
+};
 const base = {
   part: null,
   counts,
@@ -54,7 +59,9 @@ describe("How procedures work, desktop (HowDesk)", () => {
       expect(text).toContain(shown(p.inInvolo.text));
     }
     // Every count filled from the pack; no placeholder or bold mark left.
-    expect(text).toContain("Involo splits a flight into 5 stages:");
+    expect(text).toContain(
+      "Involo splits a flight into 5 stages: Preflight, Departure, Enroute, Arrival and Post-flight.",
+    );
     expect(text).toContain("Involo has 3 memory-item lists, 13 quick reference lists and 11 procedures,");
     expect(text).not.toMatch(/[{}]|\*\*/);
   });
@@ -73,18 +80,18 @@ describe("How procedures work, desktop (HowDesk)", () => {
     const fig = container.querySelector("figure");
     expect(fig?.querySelector("svg")?.getAttribute("aria-label")).toBe(HOW.figure.flowLabel);
     expect([...(fig?.querySelectorAll("svg text") ?? [])].map((t) => t.textContent)).toEqual([
-      "OVERHEAD",
-      "GLARESHIELD",
-      "MAIN PANEL",
-      "PEDESTAL",
+      "AREA 1",
+      "AREA 2",
+      "AREA 3",
+      "AREA 4",
       "start",
       "end",
     ]);
     expect([...(fig?.querySelectorAll(".pair:not(.head)") ?? [])].map((r) => r.textContent)).toEqual([
-      "Fuel____ kg, pumps ON",
-      "Hydraulic pumpsON",
-      "Anti-collision lightON",
-      "Stabilizer trim____ units",
+      "BatteryON",
+      "Fuel quantity____, checked",
+      "Beacon lightON",
+      "Trim____, set",
     ]);
     expect(fig?.querySelector("figcaption")?.textContent).toBe(
       "Do the flow, then use the checklist to confirm nothing was missed.",

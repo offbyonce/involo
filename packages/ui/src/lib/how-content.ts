@@ -4,10 +4,12 @@
 // How procedures work: every word on the page, in one place to edit (CONTENT.md, a
 // first draft to adjust after seeing it in the app). How to write here:
 //   **word**   shows in bold.
-//   {stages}   a count from the pack: {stages}, {memory}, {qrh} and {procedures}.
+//   {stages}   a value from the pack: {stages} (how many), {stageNames}, {groups} (the reference
+//              lists by group, "9 memory-item lists, 30 quick reference lists and 18 procedures")
+//              and {reference} (the reference area's title).
 // Each part has a title, its blocks in order, and its "In Involo" box: the line, and where the link
-// goes ("phase": the pilot's current phase, "step": the current step, "emergency": the Emergency
-// list, "settings", "open": Open steps, "flight": Flight › Overview).
+// goes ("phase": the pilot's current phase, "step": the current step, "emergency": the reference
+// area, "settings", "open": Open steps, "flight": Flight › Overview).
 
 /** One block of a part: a paragraph, a list of terms and what they mean, or part 2's figure. */
 export type HowBlock = { p: string } | { terms: { term: string; text: string }[] } | { figure: true };
@@ -43,7 +45,7 @@ export const HOW = {
   links: {
     phase: "{phase}",
     step: "{step}",
-    emergency: "Emergency",
+    emergency: "{reference}",
     settings: "Settings",
     open: "Open steps",
     flight: "Flight › Overview",
@@ -54,7 +56,7 @@ export const HOW = {
       title: "The shape of a flight",
       blocks: [
         {
-          p: "Involo splits a flight into {stages} stages: Preflight, Departure, Enroute, Arrival and Post-flight. Each stage is made of phases, such as Before start or Taxi, and each phase holds its procedures in the order you fly them.",
+          p: "Involo splits a flight into {stages} stages: {stageNames}. Each stage is made of phases, such as Before start or Taxi, and each phase holds its procedures in the order you fly them.",
         },
         {
           p: "You always know where you are: the stage is in the header and the phase in the row below it. Move ahead or back at any time; your place is saved as you go.",
@@ -103,10 +105,10 @@ export const HOW = {
           p: "Some failures can’t wait for a book. Their first actions are **memory items**: a few steps every pilot knows by heart and does at once. The **quick reference** lists come next, read from the list, one action at a time. Longer **non-normal procedures** cover the rest.",
         },
         {
-          p: "Involo has {memory} memory-item lists, {qrh} quick reference lists and {procedures} procedures, all behind the Emergency button. Opening one doesn’t lose your place in the normal checklist.",
+          p: "Involo has {groups}, all behind the {reference} button. Opening one doesn’t lose your place in the normal checklist.",
         },
       ],
-      inInvolo: { text: "Emergency, in the header.", link: "emergency" },
+      inInvolo: { text: "{reference}, in the header.", link: "emergency" },
     },
     {
       title: "How much you see",
@@ -149,35 +151,66 @@ export const HOW = {
   /** Part 2's figure (the HowItWorks board). */
   figure: {
     flowHeading: "1 · THE FLOW, FROM MEMORY",
-    flowLabel:
-      "A flow sweeps across the panels in a fixed pattern: overhead, glareshield, main panel, then pedestal",
-    panels: { overhead: "OVERHEAD", glareshield: "GLARESHIELD", main: "MAIN PANEL", pedestal: "PEDESTAL" },
+    flowLabel: "A flow sweeps across the panels in a fixed pattern, one area after another",
+    /** Four areas in sweep order, named by number: a schematic of the idea, no aircraft's panels. */
+    panels: { first: "AREA 1", second: "AREA 2", third: "AREA 3", fourth: "AREA 4" },
     start: "start",
     end: "end",
     checklistHeading: "2 · THE CHECKLIST, READ ALOUD",
     challenge: "CHALLENGE · ONE PILOT READS",
     response: "RESPONSE · THE OTHER CONFIRMS",
+    /** Sample rows with no aircraft's values: a control and what the checklist asks for. */
     rows: [
-      { challenge: "Fuel", response: "____ kg, pumps ON" },
-      { challenge: "Hydraulic pumps", response: "ON" },
-      { challenge: "Anti-collision light", response: "ON" },
-      { challenge: "Stabilizer trim", response: "____ units" },
+      { challenge: "Battery", response: "ON" },
+      { challenge: "Fuel quantity", response: "____, checked" },
+      { challenge: "Beacon light", response: "ON" },
+      { challenge: "Trim", response: "____, set" },
     ],
     caption: "Do the flow, then use the checklist to confirm nothing was missed.",
   },
 };
 
-/** The counts the text names, from the pack. */
-export type HowCounts = { stages: number; memory: number; qrh: number; procedures: number };
+/** The values the text names, from the pack. */
+export type HowCounts = { stages: number; stageNames: string; groups: string; reference: string };
 
-/** The counts from the pack: the lists in each reference group, read by `group`, never by the
- * phases' order or titles (decision 0029). */
-export function howCountsOf(pack: FlatPack | null | undefined, stages: number): HowCounts {
-  const inGroup = (group: string) =>
-    (pack?.content.phases?.phases ?? [])
-      .filter((p) => p.reference && p.group === group)
-      .reduce((n, p) => n + p.lists.length, 0);
-  return { stages, memory: inGroup("memory"), qrh: inGroup("quick"), procedures: inGroup("procedures") };
+/** "A, B and C". */
+const andList = (xs: string[]) =>
+  xs.length < 2 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`;
+
+/** How each reference group's lists are counted in words: the app's three groups by their words,
+ * any other by its title from the pack's labels. */
+const groupWords = (id: string, title: string, n: number): string => {
+  if (id === "memory") return `${n} memory-item ${n === 1 ? "list" : "lists"}`;
+  if (id === "quick") return `${n} quick reference ${n === 1 ? "list" : "lists"}`;
+  if (id === "procedures") return `${n} ${n === 1 ? "procedure" : "procedures"}`;
+  return `${n} ${title} ${n === 1 ? "list" : "lists"}`;
+};
+
+/** The values from the pack: the stages the flight shows (`stages`, their titles), and the lists
+ * in each reference group, read by `group` in the labels' order, never by the phases' order or
+ * titles (decision 0029). */
+export function howCountsOf(pack: FlatPack | null | undefined, stages: string[]): HowCounts {
+  const phases = (pack?.content.phases?.phases ?? []).filter((p) => p.reference);
+  const labels = pack?.content.labels;
+  const named = labels?.reference.groups ?? [];
+  const ids = [
+    ...named.map((g) => g.id),
+    ...phases.map((p) => p.group ?? "").filter((g) => g && !named.some((x) => x.id === g)),
+  ];
+  const groups = [...new Set(ids)]
+    .map((id) => ({
+      id,
+      title: named.find((g) => g.id === id)?.title ?? id,
+      n: phases.filter((p) => p.group === id).reduce((n, p) => n + p.lists.length, 0),
+    }))
+    .filter((g) => g.n > 0)
+    .map((g) => groupWords(g.id, g.title, g.n));
+  return {
+    stages: stages.length,
+    stageNames: andList(stages),
+    groups: andList(groups),
+    reference: labels?.reference.title ?? "",
+  };
 }
 
 /** A line with its {placeholders} filled from `values`; a name with no value stays as written. */

@@ -137,7 +137,10 @@ cycle, or a parent of another format or outside the range fails the build.
 **Labels.** Words the interface shows that belong to the aircraft (list kind names, the reference
 area's title and groups, crew roles and seats, the panel-state picker, basis tag labels) can go in
 an optional `labels.yaml`, listed in `pack.json` as `labels`. Every key is optional, and a key left
-out keeps the app's own word. Write only what differs.
+out keeps the app's own word. Write only what differs. Reference tabs follow the order of
+`reference.groups`; `side_words` are the words that tell one of a pair from the other (left and
+right, captain and first officer), which Practice uses. The phase that starts the engines carries
+`engine_start: true` in `phases.yaml`, for Practice's "Before engine start".
 
 **Overlap check.** `just overlap` flags any run of 8 or more words matching plain-text reference
 files (see `INVOLO_OVERLAP_REFS` under "Optional local files" below). It also compares each list's
