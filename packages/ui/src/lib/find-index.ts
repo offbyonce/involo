@@ -38,7 +38,7 @@ export type FindControl = {
 };
 export type FindTerm = { term: string; meaning: string };
 /** Every phase's stage and title, from the pack (the phases this flight hides too). */
-export type FindPhase = { stage: string; title: string };
+export type FindPhase = { stageId: string; stage: string; title: string };
 export type FindIndex = {
   steps: FindStep[];
   controls: FindControl[];
@@ -107,12 +107,14 @@ export function buildFind(pack: FlatPack, index: PackIndex): FindIndex {
   const titles = new Map((pack.content.phases?.phases ?? []).map((p) => [p.id, p]));
   for (const stage of pack.content.phases?.stages ?? [])
     for (const sp of stage.phases)
-      phases[sp.phase] = { stage: stage.title, title: titles.get(sp.phase)?.title ?? "" };
-  for (const p of titles.values()) if (p.reference) phases[p.id] = { stage: "Emergency", title: p.title };
+      phases[sp.phase] = { stageId: stage.id, stage: stage.title, title: titles.get(sp.phase)?.title ?? "" };
+  for (const p of titles.values())
+    if (p.reference) phases[p.id] = { stageId: "emergency", stage: "Emergency", title: p.title };
   return { steps, controls, terms, phases };
 }
 
-export type FoundStep = FindStep & { stage: string; phaseTitle: string };
+/** A step found, with its stage (keyed by id; the title is display text) and phase. */
+export type FoundStep = FindStep & { stageId: string; stage: string; phaseTitle: string };
 export type Found = { steps: FoundStep[]; controls: FindControl[]; terms: FindTerm[] };
 
 const norm = (s: string) => s.toLowerCase();
@@ -128,11 +130,12 @@ export function findIn(
 ): Found {
   const q = norm(query.trim());
   if (!q) return { steps: [], controls: [], terms: [] };
-  const phases = new Map<string, { stage: string; title: string; at: number }>();
+  const phases = new Map<string, { stageId: string; stage: string; title: string; at: number }>();
   let n = 0;
   for (const s of rail?.stages ?? [])
-    for (const p of s.phases) phases.set(p.id, { stage: s.title, title: p.title, at: n++ });
-  for (const p of rail?.reference ?? []) phases.set(p.id, { stage: "Emergency", title: p.title, at: n++ });
+    for (const p of s.phases) phases.set(p.id, { stageId: s.id, stage: s.title, title: p.title, at: n++ });
+  for (const p of rail?.reference ?? [])
+    phases.set(p.id, { stageId: "emergency", stage: "Emergency", title: p.title, at: n++ });
   const rank = <T>(items: T[], title: (t: T) => string, rest: (t: T) => string[]) => {
     const first: T[] = [];
     const then: T[] = [];
@@ -148,7 +151,13 @@ export function findIn(
     .filter((s) => phases.has(s.phase))
     .map((s) => {
       const p = phases.get(s.phase);
-      return { ...s, stage: p?.stage ?? "", phaseTitle: p?.title ?? "", at: p?.at ?? 0 };
+      return {
+        ...s,
+        stageId: p?.stageId ?? "",
+        stage: p?.stage ?? "",
+        phaseTitle: p?.title ?? "",
+        at: p?.at ?? 0,
+      };
     })
     .sort(
       (a, b) =>
@@ -193,8 +202,9 @@ export function findOnly(
   const q = norm(query.trim());
   const shown = new Map<string, FindPhase>();
   for (const s of rail?.stages ?? [])
-    for (const p of s.phases) shown.set(p.id, { stage: s.title, title: p.title });
-  for (const p of rail?.reference ?? []) shown.set(p.id, { stage: "Emergency", title: p.title });
+    for (const p of s.phases) shown.set(p.id, { stageId: s.id, stage: s.title, title: p.title });
+  for (const p of rail?.reference ?? [])
+    shown.set(p.id, { stageId: "emergency", stage: "Emergency", title: p.title });
   const byId = new Map(find.steps.map((s) => [s.id, s]));
   const steps = ids
     .flatMap((id) => {
@@ -204,7 +214,7 @@ export function findOnly(
     .filter((s) => !q || norm(s.title).includes(q) || norm(s.value).includes(q))
     .map((s) => {
       const p = shown.get(s.phase) ?? find.phases?.[s.phase];
-      return { ...s, stage: p?.stage ?? "", phaseTitle: p?.title ?? "" };
+      return { ...s, stageId: p?.stageId ?? "", stage: p?.stage ?? "", phaseTitle: p?.title ?? "" };
     });
   return { steps, controls: [], terms: [] };
 }

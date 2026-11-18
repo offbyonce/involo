@@ -20,13 +20,14 @@ const phase = (id: string, title: string, done: number, total: number, skipped =
 /** Invented stages in pack order: one done (with a skipped step), one under way, two not begun. */
 const rail: Rail = {
   stages: [
-    { title: "Alpha", phases: [phase("a1", "First", 3, 3), phase("a2", "Second", 2, 3, 1)] },
+    { id: "alpha", title: "Alpha", phases: [phase("a1", "First", 3, 3), phase("a2", "Second", 2, 3, 1)] },
     {
+      id: "bravo",
       title: "Bravo",
       phases: [phase("b1", "Third", 4, 4), phase("b2", "Fourth", 5, 10), phase("b3", "Fifth", 0, 6)],
     },
-    { title: "Charlie", phases: [phase("c1", "Sixth", 0, 4)] },
-    { title: "Delta", phases: [phase("d1", "Seventh", 0, 2), phase("d2", "Eighth", 0, 2)] },
+    { id: "charlie", title: "Charlie", phases: [phase("c1", "Sixth", 0, 4)] },
+    { id: "delta", title: "Delta", phases: [phase("d1", "Seventh", 0, 2), phase("d2", "Eighth", 0, 2)] },
   ],
   reference: [],
 };

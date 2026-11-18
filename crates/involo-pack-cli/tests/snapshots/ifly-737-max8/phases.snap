@@ -136,6 +136,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
   },
   "stages": [
     {
+      "id": "preflight",
       "title": "Preflight",
       "phases": [
         {
@@ -188,6 +189,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       ]
     },
     {
+      "id": "departure",
       "title": "Departure",
       "phases": [
         {
@@ -229,6 +231,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       ]
     },
     {
+      "id": "enroute",
       "title": "Enroute",
       "phases": [
         {
@@ -246,6 +249,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       ]
     },
     {
+      "id": "arrival",
       "title": "Arrival",
       "phases": [
         {
@@ -260,6 +264,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       ]
     },
     {
+      "id": "post-flight",
       "title": "Post-flight",
       "phases": [
         {
@@ -457,6 +462,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "id": "memory",
       "title": "Memory items",
       "reference": true,
+      "group": "memory",
       "intro": [
         {
           "text": "Simulator training only. Not for real-world use."
@@ -485,6 +491,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "id": "quick-reference",
       "title": "Quick reference",
       "reference": true,
+      "group": "quick",
       "intro": [
         {
           "heading": "What these are",
@@ -519,6 +526,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "id": "procedures",
       "title": "Non-normal",
       "reference": true,
+      "group": "procedures",
       "intro": [
         {
           "text": "Maneuvers, go-around and MAX trim and airspeed procedures for situations outside the normal flow."

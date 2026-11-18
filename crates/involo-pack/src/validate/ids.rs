@@ -26,7 +26,8 @@ pub(super) fn valid_segment(segment: &str) -> bool {
         && !segment.ends_with('-')
 }
 
-/// True when `id` is `<pack-id>.<phase>.<short-name>`. The phase part records where the step
+/// True when `id` is `<prefix>.<phase>.<short-name>`, where the prefix is a pack id: the pack's
+/// own, or one it extends. The phase part records where the step
 /// was first published, so it is not required to match the step's current phase.
 pub fn valid_step_id(pack_id: &str, id: &str) -> bool {
     id.strip_prefix(pack_id)

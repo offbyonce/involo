@@ -92,7 +92,8 @@ turnaround:
   option: start
   equals: turn
 stages:
-  - title: Preflight
+  - id: preflight
+    title: Preflight
     phases:
       - phase: cold-dark
         show_if:
@@ -117,7 +118,8 @@ stages:
           option: exterior
           equals: "on"
       - phase: preflight
-  - title: Departure
+  - id: departure
+    title: Departure
     phases:
       - phase: apu-power
         show_if:
@@ -133,18 +135,21 @@ stages:
       - phase: taxi
       - phase: before-takeoff
       - phase: takeoff
-  - title: Enroute
+  - id: enroute
+    title: Enroute
     phases:
       - phase: after-takeoff
       - phase: climb
       - phase: cruise
       - phase: descent
-  - title: Arrival
+  - id: arrival
+    title: Arrival
     phases:
       - phase: approach
       - phase: landing
       - phase: landing-roll
-  - title: Post-flight
+  - id: post-flight
+    title: Post-flight
     phases:
       - phase: after-landing
       - phase: taxi-in
@@ -260,6 +265,7 @@ phases:
   - id: memory
     title: Memory items
     reference: true
+    group: memory
     intro:
       - text: Simulator training only. Not for real-world use.
       - heading: What these are
@@ -276,6 +282,7 @@ phases:
   - id: quick-reference
     title: Quick reference
     reference: true
+    group: quick
     intro:
       - heading: What these are
         text: "Short checklists for time-critical events, kept where you can reach them quickly."
@@ -300,6 +307,7 @@ phases:
   - id: procedures
     title: Non-normal
     reference: true
+    group: procedures
     intro:
       - text: "Maneuvers, go-around and MAX trim and airspeed procedures for situations outside the normal flow."
     lists:

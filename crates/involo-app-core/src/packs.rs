@@ -26,7 +26,42 @@ pub fn load_pack(json: &str) -> Result<FlatPack, AppError> {
             flat.manifest.id
         )));
     }
-    Ok(flat)
+    Ok(with_positional_locators(flat))
+}
+
+/// The pack with every item locator in one form, `panel/section/LABEL/n`, so the interface
+/// compares locators as text: a step target or light note may name an item `panel/section/#id`
+/// (decision 0029). A locator that names no item is left as it is (`involo-pack check` refuses it).
+fn with_positional_locators(mut flat: FlatPack) -> FlatPack {
+    let positional = |panels: &[involo_checklist_core::Panel], at: &str| -> Option<String> {
+        if !at.contains("/#") {
+            return None;
+        }
+        let (section, item) = involo_checklist_core::locate(panels, at)?;
+        let panel = panels
+            .iter()
+            .find(|p| p.sections.iter().any(|s| std::ptr::eq(s, section)))?;
+        Some(involo_checklist_core::locator(panel, section, item))
+    };
+    let panels = flat.content.panels.clone();
+    for target in flat
+        .lists
+        .iter_mut()
+        .flat_map(|l| &mut l.steps)
+        .flat_map(|s| &mut s.targets)
+    {
+        if let Some(at) = positional(&panels, &target.at) {
+            target.at = at;
+        }
+    }
+    if let Some(lights) = &mut flat.content.lights {
+        for note in &mut lights.lights {
+            if let Some(at) = positional(&panels, &note.locator) {
+                note.locator = at;
+            }
+        }
+    }
+    flat
 }
 
 #[cfg(test)]
@@ -38,6 +73,41 @@ mod tests {
     fn example_json() -> String {
         let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
         serde_json::to_string(&FlatPack::from(involo_pack::load_pack_dir(&dir).unwrap())).unwrap()
+    }
+
+    #[test]
+    fn an_item_named_by_id_reaches_the_interface_by_position() {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/ifly-737-max8");
+        let mut pack = FlatPack::from(involo_pack::load_pack_dir(&dir).unwrap());
+        // A light note and a step target that name their item by id.
+        let note = &pack.content.lights.as_ref().unwrap().lights[0];
+        let positional = note.locator.clone();
+        let (section, item) =
+            involo_checklist_core::locate(&pack.content.panels, &positional).unwrap();
+        let (panel, section) = (
+            positional.split('/').next().unwrap().to_owned(),
+            section.id.clone(),
+        );
+        let entry = pack
+            .content
+            .panels
+            .iter_mut()
+            .flat_map(|p| &mut p.sections)
+            .find(|s| s.id == section)
+            .unwrap();
+        entry.items[item].id = Some("noted".into());
+        let by_id = format!("{panel}/{section}/#noted");
+        pack.content.lights.as_mut().unwrap().lights[0].locator = by_id.clone();
+        pack.lists[0].steps[0].targets = vec![involo_checklist_core::StepTarget {
+            at: by_id,
+            set: None,
+            light: None,
+            open: true,
+            when: None,
+        }];
+        let loaded = load_pack(&serde_json::to_string(&pack).unwrap()).unwrap();
+        assert_eq!(loaded.content.lights.unwrap().lights[0].locator, positional);
+        assert_eq!(loaded.lists[0].steps[0].targets[0].at, positional);
     }
 
     #[test]

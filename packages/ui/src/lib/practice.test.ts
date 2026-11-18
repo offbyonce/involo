@@ -1,11 +1,13 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
 import { parseRoute } from "../route.svelte";
-import { iflyPack } from "../test-pack";
+import { iflyPack, packAsReceived } from "../test-pack";
 import { deckAreas } from "./deck";
+import { howCountsOf } from "./how-content";
 import {
   available,
   bank,
@@ -35,6 +37,49 @@ const index = indexPack(pack);
 const all = seeds(pack, index);
 const count = (topic: Topic, id = "") =>
   all.filter((q) => q.topic === topic && q.id.startsWith(`${topic}:${id}`)).length;
+
+describe("items named by id (decision 0029)", () => {
+  it("asks about a light whose note names its item as panel/section/#id", () => {
+    const raw = JSON.parse(
+      readFileSync(`${import.meta.dirname}/../../../../apps/web/public/packs/ifly-737-max8.json`, "utf8"),
+    );
+    const note = raw.content.lights.lights[0];
+    const [panel, section, label] = note.locator.split("/");
+    const items = raw.content.panels
+      .flatMap((p: { sections: { id: string; items: { label: string }[] }[] }) => p.sections)
+      .find((x: { id: string }) => x.id === section).items;
+    const item = items.find((x: { label: string; id?: string }) => x.label === label);
+    item.id = "noted";
+    const positional = note.locator;
+    note.locator = `${panel}/${section}/#noted`;
+    const byId = packAsReceived(JSON.stringify(raw));
+    expect(byId.content.lights?.lights[0]?.locator).toBe(positional);
+    const lightIds = (p: typeof pack) =>
+      bank(p, indexPack(p))
+        .filter((x) => x.topic === "lights")
+        .map((x) => x.id);
+    expect(lightIds(byId)).toEqual(lightIds(pack));
+    expect(lightIds(byId).some((id) => id.includes(positional))).toBe(true);
+  });
+});
+
+describe("reference groups (decision 0029)", () => {
+  it("counts memory items and the How page's lists by group, whatever the order or phase ids", () => {
+    const moved = structuredClone(pack);
+    const file = moved.content.phases;
+    if (!file) throw new Error("no phases");
+    // The reference phases in the reverse order, under other ids.
+    const refs = file.phases.filter((p) => p.reference).reverse();
+    for (const p of refs) p.id = `ref-${p.id}`;
+    file.phases = [...file.phases.filter((p) => !p.reference), ...refs];
+    expect(howCountsOf(moved, 5)).toEqual(howCountsOf(pack, 5));
+    expect(howCountsOf(pack, 5)).toMatchObject({ memory: expect.any(Number), qrh: expect.any(Number) });
+    expect(howCountsOf(pack, 5).memory).toBeGreaterThan(0);
+    const memory = (p: typeof pack) => bank(p, indexPack(p)).filter((s) => s.topic === "memory").length;
+    expect(memory(moved)).toBe(memory(pack));
+    expect(memory(pack)).toBeGreaterThan(0);
+  });
+});
 
 describe("the question generator", () => {
   it("deals every question with four options, none meaning the same as another, exactly one correct", () => {

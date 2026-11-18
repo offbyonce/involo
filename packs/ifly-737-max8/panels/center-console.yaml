@@ -40,7 +40,7 @@ sections:
         "y": 49
         controls:
           - fuelflow
-        positions: "RESET, RATE, USED"
+        positions: [RESET, RATE, USED]
         rest: "RATE"
         description: "RATE shows flow, USED shows fuel used, RESET zeroes the count."
       - kind: selector
@@ -49,7 +49,7 @@ sections:
         "y": 113
         controls:
           - sel
-        positions: "L, C, R"
+        positions: [L, C, R]
         rest: "L"
         description: Left display selector.
       - kind: light
@@ -66,7 +66,7 @@ sections:
         "y": 72
         controls:
           - abrake
-        positions: "RTO, OFF, 1, 2, 3, MAX"
+        positions: [RTO, "OFF", "1", "2", "3", MAX]
         rest: "RTO"
         description: Sets the autobrake.
       - kind: push_button
@@ -102,7 +102,7 @@ sections:
         "y": 117
         controls:
           - sel
-        positions: "L, C, R"
+        positions: [L, C, R]
         rest: "L"
         description: Right display selector.
       - kind: light
@@ -169,7 +169,7 @@ sections:
         "y": 120
         controls:
           - speedbrake
-        positions: "DOWN, ARMED, FLIGHT, UP"
+        positions: [DOWN, ARMED, FLIGHT, UP]
         rest: "DOWN"
         description: Raises the spoilers.
       - kind: display_unit
@@ -201,7 +201,7 @@ sections:
         "y": 120
         controls:
           - flaplever
-        positions: "UP, 1, 2, 5, 10, 15, 25, 30, 40"
+        positions: [UP, "1", "2", "5", "10", "15", "25", "30", "40"]
         rest: "UP"
         description: Sets the flaps.
       - kind: display_unit
@@ -227,7 +227,7 @@ sections:
         "y": 50
         controls:
           - pbrake
-        positions: "RELEASED, SET"
+        positions: [RELEASED, SET]
         rest: "SET"
         description: Red handle.
       - kind: light
@@ -245,7 +245,7 @@ sections:
         "y": 50
         controls:
           - slever
-        positions: "IDLE, CUTOFF"
+        positions: [IDLE, CUTOFF]
         rest: "CUTOFF"
         description: Fuel to engine 1.
       - kind: lever
@@ -254,7 +254,7 @@ sections:
         "y": 50
         controls:
           - slever
-        positions: "IDLE, CUTOFF"
+        positions: [IDLE, CUTOFF]
         rest: "CUTOFF"
         description: Fuel to engine 2.
       - kind: push_button
@@ -268,7 +268,7 @@ sections:
         "y": 50
         controls:
           - stabcut
-        positions: "NORMAL, CUT OUT"
+        positions: [NORMAL, CUT OUT]
         rest: "NORMAL"
         description: Either switch cuts all electric stabilizer trim.
       - kind: toggle_switch
@@ -277,7 +277,7 @@ sections:
         "y": 50
         controls:
           - stabcut
-        positions: "NORMAL, CUT OUT"
+        positions: [NORMAL, CUT OUT]
         rest: "NORMAL"
         description: Either switch cuts all electric stabilizer trim.
   - id: fi
@@ -293,7 +293,7 @@ sections:
         "y": 47
         controls:
           - ovhtdet
-        positions: "A, NORMAL, B"
+        positions: [A, NORMAL, B]
         rest: "NORMAL"
         description: "Selects loop A, B, or both (NORMAL) for engine 1."
       - kind: light
@@ -308,7 +308,7 @@ sections:
         "y": 136
         controls:
           - firetest
-        positions: "FAULT/INOP, OVHT/FIRE"
+        positions: [FAULT/INOP, OVHT/FIRE]
         description: Tests the fire warnings.
       - kind: handle
         label: FIRE 1
@@ -316,7 +316,7 @@ sections:
         "y": 79
         controls:
           - firesw
-        positions: "PULL, ROTATE L, R"
+        positions: [PULL, ROTATE L, R]
         description: Engine 1 fire switch.
       - kind: light
         label: FAULT
@@ -347,7 +347,7 @@ sections:
         "y": 97
         controls:
           - apufire
-        positions: "PULL, ROTATE"
+        positions: [PULL, ROTATE]
         description: APU fire switch.
       - kind: toggle_switch
         label: OVHT DET 2
@@ -355,7 +355,7 @@ sections:
         "y": 47
         controls:
           - ovhtdet
-        positions: "A, NORMAL, B"
+        positions: [A, NORMAL, B]
         rest: "NORMAL"
         description: "Selects loop A, B, or both (NORMAL) for engine 2."
       - kind: light
@@ -370,7 +370,7 @@ sections:
         "y": 79
         controls:
           - firesw
-        positions: "PULL, ROTATE L, R"
+        positions: [PULL, ROTATE L, R]
         description: Engine 2 fire switch.
       - kind: light
         label: L BOTTLE DISCHARGE
@@ -390,7 +390,7 @@ sections:
         "y": 82
         controls:
           - exttest
-        positions: "1, 2"
+        positions: ["1", "2"]
         description: Tests the extinguisher bottle circuits.
       - kind: light
         label: L
@@ -451,14 +451,14 @@ sections:
         label: DET FWD
         x: 154
         "y": 42
-        positions: "A, NORM, B"
+        positions: [A, NORM, B]
         rest: "NORM"
         description: Forward detector select.
       - kind: toggle_switch
         label: DET AFT
         x: 203
         "y": 42
-        positions: "A, NORM, B"
+        positions: [A, NORM, B]
         rest: "NORM"
         description: Aft detector select.
       - kind: light
@@ -589,7 +589,7 @@ sections:
         "y": 35
         controls:
           - xpndr
-        positions: "1, 2"
+        positions: ["1", "2"]
         rest: "1"
         description: Chooses which air data source sends altitude to the transponder.
       - kind: toggle_switch
@@ -598,7 +598,7 @@ sections:
         "y": 64
         controls:
           - xpndr
-        positions: "STBY, AUTO"
+        positions: [STBY, AUTO]
         rest: "STBY"
         description: Transponder.
       - kind: display_unit
@@ -616,7 +616,7 @@ sections:
         "y": 64
         controls:
           - xpndr
-        positions: "ALT OFF, XPNDR, TA ONLY, TA/RA"
+        positions: [ALT OFF, XPNDR, TA ONLY, TA/RA]
         rest: "ALT OFF"
         description: TCAS and transponder mode.
       - kind: selector
@@ -625,7 +625,7 @@ sections:
         "y": 98
         controls:
           - xpndr
-        positions: "1, 2"
+        positions: ["1", "2"]
         rest: "1"
         description: Second altitude source selector.
   - id: a2
@@ -700,7 +700,7 @@ sections:
         "y": 40
         controls:
           - adf
-        positions: "1, OFF, 2"
+        positions: ["1", "OFF", "2"]
         rest: "OFF"
         description: "ADF select knob: chooses which receiver you hear (OFF, 1 or 2)."
       - kind: selector
@@ -709,7 +709,7 @@ sections:
         "y": 74
         controls:
           - adf
-        positions: "ADF, ANT, OFF"
+        positions: [ADF, ANT, "OFF"]
         rest: "ADF"
         description: ADF 1 mode. TEST button in the center.
       - kind: selector
@@ -718,7 +718,7 @@ sections:
         "y": 74
         controls:
           - adf
-        positions: "ADF, ANT, OFF"
+        positions: [ADF, ANT, "OFF"]
         rest: "ADF"
         description: ADF 2 mode. TEST button in the center.
   - id: lp
@@ -732,14 +732,14 @@ sections:
         label: FLOOD
         x: 60
         "y": 66
-        positions: OFF to BRIGHT
+        positions: [OFF to BRIGHT]
         rest: "OFF to BRIGHT"
         description: Flood lights.
       - kind: selector
         label: PANEL
         x: 160
         "y": 66
-        positions: OFF to BRIGHT
+        positions: [OFF to BRIGHT]
         rest: "OFF to BRIGHT"
         description: Panel lights.
   - id: tr
@@ -764,7 +764,7 @@ sections:
         "y": 98
         controls:
           - trimp
-        positions: "LEFT, RIGHT WING DOWN"
+        positions: [LEFT, RIGHT WING DOWN]
         description: Aileron trim.
       - kind: selector
         label: RUDDER
@@ -772,7 +772,7 @@ sections:
         "y": 98
         controls:
           - trimp
-        positions: "NOSE LEFT, NOSE RIGHT"
+        positions: [NOSE LEFT, NOSE RIGHT]
         description: Rudder trim.
   - id: dr
     title: Stab override and door
@@ -788,7 +788,7 @@ sections:
         "y": 69
         controls:
           - staboverride
-        positions: "NORM, OVRD"
+        positions: [NORM, OVRD]
         rest: "NORM"
         description: OVRD restores electric trim when the column cutout has stopped it. Guarded at NORM.
       - kind: selector
@@ -797,6 +797,6 @@ sections:
         "y": 69
         controls:
           - fdd
-        positions: "UNLKD, AUTO, DENY"
+        positions: [UNLKD, AUTO, DENY]
         rest: "AUTO"
         description: Flight deck door.

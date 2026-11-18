@@ -10,6 +10,12 @@ export type Phase = { id: string, title: string,
  */
 reference?: boolean, 
 /**
+ * Which reference group the phase is, required on a reference phase: `memory` (memory
+ * items), `quick` (quick reference) or `procedures` (non-normal procedures). The app
+ * reads reference phases by group, never by their order or title (decision 0029).
+ */
+group?: string | null, 
+/**
  * Shown at the top of the phase.
  */
 intro?: Array<IntroParagraph>, 

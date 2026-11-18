@@ -22,7 +22,7 @@ sections:
         "y": 72
         controls:
           - stabtrim
-        positions: "NOSE DOWN, NOSE UP"
+        positions: [NOSE DOWN, NOSE UP]
         description: "Main electric stabilizer trim: two thumb switches on the outboard grip of the wheel, moved together. Spring-loaded to the center."
       - kind: push_button
         label: A/P DISENGAGE
@@ -67,6 +67,6 @@ sections:
         "y": 72
         controls:
           - mask
-        positions: "NORMAL, 100%"
+        positions: [NORMAL, "100%"]
         rest: "NORMAL"
         description: "The regulator: NORMAL mixes cabin air with oxygen; 100% gives pure oxygen."

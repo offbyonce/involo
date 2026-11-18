@@ -64,7 +64,7 @@ the list on wide screens and inside the step on narrow ones.
     targets
       .map((t) => {
         const item = index.section(t.section)?.items[t.item];
-        const pos = t.position != null ? item?.positions?.split(",")[t.position]?.trim() : undefined;
+        const pos = t.position != null ? item?.positions?.[t.position]?.trim() : undefined;
         return item && pos ? `${item.label} set to ${pos}` : null;
       })
       .filter(Boolean),

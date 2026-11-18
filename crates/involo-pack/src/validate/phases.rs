@@ -79,13 +79,53 @@ pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
             issues.push(error(*list, "list is not placed in any phase"));
         }
     }
+    super::ids::unique("stage", file.stages.iter().map(|s| s.id.as_str()), issues);
     for stage in &file.stages {
+        if !super::ids::valid_segment(&stage.id) {
+            issues.push(error(
+                &stage.title,
+                format!(
+                    "stage id `{}` must be lower-case letters, digits and dashes",
+                    stage.id
+                ),
+            ));
+        }
         for place in &stage.phases {
-            idx.require_phase(&stage.title, &place.phase, issues);
+            idx.require_phase(&stage.id, &place.phase, issues);
             if let Some(show_if) = &place.show_if {
-                idx.check_show_if(&stage.title, show_if, issues);
+                idx.check_show_if(&stage.id, show_if, issues);
             }
         }
+    }
+    for phase in &file.phases {
+        check_group(phase, issues);
+    }
+}
+
+/// The reference groups every pack can use.
+pub(super) const REFERENCE_GROUPS: &[&str] = &["memory", "quick", "procedures"];
+
+/// A reference phase names its group; a phase in the flight has none.
+fn check_group(phase: &involo_checklist_core::Phase, issues: &mut Vec<Issue>) {
+    match (&phase.group, phase.reference) {
+        (None, true) => issues.push(error(
+            &phase.id,
+            format!(
+                "a reference phase needs a `group`: one of {}",
+                REFERENCE_GROUPS.join(", ")
+            ),
+        )),
+        (Some(_), false) => issues.push(error(&phase.id, "only a reference phase has a `group`")),
+        (Some(group), true) if !REFERENCE_GROUPS.contains(&group.as_str()) => {
+            issues.push(error(
+                &phase.id,
+                format!(
+                    "unknown reference group `{group}`: one of {}",
+                    REFERENCE_GROUPS.join(", ")
+                ),
+            ));
+        }
+        _ => {}
     }
 }
 
@@ -120,6 +160,39 @@ mod tests {
     use involo_checklist_core::{FillField, OptionChoice, OptionTest, ShowIf};
 
     use super::super::test_support::{assert_flags, messages, pack, step};
+
+    #[test]
+    fn a_stage_needs_an_id_of_its_own() {
+        let without = "stages:\n  - title: Preflight\n    phases: []\nphases: []\n";
+        let e = crate::parse_yaml::<involo_checklist_core::PhasesFile>(
+            without,
+            std::path::Path::new("phases.yaml"),
+        )
+        .unwrap_err();
+        assert!(e.to_string().contains("id"), "{e}");
+        let mut p = pack(vec![step("a")], vec![]);
+        let file = p.content.phases.as_mut().unwrap();
+        let copy = file.stages[0].clone();
+        file.stages.push(copy);
+        assert_flags(&p, "preflight: stage id is used twice");
+    }
+
+    #[test]
+    fn a_reference_phase_names_its_group() {
+        let mut p = pack(vec![step("a")], vec![]);
+        let phase = &mut p.content.phases.as_mut().unwrap().phases[0];
+        phase.reference = true;
+        assert_flags(
+            &p,
+            "a reference phase needs a `group`: one of memory, quick, procedures",
+        );
+        p.content.phases.as_mut().unwrap().phases[0].group = Some("memory".into());
+        assert!(!messages(&p).contains("group"), "{}", messages(&p));
+        p.content.phases.as_mut().unwrap().phases[0].group = Some("checklists".into());
+        assert_flags(&p, "unknown reference group `checklists`");
+        p.content.phases.as_mut().unwrap().phases[0].reference = false;
+        assert_flags(&p, "only a reference phase has a `group`");
+    }
 
     #[test]
     fn stage_places_are_checked_too() {

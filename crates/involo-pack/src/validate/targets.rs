@@ -294,8 +294,7 @@ fn check_step(panels: &[involo_checklist_core::Panel], step: &Step, issues: &mut
         .filter_map(|t| locate(panels, &t.at))
         .filter_map(|(s, i)| s.items.get(i))
         .filter(|i| i.kind != PanelItemKind::Light)
-        .filter_map(|i| i.positions.as_deref())
-        .flat_map(|p| p.split(',').map(str::trim))
+        .flat_map(|i| i.positions.iter().map(|p| p.trim()))
         .collect();
     let value = switch_value(&step.expect, lights.iter().copied(), &switch_positions);
     for t in &step.targets {
@@ -353,11 +352,7 @@ fn check_wording(
     issues: &mut Vec<Issue>,
 ) {
     let is_light = item.kind == PanelItemKind::Light;
-    let positions: Vec<&str> = item
-        .positions
-        .as_deref()
-        .map(|p| p.split(',').map(str::trim).collect())
-        .unwrap_or_default();
+    let positions: Vec<&str> = item.positions.iter().map(|p| p.trim()).collect();
     if let Some(set) = &t.set {
         if !positions.contains(&set.as_str()) {
             issues.push(error(
@@ -375,10 +370,7 @@ fn check_wording(
         }
     } else if !is_light
         && !t.open
-        && let Some(n) = item
-            .positions
-            .as_deref()
-            .and_then(|p| named_position(value, p))
+        && let Some(n) = named_position(value, &item.positions)
     {
         issues.push(error(
             at,
@@ -427,11 +419,11 @@ mod tests {
         item.kind = involo_checklist_core::PanelItemKind::ToggleSwitch;
         item.color = None;
         item.label = "BATTERY".into();
-        item.positions = Some("OFF, ON".into());
+        item.positions = vec!["OFF".into(), "ON".into()];
         let mut light = item.clone();
         light.kind = involo_checklist_core::PanelItemKind::Light;
         light.color = Some(involo_checklist_core::LightColor::Amber);
-        light.positions = None;
+        light.positions = vec![];
         light.label = "BAT DISCHARGE".into();
         p.content.panels[0].sections[0].items.push(light);
         p.checklists[0].steps[0].controls = vec!["bat".into()];
@@ -448,6 +440,16 @@ mod tests {
             open: false,
             when: None,
         }
+    }
+
+    #[test]
+    fn a_target_may_name_an_item_by_its_id() {
+        let mut p = pack_with("ON", vec![target("oh/elec/#battery", Some("ON"), None)]);
+        p.content.panels[0].sections[0].items[0].id = Some("battery".into());
+        assert!(!messages(&p).contains("battery"), "{}", messages(&p));
+        let mut p = pack_with("ON", vec![target("oh/elec/#nope", Some("ON"), None)]);
+        p.content.panels[0].sections[0].items[0].id = Some("battery".into());
+        assert_flags(&p, "oh/elec/#nope");
     }
 
     #[test]

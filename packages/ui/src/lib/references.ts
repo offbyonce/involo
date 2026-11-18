@@ -57,12 +57,12 @@ export type References = {
 };
 
 /** The list's kind as the page names it: procedure, checklist, memory items, quick reference or
- * non-normal procedure. */
-function kindOf(list: Checklist, phaseTitle: string): string {
+ * non-normal procedure. A reference list's kind comes from its phase's group (decision 0029). */
+function kindOf(list: Checklist, group: string | null | undefined): string {
   if (list.kind === "flow") return "Procedure";
   if (list.kind === "checklist") return "Checklist";
   if (list.memory) return "Memory items";
-  return phaseTitle === "Quick reference" ? "Quick reference" : "Non-normal procedure";
+  return group === "quick" ? "Quick reference" : "Non-normal procedure";
 }
 
 /** The sources a list names, in the page's order. */
@@ -76,14 +76,20 @@ const sourcesOf = (list: Checklist): Basis[] =>
  */
 export function buildReferences(pack: FlatPack, rail: Rail | null = null): References {
   const onRail = new Map<string, string>();
-  for (const st of rail?.stages ?? []) for (const p of st.phases) onRail.set(p.id, st.title);
+  for (const st of rail?.stages ?? []) for (const p of st.phases) onRail.set(p.id, st.id);
   const lists = new Map(pack.lists.map((l) => [l.id, l]));
   const phases = new Map((pack.content.phases?.phases ?? []).map((p) => [p.id, p]));
-  const order: { id: string; stage: string; phase: string; phaseTitle: string }[] = [];
+  const order: {
+    id: string;
+    stage: string;
+    phase: string;
+    phaseTitle: string;
+    group?: string | null | undefined;
+  }[] = [];
   for (const stage of pack.content.phases?.stages ?? [])
     for (const sp of stage.phases) {
       // On this flight, only where the rail shows it.
-      if (onRail.has(sp.phase) && onRail.get(sp.phase) !== stage.title) continue;
+      if (onRail.has(sp.phase) && onRail.get(sp.phase) !== stage.id) continue;
       for (const id of phases.get(sp.phase)?.lists ?? [])
         order.push({
           id,
@@ -94,7 +100,8 @@ export function buildReferences(pack: FlatPack, rail: Rail | null = null): Refer
     }
   for (const p of phases.values())
     if (p.reference)
-      for (const id of p.lists) order.push({ id, stage: "Emergency", phase: p.id, phaseTitle: p.title });
+      for (const id of p.lists)
+        order.push({ id, stage: "Emergency", phase: p.id, phaseTitle: p.title, group: p.group });
   const seen = new Set<string>();
   const rows: RefRow[] = [];
   for (const o of order) {
@@ -105,7 +112,7 @@ export function buildReferences(pack: FlatPack, rail: Rail | null = null): Refer
       id: list.id,
       title: list.title,
       stage: o.stage,
-      kind: kindOf(list, o.phaseTitle),
+      kind: kindOf(list, o.group),
       basis: sourcesOf(list)[0] ?? CONFIRMING.tag,
       sources: sourcesOf(list),
       phase: o.phase,

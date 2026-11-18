@@ -48,17 +48,17 @@ each region. `?theme=dark|light` picks the theme.
   const kinds: { title: string; item: Partial<PanelItem>; states: State[] }[] = [
     {
       title: "Toggle switch",
-      item: { kind: "toggle_switch", label: "PUMP", positions: "OFF, ON", rest: "OFF" },
+      item: { kind: "toggle_switch", label: "PUMP", positions: ["OFF", "ON"], rest: "OFF" },
       states: [RESTING, CHANGED(1), RESOLVED(0), CONDITIONAL],
     },
     {
       title: "Guarded switch",
-      item: { kind: "toggle_switch", label: "STBY PWR", positions: "BAT, OFF, AUTO", rest: "AUTO", guarded: true },
+      item: { kind: "toggle_switch", label: "STBY PWR", positions: ["BAT", "OFF", "AUTO"], rest: "AUTO", guarded: true },
       states: [RESTING, { name: "Changed, guard closed", target: set(2), guardClosed: true }, CHANGED(0)],
     },
     {
       title: "Selector",
-      item: { kind: "selector", label: "MODE", positions: "OFF, ALIGN, NAV, ATT", rest: "OFF" },
+      item: { kind: "selector", label: "MODE", positions: ["OFF", "ALIGN", "NAV", "ATT"], rest: "OFF" },
       states: [RESTING, CHANGED(2), RESOLVED(1), CONDITIONAL],
     },
     {
@@ -85,12 +85,12 @@ each region. `?theme=dark|light` picks the theme.
     },
     {
       title: "Lever",
-      item: { kind: "lever", label: "FLAP", positions: "UP, 1, 5, 15, 30", rest: "UP" },
+      item: { kind: "lever", label: "FLAP", positions: ["UP", "1", "5", "15", "30"], rest: "UP" },
       states: [RESTING, CHANGED(2), CONDITIONAL],
     },
     {
       title: "Handle",
-      item: { kind: "handle", label: "BRAKE", positions: "RELEASED, SET", rest: "RELEASED" },
+      item: { kind: "handle", label: "BRAKE", positions: ["RELEASED", "SET"], rest: "RELEASED" },
       states: [RESTING, CHANGED(1)],
     },
     {

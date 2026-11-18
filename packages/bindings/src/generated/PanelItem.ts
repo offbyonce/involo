@@ -5,7 +5,12 @@ import type { PanelItemKind } from "./PanelItemKind";
 /**
  * One item on a panel drawing. Positions are our own layout.
  */
-export type PanelItem = { kind: PanelItemKind, label: string, 
+export type PanelItem = { 
+/**
+ * An id, unique in its section, so a step target or light note can name the item as
+ * `panel/section/#id`, and a pack extending this one can change it (decision 0029).
+ */
+id?: string | null, kind: PanelItemKind, label: string, 
 /**
  * Required on a light, and only valid on a light.
  */
@@ -19,9 +24,10 @@ guarded?: boolean, x: number, y: number,
  */
 controls?: Array<string>, 
 /**
- * The positions it can be set to, as text.
+ * The positions it can be set to, in order, e.g. `[OFF, AUTO, ON]`. A position may hold a
+ * comma.
  */
-positions?: string | null, 
+positions?: Array<string>, 
 /**
  * Where it rests when the airplane is cold and dark: one of `positions`. Drawings show it,
  * dimmed, on controls a step does not use (decision 0015).

@@ -89,9 +89,12 @@ as authors write them. The manifest, `pack.json`, is camelCase (`schemaVersion`)
 own saved data. The app hands pack content to its interface with camelCase field names, so the
 interface reads one case (decision 0029).
 
-**Step ids** are `<pack-id>.<phase>.<short-name>`, for example
-`ifly-737-max8.preflight.irs-mode`. An id never changes once published, even if the step is
-reworded or moved. A removed step's id is retired and never reused.
+**Step ids** are `<prefix>.<phase>.<short-name>`, where the prefix is the pack's own id or the id
+of the pack it extends, for example `ifly-737-max8.preflight.irs-mode`. An id never changes once
+published, even if the step is reworded or moved. A removed step's id is retired and never
+reused. Stages have an `id` too, reference phases a `group` (`memory`, `quick` or `procedures`),
+and a panel item may have an `id` so a step target or light note can name it
+`panel/section/#id` (decision 0029).
 
 **Overlap check.** `just overlap` flags any run of 8 or more words matching plain-text reference
 files (see `INVOLO_OVERLAP_REFS` under "Optional local files" below). It also compares each list's

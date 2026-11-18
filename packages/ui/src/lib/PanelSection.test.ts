@@ -21,15 +21,15 @@ const item = (kind: PanelItem["kind"], n: number, more: Partial<PanelItem> = {})
 // Every kind of control, and each guard both shut and open (the step sets the third toggle, so its
 // guard is raised), and a handle pulled out.
 const items: PanelItem[] = [
-  item("toggle_switch", 0, { positions: "ON, OFF", rest: "OFF" }),
-  item("toggle_switch", 1, { positions: "ON, OFF", rest: "OFF", guarded: true }),
-  item("toggle_switch", 2, { positions: "ON, OFF", rest: "OFF", guarded: true }),
-  item("selector", 3, { positions: "OFF, AUTO, ON", rest: "OFF" }),
+  item("toggle_switch", 0, { positions: ["ON", "OFF"], rest: "OFF" }),
+  item("toggle_switch", 1, { positions: ["ON", "OFF"], rest: "OFF", guarded: true }),
+  item("toggle_switch", 2, { positions: ["ON", "OFF"], rest: "OFF", guarded: true }),
+  item("selector", 3, { positions: ["OFF", "AUTO", "ON"], rest: "OFF" }),
   item("push_button", 4),
   item("push_button", 5, { guarded: true }),
   item("light", 6, { color: "amber" }),
-  item("lever", 7, { positions: "UP, DOWN", rest: "UP" }),
-  item("handle", 8, { positions: "IN, OUT", rest: "OUT" }),
+  item("lever", 7, { positions: ["UP", "DOWN"], rest: "UP" }),
+  item("handle", 8, { positions: ["IN", "OUT"], rest: "OUT" }),
   item("gauge", 9),
   item("display_unit", 10, { width: 60, height: 34 }),
 ];

@@ -11,9 +11,18 @@ use super::ids::unique;
 use super::{BLANK, Issue, error};
 use crate::Pack;
 
+/// What a step id may start with: the pack's own id, then the one it extends.
+fn step_prefixes(pack: &Pack) -> Vec<&str> {
+    std::iter::once(pack.manifest.id.as_str())
+        .chain(pack.manifest.extends.keys().map(String::as_str))
+        .collect()
+}
+
 /// The ids content files can refer to.
 pub(super) struct Index<'a> {
-    pub(super) pack_id: &'a str,
+    /// What a step id may start with: the pack's own id, or the id of the pack it extends
+    /// (decision 0029). A grandparent's id joins when building on the parent arrives.
+    pub(super) step_prefixes: Vec<&'a str>,
     pub(super) tags: BTreeSet<&'a str>,
     pub(super) lists: BTreeSet<&'a str>,
     pub(super) steps: BTreeSet<&'a str>,
@@ -47,7 +56,7 @@ impl<'a> Index<'a> {
             options.insert(option.id.as_str(), values);
         }
         Self {
-            pack_id: &pack.manifest.id,
+            step_prefixes: step_prefixes(pack),
             tags: unique(
                 "basis tag",
                 pack.manifest.basis_tags.iter().map(String::as_str),

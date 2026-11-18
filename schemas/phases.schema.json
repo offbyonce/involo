@@ -264,6 +264,13 @@
       "description": "One part of the flight, holding its lists in order.",
       "type": "object",
       "properties": {
+        "group": {
+          "description": "Which reference group the phase is, required on a reference phase: `memory` (memory\nitems), `quick` (quick reference) or `procedures` (non-normal procedures). The app\nreads reference phases by group, never by their order or title (decision 0029).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "id": {
           "type": "string"
         },
@@ -338,6 +345,10 @@
       "description": "A group of phases, e.g. \"Preflight\".",
       "type": "object",
       "properties": {
+        "id": {
+          "description": "Unique in the pack, and never changes once published: the rail, Find and a pack\nextending this one name the stage by it (decision 0029). The title is display text.",
+          "type": "string"
+        },
         "phases": {
           "type": "array",
           "items": {
@@ -350,6 +361,7 @@
       },
       "additionalProperties": false,
       "required": [
+        "id",
         "title",
         "phases"
       ]

@@ -28,7 +28,7 @@ const panel = {
           x: 40,
           y: 60,
           controls: ["c"],
-          positions: "OFF, ON",
+          positions: ["OFF", "ON"],
           description: "",
         },
         {
@@ -37,7 +37,7 @@ const panel = {
           x: 100,
           y: 60,
           controls: ["c"],
-          positions: "OFF, ON",
+          positions: ["OFF", "ON"],
           description: "",
         },
         {

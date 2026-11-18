@@ -21,7 +21,7 @@ sections:
         x: 20
         y: 30
         controls: [battery]
-        positions: 'OFF, ON'
+        positions: ["OFF", "ON"]
         description: Connects the battery.
       - kind: light
         label: BATT LOW

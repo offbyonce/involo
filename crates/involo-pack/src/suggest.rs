@@ -36,10 +36,7 @@ fn mentions_light(step: &Step, label: &str) -> bool {
 }
 
 fn positions_of(item: &PanelItem) -> Vec<String> {
-    item.positions
-        .as_deref()
-        .map(|p| p.split(',').map(|x| x.trim().to_owned()).collect())
-        .unwrap_or_default()
+    item.positions.iter().map(|x| x.trim().to_owned()).collect()
 }
 
 /// Each switch's position, where the wording (light names taken out) names exactly one.
@@ -48,8 +45,10 @@ fn read_positions(found: &[Found], value: &str, flags: &mut Vec<String>) -> Vec<
         .iter()
         .map(|f| {
             let ps = positions_of(f.item);
-            let p = f.item.positions.as_deref()?;
-            if let Some(i) = named_position(value, p) {
+            if f.item.positions.is_empty() {
+                return None;
+            }
+            if let Some(i) = named_position(value, &f.item.positions) {
                 return ps.get(i).cloned();
             }
             if f.item.kind != PanelItemKind::Light && ps.len() > 1 {
@@ -199,8 +198,7 @@ pub fn suggest(panels: &[Panel], step: &Step) -> Suggestion {
     let switch_positions: Vec<&str> = found
         .iter()
         .filter(|f| !is_light(f))
-        .filter_map(|f| f.item.positions.as_deref())
-        .flat_map(|p| p.split(',').map(str::trim))
+        .flat_map(|f| f.item.positions.iter().map(|p| p.trim()))
         .collect();
     let value = switch_value(
         &step.expect,

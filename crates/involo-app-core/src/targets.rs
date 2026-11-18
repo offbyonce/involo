@@ -72,13 +72,10 @@ pub fn step_targets(
         .filter_map(|t| {
             let (section, item) = locate(&pack.content.panels, &t.at)?;
             let entry = section.items.get(item)?;
-            let position = t.set.as_deref().and_then(|set| {
-                entry
-                    .positions
-                    .as_deref()?
-                    .split(',')
-                    .position(|p| p.trim() == set)
-            });
+            let position = t
+                .set
+                .as_deref()
+                .and_then(|set| entry.positions.iter().position(|p| p.trim() == set));
             Some(ItemTarget {
                 section: section.id.clone(),
                 item,
@@ -97,26 +94,34 @@ mod tests {
     use crate::test_support::ifly_pack;
     use involo_checklist_core::{PanelItemKind, named_position, names, says_on};
 
+    /// Positions written as the panel lists them, "OFF, ON".
+    fn list(positions: &str) -> Vec<String> {
+        positions.split(',').map(|p| p.trim().to_owned()).collect()
+    }
+
     #[test]
     fn a_value_names_one_position_as_a_whole_word() {
-        assert_eq!(named_position("ON, GUARD CLOSED", "OFF, ON"), Some(1));
         assert_eq!(
-            named_position("AUTO, GUARD CLOSED", "BAT, OFF, AUTO"),
+            named_position("ON, GUARD CLOSED", &list("OFF, ON")),
+            Some(1)
+        );
+        assert_eq!(
+            named_position("AUTO, GUARD CLOSED", &list("BAT, OFF, AUTO")),
             Some(2)
         );
-        assert_eq!(named_position("on", "OFF, ON"), Some(1));
+        assert_eq!(named_position("on", &list("OFF, ON")), Some(1));
         // "ON" inside another word does not count.
-        assert_eq!(named_position("ONCE STABLE", "OFF, ON"), None);
+        assert_eq!(named_position("ONCE STABLE", &list("OFF, ON")), None);
     }
 
     #[test]
     fn a_value_naming_several_positions_or_none_has_no_target() {
         assert_eq!(
-            named_position("ENG 1 AND 2 ON, ELEC 1 AND 2 OFF", "OFF, ON"),
+            named_position("ENG 1 AND 2 ON, ELEC 1 AND 2 OFF", &list("OFF, ON")),
             None
         );
-        assert_eq!(named_position("CHECK", "OFF, ON"), None);
-        assert_eq!(named_position("ON", ""), None);
+        assert_eq!(named_position("CHECK", &list("OFF, ON")), None);
+        assert_eq!(named_position("ON", &list("")), None);
     }
 
     #[test]
@@ -400,9 +405,8 @@ mod tests {
                 .unwrap();
             let positions: Vec<&str> = section.items[item]
                 .positions
-                .as_deref()
-                .unwrap()
-                .split(", ")
+                .iter()
+                .map(String::as_str)
                 .collect();
             assert_eq!(target.position.map(|p| positions[p]), Some(name), "{label}");
         }

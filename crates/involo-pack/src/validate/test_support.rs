@@ -70,6 +70,7 @@ pub(super) fn phases() -> PhasesFile {
             suggests: None,
         }],
         stages: vec![Stage {
+            id: "preflight".into(),
             title: "Preflight".into(),
             phases: vec![StagePhase {
                 phase: "preflight".into(),
@@ -80,6 +81,7 @@ pub(super) fn phases() -> PhasesFile {
             id: "preflight".into(),
             title: "Preflight".into(),
             reference: false,
+            group: None,
             intro: vec![],
             lists: vec!["preflight".into()],
         }],

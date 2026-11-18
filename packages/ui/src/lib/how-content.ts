@@ -13,6 +13,8 @@
 export type HowBlock = { p: string } | { terms: { term: string; text: string }[] } | { figure: true };
 
 /** Where an "In Involo" link goes. */
+import type { FlatPack } from "@involo/bindings";
+
 export type HowLink = "phase" | "step" | "emergency" | "settings" | "open" | "flight";
 
 export type HowPart = {
@@ -167,6 +169,16 @@ export const HOW = {
 
 /** The counts the text names, from the pack. */
 export type HowCounts = { stages: number; memory: number; qrh: number; procedures: number };
+
+/** The counts from the pack: the lists in each reference group, read by `group`, never by the
+ * phases' order or titles (decision 0029). */
+export function howCountsOf(pack: FlatPack | null | undefined, stages: number): HowCounts {
+  const inGroup = (group: string) =>
+    (pack?.content.phases?.phases ?? [])
+      .filter((p) => p.reference && p.group === group)
+      .reduce((n, p) => n + p.lists.length, 0);
+  return { stages, memory: inGroup("memory"), qrh: inGroup("quick"), procedures: inGroup("procedures") };
+}
 
 /** A line with its {placeholders} filled from `values`; a name with no value stays as written. */
 export function fill(text: string, values: Record<string, string | number>): string {

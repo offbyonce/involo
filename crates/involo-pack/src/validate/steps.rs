@@ -14,10 +14,17 @@ const ROUTE_LEG_ONLY_IN_CDU: &str =
 
 fn check_step(step: &Step, idx: &Index, issues: &mut Vec<Issue>) {
     let at = step.id.as_str();
-    if !valid_step_id(idx.pack_id, at) {
+    if !idx.step_prefixes.iter().any(|p| valid_step_id(p, at)) {
         issues.push(error(
             at,
-            format!("step id must be `{}.<phase>.<short-name>`", idx.pack_id),
+            format!(
+                "step id must be `<prefix>.<phase>.<short-name>`, where the prefix is {}",
+                idx.step_prefixes
+                    .iter()
+                    .map(|p| format!("`{p}`"))
+                    .collect::<Vec<_>>()
+                    .join(" or ")
+            ),
         ));
     }
     if step.text.trim().is_empty() || step.expect.trim().is_empty() {
@@ -158,6 +165,20 @@ mod tests {
     };
 
     use super::super::test_support::{assert_flags, messages, pack, step};
+
+    #[test]
+    fn a_step_id_may_start_with_the_pack_it_extends_and_nothing_else() {
+        let id = |s: &str| involo_checklist_core::Step::new(s, "Battery", "ON");
+        let mut p = pack(vec![id("lib.demo.preflight.a")], vec![]);
+        assert_flags(&p, "where the prefix is `demo-aircraft`");
+        p.manifest.extends.insert(
+            "lib.demo".into(),
+            semver::VersionReq::parse(">=1.0").unwrap(),
+        );
+        assert!(!messages(&p).contains("step id"), "{}", messages(&p));
+        p.checklists[0].steps = vec![id("other.preflight.a")];
+        assert_flags(&p, "where the prefix is `demo-aircraft` or `lib.demo`");
+    }
 
     #[test]
     fn a_list_why_does_not_repeat_the_training_notice() {

@@ -26,10 +26,11 @@ function phase(id: string, title: string, done: number, skipped: number, total: 
 const rail: Rail = {
   stages: [
     {
+      id: "preflight",
       title: "Preflight",
       phases: [phase("power-up", "Power up", 0, 1, 2), phase("exterior", "Exterior", 18, 0, 18)],
     },
-    { title: "Departure", phases: [phase("taxi", "Taxi", 0, 0, 9)] },
+    { id: "departure", title: "Departure", phases: [phase("taxi", "Taxi", 0, 0, 9)] },
   ],
   reference: [phase("memory", "Memory items", 0, 0, 12)],
 };
@@ -1144,7 +1145,7 @@ describe("App", () => {
         ...pack.content,
         phases: {
           ...pack.content.phases,
-          stages: [{ title: "Preflight", phases: [{ phase: "power-up" }] }],
+          stages: [{ id: "preflight", title: "Preflight", phases: [{ phase: "power-up" }] }],
           phases: [{ id: "power-up", title: "Power up", lists: ["power-up-flow"] }],
         },
       },
@@ -1173,10 +1174,11 @@ describe("App", () => {
   });
 
   it("opens How procedures work from the menu, with the pack's counts and links to the pilot's phase and step (How README)", async () => {
-    const lists = (id: string, n: number) => ({
+    const lists = (id: string, n: number, group: string) => ({
       id,
       title: id,
       reference: true,
+      group,
       lists: Array.from({ length: n }, (_, i) => `${id}-${i}`),
     });
     const withRef = {
@@ -1187,9 +1189,9 @@ describe("App", () => {
           ...pack.content.phases,
           phases: [
             { id: "power-up", title: "Power up", lists: ["power-up-flow"] },
-            lists("memory", 2),
-            lists("qrh", 3),
-            lists("nnc", 4),
+            lists("memory", 2, "memory"),
+            lists("qrh", 3, "quick"),
+            lists("nnc", 4, "procedures"),
           ],
         },
       },

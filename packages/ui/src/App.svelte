@@ -68,6 +68,7 @@ in Rust. The host saves progress and settings on the device.
   import { sentence } from "./lib/sentence";
   import Tour from "./lib/Tour.svelte";
   import { tour } from "./lib/tour-state.svelte";
+  import { howCountsOf } from "./lib/how-content";
   import { currentRoute, flightHref, phaseHref } from "./route.svelte";
   import { applyPalette, applyScale } from "./theme/tokens";
 
@@ -1057,13 +1058,9 @@ in Rust. The host saves progress and settings on the device.
       stale = true;
     };
   });
-  /** The counts the page names: the stages, and the lists in each Emergency tab (memory items, quick
-   * reference and non-normal procedures, in the pack's order). */
-  let howCounts = $derived.by(() => {
-    const lists = new Map((flatPack?.content.phases?.phases ?? []).map((p) => [p.id, p.lists.length]));
-    const ref = (rail?.reference ?? []).map((p) => lists.get(p.id) ?? 0);
-    return { stages: rail?.stages.length ?? 0, memory: ref[0] ?? 0, qrh: ref[1] ?? 0, procedures: ref[2] ?? 0 };
-  });
+  /** The counts the page names: the stages, and the lists in each reference group (memory items,
+   * quick reference and non-normal procedures), read by group, never by order (decision 0029). */
+  let howCounts = $derived(howCountsOf(flatPack, rail?.stages.length ?? 0));
   let tourStages = $derived<[string, string]>([rail?.stages[0]?.title ?? "", rail?.stages.at(-1)?.title ?? ""]);
 </script>
 

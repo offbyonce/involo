@@ -19,6 +19,10 @@ use crate::visibility::{Shown, passes, shown_steps};
 pub struct RailPhase {
     pub id: String,
     pub title: String,
+    /// A reference phase's group (`memory`, `quick`, `procedures`); none for a flight phase.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub group: Option<String>,
     pub progress: Progress,
     /// Every counted step is done.
     pub complete: bool,
@@ -32,6 +36,8 @@ pub struct RailPhase {
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct RailStage {
+    /// The stage's id: what the interface keys on. The title is display text.
+    pub id: String,
     pub title: String,
     pub phases: Vec<RailPhase>,
 }
@@ -66,6 +72,7 @@ fn phase_entry(pack: &FlatPack, flight: &Flight, shown: Shown, id: &str) -> Opti
     Some(RailPhase {
         id: phase.id.clone(),
         title: phase.title.clone(),
+        group: phase.group.clone(),
         progress,
         complete: progress.complete(),
         open: progress.open(),
@@ -88,6 +95,7 @@ pub fn rail(pack: &FlatPack, flight: &Flight, settings: &Settings) -> Rail {
         .stages
         .iter()
         .map(|stage| RailStage {
+            id: stage.id.clone(),
             title: stage.title.clone(),
             phases: stage
                 .phases
@@ -119,6 +127,27 @@ mod tests {
     use crate::actions::{Action, apply};
     use crate::flight::new_flight;
     use crate::test_support::ifly_pack;
+
+    #[test]
+    fn stages_are_keyed_by_id_and_a_new_title_changes_only_the_text() {
+        let mut pack = ifly_pack();
+        let flight = new_flight(&pack);
+        let before = rail(&pack, &flight, &Settings::default());
+        pack.content.phases.as_mut().unwrap().stages[0].title = "Before the flight".into();
+        let after = rail(&pack, &flight, &Settings::default());
+        let ids = |r: &Rail| r.stages.iter().map(|s| s.id.clone()).collect::<Vec<_>>();
+        assert_eq!(ids(&after), ids(&before));
+        assert_eq!(ids(&after)[0], "preflight");
+        assert_eq!(after.stages[0].title, "Before the flight");
+        assert_eq!(after.stages[0].phases, before.stages[0].phases);
+        // Reference phases carry their group.
+        let groups: Vec<_> = after
+            .reference
+            .iter()
+            .filter_map(|p| p.group.clone())
+            .collect();
+        assert_eq!(groups, ["memory", "quick", "procedures"]);
+    }
 
     fn titles(rail: &Rail, stage: &str) -> Vec<String> {
         rail.stages
