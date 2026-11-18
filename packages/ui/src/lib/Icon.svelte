@@ -24,6 +24,7 @@ control around them carries the words.
   import x from "../icons/tabler/x.svg?raw";
   import answerRight from "../icons/board/answer-right.svg?raw";
   import answerWrong from "../icons/board/answer-wrong.svg?raw";
+  import bell from "../icons/board/bell.svg?raw";
   import decision from "../icons/board/decision.svg?raw";
   import fieldAlert from "../icons/board/field-alert.svg?raw";
   import fileUpload from "../icons/board/file-upload.svg?raw";
@@ -45,6 +46,7 @@ control around them carries the words.
     "answer-wrong": answerWrong,
     "arrow-left": arrowLeft,
     "arrow-right": arrowRight,
+    bell,
     check,
     "chevron-down": chevronDown,
     "chevron-left": chevronLeft,

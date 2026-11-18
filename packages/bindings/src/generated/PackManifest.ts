@@ -84,6 +84,10 @@ panels?: Array<string>, lights?: string | null, faults?: string | null, glossary
  */
 flight?: string | null, 
 /**
+ * The aircraft's alert messages (`messages.yaml`), when it has an alert display.
+ */
+messages?: string | null, 
+/**
  * The words the interface shows for this pack (`labels.yaml`); without it, the app's own.
  */
 labels?: string | null, };

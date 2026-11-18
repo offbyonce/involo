@@ -1079,6 +1079,52 @@ expression: flat
         }
       ]
     },
+    "messages": {
+      "messages": [
+        {
+          "id": "smoke-cabin",
+          "text": "SMOKE CABIN",
+          "level": "warning",
+          "meaning": "Smoke is detected in the cabin.",
+          "list": "smoke",
+          "steps": [
+            "example-trainer.smoke.masks",
+            "example-trainer.smoke.checklist"
+          ]
+        },
+        {
+          "id": "batt-low",
+          "text": "BATT LOW",
+          "level": "caution",
+          "meaning": "The battery charge is low.",
+          "list": "before-start",
+          "steps": [
+            "example-trainer.before-start.battery"
+          ]
+        },
+        {
+          "id": "radio-fault",
+          "text": "RADIO FAULT",
+          "level": "advisory",
+          "meaning": "The radio keypad has stopped accepting entries.",
+          "no_list": "Use the other radio; no procedure is needed."
+        },
+        {
+          "id": "seat-belts",
+          "text": "SEAT BELTS",
+          "level": "memo",
+          "meaning": "The seat belt signs are on.",
+          "no_list": "A reminder only; nothing to do."
+        },
+        {
+          "id": "radar-inop",
+          "text": "RADAR INOP",
+          "level": "status",
+          "meaning": "The weather radar isn't working. It matters for the next flight, not this one.",
+          "no_list": "Nothing to do in flight."
+        }
+      ]
+    },
     "labels": {
       "list_kinds": {
         "flow": "Procedure",

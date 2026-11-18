@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MessagesFile",
+  "description": "`messages.yaml`, in the order the app lists them.",
+  "type": "object",
+  "properties": {
+    "messages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Message"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "messages"
+  ],
+  "$defs": {
+    "Message": {
+      "description": "One alert message.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Lower-case letters, digits and dashes, e.g. `engine-fire-l`, so a step, a link or a\npack extending this one can name it.",
+          "type": "string"
+        },
+        "level": {
+          "$ref": "#/$defs/MessageLevel"
+        },
+        "list": {
+          "description": "The list that deals with it.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "meaning": {
+          "description": "What it means.",
+          "type": "string"
+        },
+        "no_list": {
+          "description": "Without a list: why none is needed, e.g. a memo that only reminds.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "steps": {
+          "description": "The steps that deal with it, in order: each shows the message that calls for it.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StepId"
+          }
+        },
+        "text": {
+          "description": "The message as the alert display shows it, e.g. `ENGINE FIRE L`.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "level",
+        "meaning"
+      ]
+    },
+    "MessageLevel": {
+      "description": "How serious a message is. The app draws each level in its own theme colors and always\nwrites its name; a pack never sets a color.",
+      "type": "string",
+      "enum": [
+        "warning",
+        "caution",
+        "advisory",
+        "memo",
+        "status"
+      ]
+    },
+    "StepId": {
+      "description": "A stable step id: `<pack-id>.<phase>.<short-name>`, e.g. `demo-aircraft.preflight.irs-mode`.\nAn id never changes once published, even if the step is reworded or moved to another phase.",
+      "type": "string"
+    }
+  }
+}

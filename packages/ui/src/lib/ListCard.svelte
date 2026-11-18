@@ -13,6 +13,9 @@ folded to one line with its count until the phase's procedure is done.
   import { marksStep } from "./marked-step";
   import type { PackIndex } from "../pack-index";
   import Icon from "./Icon.svelte";
+  import LevelBadge from "./LevelBadge.svelte";
+  import MessageText from "./MessageText.svelte";
+  import { messageHref } from "./messages";
   import { stepTitle } from "./sentence";
   import StepItem from "./StepItem.svelte";
   import type { Decisions } from "./decision";
@@ -99,6 +102,8 @@ folded to one line with its count until the phase's procedure is done.
   $effect(() => {
     if (!folded) openList = true;
   });
+  /** The alert messages that call for this list (MsgEmergency); none without messages. */
+  let calledBy = $derived(index.messagesCalling(list.id));
   let counts = $derived(
     `${list.progress.done} of ${list.progress.total} done${list.progress.skipped ? ` · ${list.progress.skipped} skipped` : ""}`,
   );
@@ -121,6 +126,15 @@ folded to one line with its count until the phase's procedure is done.
   </header>
   <!-- Tablet and phone: a later list starts with a plain label, the fold's text. -->
   <p class="label" aria-hidden="true">{list.title} · {list.progress.done} of {list.progress.total}</p>
+  {#each calledBy as m (m.id)}
+    <div class="called">
+      <span class="bell"><Icon name="bell" /></span>
+      <span class="by">Called for by</span>
+      <MessageText text={m.text} level={m.level} />
+      <LevelBadge level={m.level} />
+      <a class="means" href={messageHref(m.id)}>What it means<Icon name="chevron-right" /></a>
+    </div>
+  {/each}
   {#if source?.when || source?.why}
     <div class="when">
       {#if source?.when}<p><b>When</b> · {source.when}</p>{/if}
@@ -381,5 +395,43 @@ folded to one line with its count until the phase's procedure is done.
       color: var(--color-text-muted);
       font-size: var(--font-size-secondary);
     }
+  }
+  /* The message that calls for this list (MsgEmergency), linking to what it means. */
+  .called {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin: var(--space-3) var(--space-3) var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-thin) solid var(--color-border);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface);
+  }
+  .called .bell {
+    display: flex;
+    color: var(--color-text-muted);
+  }
+  .called .bell :global(svg) {
+    width: calc(var(--size-icon-small) + var(--border-thick));
+    height: calc(var(--size-icon-small) + var(--border-thick));
+  }
+  .called .by {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-secondary);
+  }
+  .called .means {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: var(--size-touch-min);
+    margin-left: auto;
+    color: var(--color-link);
+    font-size: var(--font-size-secondary);
+    text-decoration: none;
+  }
+  .called .means :global(svg) {
+    width: var(--size-icon-small);
+    height: var(--size-icon-small);
   }
 </style>

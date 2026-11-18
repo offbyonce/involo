@@ -4,7 +4,7 @@
 // Screens have their own address after `#`, so Back works and a screen can be bookmarked,
 // offline too. `#/phase/<id>`, `#/reference` (optionally `/<phase id>`), `#/settings`,
 // `#/flight/<section>` (the Flight pages; optionally `/<field>` to focus a field, or the
-// Weather tab), `#/open` (open steps), `#/glossary` (optionally `/<term>`), `#/deck` (optionally `/<area>/<place>`), `#/practice`, `#/how` (optionally `/<part>`, 1 to 7), `#/log` (optionally `/<flight id>`, or `/current` for This flight), `#/references`; anything else is the start. `#/setup` (Flight setup until
+// Weather tab), `#/open` (open steps), `#/glossary` (optionally `/<term>`), `#/deck` (optionally `/<area>/<place>`), `#/messages` (the Flight deck's Alert messages, optionally `/<message id>`), `#/practice`, `#/how` (optionally `/<part>`, 1 to 7), `#/log` (optionally `/<flight id>`, or `/current` for This flight), `#/references`; anything else is the start. `#/setup` (Flight setup until
 // leads to Flight › Overview.
 
 export type Route =
@@ -16,6 +16,7 @@ export type Route =
   | { screen: "open" }
   | { screen: "glossary"; term: string | null }
   | { screen: "deck"; area: string | null; zone: string | null }
+  | { screen: "messages"; id: string | null }
   | { screen: "practice" }
   | { screen: "how"; part: number | null }
   | { screen: "log"; entry: string | null }
@@ -42,6 +43,7 @@ export function parseRoute(hash: string): Route {
   }
   if (parts[0] === "references") return { screen: "references" };
   if (parts[0] === "log") return { screen: "log", entry: parts[1] ?? null };
+  if (parts[0] === "messages") return { screen: "messages", id: parts[1] ?? null };
   if (parts[0] === "deck") return { screen: "deck", area: parts[1] ?? null, zone: parts[2] ?? null };
   return { screen: "start" };
 }

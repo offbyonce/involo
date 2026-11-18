@@ -24,6 +24,10 @@ pub fn all() -> Vec<(&'static str, String)> {
         ("glossary.schema.json", render::<GlossaryFile>()),
         ("labels.schema.json", render::<LabelsFile>()),
         ("lights.schema.json", render::<LightsFile>()),
+        (
+            "messages.schema.json",
+            render::<involo_checklist_core::MessagesFile>(),
+        ),
         ("notes.schema.json", render::<NotesFile>()),
         ("pack.schema.json", render::<PackManifest>()),
         ("panel.schema.json", render::<Panel>()),

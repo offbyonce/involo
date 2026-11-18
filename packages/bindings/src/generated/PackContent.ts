@@ -8,6 +8,7 @@ import type { FlightFile } from "./FlightFile";
 import type { GlossaryFile } from "./GlossaryFile";
 import type { Labels } from "./Labels";
 import type { LightsFile } from "./LightsFile";
+import type { MessagesFile } from "./MessagesFile";
 import type { NotesFile } from "./NotesFile";
 import type { Panel } from "./Panel";
 import type { PanelStatesFile } from "./PanelStatesFile";
@@ -21,6 +22,10 @@ export type PackContent = { phases: PhasesFile | null, controls: ControlsFile | 
  * The pack's flight fields (decision 0029).
  */
 flight?: FlightFile | null, 
+/**
+ * The aircraft's alert messages (decision 0029).
+ */
+messages?: MessagesFile | null, 
 /**
  * The words the interface shows for this pack: its `labels.yaml` over the app's defaults,
  * always complete (decision 0029).

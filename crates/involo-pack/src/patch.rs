@@ -34,6 +34,7 @@ pub enum PatchOp {
 /// - `stage`, `list`, `step`, `panel`, `flight_field`, `panel_state`: the entry's `id`;
 /// - `section`: `panel/section`; `item`: `panel/section/item`, the item's `id` (an item without an
 ///   id cannot be patched: add the id in the parent);
+/// - `message`: the alert message's `id`;
 /// - `glossary_term`: the entry's `term`;
 /// - `label`: a dotted path into the pack's labels, a list entry named by its `id`, e.g.
 ///   `list_kinds.checklist` or `roles.pf.title`.
@@ -57,6 +58,8 @@ pub struct Patch {
     pub flight_field: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub panel_state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub glossary_term: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -87,6 +90,7 @@ pub enum Kind {
     Item,
     FlightField,
     PanelState,
+    Message,
     GlossaryTerm,
     Label,
 }
@@ -103,6 +107,7 @@ impl Kind {
             Self::Item => "item",
             Self::FlightField => "flight_field",
             Self::PanelState => "panel_state",
+            Self::Message => "message",
             Self::GlossaryTerm => "glossary_term",
             Self::Label => "label",
         }
@@ -121,6 +126,7 @@ impl Patch {
             (Kind::Item, &self.item),
             (Kind::FlightField, &self.flight_field),
             (Kind::PanelState, &self.panel_state),
+            (Kind::Message, &self.message),
             (Kind::GlossaryTerm, &self.glossary_term),
             (Kind::Label, &self.label),
         ]
@@ -237,6 +243,7 @@ fn locate(doc: &Value, kind: Kind, id: &str) -> Result<Slot, String> {
         }
         Kind::FlightField => simple("/content/flight/fields", "id"),
         Kind::PanelState => simple("/content/panel_states/states", "id"),
+        Kind::Message => simple("/content/messages/messages", "id"),
         Kind::GlossaryTerm => simple("/content/glossary/terms", "term"),
         Kind::Label => locate_label(doc, id).ok_or_else(nothing),
     }
@@ -287,7 +294,7 @@ fn entries(with: &Value) -> Vec<Value> {
 /// Applies one patch to `doc`.
 fn apply_one(doc: &mut Value, patch: &Patch) -> Result<(), String> {
     let Some((kind, id)) = patch.target() else {
-        return Err("names no target, or more than one: give exactly one of stage, list, step, panel, section, item, flight_field, panel_state, glossary_term or label".into());
+        return Err("names no target, or more than one: give exactly one of stage, list, step, panel, section, item, flight_field, panel_state, message, glossary_term or label".into());
     };
     let needs = |field: &str, given: bool, wanted: bool| match (given, wanted) {
         (false, true) => Err(format!("needs `{field}`")),
@@ -389,6 +396,7 @@ fn check_shape(doc: &Value, kind: Kind, patch: &Patch, slot: &Slot) -> Result<()
             Kind::Item => reads::<core::PanelItem>(value)?,
             Kind::FlightField => reads::<core::FlightField>(value)?,
             Kind::PanelState => reads::<core::PanelState>(value)?,
+            Kind::Message => reads::<core::Message>(value)?,
             Kind::GlossaryTerm => reads::<core::GlossaryEntry>(value)?,
             Kind::Label => {}
         }

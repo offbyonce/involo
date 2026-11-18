@@ -123,6 +123,7 @@ mod tests {
       - {op: set, flight_field: runway, to: {label: Departure runway}}
       - {op: set, panel_state: ready, to: {title: 'Ready, variant'}}
       - {op: set, glossary_term: CDU, to: {meaning: The variant's computer.}}
+      - {op: set, message: batt-low, to: {meaning: The battery is nearly flat.}}
       - {op: set, label: list_kinds.checklist, to: Check}
     ",
         )
@@ -177,6 +178,15 @@ mod tests {
             .unwrap();
         assert_eq!(cdu.meaning, "The variant's computer.");
         assert_eq!(c.labels.list_kinds.checklist, "Check");
+        let batt = c
+            .messages
+            .as_ref()
+            .unwrap()
+            .messages
+            .iter()
+            .find(|m| m.id == "batt-low")
+            .unwrap();
+        assert_eq!(batt.meaning, "The battery is nearly flat.");
     }
 
     #[test]

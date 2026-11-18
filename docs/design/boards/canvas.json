@@ -1945,6 +1945,22 @@
       "h": 1500,
       "title": "Shared source: new panel controls (tweak: theme)",
       "page": "b12"
+    },
+    "MsgEmergency.dc.html": {
+      "x": 1990,
+      "y": 2640,
+      "w": 880,
+      "h": 460,
+      "title": "An emergency list with the message that calls for it (dark)",
+      "page": "b12"
+    },
+    "MsgEmergencyLight.dc.html": {
+      "x": 2950,
+      "y": 2640,
+      "w": 880,
+      "h": 460,
+      "title": "An emergency list with the message that calls for it (light)",
+      "page": "b12"
     }
   },
   "createdOnFiles": {
@@ -2200,7 +2216,9 @@
     "MsgPane.dc.html",
     "MsgPaneLight.dc.html",
     "Messages.dc.html",
-    "PanelControls.dc.html"
+    "PanelControls.dc.html",
+    "MsgEmergency.dc.html",
+    "MsgEmergencyLight.dc.html"
   ],
   "pages": [
     {

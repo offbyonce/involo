@@ -114,6 +114,7 @@ pub fn load_pack_dir(dir: &Path) -> Result<Pack, LoadError> {
         cdu: load_optional(dir, manifest.cdu.as_ref())?,
         aliases: load_optional(dir, manifest.aliases.as_ref())?,
         flight: load_optional(dir, manifest.flight.as_ref())?,
+        messages: load_optional(dir, manifest.messages.as_ref())?,
         labels: involo_checklist_core::Labels::default(),
     };
     let labels_file: Option<involo_checklist_core::LabelsFile> =
@@ -222,6 +223,24 @@ steps:
         let err = read("purple").unwrap_err().to_string();
         assert!(err.contains("purple"), "{err}");
         assert!(err.contains("line 20"), "{err}");
+    }
+
+    #[test]
+    fn a_message_names_a_level_the_app_knows() {
+        let file = |level: &str| {
+            format!(
+                "messages:\n  - id: fire\n    text: ENGINE FIRE\n    level: {level}\n    meaning: Fire.\n"
+            )
+        };
+        let read = |level: &str| {
+            super::parse_yaml::<involo_checklist_core::MessagesFile>(
+                &file(level),
+                Path::new("messages.yaml"),
+            )
+        };
+        assert!(read("warning").is_ok());
+        let err = read("danger").unwrap_err().to_string();
+        assert!(err.contains("danger") && err.contains("line 4"), "{err}");
     }
 
     #[test]

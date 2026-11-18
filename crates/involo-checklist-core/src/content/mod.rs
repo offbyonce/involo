@@ -13,6 +13,7 @@ mod flight;
 mod glossary;
 mod labels;
 mod lights;
+mod messages;
 mod notes;
 mod panel_states;
 mod panels;
@@ -40,6 +41,7 @@ pub use labels::{
     ReferenceLabelsFile, RoleLabel, SeatLabel,
 };
 pub use lights::{LightNote, LightsFile};
+pub use messages::{Message, MessageLevel, MessagesFile};
 pub use notes::{ExplainNote, HowNote, NotesFile};
 pub use panel_states::{PanelState, PanelStatesFile};
 pub use panels::{Legend, LightColor, Panel, PanelItem, PanelItemKind, PanelSection};

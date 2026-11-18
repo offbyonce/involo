@@ -112,12 +112,19 @@ shows lit when a step expects the button's light on) or a `keypad` (its keys as 
 Packs name light roles (amber, red, green, blue, white), never colors. See the example pack's
 `panels/autoflight.yaml`.
 
+**Alert messages.** An aircraft with an alert display (EICAS or ECAM) lists its messages in
+`messages.yaml` (manifest `messages`): each with an `id`, its `text` as the display shows it, a
+`level` (`warning`, `caution`, `advisory`, `memo`, `status`), what it means (`meaning`), the `list`
+that deals with it or, without one, why none is needed (`no_list`), and the `steps` that deal with
+it. A pack never sets their colors. Without `messages.yaml` the app shows no Alert messages tab and
+no message rows. See the example pack.
+
 **Extending a pack.** A pack may build on one parent (another pack or a `kind: library` pack):
 `extends` names it with the versions it accepts, and `patches` (`patches.yaml`) changes it by id.
 Each patch has an `op` (`set`, `replace`, `remove`, `insert_before`, `insert_after`) and names one
 target: a `stage`, `list`, `step`, `panel`, `section` (`panel/section`), `item`
 (`panel/section/item`; an item needs an `id` in the parent to be patched), `flight_field`,
-`panel_state`, `glossary_term` or `label` (a dotted path, list entries by id). `set` takes `to`
+`panel_state`, `message`, `glossary_term` or `label` (a dotted path, list entries by id). `set` takes `to`
 (the fields to change; null removes one); `replace` and the inserts take `with` (one entry or a
 list). The child's own lists and panels follow the parent's, and its `labels.yaml` applies over
 the parent's words; any other content file the parent has is changed with patches. Attribution

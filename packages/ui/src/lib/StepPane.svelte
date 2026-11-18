@@ -14,6 +14,9 @@ and a caution note under If not. A step with no control shows the steps coming u
   import { sentence as toSentence, stepTitle } from "./sentence";
   import type { ItemTarget, Step, StepState } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
+  import LevelBadge from "./LevelBadge.svelte";
+  import MessageText from "./MessageText.svelte";
+  import { messageHref } from "./messages";
   import Icon from "./Icon.svelte";
   import PanelPreview from "./PanelPreview.svelte";
   import type { Opening } from "./opening";
@@ -55,6 +58,8 @@ and a caution note under If not. A step with no control shows the steps coming u
   const sentence = (text: string) => toSentence(index, text);
 
   let place = $derived(index.place(step));
+  /** The alert messages that call for this step (MsgPane); none in a pack without messages. */
+  let calledBy = $derived(index.messagesFor(step.id));
   let how = $derived(step.how ? index.how(step.how) : undefined);
   let explain = $derived(step.explain ? index.explain(step.explain) : undefined);
   let check = $derived(step.check ?? explain?.check ?? null);
@@ -159,6 +164,17 @@ and a caution note under If not. A step with no control shows the steps coming u
     {/if}
   {/if}
   {/if}
+
+  {#each calledBy as m (m.id)}
+    <a class="called" href={messageHref(m.id)}>
+      <span class="bell"><Icon name="bell" /></span>
+      <span class="what">
+        <span class="called-cap">The message that calls for this step</span>
+        <span class="msg"><MessageText text={m.text} level={m.level} /><LevelBadge level={m.level} /></span>
+      </span>
+      <span class="go"><Icon name="chevron-right" /></span>
+    </a>
+  {/each}
 
   {#if place}
     <button class="line" data-tour="where" class:flow type="button" onclick={() => onOpen({ entry: "where" })}>
@@ -466,5 +482,48 @@ and a caution note under If not. A step with no control shows the steps coming u
     .inline kbd {
       display: none;
     }
+  }
+  /* The message that calls for this step (MsgPane): a link to it on the Alert messages tab. */
+  .called {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--space-2) + var(--border-thick));
+    min-height: calc(var(--size-touch-min) + var(--space-2));
+    padding: var(--space-2) var(--space-3);
+    border: var(--border-thin) solid var(--color-border);
+    border-radius: var(--radius-control);
+    text-decoration: none;
+  }
+  .called .bell {
+    display: flex;
+    color: var(--color-text-muted);
+  }
+  .called .what {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  .called .called-cap {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-caption);
+    font-weight: var(--weight-regular);
+  }
+  .called .msg {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .called .go {
+    display: flex;
+    color: var(--color-link);
+  }
+  .called .bell :global(svg) {
+    width: calc(var(--size-icon-small) + var(--border-thick));
+    height: calc(var(--size-icon-small) + var(--border-thick));
+  }
+  .called .go :global(svg) {
+    width: var(--size-icon-small);
+    height: var(--size-icon-small);
   }
 </style>
