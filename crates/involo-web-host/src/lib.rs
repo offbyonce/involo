@@ -71,9 +71,9 @@ pub fn example_checklist() -> String {
     reply(involo_app_core::example_checklist())
 }
 
-/// Read a flattened pack, as written by `involo-pack build`, and keep it for the calls below.
+/// Parse a flattened pack, as written by `involo-pack build`, and keep it for the calls below.
 #[wasm_bindgen]
-pub fn load_pack(json: &str) -> String {
+pub fn parse_pack(json: &str) -> String {
     reply(involo_app_core::load_pack(json).inspect(|pack| {
         PACKS.with_borrow_mut(|packs| packs.insert(pack.manifest.id.clone(), pack.clone()));
     }))
@@ -131,25 +131,25 @@ pub fn suggestion(pack: &str, flight: &str, option: &str) -> String {
 
 /// One phase of a flight as the interface shows it: lists, step states, progress, neighbors.
 #[wasm_bindgen]
-pub fn phase_view(pack: &str, flight: &str, settings: &str, phase: &str) -> String {
+pub fn phase_model(pack: &str, flight: &str, settings: &str, phase: &str) -> String {
     reply((|| {
         let flight: Flight = read("flight", flight)?;
         let settings: Settings = read("settings", settings)?;
         with_pack(pack, |p| {
-            involo_app_core::phase_view(p, &flight, &settings, phase)
+            involo_app_core::phase_model(p, &flight, &settings, phase)
         })
     })())
 }
 
-/// Read a saved flight: ready (migrated if older), newer, or unreadable.
+/// Parse a saved flight's text: ready (migrated if older), newer, or unreadable.
 #[wasm_bindgen]
-pub fn load_flight(json: &str) -> String {
+pub fn parse_flight(json: &str) -> String {
     reply(Ok(involo_app_core::load_flight(json)))
 }
 
-/// Read saved settings: ready (migrated if older), newer, or unreadable.
+/// Parse saved settings' text: ready (migrated if older), newer, or unreadable.
 #[wasm_bindgen]
-pub fn load_settings(json: &str) -> String {
+pub fn parse_settings(json: &str) -> String {
     reply(Ok(involo_app_core::load_settings(json)))
 }
 
@@ -165,7 +165,7 @@ pub fn plan_url(user: &str) -> String {
     reply(involo_app_core::plan_url(user))
 }
 
-/// Read a SimBrief plan: fetched JSON, or a saved JSON or XML file.
+/// Parse a SimBrief plan: fetched JSON, or a saved JSON or XML file.
 #[wasm_bindgen]
 pub fn parse_plan(text: &str) -> String {
     reply(involo_app_core::parse_plan(text))
@@ -180,9 +180,9 @@ pub fn plan_values(pack: &str, plan: &str) -> String {
     })())
 }
 
-/// Read the saved SimBrief plan: ready (migrated if older), newer or unreadable.
+/// Parse the saved SimBrief plan's text: ready (migrated if older), newer or unreadable.
 #[wasm_bindgen]
-pub fn load_plan(json: &str) -> String {
+pub fn parse_saved_plan(json: &str) -> String {
     reply(Ok::<_, AppError>(involo_app_core::load_plan(json)))
 }
 
@@ -198,9 +198,9 @@ pub fn new_log() -> String {
     reply(Ok::<_, AppError>(involo_app_core::new_log()))
 }
 
-/// Read the saved flight log: ready (migrated if older), newer or unreadable.
+/// Parse the saved flight log's text: ready (migrated if older), newer or unreadable.
 #[wasm_bindgen]
-pub fn load_log(json: &str) -> String {
+pub fn parse_log(json: &str) -> String {
     reply(Ok::<_, AppError>(involo_app_core::load_log(json)))
 }
 
@@ -271,7 +271,7 @@ mod tests {
                 r#"{"error":{"kind":"FlightPlan","message":"enter a SimBrief username or Pilot ID"}}"#
             )
         );
-        assert_eq!(json(&load_pack("{}"))["error"]["kind"], "PackInvalid");
+        assert_eq!(json(&parse_pack("{}"))["error"]["kind"], "PackInvalid");
         assert_eq!(json(&new_flight("nope"))["error"]["kind"], "PackInvalid");
         assert_eq!(
             json(&apply("x", "{}", "{}"))["error"]["kind"],
@@ -279,7 +279,7 @@ mod tests {
         );
         assert_eq!(json(&default_settings())["ok"]["theme"], "system");
         assert_eq!(json(&new_log())["ok"]["format"], 1);
-        assert_eq!(json(&load_log(r#"{"format":99}"#))["ok"]["state"], "newer");
+        assert_eq!(json(&parse_log(r#"{"format":99}"#))["ok"]["state"], "newer");
         assert_eq!(
             json(&edit_log(
                 &new_log_text(),
@@ -294,7 +294,7 @@ mod tests {
                 .starts_with("Date")
         );
         assert_eq!(
-            json(&load_settings(r#"{"format":99}"#))["ok"]["state"],
+            json(&parse_settings(r#"{"format":99}"#))["ok"]["state"],
             "newer"
         );
         assert_eq!(
@@ -310,7 +310,7 @@ mod tests {
         let dir =
             std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
         let pack = FlatPack::from(involo_pack::load_pack_dir(&dir).unwrap());
-        assert!(json(&load_pack(&serde_json::to_string(&pack).unwrap()))["ok"].is_object());
+        assert!(json(&parse_pack(&serde_json::to_string(&pack).unwrap()))["ok"].is_object());
         assert_eq!(
             json(&plan_values(
                 "example-trainer",
@@ -344,7 +344,7 @@ mod tests {
         // No suggestion rule in the example pack: null, not an error.
         assert!(json(&suggestion("example-trainer", &ticked.to_string(), "power"))["ok"].is_null());
         assert!(json(&suggestion("example-trainer", "{", "power"))["error"].is_object());
-        let view = json(&phase_view(
+        let view = json(&phase_model(
             "example-trainer",
             &ticked.to_string(),
             &settings,
@@ -353,7 +353,7 @@ mod tests {
             .clone();
         assert_eq!(view["lists"][0]["steps"][0]["state"], "done");
         assert_eq!(
-            json(&phase_view("example-trainer", &flight, &settings, "nope"))["error"]["kind"],
+            json(&phase_model("example-trainer", &flight, &settings, "nope"))["error"]["kind"],
             "InvalidAction"
         );
     }

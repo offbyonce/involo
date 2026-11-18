@@ -12,7 +12,7 @@ mod flight;
 mod log;
 mod open_steps;
 mod packs;
-mod phase_view;
+mod phase_model;
 mod plans;
 mod rail;
 mod saved;
@@ -36,12 +36,12 @@ pub use log::{
 };
 pub use open_steps::{OpenStep, open_steps};
 pub use packs::load_pack;
-pub use phase_view::{PhaseLink, PhaseList, PhaseView, StepRow, phase_view};
+pub use phase_model::{PhaseLink, PhaseList, PhaseModel, StepRow, phase_model};
 pub use plans::{PLAN_FORMAT, PlanValues, SavedPlan, parse_plan, plan_url, plan_values};
 pub use rail::{Rail, RailPhase, RailStage, rail};
 pub use saved::{Loaded, load_flight, load_plan, load_settings};
 pub use settings::{
-    Detail, EssentialsChanges, ListView, MAX_DIMMING, SETTINGS_FORMAT, Settings, TextSize, Theme,
+    Detail, EssentialsChanges, MAX_DIMMING, SETTINGS_FORMAT, Settings, StepLayout, TextSize, Theme,
 };
 pub use suggest::{Suggestion, suggestion};
 pub use targets::{ItemTarget, step_targets};

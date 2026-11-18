@@ -68,7 +68,7 @@ fn suggest_targets(dir: &Path) -> Result<bool> {
         if step.controls.is_empty() {
             continue;
         }
-        let s = involo_pack::suggest::suggest(
+        let s = involo_pack::draft_targets::draft_targets(
             &pack.content.panels,
             step,
             &pack.content.labels.position_words,

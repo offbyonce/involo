@@ -335,6 +335,26 @@ mod tests {
     }
 
     #[test]
+    fn settings_saved_before_step_layout_was_named_keep_their_layout() {
+        // Format 6 settings as the app saved them when the type was still called ListView.
+        let saved = |layout: &str| {
+            format!(
+                r#"{{"format":6,"theme":"system","dimming":0,"textSize":"100","detail":"expanded","listView":"{layout}","essentials":false,"essentialsChanges":{{}},"panelPreview":true,"descriptions":true,"chime":true,"simbriefUser":null,"loadPlanOnOpen":false,"tourSeen":false}}"#
+            )
+        };
+        for (text, layout) in [
+            ("flow", crate::StepLayout::Flow),
+            ("checklist", crate::StepLayout::Checklist),
+        ] {
+            let Loaded::Ready { value, .. } = load_settings(&saved(text)) else {
+                panic!("{text}: saved settings did not load");
+            };
+            assert_eq!(value.list_view, layout);
+            assert_eq!(serde_json::to_string(&value).unwrap(), saved(text));
+        }
+    }
+
+    #[test]
     fn current_settings_read_back() {
         let settings = Settings::default();
         let json = serde_json::to_string(&settings).unwrap();

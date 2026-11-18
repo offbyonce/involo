@@ -9,7 +9,7 @@
 
 import type { Flight, SavedPlan, Settings } from "@involo/bindings";
 import type { Saved, SavedItem } from "@involo/ui";
-import { loadFlight, loadSettings, loadPlan as readPlan } from "./core";
+import { parseFlight, parseSavedPlan, parseSettings } from "./core";
 import { readText, saveOver, setAsideText, writeText } from "./saved-store.js";
 import { storageKey } from "./storage-keys.js";
 
@@ -38,12 +38,13 @@ function readSeen(k: string): string | null {
 
 let persistAsked = false;
 
-export async function loadSaved(pack: string): Promise<Saved> {
+export async function readSaved(pack: string): Promise<Saved> {
   const flightText = readSeen(key(pack, "flight"));
   const settingsText = readSeen(key(pack, "settings"));
   return {
-    flight: flightText === null ? null : { loaded: await loadFlight(flightText), text: flightText },
-    settings: settingsText === null ? null : { loaded: await loadSettings(settingsText), text: settingsText },
+    flight: flightText === null ? null : { loaded: await parseFlight(flightText), text: flightText },
+    settings:
+      settingsText === null ? null : { loaded: await parseSettings(settingsText), text: settingsText },
   };
 }
 
@@ -82,10 +83,10 @@ export async function setAside(pack: string, what: What): Promise<boolean> {
 }
 
 /** The kept plan: ready, or newer or unreadable with its text, so it is reported and kept. */
-export async function loadPlan(pack: string): Promise<SavedItem<SavedPlan>> {
+export async function readPlan(pack: string): Promise<SavedItem<SavedPlan>> {
   const s = storage();
   const text = s ? readText(s, key(pack, "plan")) : null;
-  return text === null ? null : { loaded: await readPlan(text), text };
+  return text === null ? null : { loaded: await parseSavedPlan(text), text };
 }
 
 export async function savePlan(pack: string, plan: SavedPlan | null): Promise<void> {

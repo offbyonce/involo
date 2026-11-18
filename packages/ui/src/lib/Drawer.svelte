@@ -8,7 +8,7 @@ the step settings, the menu groups and Reset flight plan. Every item on the Menu
 now (References was the last). The version line lives at the foot of Settings.
 -->
 <script lang="ts">
-  import type { Detail, ListView, Progress } from "@involo/bindings";
+  import type { Detail, StepLayout, Progress } from "@involo/bindings";
   import headerMark from "../icons/brand/header-mark.svg?raw";
   import Icon from "./Icon.svelte";
   import { trapFocus } from "./trap";
@@ -38,10 +38,10 @@ now (References was the last). The version line lives at the foot of Settings.
     saveFailed?: boolean;
     total: Progress;
     /** The list view, when a phase is on screen (phone shows Checklist / Flow here). */
-    view: ListView | null;
+    view: StepLayout | null;
     detail: Detail;
     essentials: boolean;
-    onView: (view: ListView) => void;
+    onView: (view: StepLayout) => void;
     onDetail: (detail: Detail) => void;
     onEssentials: (on: boolean) => void;
     onReset: () => void;

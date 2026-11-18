@@ -6,7 +6,7 @@ import type {
   FlatPack,
   Flight,
   Loaded,
-  PhaseView,
+  PhaseModel,
   Rail,
   RailPhase,
   SavedPlan,
@@ -111,7 +111,7 @@ const pack = {
   },
 } as unknown as FlatPack;
 
-function view(states: [StepState, StepState]): PhaseView {
+function view(states: [StepState, StepState]): PhaseModel {
   const done = states.filter((s) => s === "done").length;
   const skipped = states.filter((s) => s === "skipped").length;
   const progress = { done, skipped, toDo: 2 - done - skipped, total: 2 };
@@ -168,10 +168,10 @@ function host(overrides: Partial<Host> = {}): Host {
       }) as unknown as Flight,
     apply: async (_pack, flight) => flight,
     rail: async () => rail,
-    phaseView: async () => view(["skipped", "current"]),
+    phaseModel: async () => view(["skipped", "current"]),
     openSteps: async () => [],
     suggestion: async () => null,
-    loadSaved: async () => ({ flight: null, settings: null }),
+    readSaved: async () => ({ flight: null, settings: null }),
     save: async () => 0,
     setAside: async () => true,
     defaultSettings: async () =>
@@ -183,7 +183,7 @@ function host(overrides: Partial<Host> = {}): Host {
       throw new Error("no plan file in tests");
     },
     planValues: async () => ({ values: {}, filled: 0, origin: "", destination: "", checkClearance: false }),
-    loadPlan: async () => null,
+    readPlan: async () => null,
     savePlan: async () => {},
     decodeMetar: async () => ({ station: null, time: null, groups: [], rows: [] }),
     decodeTaf: async () => ({ station: null, time: null, groups: [], rows: [] }),
@@ -194,10 +194,10 @@ function host(overrides: Partial<Host> = {}): Host {
 
 /** The Flight log's host calls, with the log's rules reduced to what these tests need (the real
  * ones are Rust's, tested there): entries newest first, added or deleted by id. */
-function fakeLog(): Pick<Host, "newLog" | "loadLog" | "saveLog" | "logEntry" | "editLog" | "logCsv"> {
+function fakeLog(): Pick<Host, "newLog" | "readLog" | "saveLog" | "logEntry" | "editLog" | "logCsv"> {
   return {
     newLog: async () => ({ format: 1, flights: [], practice: [] }),
-    loadLog: async () => null,
+    readLog: async () => null,
     saveLog: async () => true,
     logEntry: async (pack, flight, _settings, plan, at) => ({
       id: `${pack}@${at}`,
@@ -322,7 +322,7 @@ describe("App", () => {
         states = after.shift() ?? states;
         return { ...flight };
       },
-      phaseView: async () => view(states),
+      phaseModel: async () => view(states),
     });
     render(App, { context: hostContext(h) });
 
@@ -380,7 +380,7 @@ describe("App", () => {
   it("opens the current step in place on tablet portrait, with Skip for now in its row menu", async () => {
     screenWidth(820);
     let states: [StepState, StepState] = ["current", "to_do"];
-    render(App, { context: hostContext(host({ phaseView: async () => view(states) })) });
+    render(App, { context: hostContext(host({ phaseModel: async () => view(states) })) });
 
     await screen.findByRole("heading", { level: 1, name: "Power up" });
     // No side pane below 900 px: the pane's content opens in the current step's row, once.
@@ -463,7 +463,7 @@ describe("App", () => {
         if (action.type === "clear") return { ...flight, values: {} };
         return flight;
       },
-      phaseView: async () => view(["skipped", "current"]),
+      phaseModel: async () => view(["skipped", "current"]),
     });
     render(App, { context: hostContext(h) });
 
@@ -501,7 +501,7 @@ describe("App", () => {
     standby.hint = "GND 121.700";
     const h = host({
       loadPack: async () => withBlank,
-      phaseView: async () => shown,
+      phaseModel: async () => shown,
       apply: async (_pack, flight, action) => {
         actions.push(action);
         return flight;
@@ -518,7 +518,7 @@ describe("App", () => {
   });
 
   it("leads to Flight › Approach for arrival data on the phase the core names", async () => {
-    const h = host({ phaseView: async () => ({ ...view(["current", "to_do"]), arrival: true }) });
+    const h = host({ phaseModel: async () => ({ ...view(["current", "to_do"]), arrival: true }) });
     render(App, { context: hostContext(h) });
     const link = await screen.findByRole("link", { name: /^Arrival data is in Flight › Approach/ });
     expect(link.getAttribute("href")).toBe("#/flight/approach");
@@ -587,7 +587,7 @@ describe("App", () => {
       text: "{}",
     };
     render(App, {
-      context: hostContext(host({ loadSaved: async () => ({ flight: null, settings: loaded }) })),
+      context: hostContext(host({ readSaved: async () => ({ flight: null, settings: loaded }) })),
     });
     const views = await screen.findByRole("group", { name: "View" });
     expect(
@@ -633,14 +633,14 @@ describe("App", () => {
     } as unknown as Flight;
     let given: Flight | null = null;
     const h = host({
-      loadSaved: async () => ({
+      readSaved: async () => ({
         flight: {
           loaded: { state: "ready", value: savedFlight, migratedFrom: null } as Loaded<Flight>,
           text: "{}",
         },
         settings: null,
       }),
-      phaseView: async (_p, f) => {
+      phaseModel: async (_p, f) => {
         given = f;
         return view(["skipped", "current"]);
       },
@@ -655,7 +655,7 @@ describe("App", () => {
     const saves: string[] = [];
     const asides: string[] = [];
     const h = host({
-      loadSaved: async () => ({
+      readSaved: async () => ({
         flight: { loaded: { state: "newer", format: 9 } as Loaded<Flight>, text: '{"format":9}' },
         settings: null,
       }),
@@ -705,7 +705,7 @@ describe("App", () => {
   it("keeps the notice when Start fresh can't set saved data aside, and saves nothing", async () => {
     const saves: string[] = [];
     const h = host({
-      loadSaved: async () => ({
+      readSaved: async () => ({
         flight: { loaded: { state: "newer", format: 9 } as Loaded<Flight>, text: '{"format":9}' },
         settings: null,
       }),
@@ -749,7 +749,7 @@ describe("App", () => {
 
     it("shows what another window saved when the storage event comes", async () => {
       let stored = flightWith({});
-      const h = host({ loadSaved: async () => ready(stored) });
+      const h = host({ readSaved: async () => ready(stored) });
       render(App, { context: hostContext(h) });
       await screen.findByRole("heading", { level: 1, name: "Power up" });
       expect(document.querySelector(".fsline")?.textContent).not.toMatch(/EGLL/);
@@ -765,7 +765,7 @@ describe("App", () => {
       const saved: Flight[] = [];
       const h = host({
         apply: ticking,
-        loadSaved: async () => (loads++ === 0 ? ready(flightWith({})) : ready(other)),
+        readSaved: async () => (loads++ === 0 ? ready(flightWith({})) : ready(other)),
         save: async (_p, what, value) => {
           if (what !== "flight") return 0;
           // The first save finds the other window's text: nothing is written.
@@ -789,7 +789,7 @@ describe("App", () => {
       const saves: Flight[] = [];
       const h = host({
         apply: ticking,
-        loadSaved: async () =>
+        readSaved: async () =>
           loads++ === 0
             ? ready(flightWith({}))
             : {
@@ -823,7 +823,7 @@ describe("App", () => {
         const text = '{"format":9}';
         const imported = { format: 1, plan: {}, loadedAt: 5 } as unknown as SavedPlan;
         const h = host({
-          loadPlan: async () => ({
+          readPlan: async () => ({
             loaded: (state === "newer"
               ? { state, format: 9 }
               : { state, reason: "bad" }) as Loaded<SavedPlan>,
@@ -977,8 +977,8 @@ describe("App", () => {
       const withPlan = opts.plan ?? true;
       const h = host({
         loadPack: async () => decided,
-        phaseView: async () => view(["current", "to_do"]),
-        loadSaved: async () =>
+        phaseModel: async () => view(["current", "to_do"]),
+        readSaved: async () =>
           ({
             flight: {
               loaded: {
@@ -996,7 +996,7 @@ describe("App", () => {
             },
             settings: null,
           }) as never,
-        loadPlan: async () =>
+        readPlan: async () =>
           withPlan
             ? {
                 loaded: { state: "ready", value: { plan: {} } as unknown as SavedPlan, migratedFrom: null },
@@ -1125,7 +1125,7 @@ describe("App", () => {
     const actions: Action[] = [];
     const h = host({
       loadPack: async () => decided,
-      phaseView: async (_p, f) =>
+      phaseModel: async (_p, f) =>
         view([f.session.done.battery ? "done" : "current", f.session.done.battery ? "current" : "to_do"]),
       apply: async (_pack, flight, action) => {
         actions.push(action);
@@ -1450,7 +1450,7 @@ describe("App", () => {
       render(App, {
         context: hostContext(
           firstVisit({
-            loadSaved: async () =>
+            readSaved: async () =>
               ({
                 flight: { loaded: { state: "ready", value: flight }, text: "{}" },
                 settings: null,
@@ -1609,7 +1609,7 @@ describe("the Flight log (decision 0026)", () => {
     const saved: [unknown, boolean | undefined][] = [];
     window.location.hash = "#/log";
     const h = host({
-      loadSaved: async () => ({
+      readSaved: async () => ({
         flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
         settings: null,
       }),
@@ -1647,11 +1647,11 @@ describe("the Flight log (decision 0026)", () => {
     const saved: unknown[] = [];
     window.location.hash = "#/log";
     const h = host({
-      loadSaved: async () => ({
+      readSaved: async () => ({
         flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
         settings: null,
       }),
-      loadLog: async () => ({ loaded: { state: "newer", format: 7 }, text: '{"format":7}' }),
+      readLog: async () => ({ loaded: { state: "newer", format: 7 }, text: '{"format":7}' }),
       saveLog: async (log) => {
         saved.push(log);
         return true;
@@ -1674,7 +1674,7 @@ describe("the Flight log (decision 0026)", () => {
     });
     window.location.hash = "#/phase/taxi";
     const h = host({
-      loadSaved: async () => ({
+      readSaved: async () => ({
         flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
         settings: null,
       }),
@@ -1684,7 +1684,7 @@ describe("the Flight log (decision 0026)", () => {
         if (action.type === "untick") finished = false;
         return flight;
       },
-      phaseView: async () => view(["done", "current"]),
+      phaseModel: async () => view(["done", "current"]),
     });
     render(App, { context: hostContext(h) });
     await waitFor(() => expect(document.querySelector(".it.current")).toBeTruthy());
@@ -1699,7 +1699,7 @@ describe("the Flight log (decision 0026)", () => {
     const actions: Action[] = [];
     window.location.hash = "#/log";
     const h = host({
-      loadSaved: async () => ({
+      readSaved: async () => ({
         flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
         settings: null,
       }),
@@ -1740,12 +1740,12 @@ describe("the Flight log (decision 0026)", () => {
     let stored: { format: number; flights: (typeof other)[]; practice: [] } | null = null;
     window.location.hash = "#/log";
     const h = host({
-      loadSaved: async () => ({
+      readSaved: async () => ({
         flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
         settings: null,
       }),
       // Opened empty; by the time this tab logs, another tab has saved a flight.
-      loadLog: async () =>
+      readLog: async () =>
         stored ? { loaded: { state: "ready", value: stored, migratedFrom: null }, text: "" } : null,
       saveLog: async (log) => {
         stored = log as typeof stored;
@@ -1774,12 +1774,12 @@ describe("the Flight log (decision 0026)", () => {
     };
     window.location.hash = "#/phase/taxi";
     const h = host({
-      loadSaved: async () => ({
+      readSaved: async () => ({
         flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
         settings: null,
       }),
       rail: async () => done,
-      phaseView: async () => view(["done", "current"]),
+      phaseModel: async () => view(["done", "current"]),
     });
     render(App, { context: hostContext(h) });
     await waitFor(() => expect(document.querySelector(".it.current")).toBeTruthy());
@@ -1797,7 +1797,7 @@ describe("the Flight log (decision 0026)", () => {
       total: 4,
     });
     const h = host({
-      loadLog: async () => ({
+      readLog: async () => ({
         loaded: {
           state: "ready",
           value: {

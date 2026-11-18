@@ -9,7 +9,7 @@ step at a time (lib/FlowView.svelte).
 -->
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import type { Checklist, Detail, FieldId, Flight, OpenStep, PhaseView } from "@involo/bindings";
+  import type { Checklist, Detail, FieldId, Flight, OpenStep, PhaseModel } from "@involo/bindings";
   import OpenStepsPop from "../lib/OpenStepsPop.svelte";
   import { openSteps } from "../lib/open-steps.svelte";
   import Icon from "../lib/Icon.svelte";
@@ -44,7 +44,7 @@ step at a time (lib/FlowView.svelte).
     inlineStep = null,
   }: {
     index: PackIndex;
-    view: PhaseView;
+    view: PhaseModel;
     lists: Map<string, Checklist>;
     flight: Flight;
     detail: Detail;
@@ -57,7 +57,7 @@ step at a time (lib/FlowView.svelte).
     onClear: (list: string) => void;
     full?: boolean;
     /** In Essentials, this phase in Full. */
-    fullView?: PhaseView | null;
+    fullView?: PhaseModel | null;
     onOption: (option: string, value: string) => void;
     /** A flight value typed in a box on the page, such as Arrival data. */
     onValue: (field: FieldId, value: string) => void;
