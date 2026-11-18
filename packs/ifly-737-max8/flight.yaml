@@ -952,3 +952,34 @@ fields:
   simbrief:
   - taxi_fuel
   read_only: true
+# The Overview's "This flight" rows.
+overview:
+- label: Route
+  page: route
+  value:
+  - '{origin} → {destination}'
+  description:
+  - Alternate {alternate}.
+  - '{planned_time} planned.'
+  empty: Where you're going.
+- label: Block fuel
+  page: fuel
+  value:
+  - '{fuel:grouped} {unit}'
+  empty: All the fuel on board before engine start.
+- label: Cruise level
+  page: cruise
+  value:
+  - FL{cruise_level}
+  description:
+  - Cost index {cost_index}.
+  empty: The level you plan to cruise at.
+- label: Departure
+  page: clearance
+  value:
+  - '{runway}'
+  - '{sid}'
+  description:
+  - Initial altitude {initial_altitude}.
+  - Squawk {squawk}.
+  empty: The runway and SID ATC cleared.

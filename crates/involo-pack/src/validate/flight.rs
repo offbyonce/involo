@@ -32,6 +32,46 @@ pub(super) fn check_flight(pack: &Pack, issues: &mut Vec<Issue>) {
         check_field(field, &file.fields, &ids, issues);
     }
     check_pages(pack, file, issues);
+    check_overview(file, &ids, issues);
+}
+
+/// The Overview rows name Flight pages and fields that exist, in placeholders written correctly.
+fn check_overview(
+    file: &involo_checklist_core::FlightFile,
+    ids: &BTreeSet<&str>,
+    issues: &mut Vec<Issue>,
+) {
+    use involo_checklist_core::FIELD_PAGES;
+    for row in &file.overview {
+        let at = format!("overview `{}`", row.label);
+        if !FIELD_PAGES.contains(&row.page.as_str()) {
+            issues.push(error(&at, format!("`{}` is not a Flight page", row.page)));
+        }
+        for part in row.value.iter().chain(&row.description) {
+            for name in placeholders(part) {
+                let (field, how) = name.split_once(':').unwrap_or((name, ""));
+                if field == "unit" && how.is_empty() {
+                    continue;
+                }
+                if !ids.contains(field) {
+                    issues.push(error(&at, format!("`{{{name}}}` names no flight field")));
+                } else if !how.is_empty() && how != "grouped" {
+                    issues.push(error(
+                        &at,
+                        format!("`{{{name}}}`: the only form is `:grouped`"),
+                    ));
+                }
+            }
+        }
+    }
+}
+
+/// The names in a part's `{…}` placeholders.
+fn placeholders(part: &str) -> Vec<&str> {
+    part.split('{')
+        .skip(1)
+        .filter_map(|s| s.split_once('}').map(|(n, _)| n))
+        .collect()
 }
 
 /// A Flight page or group a field or copy names, and the fields its links name.
@@ -433,5 +473,27 @@ mod tests {
             }),
             "a range for unit `TONNES`",
         );
+    }
+
+    #[test]
+    fn overview_rows_name_real_pages_and_fields() {
+        let row = |page: &str, value: &str| involo_checklist_core::FlightOverviewRow {
+            label: "Route".into(),
+            page: page.into(),
+            value: vec![value.into()],
+            description: vec![],
+            empty: None,
+        };
+        let mut p =
+            super::super::test_support::pack(vec![super::super::test_support::step("a")], vec![]);
+        let mut file = super::super::test_support::flight();
+        file.overview = vec![row("route", "{runway} · {sid} {route:grouped} {unit}")];
+        p.content.flight = Some(file.clone());
+        assert!(!messages(&p).contains("overview"), "{}", messages(&p));
+        file.overview = vec![row("weather", "{nope} {sid:bold}")];
+        p.content.flight = Some(file);
+        assert_flags(&p, "`weather` is not a Flight page");
+        assert_flags(&p, "`{nope}` names no flight field");
+        assert_flags(&p, "`{sid:bold}`: the only form is `:grouped`");
     }
 }

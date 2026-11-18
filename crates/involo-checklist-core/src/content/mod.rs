@@ -32,8 +32,8 @@ pub use controls::{
 pub use faults::{Fault, FaultsFile};
 pub use flight::{
     FIELD_PAGES, FieldAlso, FieldChoice, FieldDisplay, FieldInput, FieldKind, FieldOfp, FieldRange,
-    FieldShow, FlightField, FlightFile, FlightGroup, FlightPage, GroupUnits, InputMode, NotesRow,
-    Rounding, ShowIn, SimbriefSource, StripText,
+    FieldShow, FlightField, FlightFile, FlightGroup, FlightOverviewRow, FlightPage, GroupUnits,
+    InputMode, NotesRow, Rounding, ShowIn, SimbriefSource, StripText,
 };
 pub use glossary::{GlossaryEntry, GlossaryFile};
 pub use labels::{

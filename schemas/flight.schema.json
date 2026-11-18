@@ -10,6 +10,13 @@
         "$ref": "#/$defs/FlightField"
       }
     },
+    "overview": {
+      "description": "The Overview page's \"This flight\" rows. Without them, one row per Flight page that\nhas fields: its title, its first two values and its sub-line.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/FlightOverviewRow"
+      }
+    },
     "pages": {
       "type": "array",
       "items": {
@@ -492,6 +499,43 @@
       "additionalProperties": false,
       "required": [
         "title"
+      ]
+    },
+    "FlightOverviewRow": {
+      "description": "A \"This flight\" row on the Overview page, linking to a Flight page by its title. `value`\nand `description` are parts written with `{field}` for a field's value as typed,\n`{field:grouped}` for a number with its thousands grouped, and `{unit}` for the flight's\nunit. A part shows when any field it names has a value, its other fields reading \"—\";\nvalue parts join with \" · \", description parts with a space.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "empty": {
+          "description": "The description when no description part shows.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "label": {
+          "type": "string"
+        },
+        "page": {
+          "description": "The Flight page the row links to.",
+          "type": "string"
+        },
+        "value": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "label",
+        "page"
       ]
     },
     "FlightPage": {

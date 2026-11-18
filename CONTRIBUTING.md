@@ -108,7 +108,13 @@ input (`input`), how its value reads (`show`), a range's own words (`message`), 
 the `phase` that uses it, an option whose suggestion it shows (`suggested_by`), `needed`, and the
 side panel's words (`ofp`). Every one is optional: a field with only an id, label and kind still
 gets a row. The pack gives content and grouping only; the app decides how it looks. An option is
-asked on a Flight page with `ask_in: [flight:approach]`.
+asked on a Flight page with `ask_in: [flight:approach]`. The Overview's "This flight" card is
+`flight.yaml`'s optional `overview`: rows with a `label`, the `page` they link to, `value` and
+`description` parts written with `{field}`, `{field:grouped}` (thousands grouped) and `{unit}`
+(the flight's unit), and an `empty` description. A part shows when any field it names has a value.
+Without `overview`, the card has one row per Flight page with fields. The Weather page finds the
+altimeter settings by their SimBrief source (`origin_altimeter`, `destination_altimeter`) and
+their `unit`.
 
 **The Start page.** An option `ask_in` names `start` shows on the Start page with its `start`
 block: a `style` (`row`, `cards`, or `toggle` with `on`, the value its on position sets, for an
