@@ -4,7 +4,7 @@ Board names refer to files in `boards/`. Every screen exists in dark and light.
 
 ## Desktop checklist (`Checklist`, `ChecklistLight`)
 
-- **Header (60):** menu, app name and aircraft, stage tabs (Preflight to Post-flight) with an amber dot on any stage holding an open step, Find (Ctrl K), Checklist / Flow segmented control, Emergency (red).
+- **Header (60):** menu, app name and aircraft, stage tabs (Preflight to Post-flight) with an amber dot on any stage holding an open step, Find (Ctrl K), List / Step by step segmented control, Emergency (red).
 - **Phase track (60):** phase tabs with progress bars (done green, current blue ring with count and amber dot when it has an open step), Full · Detailed mode pill, overall count (41/366), Saved time.
 - **Flight strip (48, closed):** route, Runway, SID, Initial altitude, Squawk, Departure frequency (dash when empty), Notes count, chevron. The whole strip opens the strip panel.
 - **Main column (content max 1040):** phase label and title, "2 open steps ⌄" (opens the open-steps list), the procedure card:
@@ -57,7 +57,7 @@ Shared header: Checklist back button, title and route, SimBrief import time, Des
 
 ## Tablet (`Tablet` with `orient` and `overlay` props)
 
-- **Landscape (1180 x 820):** header with stage picker (amber dot), Find (44 icon button), Checklist / Flow, Emergency; phase tabs that scroll sideways with a fade and a chevron, plus the mode pill; strip; list with E markers and the current step's Done and Skip; side pane (440) with value, Check, If not, Why, location line with Where is this? and Hide, controls drawing.
+- **Landscape (1180 x 820):** header with stage picker (amber dot), Find (44 icon button), List / Step by step, Emergency; phase tabs that scroll sideways with a fade and a chevron, plus the mode pill; strip; list with E markers and the current step's Done and Skip; side pane (440) with value, Check, If not, Why, location line with Where is this? and Hide, controls drawing.
 - **Portrait (820 x 1180):** no side pane. The current step expands in place: Check and If not side by side, Why, location line, controls drawing (max 480 wide). Done and Skip in a bottom bar.
 - **Overlays:** Where is this? pop-over (side view, captain-seat view, area map), strip panel, menu drawer (with saved time and overall count in its header).
 
@@ -67,6 +67,6 @@ Shared header: Checklist back button, title and route, SimBrief import time, Des
 - **Open steps:** bottom sheet, grouped by stage.
 - **Where is this?:** sheet with the plain-language line, side view, captain-seat view, a link to the panel map in Flight deck, and the step's Check pinned at the foot.
 - **Flight strip:** sheet with the fields, Frequencies ⌄, notes, Import latest from SimBrief, Reset flight plan, All flight data ›.
-- **Menu:** drawer with Checklist / Flow, Full / Essentials, Detailed / Simple, the same groups as desktop, and Reset flight plan at the bottom.
+- **Menu:** drawer with List / Step by step, Full / Essentials, Detailed / Simple, the same groups as desktop, and Reset flight plan at the bottom.
 - **Flight page:** section picker, airport tabs, the METAR, decoded rows (the selected one shows its description and chip), Find it in your OFP as a disclosure.
 - **Flight deck:** area picker, area map, Panels in this area, the selected panel, light meanings, steps that use it.

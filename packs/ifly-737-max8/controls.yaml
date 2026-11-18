@@ -1508,6 +1508,7 @@ overview:
       height: 50
   regions:
     - name: Aft overhead
+      short: Overhead
       code: P5
       x: 56
       "y": 18
@@ -1525,6 +1526,7 @@ overview:
       title: "Where is the aft overhead panel?"
       short_title: "Where is the aft overhead?"
     - name: Forward overhead
+      short: Overhead
       code: P5
       x: 16
       "y": 112
@@ -1542,6 +1544,7 @@ overview:
       title: "Where is the forward overhead panel?"
       short_title: "Where is the forward overhead?"
     - name: Glareshield
+      short: Glareshield
       code: P7
       x: 16
       "y": 304
@@ -1555,6 +1558,7 @@ overview:
       title: "Where is the glareshield?"
       short_title: "Where is the glareshield?"
     - name: Main panel
+      short: Main panel
       code: P1–P3
       x: 16
       "y": 356
@@ -1568,6 +1572,7 @@ overview:
       title: "Where is the main panel?"
       short_title: "Where is the main panel?"
     - name: Center console
+      short: Pedestal
       code: P9 · CONTROL STAND · P8
       x: 126
       "y": 448

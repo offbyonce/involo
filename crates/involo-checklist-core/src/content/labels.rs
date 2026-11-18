@@ -92,6 +92,9 @@ data_types! {
         pub find_examples: Vec<String>,
         /// Glossary terms whose first sentence reads as a description: no expansion is shown.
         pub glossary_exceptions: Vec<String>,
+        /// Words that tell one of a pair from the other, by side or seat (`LEFT`, `CAPTAIN`):
+        /// Practice never offers two answers that differ only by them, or by an item's number.
+        pub side_words: Vec<String>,
         /// Labels for the manifest's basis tags, in the order the manifest lists them.
         pub basis_tags: Vec<BasisTagLabel>,
     }
@@ -167,6 +170,8 @@ data_types! {
         pub find_examples: Option<Vec<String>>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub glossary_exceptions: Option<Vec<String>>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub side_words: Option<Vec<String>>,
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub basis_tags: Vec<BasisTagLabel>,
     }
@@ -220,6 +225,19 @@ impl Default for Labels {
                 .map(s)
                 .to_vec(),
             glossary_exceptions: ["IGN L", "IGN R", "PERF INIT", "MA"].map(s).to_vec(),
+            side_words: [
+                "LEFT",
+                "RIGHT",
+                "L",
+                "R",
+                "CAPTAIN",
+                "CAPT",
+                "FIRST OFFICER",
+                "F/O",
+                "FO",
+            ]
+            .map(s)
+            .to_vec(),
             basis_tags: vec![
                 BasisTagLabel {
                     id: s("regulator-docs"),
@@ -340,6 +358,9 @@ impl Labels {
         if let Some(e) = &f.glossary_exceptions {
             self.glossary_exceptions.clone_from(e);
         }
+        if let Some(w) = &f.side_words {
+            self.side_words.clone_from(w);
+        }
     }
 }
 
@@ -395,6 +416,7 @@ mod tests {
             )])),
             find_examples: None,
             glossary_exceptions: None,
+            side_words: None,
             basis_tags: vec![BasisTagLabel {
                 id: "regulator-docs".into(),
                 label: "Authority guidance".into(),

@@ -44,6 +44,8 @@ export type FindIndex = {
   controls: FindControl[];
   terms: FindTerm[];
   phases?: Record<string, FindPhase>;
+  /** The reference area's title (the pack's `labels.reference.title`), its lists' stage. */
+  reference: string;
 };
 
 /** The searchable text of a pack, built once when it loads. */
@@ -102,6 +104,8 @@ export function buildFind(pack: FlatPack, index: PackIndex): FindIndex {
       step: null,
     };
   });
+  /** The reference area's title, from the pack's labels, as its lists' stage. */
+  const reference = pack.content.labels.reference.title;
   const terms = (pack.content.glossary?.terms ?? []).map((t) => ({ term: t.term, meaning: t.meaning }));
   const phases: Record<string, FindPhase> = {};
   const titles = new Map((pack.content.phases?.phases ?? []).map((p) => [p.id, p]));
@@ -109,8 +113,8 @@ export function buildFind(pack: FlatPack, index: PackIndex): FindIndex {
     for (const sp of stage.phases)
       phases[sp.phase] = { stageId: stage.id, stage: stage.title, title: titles.get(sp.phase)?.title ?? "" };
   for (const p of titles.values())
-    if (p.reference) phases[p.id] = { stageId: "emergency", stage: "Emergency", title: p.title };
-  return { steps, controls, terms, phases };
+    if (p.reference) phases[p.id] = { stageId: "emergency", stage: reference, title: p.title };
+  return { steps, controls, terms, phases, reference };
 }
 
 /** A step found, with its stage (keyed by id; the title is display text) and phase. */
@@ -135,7 +139,7 @@ export function findIn(
   for (const s of rail?.stages ?? [])
     for (const p of s.phases) phases.set(p.id, { stageId: s.id, stage: s.title, title: p.title, at: n++ });
   for (const p of rail?.reference ?? [])
-    phases.set(p.id, { stageId: "emergency", stage: "Emergency", title: p.title, at: n++ });
+    phases.set(p.id, { stageId: "emergency", stage: find.reference, title: p.title, at: n++ });
   const rank = <T>(items: T[], title: (t: T) => string, rest: (t: T) => string[]) => {
     const first: T[] = [];
     const then: T[] = [];
@@ -204,7 +208,7 @@ export function findOnly(
   for (const s of rail?.stages ?? [])
     for (const p of s.phases) shown.set(p.id, { stageId: s.id, stage: s.title, title: p.title });
   for (const p of rail?.reference ?? [])
-    shown.set(p.id, { stageId: "emergency", stage: "Emergency", title: p.title });
+    shown.set(p.id, { stageId: "emergency", stage: find.reference, title: p.title });
   const byId = new Map(find.steps.map((s) => [s.id, s]));
   const steps = ids
     .flatMap((id) => {

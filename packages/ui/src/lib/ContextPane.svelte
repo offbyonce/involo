@@ -6,7 +6,7 @@ The context for one step, as in 3.0's right-hand panel: the control, where it is
 deck map ("Where is this?", with "Open in Flight deck"), the panel sections it is on with the
 step's target position, then where to find it and what it does. A step with no control on the
 map shows the steps coming up instead, so the panel is never empty; its details stay in the list
-or Flow view, never repeated here. Shown beside
+or Step by step view, never repeated here. Shown beside
 the list on wide screens and inside the step on narrow ones.
 -->
 <script lang="ts">
@@ -34,7 +34,7 @@ the list on wide screens and inside the step on narrow ones.
     upcoming?: { step: Step; state: StepState }[];
     heading?: boolean;
     /** For a step with no map control, show the steps coming up. Off inside an opened step. The
-     * step's own details are never repeated here: the list or Flow view shows them. */
+     * step's own details are never repeated here: the list or Step by step view shows them. */
     details?: boolean;
   } = $props();
 

@@ -8,6 +8,7 @@ from the host (decision 0012): a flight, settings, the rail and the phase on scr
 in Rust. The host saves progress and settings on the device.
 -->
 <script lang="ts">
+  import { referenceTabs } from "./lib/reference-tabs";
   import {
     type Action,
     type AppInfo,
@@ -68,7 +69,7 @@ in Rust. The host saves progress and settings on the device.
   import { sentence } from "./lib/sentence";
   import Tour from "./lib/Tour.svelte";
   import { tour } from "./lib/tour-state.svelte";
-  import { howCountsOf } from "./lib/how-content";
+  import { flowAreas, howCountsOf } from "./lib/how-content";
   import { currentRoute, flightHref, phaseHref } from "./route.svelte";
   import { applyPalette, applyScale } from "./theme/tokens";
 
@@ -153,7 +154,7 @@ in Rust. The host saves progress and settings on the device.
   let menuOpen = $state(false);
   /** The step shown in the context panel; null means the current step. */
   let selected = $state<string | null>(null);
-  /** The step Flow view shows; null follows the current step. */
+  /** The step Step by step view shows; null follows the current step. */
   let cursor = $state<string | null>(null);
   /** Find: its index, built once per pack, and whether it is open. */
   let findIndex = $state<FindIndex | null>(null);
@@ -272,7 +273,8 @@ in Rust. The host saves progress and settings on the device.
   let phaseId = $derived.by(() => {
     const r = route.value;
     if (r.screen === "phase") return r.id;
-    if (r.screen === "reference") return r.id ?? rail?.reference[0]?.id ?? null;
+    // The reference area opens on its first tab, by group (decision 0029).
+    if (r.screen === "reference") return r.id ?? (index && rail ? referenceTabs(index.labels, rail.reference)[0]?.id : null) ?? null;
     if (r.screen === "start") return rail?.stages[0]?.phases[0]?.id ?? null;
     return null;
   });
@@ -1058,9 +1060,9 @@ in Rust. The host saves progress and settings on the device.
       stale = true;
     };
   });
-  /** The counts the page names: the stages, and the lists in each reference group (memory items,
-   * quick reference and non-normal procedures), read by group, never by order (decision 0029). */
-  let howCounts = $derived(howCountsOf(flatPack, rail?.stages.length ?? 0));
+  /** The values the How page names: the stages and their titles, the lists in each reference group
+   * (read by group, never by order; decision 0029) and the reference area's title. */
+  let howCounts = $derived(howCountsOf(flatPack, (rail?.stages ?? []).map((st) => st.title)));
   let tourStages = $derived<[string, string]>([rail?.stages[0]?.title ?? "", rail?.stages.at(-1)?.title ?? ""]);
 </script>
 
@@ -1091,7 +1093,7 @@ in Rust. The host saves progress and settings on the device.
 {/if}
 {#if route.value.screen === "glossary" && index}
   <div class="flightwrap">
-    <GlossaryPage terms={glossary} term={route.value.term} {rail} backHref={lastPhase ? phaseHref(lastPhase) : "#/"} onStep={goToStep} />
+    <GlossaryPage terms={glossary} term={route.value.term} {rail} referenceTitle={index?.labels.reference.title ?? ""} backHref={lastPhase ? phaseHref(lastPhase) : "#/"} onStep={goToStep} />
   </div>
 {:else if route.value.screen === "practice" && index && flatPack}
   <div class="flightwrap">
@@ -1143,6 +1145,7 @@ in Rust. The host saves progress and settings on the device.
     <HowPage
       part={route.value.part}
       counts={howCounts}
+      areas={flowAreas(flatPack)}
       phase={howPhase}
       step={howStep}
       backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
@@ -1175,6 +1178,7 @@ in Rust. The host saves progress and settings on the device.
       centerTank={suggestions.center_tank ? `${suggestions.center_tank.amount.toLocaleString("en-US")} ${suggestions.center_tank.unit}` : null}
       options={index.options}
       states={index.panelStates}
+      panelStateLabels={index.labels.panelStates}
       backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
       onSet={(field, value) => act({ type: "setValue", field, value })}
       onNotes={(notes) => act({ type: "setNotes", notes })}
@@ -1211,6 +1215,7 @@ in Rust. The host saves progress and settings on the device.
 <div class="shell" data-app-ready={rail && (view || screen === "settings" || screen === "flight" || screen === "open") ? "" : undefined}>
   <TopBar
     aircraft={index?.name ?? ""}
+    reference={index?.labels.reference.title ?? ""}
     {rail}
     {stage}
     view={settings && view && (screen === "phase" || screen === "start") ? listView : null}

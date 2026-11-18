@@ -11,7 +11,7 @@ status, not a source; once a list is re-tagged with its basis, the status goes a
 <script lang="ts">
   import Icon from "../lib/Icon.svelte";
   import { phaseHref } from "../route.svelte";
-  import { type Basis, basisName, CONFIRMING, type References } from "../lib/references";
+  import type { Basis, References } from "../lib/references";
 
   let {
     refs,
@@ -48,18 +48,20 @@ status, not a source; once a list is re-tagged with its basis, the status goes a
     return () => mq.removeEventListener("change", read);
   });
 
-  /** The chips: All, each source, then Source being confirmed while any list is. */
+  /** The chips: All, each source, then each pending tag while any list shows it. */
   let chips = $derived<{ id: "all" | Basis; name: string }[]>([
     { id: "all", name: "All" },
     ...refs.sources.map((s) => ({ id: s.tag, name: s.name })),
-    ...(refs.confirming ? [{ id: CONFIRMING.tag, name: CONFIRMING.name }] : []),
+    ...refs.pending.map((p) => ({ id: p.tag, name: p.name })),
   ]);
+  const isPending = (tag: Basis) => refs.pending.some((p) => p.tag === tag);
+  const basisName = (tag: Basis) => refs.names[tag] ?? tag;
   let filter = $state<"all" | Basis>("all");
   let all = $state(false);
   let matching = $derived.by(() => {
     const f = filter;
     if (f === "all") return refs.rows;
-    return refs.rows.filter((r) => (f === CONFIRMING.tag ? r.basis === f : r.sources.includes(f)));
+    return refs.rows.filter((r) => (isPending(f) ? r.basis === f : r.sources.includes(f)));
   });
   let shown = $derived(all ? matching : matching.slice(0, FIRST));
   const lists = (n: number) => `${n} ${n === 1 ? "list" : "lists"}`;
@@ -71,7 +73,7 @@ status, not a source; once a list is re-tagged with its basis, the status goes a
 </script>
 
 {#snippet tag(basis: Basis)}
-  <span class="tag" class:confirming={basis === CONFIRMING.tag}>{basisName(basis)}</span>
+  <span class="tag" class:confirming={isPending(basis)}>{basisName(basis)}</span>
 {/snippet}
 
 {#snippet sources()}
@@ -92,15 +94,15 @@ status, not a source; once a list is re-tagged with its basis, the status goes a
       </div>
     {/each}
   </div>
-  {#if refs.confirming}
+  {#each refs.pending as p (p.tag)}
     <span class="line"
-      >{lists(refs.confirming)}
-      {refs.confirming === 1 ? "is" : "are"} marked <b>{CONFIRMING.name}</b>: {refs.confirming === 1 ? "it came" : "they came"} from an earlier release and {refs.confirming ===
+      >{lists(p.count)}
+      {p.count === 1 ? "is" : "are"} marked <b>{p.name}</b>: {p.count === 1 ? "it came" : "they came"} from an earlier release and {p.count ===
       1
         ? "is"
         : "are"} being checked against the sources above.</span
     >
-  {/if}
+  {/each}
   <div class="chips" role="group" aria-label="Show lists based on">
     {#each chips as c (c.id)}
       <button type="button" aria-pressed={filter === c.id} onclick={() => pick(c.id)}>{c.name}</button>

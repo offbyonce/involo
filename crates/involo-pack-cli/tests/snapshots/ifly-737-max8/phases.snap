@@ -361,6 +361,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     {
       "id": "engine-start",
       "title": "Engine start",
+      "engine_start": true,
       "lists": [
         "engine-start-engine-start"
       ]

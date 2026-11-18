@@ -11,6 +11,26 @@ use super::index::Index;
 use super::{Issue, error};
 use crate::Pack;
 
+/// At most one phase starts the engines, and it is a flight phase.
+fn check_engine_start(file: &involo_checklist_core::PhasesFile, issues: &mut Vec<Issue>) {
+    let marked: Vec<_> = file.phases.iter().filter(|p| p.engine_start).collect();
+    if marked.len() > 1 {
+        issues.push(error(
+            "phases",
+            format!(
+                "`engine_start` marks {} phases; at most one starts the engines",
+                marked.len()
+            ),
+        ));
+    }
+    for p in marked.iter().filter(|p| p.reference) {
+        issues.push(error(
+            &p.id,
+            "a reference phase cannot be the one that starts the engines",
+        ));
+    }
+}
+
 /// What `ask_in` names for the Start page.
 const START: &str = "start";
 
@@ -75,6 +95,7 @@ pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
     if let Some(turnaround) = &file.turnaround {
         idx.check_show_if("turnaround", turnaround, issues);
     }
+    check_engine_start(file, issues);
     let uses_turnaround = pack
         .checklists
         .iter()
@@ -201,6 +222,26 @@ mod tests {
     use involo_checklist_core::{FieldId, OptionChoice, OptionTest, ShowIf};
 
     use super::super::test_support::{assert_flags, messages, pack, step};
+
+    #[test]
+    fn one_flight_phase_at_most_starts_the_engines() {
+        let mut p = pack(vec![step("a")], vec![]);
+        let phases = &mut p.content.phases.as_mut().unwrap().phases;
+        phases[0].engine_start = true;
+        assert_eq!(messages(&p), "");
+        let mut twice = p.clone();
+        let mut other = twice.content.phases.as_ref().unwrap().phases[0].clone();
+        other.id = "other".into();
+        other.lists.clear();
+        twice.content.phases.as_mut().unwrap().phases.push(other);
+        assert_flags(&twice, "at most one starts the engines");
+        p.content.phases.as_mut().unwrap().phases[0].reference = true;
+        p.content.phases.as_mut().unwrap().phases[0].group = Some("memory".into());
+        assert_flags(
+            &p,
+            "a reference phase cannot be the one that starts the engines",
+        );
+    }
 
     fn on_start(control: Option<involo_checklist_core::StartControl>) -> crate::Pack {
         let mut p = pack(vec![step("a")], vec![]);

@@ -134,6 +134,7 @@ export const PACK: FlatPack = {
       positionWords: {},
       findExamples: [],
       glossaryExceptions: [],
+      sideWords: [],
       basisTags: [],
     },
   },

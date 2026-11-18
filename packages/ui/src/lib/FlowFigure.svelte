@@ -8,22 +8,24 @@ and stroke), and the labels as its area labels: 11 px, semibold, panel label col
 . A schematic of the idea, not of any one flight deck.
 -->
 <script lang="ts">
-  import { HOW } from "./how-content";
+  import { flowLabelOf, HOW } from "./how-content";
   import { LABEL_MIN } from "./panel-layout";
 
+  /** The four boxes' names, in sweep order (`flowAreas`). */
+  let { areas }: { areas: string[] } = $props();
   const f = HOW.figure;
 </script>
 
-<svg viewBox="0 0 300 234" role="img" aria-label={f.flowLabel}>
+<svg viewBox="0 0 300 234" role="img" aria-label={flowLabelOf(areas)}>
   <rect x="20" y="14" width="260" height="46" rx="4" />
   <rect x="20" y="72" width="110" height="30" rx="4" />
   <rect x="140" y="72" width="140" height="30" rx="4" />
   <rect x="20" y="114" width="260" height="46" rx="4" />
   <rect x="110" y="172" width="80" height="52" rx="4" />
-  <text class="label" x="26" y="27" style:font-size="{LABEL_MIN}px">{f.panels.overhead}</text>
-  <text class="label" x="26" y="85" style:font-size="{LABEL_MIN}px">{f.panels.glareshield}</text>
-  <text class="label" x="26" y="127" style:font-size="{LABEL_MIN}px">{f.panels.main}</text>
-  <text class="label" x="116" y="185" style:font-size="{LABEL_MIN}px">{f.panels.pedestal}</text>
+  <text class="label" x="26" y="27" style:font-size="{LABEL_MIN}px">{areas[0]}</text>
+  <text class="label" x="26" y="85" style:font-size="{LABEL_MIN}px">{areas[1]}</text>
+  <text class="label" x="26" y="127" style:font-size="{LABEL_MIN}px">{areas[2]}</text>
+  <text class="label" x="116" y="185" style:font-size="{LABEL_MIN}px">{areas[3]}</text>
   <path d="M40 50 H290 V96 H10 V150 H290 V210 H150" stroke-width="2.5" />
   <circle cx="40" cy="50" r="4" />
   <circle cx="150" cy="210" r="4" />

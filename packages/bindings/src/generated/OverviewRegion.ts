@@ -7,6 +7,11 @@
  */
 export type OverviewRegion = { name: string, 
 /**
+ * The area's short name, e.g. "Overhead", where a picture of a flow names the areas;
+ * regions may share one. Without it, the name.
+ */
+short?: string | null, 
+/**
  * A short reference shown after the name, e.g. "P5".
  */
 code?: string | null, x: number, y: number, width: number, height: number, 

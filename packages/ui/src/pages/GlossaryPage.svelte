@@ -30,6 +30,7 @@ them.
     terms,
     term,
     rail,
+    referenceTitle = "",
     backHref,
     onStep,
   }: {
@@ -37,6 +38,8 @@ them.
     /** The term in the address, if any. */
     term: string | null;
     rail: Rail | null;
+    /** The reference area's title, from the pack's labels. */
+    referenceTitle?: string;
     backHref: string;
     onStep: (id: string) => void;
   } = $props();
@@ -72,7 +75,7 @@ them.
   let phases = $derived.by(() => {
     const m = new Map<string, string>();
     for (const s of rail?.stages ?? []) for (const p of s.phases) m.set(p.id, `${s.title} › ${p.title}`);
-    for (const p of rail?.reference ?? []) m.set(p.id, `Emergency › ${p.title}`);
+    for (const p of rail?.reference ?? []) m.set(p.id, `${referenceTitle} › ${p.title}`);
     return m;
   });
 

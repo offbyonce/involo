@@ -14,3 +14,7 @@ basis_tags:
     about: >-
       How the aircraft model in the simulator works: its panels, its switches and its own
       procedures.
+reference:
+  groups:
+    - id: procedures
+      title: Non-normal

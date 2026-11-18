@@ -145,21 +145,60 @@ const norm = (s: string) => {
   return n;
 };
 
-/** A text with its engine number, side or seat taken out ("ENGINE # FUEL VALVE"), so twins
- * ("engine 1" and "engine 2", left and right, captain and F/O) read the same; null when nothing but
- * the side is left ("L", "R"). */
+/** What tells twins apart in this pack, set by `useTwins` before its questions are built: its side
+ * words (labels `side_words`) and its numbered items, as patterns. */
+let sidePattern: RegExp | null = null;
+let numberedPattern: RegExp | null = null;
 const twinKeys = new Map<string, string | null>();
+const escapeRe = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const anyOf = (words: string[]) =>
+  words.length
+    ? new RegExp(
+        `\\b(${[...words]
+          .sort((a, b) => b.length - a.length)
+          .map(escapeRe)
+          .join("|")})\\b`,
+        "g",
+      )
+    : null;
+
+/**
+ * Sets what tells twins apart: `sideWords` (left and right, captain and first officer) and the
+ * words `texts` number with two or more numbers (ENGINE 1 to ENGINE 4, PACK 1 and 2), so a setting
+ * that is a number (FLAPS 1, FLAPS 5) never counts as a pair.
+ */
+export function useTwins(sideWords: string[], texts: string[]): void {
+  sidePattern = anyOf(sideWords.map((w) => norm(w)).filter(Boolean));
+  const numbers = new Map<string, Set<string>>();
+  for (const t of texts)
+    for (const m of norm(t).matchAll(/\b([A-Z]+) (\d+)\b/g)) {
+      const word = m[1] ?? "";
+      numbers.set(word, (numbers.get(word) ?? new Set()).add(m[2] ?? ""));
+    }
+  numberedPattern = anyOf([...numbers].filter(([, n]) => n.size > 1).map(([w]) => w));
+  twinKeys.clear();
+}
+
+/** A pack's twins: its side words, and the numbered items its panels, controls and steps name. */
+export function useTwinsOf(pack: FlatPack): void {
+  const texts = [
+    ...pack.content.panels.flatMap((p) => p.sections.flatMap((s) => s.items.map((i) => i.label))),
+    ...(pack.content.controls?.controls ?? []).map((c) => c.name),
+    ...pack.lists.flatMap((l) => l.steps.map((s) => s.text)),
+  ];
+  useTwins(pack.content.labels.sideWords, texts);
+}
+
+/** A text with its item number and side words taken out ("ENGINE # FUEL VALVE"), so twins (engine
+ * 1 to 4, pack 1 and 2, left and right, captain and first officer) read the same; null when
+ * nothing but the side is left ("L", "R"). The pack's own words decide both (`useTwins`). */
 export function twinKey(text: string): string | null {
   const known = twinKeys.get(text);
   if (known !== undefined) return known;
-  const key = norm(text)
-    .replace(
-      /\b(ENGINE|ENG|GENERATOR|GEN|BUS|TANK|PUMP|BLEED|EEC|IRS|PACK|IDG|FMC|CDU|NAV|VHF|ADF|DME|START) [12]\b/g,
-      "$1 #",
-    )
-    .replace(/\b(LEFT|RIGHT|L|R)\b/g, "SIDE")
-    .replace(/\b(CAPTAIN|CAPT|FIRST OFFICER|F O|FO)\b/g, "SEAT");
-  const out = /^(?:SIDE|SEAT|#| )*$/.test(key) ? null : key;
+  let key = norm(text);
+  if (numberedPattern) key = key.replace(new RegExp(`${numberedPattern.source} \\d+\\b`, "g"), "$1 #");
+  if (sidePattern) key = key.replace(sidePattern, "SIDE");
+  const out = /^(?:SIDE|#| )*$/.test(key) ? null : key;
   twinKeys.set(text, out);
   return out;
 }
@@ -291,6 +330,7 @@ export function bank(pack: FlatPack, index: PackIndex): Seed[] {
 
 /** Every question the pack can produce (`bank` keeps them). */
 export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
+  useTwinsOf(pack);
   const out: Seed[] = [];
   const phases = pack.content.phases;
   const lists = new Map(pack.lists.map((l) => [l.id, l]));
@@ -1019,17 +1059,21 @@ export function phasesOf(pack: FlatPack, stages: string[]): string[] {
   ];
 }
 
-/** "Before engine start": every phase of the stage holding the phase `preflight`, then the
- * phases of the stage holding `engine-start`, up to and including it. By the pack's phase ids. */
+/** "Before engine start": the flight from its first stage up to and including the phase the pack
+ * marks `engine_start`, with the stages that holds. Nothing when the pack marks none. */
 export function beforeEngineStart(pack: FlatPack): { stages: string[]; phases: string[] } {
-  const all = pack.content.phases?.stages ?? [];
-  const pre = all.find((s) => s.phases.some((p) => p.phase === "preflight"));
-  const dep = all.find((s) => s.phases.some((p) => p.phase === "engine-start"));
-  const upTo = dep ? dep.phases.slice(0, dep.phases.findIndex((p) => p.phase === "engine-start") + 1) : [];
-  return {
-    stages: [pre?.title, dep?.title].filter((t): t is string => !!t),
-    phases: [...new Set([...(pre?.phases ?? []), ...upTo].map((p) => p.phase))],
-  };
+  const start = (pack.content.phases?.phases ?? []).find((p) => p.engineStart && !p.reference)?.id;
+  if (!start) return { stages: [], phases: [] };
+  const stages: string[] = [];
+  const phases: string[] = [];
+  for (const stage of pack.content.phases?.stages ?? []) {
+    stages.push(stage.title);
+    for (const sp of stage.phases) {
+      if (!phases.includes(sp.phase)) phases.push(sp.phase);
+      if (sp.phase === start) return { stages, phases };
+    }
+  }
+  return { stages: [], phases: [] };
 }
 
 /** Whether a step shows on this flight: its own condition, and its phase's in a stage. */

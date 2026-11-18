@@ -113,7 +113,7 @@ folded to one line with its count until the phase's procedure is done.
   <!-- Folded until the procedure is done (Checklist board): one line with its count. -->
   <button class="card folded" type="button" aria-expanded="false" onclick={() => (openList = true)}>
     <span class="ft">{list.title}</span>
-    <span class="fd">Challenge and response · opens when the procedure is done</span>
+    <span class="fd">{index.labels.methods.challengeResponse} · opens when the procedure is done</span>
     <span class="fill"></span>
     <span class="fd">{list.progress.done} of {list.progress.total} ⌄</span>
   </button>

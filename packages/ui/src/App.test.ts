@@ -17,6 +17,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App.svelte";
 import { type Host, hostContext } from "./host";
+import { appLabels } from "./test-pack";
 
 function phase(id: string, title: string, done: number, skipped: number, total: number): RailPhase {
   const progress = { done, skipped, toDo: total - done - skipped, total };
@@ -59,6 +60,7 @@ const pack = {
     },
   ],
   content: {
+    labels: appLabels(),
     // An invented term, for the Glossary.
     glossary: { terms: [{ term: "WGT", meaning: "Widget gate timer. Times the widget gate." }] },
     phases: {
@@ -537,23 +539,51 @@ describe("App", () => {
     expect(intro).toContain("Why · Power comes first.");
   });
 
-  it("shows the current step in a large box in Flow view", async () => {
+  it("shows the current step in a large box in Step by step view", async () => {
     render(App, { context: hostContext(host()) });
     await screen.findByRole("heading", { level: 1, name: "Power up" });
     await fireEvent.click(
-      within(screen.getByRole("group", { name: "View" })).getByRole("button", { name: "Flow" }),
+      within(screen.getByRole("group", { name: "View" })).getByRole("button", { name: "Step by step" }),
     );
 
     expect(await screen.findByRole("heading", { level: 1, name: "STANDBY POWER" })).toBeTruthy();
     expect(screen.getByText("Power up · Step 2 of 2")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Confirmed, next step" })).toBeTruthy();
     expect((screen.getByRole("button", { name: "Back" }) as HTMLButtonElement).disabled).toBe(false);
-    // The standby step's control has a place, so Flow view offers "Where is this?" (in the step on
+    // The standby step's control has a place, so Step by step view offers "Where is this?" (in the step on
     // narrow screens, and on the side pane's location line).
     expect(screen.getAllByText("Where is this?").length).toBeGreaterThan(0);
     // Nor does the step set a control, so the hint does not ask to set it.
     expect(screen.getByText("Check it, then confirm.")).toBeTruthy();
     expect(screen.queryByText("Set it, check it, then confirm.")).toBeNull();
+  });
+
+  it("names the views List and Step by step, and settings saved as flow open in Step by step", async () => {
+    // Settings saved before the views were renamed keep their value (`flow`), and open the same view.
+    const saved = {
+      theme: "dark",
+      dimming: 0,
+      detail: "expanded",
+      listView: "flow",
+      tourSeen: true,
+    } as Settings;
+    const loaded = {
+      loaded: { state: "ready", value: saved, migratedFrom: null } as Loaded<Settings>,
+      text: "{}",
+    };
+    render(App, {
+      context: hostContext(host({ loadSaved: async () => ({ flight: null, settings: loaded }) })),
+    });
+    const views = await screen.findByRole("group", { name: "View" });
+    expect(
+      within(views)
+        .getAllByRole("button")
+        .map((b) => b.textContent?.trim()),
+    ).toEqual(["List", "Step by step"]);
+    expect(within(views).getByRole("button", { name: "Step by step" }).getAttribute("aria-pressed")).toBe(
+      "true",
+    );
+    expect(within(views).queryByRole("button", { name: /^(Checklist|Flow)$/ })).toBeNull();
   });
 
   it("shows a tagged error from Rust", async () => {
@@ -1143,6 +1173,11 @@ describe("App", () => {
       })),
       content: {
         ...pack.content,
+        // The pack names its tag, as the iFly pack's labels do.
+        labels: {
+          ...appLabels(),
+          basisTags: [{ id: "ifly-docs", label: "Simulator documentation", about: "How the model works." }],
+        },
         phases: {
           ...pack.content.phases,
           stages: [{ id: "preflight", title: "Preflight", phases: [{ phase: "power-up" }] }],
@@ -1291,7 +1326,7 @@ describe("App", () => {
     expect(actions).toEqual([{ type: "unskip", step: "battery" }]);
   });
 
-  it("moves between steps with the arrow keys and ticks with Space in Checklist view", async () => {
+  it("moves between steps with the arrow keys and ticks with Space in List view", async () => {
     const actions: Action[] = [];
     const h = host({
       apply: async (_pack, flight, action) => {

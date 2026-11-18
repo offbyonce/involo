@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-A step's blanks, as 3.0 drew them in the list and in Flow: each blank with the words before and
+A step's blanks, as 3.0 drew them in the list and in Step by step: each blank with the words before and
 after it, the parts to fill in on one line in the monospaced face, and the rest of the
 instruction on its own muted line. A blank whose value lives in a Flight field shows that value,
 or "— enter …" linking to the field while it is empty (Checklist board); the pilot's own

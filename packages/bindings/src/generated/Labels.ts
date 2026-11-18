@@ -21,6 +21,11 @@ positionWords: { [key in string]: Array<string> }, findExamples: Array<string>,
  */
 glossaryExceptions: Array<string>, 
 /**
+ * Words that tell one of a pair from the other, by side or seat (`LEFT`, `CAPTAIN`):
+ * Practice never offers two answers that differ only by them, or by an item's number.
+ */
+sideWords: Array<string>, 
+/**
  * Labels for the manifest's basis tags, in the order the manifest lists them.
  */
 basisTags: Array<BasisTagLabel>, };

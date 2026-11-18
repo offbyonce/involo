@@ -47,7 +47,7 @@ and a caution note under If not. A step with no control shows the steps coming u
     preview?: boolean;
     /** Opens the slide-out. */
     onOpen: (how: Opening) => void;
-    /** Flow view's pane (R6Flow): the location line and the previews only; Flow shows the step's
+    /** Step by step view's pane (R6Flow): the location line and the previews only; it shows the step's
      * details itself. */
     flow?: boolean;
     /** Opened in the step's row (tablet portrait and phone): no heading, the row shows the step; Check

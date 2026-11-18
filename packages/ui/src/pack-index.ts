@@ -8,6 +8,7 @@ import type {
   Control,
   ExplainNote,
   FlatPack,
+  Labels,
   Message,
   Overview,
   OverviewArea,
@@ -38,7 +39,7 @@ export type PackIndex = {
   /** The seat view "Where is this?" draws (see `seatFrame`). */
   seatFrame: ViewFrame | null;
   options: UserOption[];
-  /** The iFly panel states (panel states) the pack offers. */
+  /** The panel states the pack offers (a simulator's saved starting points). */
   panelStates: PanelState[];
   /** A shared "how to do it" note's steps, by id. */
   how(id: string): string[] | undefined;
@@ -72,6 +73,8 @@ export type PackIndex = {
   zoneDrawn(zone: string): boolean;
   /** Whether any drawn item carries the control. */
   controlDrawn(control: string): boolean;
+  /** The words the interface shows for this pack: its labels over the app's defaults. */
+  labels: Labels;
   /** The aircraft's alert messages, in the pack's order; none when it has no alert display. */
   messages: Message[];
   /** The messages that call for a step (that list it in their `steps`). */
@@ -209,6 +212,7 @@ export function indexPack(pack: FlatPack): PackIndex {
     panelOf: (id) => panels.get(id),
     zoneDrawn: (zone) => drawnZones.has(zone),
     controlDrawn: (control) => drawnControls.has(control),
+    labels: pack.content.labels,
     messages,
     messagesFor: (stepId) => messages.filter((m) => (m.steps ?? []).includes(stepId)),
     messagesCalling: (listId) => messages.filter((m) => m.list === listId),

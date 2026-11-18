@@ -6,6 +6,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { type Host, hostContext } from "../host";
 import { MAX_PLAN_FILE_BYTES } from "../lib/file-limits";
+import { appLabels } from "../test-pack";
 import FlightPage from "./FlightPage.svelte";
 import { blankLinks, home, SECTIONS, toEnter } from "./sections";
 
@@ -108,6 +109,7 @@ function page(props: Record<string, unknown>, withHost: Host = host) {
       plan: null,
       options,
       states,
+      panelStateLabels: appLabels().panelStates,
       backHref: "#/phase/before-start",
       onSet: (f: string, v: string) => sets.push([f, v]),
       onNotes: (n: string) => calls.push(["notes", n]),

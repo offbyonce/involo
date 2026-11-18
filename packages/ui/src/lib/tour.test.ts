@@ -51,7 +51,7 @@ describe("the tour's targets", () => {
     expect(bar).toMatchObject({ selector: "bar", bar: true });
     expect(bar?.els[0]).toBe(actions);
     expect(bar?.row).toBe(document.querySelector("li"));
-    // No current step (all done, or the Flow view): skipped.
+    // No current step (all done, or the Step by step view): skipped.
     document.body.innerHTML = "";
     expect(targetOf(3)).toBeNull();
   });

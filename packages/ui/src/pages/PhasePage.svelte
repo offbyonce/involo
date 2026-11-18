@@ -2,9 +2,9 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-A phase in Checklist view (Checklist board): where the phase sits and its title, "N open steps"
+A phase in List view (Checklist board): where the phase sits and its title, "N open steps"
 with the open-steps list, the lists as cards (a challenge-and-response checklist folded until
-the procedure is done), and buttons to the phases either side. Flow view shows the same phase one
+the procedure is done), and buttons to the phases either side. Step by step view shows the same phase one
 step at a time (lib/FlowView.svelte).
 -->
 <script lang="ts">

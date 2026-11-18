@@ -3,11 +3,11 @@ SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
 Start options (Start.dc.html): the Exterior inspection toggle with Preview the inspection (the
-Exterior phase), Power source (also asked at Power up), the iFly panel state, and Turnaround. The
+Exterior phase), Power source (also asked at Power up), the pack's panel state, and Turnaround. The
 descriptions are the board's.
 -->
 <script lang="ts">
-  import type { Flight, PanelState, UserOption } from "@involo/bindings";
+  import type { Flight, PanelState, PanelStateLabels, UserOption } from "@involo/bindings";
   import { phaseHref } from "../route.svelte";
   import Toggle from "../lib/Toggle.svelte";
   import Icon from "../lib/Icon.svelte";
@@ -16,12 +16,15 @@ descriptions are the board's.
     flight,
     options,
     states,
+    labels,
     onOption,
     onPanelState,
   }: {
     flight: Flight;
     options: UserOption[];
     states: PanelState[];
+    /** The panel state row's words, from the pack's labels. */
+    labels: PanelStateLabels;
     onOption: (option: string, value: string) => void;
     onPanelState: (state: string | null) => void;
   } = $props();
@@ -57,14 +60,14 @@ descriptions are the board's.
 {#if states.length}
   <section class="card">
     <div class="text">
-      <span class="t">iFly panel state</span>
-      <span class="d">Loaded a panel state from the iFly EFB? Pick it to tick the steps it has already set and start where the airplane is. Steps it can't set, like the FMC, MCP and radios, stay open.</span>
+      <span class="t">{labels.title}</span>
+      <span class="d">{labels.description}</span>
     </div>
     <label class="pick">
       Panel state
       <span class="sel">
         <select value={flight.panelState ?? ""} onchange={(e) => onPanelState(e.currentTarget.value || null)}>
-          <option value="">Choose a panel state</option>
+          <option value="">{labels.placeholder}</option>
           {#each states as s (s.id)}<option value={s.id}>{s.title}</option>{/each}
         </select>
         <Icon name="chevron-down" />

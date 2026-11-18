@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 A step's details, in 3.0's order: the highlighted CHECK cell and the IF NOT cell side by side,
 why, what to say, how to do it (a numbered list that opens, from the pack's shared notes; open at
 the start for tests and completion steps, as in 3.0), then a note. Used in an opened step, in
-Flow view and in the side panel. Each item shows once.
+Step by step view and in the side panel. Each item shows once.
 -->
 <script lang="ts">
   import type { Step } from "@involo/bindings";

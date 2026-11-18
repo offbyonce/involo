@@ -5,38 +5,23 @@
 // kind of source its pack basis tag stands for, never a citation, title, page or link. Everything
 // is counted from the pack.
 
-import type { Checklist, FlatPack, Rail } from "@involo/bindings";
+import type { BasisTagLabel, Checklist, FlatPack, Labels, Rail } from "@involo/bindings";
 
-/** The kinds of source a basis tag can stand for (References README), in the page's order. */
-export const SOURCES = [
-  {
-    tag: "ifly-docs",
-    name: "Simulator documentation",
-    about: "How the aircraft model in the simulator works: its panels, its switches and its own procedures.",
-  },
-  {
-    tag: "regulator-docs",
-    name: "Regulator guidance",
-    about: "General practice published by aviation authorities, such as how checklists are used.",
-  },
-] as const;
+/** A basis tag's id, as a list names it. */
+export type Basis = string;
 
-/** A status, not a source: lists whose text came from an earlier release and are being checked
- * against the sources above. Once a list is re-tagged with its basis, the status goes away. */
-export const CONFIRMING = { tag: "prior-release", name: "Source being confirmed" } as const;
-
-export type Basis = (typeof SOURCES)[number]["tag"] | typeof CONFIRMING.tag;
-
-/** What a list's "Based on" tag reads. */
-export const basisName = (b: Basis): string => SOURCES.find((s) => s.tag === b)?.name ?? CONFIRMING.name;
+/** A tag's words: its label, or its id when the pack gives none. */
+const nameOf = (labels: BasisTagLabel[], tag: string): string =>
+  labels.find((l) => l.id === tag)?.label ?? tag;
 
 export type RefRow = {
   id: string;
   title: string;
-  /** The stage that holds it ("Preflight"), or "Emergency" for the reference lists. */
+  /** The stage that holds it ("Preflight"), or the reference area's title for the reference lists. */
   stage: string;
   kind: string;
-  /** The tag it shows: the first source it names, else Source being confirmed. */
+  /** The tag it shows: the first source it names, else the first pending tag (Source being
+   * confirmed, by default). */
   basis: Basis;
   /** Every source it names, for the counts and the chips (a list may name both). */
   sources: Basis[];
@@ -47,27 +32,29 @@ export type RefRow = {
 };
 
 export type References = {
-  /** Each kind of source and how many lists name it. */
+  /** Each kind of source the pack's labels describe, in their order, and how many lists name it. */
   sources: { tag: Basis; name: string; about: string; count: number }[];
-  /** How many lists are still Source being confirmed. */
+  /** Each pending tag (a status, not a source) and how many lists show it. */
+  pending: { tag: Basis; name: string; count: number }[];
+  /** How many lists show a pending tag. */
   confirming: number;
+  /** Each tag's words, for its chip. */
+  names: Record<Basis, string>;
   rows: RefRow[];
   /** The steps marked as following the simulator's model, in flight order. */
   simulatorModel: string[];
 };
 
-/** The list's kind as the page names it: procedure, checklist, memory items, quick reference or
- * non-normal procedure. A reference list's kind comes from its phase's group (decision 0029). */
-function kindOf(list: Checklist, group: string | null | undefined): string {
-  if (list.kind === "flow") return "Procedure";
-  if (list.kind === "checklist") return "Checklist";
-  if (list.memory) return "Memory items";
-  return group === "quick" ? "Quick reference" : "Non-normal procedure";
+/** The list's kind as the page names it, in the pack's words (labels): procedure, checklist,
+ * memory items, quick reference or non-normal procedure. A reference list's kind comes from its
+ * phase's group (decision 0029). */
+function kindOf(labels: Labels, list: Checklist, group: string | null | undefined): string {
+  const k = labels.listKinds;
+  if (list.kind === "flow") return k.flow;
+  if (list.kind === "checklist") return k.checklist;
+  if (list.memory) return k.memory;
+  return group === "quick" ? k.quick : k.nonNormal;
 }
-
-/** The sources a list names, in the page's order. */
-const sourcesOf = (list: Checklist): Basis[] =>
-  SOURCES.filter((s) => list.basis.includes(s.tag)).map((s) => s.tag);
 
 /**
  * The page's contents, from the pack: lists in flight order, then the reference lists. A phase
@@ -75,6 +62,16 @@ const sourcesOf = (list: Checklist): Basis[] =>
  * in (`rail`), else its first.
  */
 export function buildReferences(pack: FlatPack, rail: Rail | null = null): References {
+  const labels = pack.content.labels;
+  const tags = labels.basisTags;
+  const sourceTags = tags.filter((t) => !t.pending);
+  const pendingTags = tags.filter((t) => t.pending);
+  /** The sources a list names, in the labels' order. */
+  const sourcesOf = (list: Checklist): Basis[] =>
+    sourceTags.filter((t) => list.basis.includes(t.id)).map((t) => t.id);
+  /** A list naming no source shows the pending tag it names, else the pack's first. */
+  const pendingOf = (list: Checklist): Basis =>
+    pendingTags.find((t) => list.basis.includes(t.id))?.id ?? pendingTags[0]?.id ?? list.basis[0] ?? "";
   const onRail = new Map<string, string>();
   for (const st of rail?.stages ?? []) for (const p of st.phases) onRail.set(p.id, st.id);
   const lists = new Map(pack.lists.map((l) => [l.id, l]));
@@ -101,7 +98,7 @@ export function buildReferences(pack: FlatPack, rail: Rail | null = null): Refer
   for (const p of phases.values())
     if (p.reference)
       for (const id of p.lists)
-        order.push({ id, stage: "Emergency", phase: p.id, phaseTitle: p.title, group: p.group });
+        order.push({ id, stage: labels.reference.title, phase: p.id, phaseTitle: p.title, group: p.group });
   const seen = new Set<string>();
   const rows: RefRow[] = [];
   for (const o of order) {
@@ -112,8 +109,8 @@ export function buildReferences(pack: FlatPack, rail: Rail | null = null): Refer
       id: list.id,
       title: list.title,
       stage: o.stage,
-      kind: kindOf(list, o.group),
-      basis: sourcesOf(list)[0] ?? CONFIRMING.tag,
+      kind: kindOf(labels, list, o.group),
+      basis: sourcesOf(list)[0] ?? pendingOf(list),
       sources: sourcesOf(list),
       phase: o.phase,
       first: list.steps[0]?.id ?? null,
@@ -124,8 +121,17 @@ export function buildReferences(pack: FlatPack, rail: Rail | null = null): Refer
     for (const step of lists.get(o.id)?.steps ?? []) if (step.simulatorModel) marked.add(step.id);
   return {
     // Counted from the rows, so a card's count is what its chip shows.
-    sources: SOURCES.map((s) => ({ ...s, count: rows.filter((r) => r.sources.includes(s.tag)).length })),
-    confirming: rows.filter((r) => r.basis === CONFIRMING.tag).length,
+    sources: sourceTags.map((t) => ({
+      tag: t.id,
+      name: t.label,
+      about: t.about ?? "",
+      count: rows.filter((r) => r.sources.includes(t.id)).length,
+    })),
+    pending: pendingTags
+      .map((t) => ({ tag: t.id, name: t.label, count: rows.filter((r) => r.basis === t.id).length }))
+      .filter((t) => t.count > 0),
+    confirming: rows.filter((r) => pendingTags.some((t) => t.id === r.basis)).length,
+    names: Object.fromEntries(tags.map((t) => [t.id, nameOf(tags, t.id)])),
     rows,
     simulatorModel: [...marked],
   };

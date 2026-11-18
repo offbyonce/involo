@@ -2108,6 +2108,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     "regions": [
       {
         "name": "Aft overhead",
+        "short": "Overhead",
         "code": "P5",
         "x": 56.0,
         "y": 18.0,
@@ -2127,6 +2128,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       },
       {
         "name": "Forward overhead",
+        "short": "Overhead",
         "code": "P5",
         "x": 16.0,
         "y": 112.0,
@@ -2146,6 +2148,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       },
       {
         "name": "Glareshield",
+        "short": "Glareshield",
         "code": "P7",
         "x": 16.0,
         "y": 304.0,
@@ -2161,6 +2164,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       },
       {
         "name": "Main panel",
+        "short": "Main panel",
         "code": "P1–P3",
         "x": 16.0,
         "y": 356.0,
@@ -2176,6 +2180,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       },
       {
         "name": "Center console",
+        "short": "Pedestal",
         "code": "P9 · CONTROL STAND · P8",
         "x": 126.0,
         "y": 448.0,

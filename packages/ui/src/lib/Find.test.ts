@@ -23,6 +23,7 @@ const rail: Rail = {
 };
 /** Invented: five matching steps, four controls, one term matched by its definition. */
 const find: FindIndex = {
+  reference: "Emergency",
   steps: [
     { id: "s1", title: "Widget pump", value: "ON", phase: "p1" },
     { id: "s2", title: "Widget valve", value: "OPEN", phase: "p1" },

@@ -30,7 +30,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       },
       {
         "id": "procedures",
-        "title": "Non-normal procedures"
+        "title": "Non-normal"
       }
     ]
   },
@@ -68,6 +68,17 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     "IGN R",
     "PERF INIT",
     "MA"
+  ],
+  "side_words": [
+    "LEFT",
+    "RIGHT",
+    "L",
+    "R",
+    "CAPTAIN",
+    "CAPT",
+    "FIRST OFFICER",
+    "F/O",
+    "FO"
   ],
   "basis_tags": [
     {

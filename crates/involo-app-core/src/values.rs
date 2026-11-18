@@ -132,7 +132,7 @@ pub fn arrival_fields(pack: &FlatPack) -> Vec<&str> {
 }
 
 /// Whether a phase shows the Arrival data box: it is the first phase, in flight order, whose
-/// steps have blanks for arrival values (the descent, in the iFly pack, as in 3.0).
+/// steps have blanks for arrival values (for an airliner, usually the descent, as in 3.0).
 pub fn asks_arrival<'a>(
     pack: &FlatPack,
     order: impl IntoIterator<Item = &'a str>,

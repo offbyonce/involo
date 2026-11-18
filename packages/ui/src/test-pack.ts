@@ -6,7 +6,7 @@
 // Names) by the same Rust code. `just test` builds the module first.
 
 import { readFileSync } from "node:fs";
-import type { FlatPack } from "@involo/bindings";
+import type { FlatPack, Labels } from "@involo/bindings";
 import { initSync, load_pack } from "../../../apps/web/src/wasm/involo_web_host.js";
 
 const root = `${import.meta.dirname}/../../..`;
@@ -37,4 +37,10 @@ let example: FlatPack | undefined;
 export function examplePack(): FlatPack {
   example ??= packAsReceived(readFileSync(`${root}/target/test-packs/example-trainer.json`, "utf8"));
   return example;
+}
+
+/** The app's own words (decision 0029), as Rust gives a pack without a labels file: the example
+ * pack's, which has none. For packs a test builds by hand. */
+export function appLabels(): Labels {
+  return structuredClone(examplePack().content.labels);
 }

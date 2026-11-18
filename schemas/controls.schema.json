@@ -247,6 +247,13 @@
             "null"
           ]
         },
+        "short": {
+          "description": "The area's short name, e.g. \"Overhead\", where a picture of a flow names the areas;\nregions may share one. Without it, the name.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "short_title": {
           "type": [
             "string",

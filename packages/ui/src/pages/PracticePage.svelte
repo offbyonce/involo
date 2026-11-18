@@ -84,8 +84,8 @@ the latest; a test's questions and answers last only for this visit.
   let ready = $derived([
     { title: "Memory items", sub: `${memoryLists} lists · every item, in order`, topics: ["memory"] as Topic[], stages, count: 10, feedback: "each" as Feedback },
     { title: "Lights of the flight deck", sub: `${fmt(lightCount)} lights and what they mean`, topics: ["lights"] as Topic[], stages, count: 20, feedback: "each" as Feedback },
-    // Preflight, and Departure up to and including Engine start, by the pack's phase ids.
-    { title: "Before engine start", sub: `${andList(engineStart.stages)}: values, order, locations`, topics: ["values", "order", "where"] as Topic[], stages: engineStart.stages, phases: engineStart.phases, count: 20, feedback: "each" as Feedback },
+    // The flight up to and including the phase the pack marks `engine_start`; none if it marks none.
+    ...(engineStart.phases.length ? [{ title: "Before engine start", sub: `${andList(engineStart.stages)}: values, order, locations`, topics: ["values", "order", "where"] as Topic[], stages: engineStart.stages, phases: engineStart.phases, count: 20, feedback: "each" as Feedback }] : []),
     { title: "Check ride", sub: "Every topic, every stage", topics: TOPICS.map((t) => t.id), stages, count: 40, feedback: "end" as Feedback },
   ]);
 
