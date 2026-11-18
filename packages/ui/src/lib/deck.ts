@@ -3,7 +3,8 @@
 
 // The Flight deck page's areas (Deck and PhoneDeck boards), from the pack's overview map: one per
 // region, in the pack's order. A region the side view draws as several outlines is split into that
-// many areas, by its places' own area names, front to back as the map lists them top to bottom.
+// many areas, by its places' own area names, front to back as the map lists them top to bottom,
+// each named as the side view names that outline.
 // With a side view, a region it does not draw holds the places with no map region of their own:
 // shown last, without a map box.
 
@@ -88,7 +89,8 @@ export function deckAreas(index: PackIndex): DeckArea[] {
       split.forEach((full, shape) => {
         const [name, code] = splitArea(full);
         const mine = boxes.filter((b) => byId.get(b.zone)?.area === full);
-        const short = name.replace(/\s+panel$/i, "");
+        // The side view's name for this outline, else the area's name as written.
+        const short = place?.names?.[shape] ?? name;
         out.push({
           id: key(short),
           name: short,

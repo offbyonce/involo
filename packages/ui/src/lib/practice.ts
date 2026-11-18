@@ -164,18 +164,24 @@ const anyOf = (words: string[]) =>
 
 /**
  * Sets what tells twins apart: `sideWords` (left and right, captain and first officer) and the
- * words `texts` number with two or more numbers (ENGINE 1 to ENGINE 4, PACK 1 and 2), so a setting
- * that is a number (FLAPS 1, FLAPS 5) never counts as a pair.
+ * pack's numbered items: the text before a number, where two of `texts` differ by that number
+ * alone (ENGINE 1 and ENGINE 2, AUDIO PANEL 1 and 2), so a setting that is a number (FLAPS 1,
+ * FLAPS 5) never counts as a pair, nor a word that only ends a longer numbered name (PANEL).
  */
 export function useTwins(sideWords: string[], texts: string[]): void {
   sidePattern = anyOf(sideWords.map((w) => norm(w)).filter(Boolean));
-  const numbers = new Map<string, Set<string>>();
-  for (const t of texts)
-    for (const m of norm(t).matchAll(/\b([A-Z]+) (\d+)\b/g)) {
-      const word = m[1] ?? "";
-      numbers.set(word, (numbers.get(word) ?? new Set()).add(m[2] ?? ""));
+  const numbers = new Map<string, { item: string; numbers: Set<string> }>();
+  for (const t of new Set(texts.map((x) => norm(x))))
+    for (const m of t.matchAll(/(?<=\S) (\d+)\b/g)) {
+      const at = m.index ?? 0;
+      const item = t.slice(0, at);
+      const key = `${item} #${t.slice(at + m[0].length)}`;
+      const known = numbers.get(key) ?? { item, numbers: new Set<string>() };
+      known.numbers.add(m[1] ?? "");
+      numbers.set(key, known);
     }
-  numberedPattern = anyOf([...numbers].filter(([, n]) => n.size > 1).map(([w]) => w));
+  const items = new Set([...numbers.values()].filter((n) => n.numbers.size > 1).map((n) => n.item));
+  numberedPattern = anyOf([...items]);
   twinKeys.clear();
 }
 
@@ -364,9 +370,9 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
   // Memory items.
   const memLists = [...memory].flatMap((id) => lists.get(id) ?? []);
   const item = (s: Step) => (s.expect ? `${s.text} … ${s.expect}` : s.text);
-  /** A branch ("IF RUNAWAY STOPS …") opens its own run of items: the order between branches depends on
-   * the case, so no next-item question crosses into one and order questions stay within one. */
-  const branch = (s: Step) => /^IF\b/i.test(s.text);
+  /** A branch (the pack's `branch`) opens its own run of items: the order between branches depends
+   * on the case, so no next-item question crosses into one and order questions stay within one. */
+  const branch = (s: Step) => !!s.branch;
   for (const list of memLists) {
     const others = memLists.filter((l) => l !== list).flatMap((l) => l.steps.map(item));
     list.steps.forEach((s, i) => {
@@ -438,31 +444,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       { ...l, panel, section, label, zone, area: zone?.area ?? panel, color: drawn?.color ?? "amber", users },
     ];
   });
-  // Which one of a pair: the engine, side, seat or system its meaning names, where another
-  // light with its label on the same panel names a different one.
-  const sideIn = (meaning: string) => {
-    // A switch named in brackets ("The left aft pump (AFT 1) …") says which one exactly.
-    const named = /\(([A-Z][A-Z0-9]*(?: [A-Z0-9]+)?)\)/.exec(meaning);
-    if (named?.[1]) return named[1];
-    const m =
-      /\b(?:transfer bus|engine|generator|tank|electric hydraulic pump|pump|IRS|bus) [12]\b/i.exec(meaning) ??
-      /\bsystem [AB]\b/i.exec(meaning) ??
-      /\b(?:left|right)(?: (?:side|forward|IRS|engine))?\b/i.exec(meaning) ??
-      /\b(?:captain|first officer)\b/i.exec(meaning);
-    return m ? lowerFirst(m[0]) : "";
-  };
-  const sides = new Map(lights.map((l) => [l, sideIn(l.meaning)]));
-  const pairs = new Map(
-    lights.map((l) => {
-      const side = sides.get(l) ?? "";
-      const paired = lights.some(
-        (x) =>
-          x !== l && x.section === l.section && x.label === l.label && sides.get(x) && sides.get(x) !== side,
-      );
-      return [l, side && paired ? side : ""];
-    }),
-  );
-  const which = (l: (typeof lights)[number]) => pairs.get(l) ?? "";
+  // Which one of a pair a light is: the pack says, for every light sharing its label on a section.
+  const which = (l: (typeof lights)[number]) => l.which ?? "";
 
   for (const l of lights) {
     // The same light again, meaning the same word for word, with nothing to say which it is: asked
@@ -806,9 +789,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       : [];
     const base = { topic: "where" as const, kind: "choice" as const, phases, steps: [], links };
     const name = /^[A-Z0-9/]{2,}\b/.test(c.name) ? c.name : c.name.charAt(0).toLowerCase() + c.name.slice(1);
-    // "Where are" for a plural name.
-    const plural = /[^su]s$/i.test(c.name.split(/\s+/).at(-1) ?? "");
-    const prompt = `Where ${plural ? "are" : "is"} the ${name}?`;
+    // "Where are" for a name the pack calls plural.
+    const prompt = `Where ${c.plural ? "are" : "is"} the ${name}?`;
     // Its panel: the area's other panels, nearest first; then the nearest area's panels.
     const byGap = (zs: typeof index.zones) =>
       [...zs].sort((a, b) => gap(own, boxes.get(a.id) ?? []) - gap(own, boxes.get(b.id) ?? []));
@@ -820,7 +802,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       .filter((x) => Number.isFinite(x.d))
       .sort((p, q) => p.d - q.d);
     // A panel whose name shares a word with the control's gives it away: no panel question.
-    if (!sharesWord(c.name, zone.title))
+    if (!sharesWord(c.name, zone.title, pack.content.labels.plainWords))
       out.push({
         ...base,
         id: `where:panel:${c.id}`,
@@ -828,7 +810,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         stem: null,
         short: prompt,
         source: `where:${c.id}:panel`,
-        why: `The ${name} ${plural ? "are" : "is"} on the ${zone.title}: ${afterColon(c.location)}`,
+        why: `The ${name} ${c.plural ? "are" : "is"} on the ${zone.title}: ${afterColon(c.location)}`,
         about: tell(
           index.zones.map((z) => [
             z.title,
@@ -843,7 +825,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       });
     // Its Flight deck area: the other areas, nearest first (by the map; in the page's order
     // where a place has no box on it).
-    if (area && !sharesWord(c.name, areaName(area))) {
+    if (area && !sharesWord(c.name, areaName(area), pack.content.labels.plainWords)) {
       const at = areas.indexOf(area);
       const ranked = areas
         .filter((a) => a !== area)
@@ -863,7 +845,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         stem: null,
         short: prompt,
         source: `where:${c.id}:area`,
-        why: `The ${name} ${plural ? "are" : "is"} in the ${areaName(area)}, on the ${zone.title}.`,
+        why: `The ${name} ${c.plural ? "are" : "is"} in the ${areaName(area)}, on the ${zone.title}.`,
         about: tell(
           areas.map((a) => [
             areaName(a),
@@ -946,44 +928,15 @@ const afterColon = (s: string) =>
   /^(?:A|[A-Z][a-z]+)(?:[\s,]+[a-z0-9("“]|[.,]?$)/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s;
 const lowerFirst = (s: string) => (/^[A-Z][a-z]/.test(s) ? s.charAt(0).toLowerCase() + s.slice(1) : s);
 
-/** Words that say nothing about where a control is, and words found on panels all over the deck
- *. */
-const PLAIN = new Set([
-  "AND",
-  "THE",
-  "OF",
-  "FOR",
-  "WITH",
-  "ON",
-  "IN",
-  "TO",
-  "PANEL",
-  "PANELS",
-  "SWITCH",
-  "SWITCHES",
-  "SELECTOR",
-  "SELECTORS",
-  "LIGHT",
-  "LIGHTS",
-  "CONTROL",
-  "CONTROLS",
-  "INDICATOR",
-  "INDICATORS",
-  "DISPLAY",
-  "DISPLAYS",
-  "UNIT",
-  "UNITS",
-  "LEVER",
-  "LEVERS",
-]);
 /** Whether two names share a meaningful word ("Fuel pump switches" and "Fuel panel"), singular or
- * plural. */
-export function sharesWord(a: string, b: string): boolean {
+ * plural, leaving out the pack's `plain` words (labels `plain_words`). */
+export function sharesWord(a: string, b: string, plain: readonly string[]): boolean {
+  const skip = new Set(plain.map((w) => norm(w)));
   const words = (s: string) =>
     new Set(
       norm(s)
         .split(" ")
-        .filter((w) => w.length >= 3 && !PLAIN.has(w))
+        .filter((w) => w.length >= 3 && !skip.has(w))
         .map((w) => w.replace(/(?<=[^S])S$/, "")),
     );
   const x = words(a);

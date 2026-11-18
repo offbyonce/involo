@@ -8,7 +8,12 @@ export type LightNote = {
 /**
  * `<panel>/<section>/<label>/<n>`, where n counts items with that label from 1.
  */
-locator: string, meaning: string, when: string, action: string, 
+locator: string, 
+/**
+ * Which one of the lights sharing its label on a section this is ("transfer bus 1"),
+ * as Practice names it; every light that shares its label needs one, each different.
+ */
+which?: string | null, meaning: string, when: string, action: string, 
 /**
  * True when seeing this light is normal.
  */

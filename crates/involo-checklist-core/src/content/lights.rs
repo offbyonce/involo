@@ -11,6 +11,10 @@ data_types! {
     pub struct LightNote {
         /// `<panel>/<section>/<label>/<n>`, where n counts items with that label from 1.
         pub locator: String,
+        /// Which one of the lights sharing its label on a section this is ("transfer bus 1"),
+        /// as Practice names it; every light that shares its label needs one, each different.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub which: Option<String>,
         pub meaning: String,
         pub when: String,
         pub action: String,

@@ -11681,6 +11681,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "at": "gl/mcp/DISENGAGE/1"
           }
         ],
+        "branch": true,
         "terms": [
           "P7"
         ],
@@ -11709,6 +11710,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "set": "CUT OUT"
           }
         ],
+        "branch": true,
         "terms": [
           "STAB TRIM CUTOUT"
         ],
@@ -11735,6 +11737,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "at": "con/st/STAB TRIM WHEEL/2"
           }
         ],
+        "branch": true,
         "confirmed_by": [
           {
             "kind": "vendor-docs",
@@ -11928,6 +11931,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "at": "mn/fd/OUTBOARD DU: PFD/1"
           }
         ],
+        "branch": true,
         "terms": [
           "N1"
         ],
@@ -11960,6 +11964,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "at": "mn/fd/OUTBOARD DU: PFD/1"
           }
         ],
+        "branch": true,
         "terms": [
           "N1"
         ],
@@ -12090,6 +12095,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
           }
         ],
         "non_recall": true,
+        "branch": true,
         "terms": [
           "P2"
         ],
@@ -12124,6 +12130,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
           }
         ],
         "non_recall": true,
+        "branch": true,
         "terms": [
           "F/D",
           "P7"
@@ -12160,6 +12167,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
         "non_recall": true,
         "note": "Once trimmed and stable, compare each airspeed with the table. A gap above 20 knots or 0.03 Mach marks that indicator as unreliable.",
         "note_caution": true,
+        "branch": true,
         "confirmed_by": [
           {
             "kind": "vendor-docs",
@@ -12327,6 +12335,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
           }
         ],
         "non_recall": true,
+        "branch": true,
         "terms": [
           "P5"
         ]
@@ -12350,6 +12359,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
           }
         ],
         "non_recall": true,
+        "branch": true,
         "terms": [
           "P5"
         ]
@@ -12379,6 +12389,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
           }
         ],
         "non_recall": true,
+        "branch": true,
         "terms": [
           "P5"
         ]
@@ -13626,7 +13637,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "at": "con/fi/FIRE APU/1",
             "open": true
           }
-        ]
+        ],
+        "branch": true
       }
     ]
   },
@@ -13882,6 +13894,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "at": "gl/mcp/DISENGAGE/1"
           }
         ],
+        "branch": true,
         "terms": [
           "A/P",
           "A/T",
@@ -13910,6 +13923,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "at": "con/st/STAB TRIM WHEEL/2"
           }
         ],
+        "branch": true,
         "confirmed_by": [
           {
             "kind": "vendor-docs",
@@ -14545,7 +14559,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
         "expect": "ROTATE TO PITCH LIMIT, STICK SHAKER OR INITIAL BUFFET",
         "controls": [
           "column"
-        ]
+        ],
+        "branch": true
       },
       {
         "id": "ifly-737-max8.procedures.gear-and-flaps",

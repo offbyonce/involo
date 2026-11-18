@@ -26,6 +26,9 @@ data_types! {
         pub zone: Option<String>,
         pub location: String,
         pub function: String,
+        /// The name is plural ("Fuel pump switches"): Practice asks "Where are the …?".
+        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        pub plural: bool,
     }
 
     /// A caption on the cockpit overview map.
@@ -146,6 +149,10 @@ data_types! {
         /// Where the region's name goes when it is the one shown, if the view names it.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub label_at: Option<[f64; 2]>,
+        /// For a region drawn as several outlines, each outline's name on the Flight deck page,
+        /// front to back ("Forward electronic"); without them, its places' area names as written.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub names: Vec<String>,
     }
 
     /// A side or seat view of the flight deck, in its own units (decision 0023).

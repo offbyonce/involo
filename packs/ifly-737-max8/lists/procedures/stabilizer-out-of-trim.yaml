@@ -53,6 +53,7 @@ steps:
   - id: ifly-737-max8.procedures.if-stabilizer-responds-to-electric-trim
     number: 4
     text: IF STABILIZER RESPONDS TO ELECTRIC TRIM
+    branch: true
     expect: DO NOT RE-ENGAGE A/P OR A/T
     terms: ["A/P", "A/T", "P7"]
     controls:
@@ -65,6 +66,7 @@ steps:
   - id: ifly-737-max8.procedures.if-the-stabilizer-does-not-respond
     number: 5
     text: IF THE STABILIZER DOES NOT RESPOND
+    branch: true
     expect: GO TO STABILIZER TRIM INOPERATIVE
     controls:
       - stabwheel

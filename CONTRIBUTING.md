@@ -160,8 +160,12 @@ area's title and groups, crew roles and seats, the panel-state picker, basis tag
 an optional `labels.yaml`, listed in `pack.json` as `labels`. Every key is optional, and a key left
 out keeps the app's own word. Write only what differs. Reference tabs follow the order of
 `reference.groups`; `side_words` are the words that tell one of a pair from the other (left and
-right, captain and first officer), which Practice uses, and which, with the seated roles' names,
-name two panels as a pair ("L and R wiper panels"), in the order the words are listed.
+right, captain and first officer), which Practice uses so it never offers a twin as a wrong
+answer, and which, with the seated roles' names, name two panels as a pair ("L and R wiper
+panels"), in the order the words are listed. Practice also counts as twins the numbered items:
+the text before a number, where two names differ by that number alone (ENGINE 1, ENGINE 2).
+`plain_words` are words that say nothing about where a control is (`AND`, `PANEL`, `SWITCH`),
+which Practice's where questions ignore; the app's default list is replaced as a whole.
 `find_examples` are Find's Try chips, and its first two are the no-match hint's examples.
 `glossary_exceptions` are terms whose first sentence is not shown as their expansion.
 `position_words` (`DN: [DOWN]`) are other words for a position, merged over the defaults; `check`
@@ -169,8 +173,13 @@ and `suggest-targets` read a step's wording with them. A panel section's optiona
 card titles, captions and "Also" lines call it ("Fuel panel") when that is not its drawn `title`;
 the interface adds nothing to a name. On the Flight deck page, a region the side view draws as
 several outlines is split into that many areas by its places' `area` names, top to bottom on the
-map; with a side view, a region it does not draw lists the places with no region of their own,
-last. The phase that starts the engines carries
+map, each named by the side view place's `names` (one per outline, front to back) or else its
+area name as written; with a side view, a region it does not draw lists the places with no region
+of their own, last. In `lights.yaml`, every light that shares its label with another on the same
+section carries `which` ("transfer bus 1"), each different, and Practice names it with that as
+given. In `controls.yaml`, a control whose name is plural carries `plural: true` (Practice asks
+"Where are the …?"). A step that opens a case of its own ("IF RUNAWAY CONTINUES") carries
+`branch: true`, so Practice never asks across it; never on a list's first step. The phase that starts the engines carries
 `engine_start: true` in `phases.yaml`, for Practice's "Before engine start". An overview region's
 optional `short` name ("Overhead", shared by both overhead regions) names that area in the How
 page's flow figure.

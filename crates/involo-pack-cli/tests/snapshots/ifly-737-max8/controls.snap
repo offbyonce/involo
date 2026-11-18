@@ -453,21 +453,24 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Alternate flaps switches",
       "zone": "fctl",
       "location": "Flight control panel, right side. The arm switch is guarded and sits beside the UP/OFF/DOWN position switch.",
-      "function": "Moves the flaps electrically if hydraulics fail. Stays off in normal use."
+      "function": "Moves the flaps electrically if hydraulics fail. Stays off in normal use.",
+      "plural": true
     },
     {
       "id": "wiper",
       "name": "Wiper selectors",
       "zone": "wipe",
       "location": "Low on the forward overhead, just above the engine start row. One knob for each side.",
-      "function": "Rotary knobs for each windshield wiper: PARK, INT, LOW, HIGH."
+      "function": "Rotary knobs for each windshield wiper: PARK, INT, LOW, HIGH.",
+      "plural": true
     },
     {
       "id": "hydpumps",
       "name": "Hydraulic pump switches",
       "zone": "hyd",
       "location": "Hydraulic panel, right of center on the forward overhead. Four switches in a row.",
-      "function": "ENG 1 and ELEC 2 feed system A. ELEC 1 and ENG 2 feed system B."
+      "function": "ENG 1 and ELEC 2 feed system A. ELEC 1 and ENG 2 feed system B.",
+      "plural": true
     },
     {
       "id": "gearlever",
@@ -502,7 +505,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Overheat detector switches",
       "zone": "fire",
       "location": "Fire protection panel on the aft electronic panel, one switch for each engine: A, NORMAL or B.",
-      "function": "Chooses which detector loop warns of an engine overheat or fire. NORMAL uses both."
+      "function": "Chooses which detector loop warns of an engine overheat or fire. NORMAL uses both.",
+      "plural": true
     },
     {
       "id": "firetest",
@@ -523,7 +527,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "APU generator switches",
       "zone": "elecl",
       "location": "Electrical panel, between the two engine generator switches.",
-      "function": "Two switches that put APU power on each AC transfer bus."
+      "function": "Two switches that put APU power on each AC transfer bus.",
+      "plural": true
     },
     {
       "id": "grddisc",
@@ -537,7 +542,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "IRS mode selectors",
       "zone": "airs",
       "location": "Aft overhead. Left and right rotary selectors under the IRS display.",
-      "function": "OFF, ALIGN, NAV, ATT. Set both to NAV and let them align before moving."
+      "function": "OFF, ALIGN, NAV, ATT. Set both to NAV and let them align before moving.",
+      "plural": true
     },
     {
       "id": "elt",
@@ -558,14 +564,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "GPS, ILS, GLS and MAINT lights",
       "zone": "alights",
       "location": "Aft overhead. GPS, ILS and GLS lights sit above the IRS status lights; the amber MAINT light is on the forward edge strip.",
-      "function": "Amber caution lights. All should be out on the ground before flight."
+      "function": "Amber caution lights. All should be out on the ground before flight.",
+      "plural": true
     },
     {
       "id": "eec",
       "name": "EEC switches",
       "zone": "aeng",
       "location": "Engine panel on the aft overhead. One ON/ALTN button for each engine, with REVERSER LIMITED and ENGINE CONTROL lights.",
-      "function": "Electronic engine control. Normal is ON with the lights out. ALTN means alternate mode, automatic or selected."
+      "function": "Electronic engine control. Normal is ON with the lights out. ALTN means alternate mode, automatic or selected.",
+      "plural": true
     },
     {
       "id": "paxoxy",
@@ -586,7 +594,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Overhead gear indicator lights",
       "zone": "agear",
       "location": "Aft overhead, forward edge. LEFT and RIGHT GEAR side by side with NOSE GEAR below. Separate from the main gear lights.",
-      "function": "A second set of gear position lights. Green means down and locked."
+      "function": "A second set of gear position lights. Green means down and locked.",
+      "plural": true
     },
     {
       "id": "fltrec",
@@ -614,21 +623,24 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Control display units",
       "zone": "cdu",
       "location": "Forward electronic panel. One CDU in front of each pilot, either side of the pedestal.",
-      "function": "Flight management system entry. Program route, performance, N1 limit and takeoff reference."
+      "function": "Flight management system entry. Program route, performance, N1 limit and takeoff reference.",
+      "plural": true
     },
     {
       "id": "fltctrl",
       "name": "Flight control switches",
       "zone": "fctl",
       "location": "Top left of the flight control panel. Two guarded switches, A and B.",
-      "function": "OFF, STBY RUD and ON. Normal is ON with guards closed."
+      "function": "OFF, STBY RUD and ON. Normal is ON with guards closed.",
+      "plural": true
     },
     {
       "id": "spoilsw",
       "name": "Spoiler switches",
       "zone": "fctl",
       "location": "Flight control panel, next to the flight control switches. Two guarded switches.",
-      "function": "Controls hydraulic power to the flight spoilers. Normal is ON with guards closed."
+      "function": "Controls hydraulic power to the flight spoilers. Normal is ON with guards closed.",
+      "plural": true
     },
     {
       "id": "yawd",
@@ -642,28 +654,32 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Standby hydraulic lights",
       "zone": "fctl",
       "location": "Flight control panel, under the flight control switches.",
-      "function": "LOW QUANTITY, LOW PRESSURE and STBY RUD ON lights. All should be off."
+      "function": "LOW QUANTITY, LOW PRESSURE and STBY RUD ON lights. All should be off.",
+      "plural": true
     },
     {
       "id": "fctllts",
       "name": "Flight control warning lights",
       "zone": "fctl",
       "location": "Right side of the flight control panel. A stack of amber lights.",
-      "function": "FEEL DIFF PRESS, SPEED TRIM FAIL, MACH TRIM FAIL, AUTO SLAT FAIL and the MAX-only SPOILERS light."
+      "function": "FEEL DIFF PRESS, SPEED TRIM FAIL, MACH TRIM FAIL, AUTO SLAT FAIL and the MAX-only SPOILERS light.",
+      "plural": true
     },
     {
       "id": "navsw",
       "name": "Navigation transfer switches",
       "zone": "nav",
       "location": "Below the flight control panel. VHF NAV, IRS and FMC switches.",
-      "function": "Lets one side use the other side's navigation source. Normal is NORMAL on all three."
+      "function": "Lets one side use the other side's navigation source. Normal is NORMAL on all three.",
+      "plural": true
     },
     {
       "id": "dispsw",
       "name": "Display source switches",
       "zone": "nav",
       "location": "Next to the navigation switches. SOURCE and CONTROL PANEL.",
-      "function": "SOURCE goes to AUTO, CONTROL PANEL to NORMAL."
+      "function": "SOURCE goes to AUTO, CONTROL PANEL to NORMAL.",
+      "plural": true
     },
     {
       "id": "xfeed",
@@ -677,14 +693,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Fuel valve and filter lights",
       "zone": "fuel",
       "location": "Top of the fuel panel, one set for each engine: ENG VALVE CLOSED, SPAR VALVE CLOSED and FILTER BYPASS.",
-      "function": "The valve lights show each engine's fuel valve and spar valve closed, bright while a valve moves. FILTER BYPASS shows a clogging fuel filter."
+      "function": "The valve lights show each engine's fuel valve and spar valve closed, bright while a valve moves. FILTER BYPASS shows a clogging fuel filter.",
+      "plural": true
     },
     {
       "id": "fuelpumps",
       "name": "Fuel pump switches",
       "zone": "fuel",
       "location": "Fuel panel, left side of the forward overhead, below the navigation switches. Six switches: L and R forward and aft, plus two center tank switches.",
-      "function": "Each tank has pumps feeding the engines. Low pressure lights sit beside each switch."
+      "function": "Each tank has pumps feeding the engines. Low pressure lights sit beside each switch.",
+      "plural": true
     },
     {
       "id": "ctrpumps",
@@ -698,21 +716,24 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "CAB/UTIL and IFE/PASS SEAT switches",
       "zone": "elecu",
       "location": "Top of the electrical panel, close to the battery switch.",
-      "function": "Power to galleys, cabin utility and seat equipment."
+      "function": "Power to galleys, cabin utility and seat equipment.",
+      "plural": true
     },
     {
       "id": "eleclts",
       "name": "Electrical warning lights",
       "zone": "elecu",
       "location": "Electrical panel. BAT DISCHARGE, TR UNIT and ELEC.",
-      "function": "Amber fault lights. All should be off."
+      "function": "Amber fault lights. All should be off.",
+      "plural": true
     },
     {
       "id": "gendrive",
       "name": "Generator drive disconnects",
       "zone": "elecl",
       "location": "Electrical panel, under red guards. An amber DRIVE light sits above each switch.",
-      "function": "Disconnects a failed generator drive. It cannot be reconnected in flight, so leave the guards closed. The DRIVE light shows low oil pressure in the drive, so it is on whenever that engine is stopped."
+      "function": "Disconnects a failed generator drive. It cannot be reconnected in flight, so leave the guards closed. The DRIVE light shows low oil pressure in the drive, so it is on whenever that engine is stopped.",
+      "plural": true
     },
     {
       "id": "genbus",
@@ -733,7 +754,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Equipment cooling switches",
       "zone": "cool",
       "location": "Top center of the forward overhead. SUPPLY and EXHAUST.",
-      "function": "Cooling fans for the avionics. NORM with OFF lights out."
+      "function": "Cooling fans for the avionics. NORM with OFF lights out.",
+      "plural": true
     },
     {
       "id": "emerext",
@@ -747,35 +769,40 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Passenger signs",
       "zone": "cool",
       "location": "Forward overhead, near the emergency exit lights switch. NO SMOKING and FASTEN BELTS selectors.",
-      "function": "NO SMOKING and FASTEN BELTS each have OFF, AUTO and ON. AUTO switches the sign with gear or flap position and cabin altitude. FASTEN BELTS ON tells the cabin to sit down."
+      "function": "NO SMOKING and FASTEN BELTS each have OFF, AUTO and ON. AUTO switches the sign with gear or flap position and cabin altitude. FASTEN BELTS ON tells the cabin to sit down.",
+      "plural": true
     },
     {
       "id": "wheat",
       "name": "Window heat switches",
       "zone": "heat",
       "location": "Window heat panel, forward overhead. Four switches: L SIDE, L FWD, R FWD and R SIDE.",
-      "function": "Heats the flight deck windows so they resist bird strikes and stay clear of ice and fog."
+      "function": "Heats the flight deck windows so they resist bird strikes and stay clear of ice and fog.",
+      "plural": true
     },
     {
       "id": "pheat",
       "name": "Probe heat switches",
       "zone": "heat",
       "location": "Beside the window heat switches.",
-      "function": "Heats the pitot tubes, AOA vanes and temperature probe. AUTO heats them while either engine runs. ON heats them at once."
+      "function": "Heats the pitot tubes, AOA vanes and temperature probe. AUTO heats them while either engine runs. ON heats them at once.",
+      "plural": true
     },
     {
       "id": "aice",
       "name": "Engine and wing anti-ice switches",
       "zone": "aice",
       "location": "Anti-ice panel on the forward overhead. WING plus ENG 1 and ENG 2.",
-      "function": "Uses bleed air to keep ice off the wing and engine inlets."
+      "function": "Uses bleed air to keep ice off the wing and engine inlets.",
+      "plural": true
     },
     {
       "id": "elechyd",
       "name": "Electric hydraulic pump switches",
       "zone": "hyd",
       "location": "Middle two switches of the hydraulic panel.",
-      "function": "ELEC 2 feeds system A, ELEC 1 feeds system B. OFF before power up, ON before engine start, OFF at shutdown."
+      "function": "ELEC 2 feeds system A, ELEC 1 feeds system B. OFF before power up, ON before engine start, OFF at shutdown.",
+      "plural": true
     },
     {
       "id": "trimair",
@@ -789,21 +816,24 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Temperature selectors",
       "zone": "air",
       "location": "Top row of the air conditioning panel.",
-      "function": "Set the temperature for the flight deck and the two cabin zones. AUTO is normal, C cooler, W warmer."
+      "function": "Set the temperature for the flight deck and the two cabin zones. AUTO is normal, C cooler, W warmer.",
+      "plural": true
     },
     {
       "id": "recirc",
       "name": "Recirculation fan switches",
       "zone": "air",
       "location": "Air conditioning panel, above the packs.",
-      "function": "Reuses cabin air to reduce pack load. Normal is AUTO."
+      "function": "Reuses cabin air to reduce pack load. Normal is AUTO.",
+      "plural": true
     },
     {
       "id": "packs",
       "name": "Pack switches",
       "zone": "bleed",
       "location": "Bleed air panel. L and R.",
-      "function": "OFF, AUTO and HIGH. Supplies conditioned air to the cabin. HIGH gives more flow, used with one pack or on the ground with the APU."
+      "function": "OFF, AUTO and HIGH. Supplies conditioned air to the cabin. HIGH gives more flow, used with one pack or on the ground with the APU.",
+      "plural": true
     },
     {
       "id": "iso",
@@ -824,14 +854,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Pack warning lights",
       "zone": "bleed",
       "location": "Bleed air panel, by the pack switches.",
-      "function": "Amber PACK lights. They go out when the packs run correctly."
+      "function": "Amber PACK lights. They go out when the packs run correctly.",
+      "plural": true
     },
     {
       "id": "engbleed",
       "name": "Engine bleed switches",
       "zone": "bleed",
       "location": "Bleed air panel, ENG 1 and ENG 2.",
-      "function": "Takes engine bleed air into the pneumatic system."
+      "function": "Takes engine bleed air into the pneumatic system.",
+      "plural": true
     },
     {
       "id": "press",
@@ -880,14 +912,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Wing and wheel well light switches",
       "zone": "lte",
       "location": "Exterior light row, right side.",
-      "function": "WING lights the wing leading edge, for ice checks at night. WHEEL WELL lights the gear bays for ground crew."
+      "function": "WING lights the wing leading edge, for ice checks at night. WHEEL WELL lights the gear bays for ground crew.",
+      "plural": true
     },
     {
       "id": "fd",
       "name": "Flight director switches",
       "zone": "mcp",
       "location": "Each end of the MCP. One F/D switch per pilot.",
-      "function": "Shows flight director guidance on the PFD. The first switch on becomes master, shown by the MA light."
+      "function": "Shows flight director guidance on the PFD. The first switch on becomes master, shown by the MA light.",
+      "plural": true
     },
     {
       "id": "hdgsel",
@@ -908,14 +942,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "EFIS control panels",
       "zone": "efis",
       "location": "Glareshield, one panel at each end.",
-      "function": "Sets baro, minimums, range and ND options such as WXR and TERR. Weather radar is not simulated in the iFly."
+      "function": "Sets baro, minimums, range and ND options such as WXR and TERR. Weather radar is not simulated in the iFly.",
+      "plural": true
     },
     {
       "id": "ltest",
       "name": "Lights test switches",
       "zone": "p1",
       "location": "Main panel, left of the standby display. The LIGHTS switch has TEST, BRT and DIM. The A/P and A/T TEST switch is further left, with positions 1 and 2.",
-      "function": "Tests annunciators. Master LIGHTS test also covers most warning lights."
+      "function": "Tests annunciators. Master LIGHTS test also covers most warning lights.",
+      "plural": true
     },
     {
       "id": "stabout",
@@ -929,7 +965,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Primary flight and navigation displays",
       "zone": "du",
       "location": "Outboard and inboard display units (DUs), one pair for each pilot.",
-      "function": "The MAX Display System uses four large display units. Check the primary flight display (PFD) and navigation display (ND) for correct indications."
+      "function": "The MAX Display System uses four large display units. Check the primary flight display (PFD) and navigation display (ND) for correct indications.",
+      "plural": true
     },
     {
       "id": "gpwssw",
@@ -985,7 +1022,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Thrust and reverse levers",
       "zone": "thr",
       "location": "Center of the control stand.",
-      "function": "The forward levers set thrust. The smaller reverse levers on top lift to deploy reverse thrust after landing."
+      "function": "The forward levers set thrust. The smaller reverse levers on top lift to deploy reverse thrust after landing.",
+      "plural": true
     },
     {
       "id": "flaplever",
@@ -999,14 +1037,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Engine start levers",
       "zone": "sl",
       "location": "Control stand, aft of the thrust levers.",
-      "function": "CUTOFF and IDLE. IDLE opens the fuel valves and fires the selected igniter during start."
+      "function": "CUTOFF and IDLE. IDLE opens the fuel valves and fires the selected igniter during start.",
+      "plural": true
     },
     {
       "id": "stabcut",
       "name": "Stabilizer trim cutout switches",
       "zone": "stab",
       "location": "Aft end of the control stand, right side. Guarded.",
-      "function": "PRI and B/U on the MAX. They are wired in series and do the same job: CUTOUT on either one stops stabilizer trim motor inputs, including MCAS. Normal is NORMAL with guards closed."
+      "function": "PRI and B/U on the MAX. They are wired in series and do the same job: CUTOUT on either one stops stabilizer trim motor inputs, including MCAS. Normal is NORMAL with guards closed.",
+      "plural": true
     },
     {
       "id": "staboverride",
@@ -1027,7 +1067,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Radio tuning panels",
       "zone": "radio",
       "location": "Aft electronic panel on the pedestal, one panel beside each pilot.",
-      "function": "Sets the active and standby VHF frequencies. The transfer switch swaps them."
+      "function": "Sets the active and standby VHF frequencies. The transfer switch swaps them.",
+      "plural": true
     },
     {
       "id": "mmr",
@@ -1062,14 +1103,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "N1 bugs",
       "zone": "du",
       "location": "Engine indications on the inboard display unit.",
-      "function": "Green references for the takeoff thrust target. Compare with the CDU."
+      "function": "Green references for the takeoff thrust target. Compare with the CDU.",
+      "plural": true
     },
     {
       "id": "mcpset",
       "name": "MCP speed, heading, altitude and modes",
       "zone": "mcp",
       "location": "Mode control panel, center of the glareshield.",
-      "function": "Set V2, runway heading and initial altitude, then arm the autothrottle and the departure mode."
+      "function": "Set V2, runway heading and initial altitude, then arm the autothrottle and the departure mode.",
+      "plural": true
     },
     {
       "id": "doorsp",
@@ -1104,7 +1147,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Flight deck windows",
       "zone": "side",
       "location": "Sliding windows beside each pilot.",
-      "function": "Close and lock them before departure."
+      "function": "Close and lock them before departure.",
+      "plural": true
     },
     {
       "id": "trimp",
@@ -1124,7 +1168,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Engine generator switches",
       "zone": "elecl",
       "location": "Electrical panel, left and right of the APU generator switches.",
-      "function": "Puts engine generator power on the buses."
+      "function": "Puts engine generator power on the buses.",
+      "plural": true
     },
     {
       "id": "sysp",
@@ -1138,7 +1183,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Flight controls",
       "zone": "yoke",
       "location": "Yoke, column and rudder pedals, while watching the flight control indication on the display.",
-      "function": "Check full, free movement in all directions."
+      "function": "Check full, free movement in all directions.",
+      "plural": true
     },
     {
       "id": "recall",
@@ -1229,7 +1275,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Chocks and cones",
       "zone": "out",
       "location": "Outside, set by the ground crew or through the EFB in the sim.",
-      "function": "Blocks placed against the tires so the airplane stays put when the parking brake is released."
+      "function": "Blocks placed against the tires so the airplane stays put when the parking brake is released.",
+      "plural": true
     },
     {
       "id": "apub",
@@ -1243,7 +1290,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Oxygen masks",
       "zone": "side",
       "location": "Stowed at the outboard side of each pilot seat.",
-      "function": "Each pilot has a quick-donning mask. Test it, and leave the regulator on 100% ready for use."
+      "function": "Each pilot has a quick-donning mask. Test it, and leave the regulator on 100% ready for use.",
+      "plural": true
     },
     {
       "id": "briefa",
@@ -1256,7 +1304,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Pushback controls",
       "zone": "efb",
       "location": "Your pushback tool or the EFB.",
-      "function": "Starts and steers the tug. It is a sim step, so there is no switch for it on the real panel."
+      "function": "Starts and steers the tug. It is a sim step, so there is no switch for it on the real panel.",
+      "plural": true
     },
     {
       "id": "atcclr",
@@ -1270,7 +1319,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Engine indications",
       "zone": "du",
       "location": "Engine indications on the inboard display unit. Press ENG on the engine display control panel for the secondary indications.",
-      "function": "Shows N1, N2, EGT, fuel flow and oil pressure. During engine start, abort if EGT does not rise, N1 or N2 does not rise after EGT rises, EGT nears the start limit, or there is no oil pressure by the time the engine is stable."
+      "function": "Shows N1, N2, EGT, fuel flow and oil pressure. During engine start, abort if EGT does not rise, N1 or N2 does not rise after EGT rises, EGT nears the start limit, or there is no oil pressure by the time the engine is stable.",
+      "plural": true
     },
     {
       "id": "motor",
@@ -1284,14 +1334,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "TO/GA switches",
       "zone": "thr",
       "location": "On the thrust lever handles themselves: a button on the front of each handle, under your fingers as you hold the levers. Not a separate panel.",
-      "function": "Engages takeoff or go-around thrust and guidance."
+      "function": "Engages takeoff or go-around thrust and guidance.",
+      "plural": true
     },
     {
       "id": "rollmode",
       "name": "MCP roll modes",
       "zone": "mcp",
       "location": "LNAV and HDG SEL buttons on the MCP.",
-      "function": "Sets lateral guidance after takeoff or a go-around."
+      "function": "Sets lateral guidance after takeoff or a go-around.",
+      "plural": true
     },
     {
       "id": "ap",
@@ -1305,7 +1357,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Flight mode annunciations",
       "zone": "du",
       "location": "Top of each PFD.",
-      "function": "The three boxes at the top of each PFD show what the autothrottle, roll and pitch modes are doing now. Always read them after you change a mode."
+      "function": "The three boxes at the top of each PFD show what the autothrottle, roll and pitch modes are doing now. Always read them after you change a mode.",
+      "plural": true
     },
     {
       "id": "mcpalt",
@@ -1346,14 +1399,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "PFD/MFD selectors",
       "zone": "dselp",
       "location": "Lower strip under each pilot's displays. Selectors for the outboard and inboard display units.",
-      "function": "NORM shows the PFD and MFD in their usual places. OUTBD and INBD move them if a display fails."
+      "function": "NORM shows the PFD and MFD in their usual places. OUTBD and INBD move them if a display fails.",
+      "plural": true
     },
     {
       "id": "audio",
       "name": "Audio control panels",
       "zone": "acp",
       "location": "Aft electronic panel, one audio control panel on each side, below the NAV radios.",
-      "function": "Selects which radios and navigation audio you hear."
+      "function": "Selects which radios and navigation audio you hear.",
+      "plural": true
     },
     {
       "id": "extins",
@@ -1367,7 +1422,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Engine fire switches",
       "zone": "fire",
       "location": "Overheat/fire protection panel on the aft pedestal.",
-      "function": "Pull to arm and shut off the engine. Rotate to discharge a bottle. Press the override to unlock a switch if needed."
+      "function": "Pull to arm and shut off the engine. Rotate to discharge a bottle. Press the override to unlock a switch if needed.",
+      "plural": true
     },
     {
       "id": "apufire",
@@ -1388,7 +1444,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Main electric stabilizer trim switches",
       "zone": "yoke",
       "location": "On the outboard grip of each control wheel: two thumb switches, moved together.",
-      "function": "Trims the stabilizer nose down or nose up while held."
+      "function": "Trims the stabilizer nose down or nose up while held.",
+      "plural": true
     },
     {
       "id": "stabwheel",
@@ -1409,14 +1466,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Oxygen masks",
       "zone": "side",
       "location": "Stowed at the outboard side of each pilot seat.",
-      "function": "Don the mask and set the regulator to 100%."
+      "function": "Don the mask and set the regulator to 100%.",
+      "plural": true
     },
     {
       "id": "stalltest",
       "name": "Stall warning test switches",
       "zone": "atest",
       "location": "Aft overhead, below the Mach airspeed warning test: two small round buttons, NO. 1 and NO. 2.",
-      "function": "Tests the stick shaker on each side."
+      "function": "Tests the stick shaker on each side.",
+      "plural": true
     },
     {
       "id": "bustrans",
@@ -1444,14 +1503,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Landing light switches",
       "zone": "ltl",
       "location": "Bottom row of the forward overhead, left side. LANDING L and R.",
-      "function": "OFF, FLASH and ON. On for takeoff and landing, off above 10,000 ft."
+      "function": "OFF, FLASH and ON. On for takeoff and landing, off above 10,000 ft.",
+      "plural": true
     },
     {
       "id": "turnoff",
       "name": "Runway turnoff light switches",
       "zone": "ltl",
       "location": "Bottom row of the forward overhead, right of the landing light switches. TURNOFF L and R.",
-      "function": "OFF and ON. Light the ground to each side of the nose for turns."
+      "function": "OFF and ON. Light the ground to each side of the nose for turns.",
+      "plural": true
     },
     {
       "id": "winglt",
@@ -1465,7 +1526,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Autopilot and autothrottle disconnect switches",
       "zone": "yoke",
       "location": "Autopilot: a button on the outer horn of each control wheel. Autothrottle: a button on the outer end of each thrust lever handle, where the A/T DISENGAGE arrows point.",
-      "function": "Disengages the autopilot or the autothrottle. A warning sounds or flashes; press the same switch again to silence it."
+      "function": "Disengages the autopilot or the autothrottle. A warning sounds or flashes; press the same switch again to silence it.",
+      "plural": true
     },
     {
       "id": "appmode",
@@ -1486,7 +1548,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "MCP pitch modes",
       "zone": "mcp",
       "location": "LVL CHG and VNAV buttons on the MCP, left of the heading knob.",
-      "function": "Sets vertical guidance: LVL CHG climbs or descends at the MCP speed, VNAV follows the FMC path."
+      "function": "Sets vertical guidance: LVL CHG climbs or descends at the MCP speed, VNAV follows the FMC path.",
+      "plural": true
     },
     {
       "id": "exttest",
@@ -1500,7 +1563,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "name": "Panel and flood light controls",
       "zone": "dselp",
       "location": "Main panel lower strip on each side: MAIN PANEL, BACKGROUND and AFDS FLOOD knobs. Also the PANEL and CIRCUIT BREAKER knobs on the forward overhead, FLOOD and PANEL on the aft pedestal, and the DOME WHITE switch on the aft overhead.",
-      "function": "Sets the brightness of the panel backlighting and flood lights. Turn up for a night or dim flight deck, down in daylight."
+      "function": "Sets the brightness of the panel backlighting and flood lights. Turn up for a night or dim flight deck, down in daylight.",
+      "plural": true
     },
     {
       "id": "pa",
@@ -2741,6 +2805,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                   178.0
                 ]
               ]
+            ],
+            "names": [
+              "Forward electronic",
+              "Control stand",
+              "Aft electronic"
             ]
           }
         ],

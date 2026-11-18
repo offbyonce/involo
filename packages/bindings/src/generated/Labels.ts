@@ -26,6 +26,11 @@ glossaryExceptions: Array<string>,
  */
 sideWords: Array<string>, 
 /**
+ * Words that say nothing about where a control is (`AND`, `PANEL`, `SWITCH`): Practice's
+ * where questions ignore them when they match control and panel names.
+ */
+plainWords: Array<string>, 
+/**
  * Labels for the manifest's basis tags, in the order the manifest lists them.
  */
 basisTags: Array<BasisTagLabel>, };

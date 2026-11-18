@@ -37,6 +37,8 @@ import {
 const pack = iflyPack();
 const index = indexPack(pack);
 const all = seeds(pack, index);
+/** The pack's words that say nothing about place (labels `plain_words`). */
+const PLAIN_WORDS = pack.content.labels.plainWords;
 const count = (topic: Topic, id = "") =>
   all.filter((q) => q.topic === topic && q.id.startsWith(`${topic}:${id}`)).length;
 
@@ -405,9 +407,9 @@ describe("the question generator", () => {
   });
 
   it("Where controls are: no panel or area that shares a word with the control; Where are for plurals", () => {
-    expect(sharesWord("Fuel pump switches", "Fuel panel")).toBe(true);
-    expect(sharesWord("Flight deck windows", "Windows and oxygen masks")).toBe(true);
-    expect(sharesWord("Battery switch", "Electrical panel, upper section")).toBe(false);
+    expect(sharesWord("Fuel pump switches", "Fuel panel", PLAIN_WORDS)).toBe(true);
+    expect(sharesWord("Flight deck windows", "Windows and oxygen masks", PLAIN_WORDS)).toBe(true);
+    expect(sharesWord("Battery switch", "Electrical panel, upper section", PLAIN_WORDS)).toBe(false);
     // Words on panels all over the deck give nothing away.
     for (const w of [
       "light",
@@ -423,12 +425,14 @@ describe("the question generator", () => {
       "lever",
       "levers",
     ])
-      expect(sharesWord(`Test ${w}`, `Other ${w}`), w).toBe(false);
-    expect(sharesWord("Hydraulic pump switches", "Hydraulic panel"), "giveaways stay").toBe(true);
+      expect(sharesWord(`Test ${w}`, `Other ${w}`, PLAIN_WORDS), w).toBe(false);
+    expect(sharesWord("Hydraulic pump switches", "Hydraulic panel", PLAIN_WORDS), "giveaways stay").toBe(
+      true,
+    );
     for (const q of all.filter((x) => x.topic === "where")) {
       if (q.kind !== "choice") continue;
       const name = q.prompt.replace(/^Where (is|are) the /, "").replace(/\?$/, "");
-      expect(sharesWord(name, q.answer), q.id).toBe(false);
+      expect(sharesWord(name, q.answer, PLAIN_WORDS), q.id).toBe(false);
       if (/[^su]s$/i.test(name.split(" ").at(-1) ?? ""))
         expect(q.prompt.startsWith("Where are"), q.id).toBe(true);
     }
@@ -498,6 +502,63 @@ describe("the question generator", () => {
 });
 
 describe("Practice for any pack", () => {
+  it("names a light by the pack's which, and asks across no step the pack marks a branch", () => {
+    const own = structuredClone(pack);
+    for (const l of own.content.lights?.lights ?? [])
+      if (l.locator === "oh/elecl/TRANSFER BUS OFF/1") l.which = "bus one";
+    // The runaway's second case is no longer a branch, and one of its first items is.
+    for (const l of own.lists)
+      for (const st of l.steps) {
+        if (st.text === "IF RUNAWAY CONTINUES") st.branch = false;
+        if (st.id === "ifly-737-max8.memory.column-and-thrust-levers") st.branch = true;
+      }
+    const qs = seeds(own, indexPack(own));
+    const light = qs.find((q) => q.id === "lights:meaning:oh/elecl/TRANSFER BUS OFF/1");
+    expect(light?.why).toMatch(/^TRANSFER BUS OFF, bus one means: /);
+    const memory = qs.flatMap((q) => (q.topic === "memory" && q.kind === "choice" ? [q] : []));
+    expect(memory.some((q) => q.answer.startsWith("IF RUNAWAY CONTINUES"))).toBe(true);
+    expect(memory.some((q) => q.answer.startsWith("COLUMN AND THRUST LEVERS"))).toBe(false);
+    expect(
+      all.some(
+        (q) => q.topic === "memory" && q.kind === "choice" && q.answer.startsWith("COLUMN AND THRUST LEVERS"),
+      ),
+    ).toBe(true);
+    useTwinsOf(pack);
+  });
+
+  it("asks Where is or Where are as the pack's control says, and skips the pack's own plain words", () => {
+    const own = structuredClone(pack);
+    const c = own.content.controls?.controls.find((x) => x.id === "apugen");
+    if (c) c.plural = false;
+    expect(all.find((x) => x.id === `where:panel:${c?.id}`)?.prompt).toBe(
+      "Where are the APU generator switches?",
+    );
+    const q = seeds(own, indexPack(own)).find((x) => x.id === `where:panel:${c?.id}`);
+    expect(q?.prompt).toBe("Where is the APU generator switches?");
+    // Invented: a pack in another language, whose plain words are its own.
+    expect(sharesWord("Pumpe Schalter", "Pumpe Feld", ["SCHALTER"])).toBe(true);
+    expect(sharesWord("Licht Schalter", "Feld Schalter", ["SCHALTER"])).toBe(false);
+    expect(sharesWord("Licht Schalter", "Feld Schalter", [])).toBe(true);
+    useTwinsOf(pack);
+  });
+
+  it("counts a numbered item only where two names differ by the number alone", () => {
+    useTwins([], ["AUDIO PANEL 1", "AUDIO PANEL 2", "AUDIO CONTROL PANEL 3", "MACH TEST 1", "MACH TEST 2"]);
+    expect(twins("AUDIO PANEL 1", "AUDIO PANEL 2")).toBe(true);
+    expect(twins("MACH TEST 2", "MACH TEST 1")).toBe(true);
+    // PANEL and TEST only end longer numbered names: on their own they are not numbered items.
+    expect(twins("SIDE PANEL 1", "SIDE PANEL 2")).toBe(false);
+    expect(twins("LAMP TEST 1", "LAMP TEST 2")).toBe(false);
+    useTwinsOf(pack);
+  });
+
+  it("holds no aircraft nouns or English word rules in Practice's code", () => {
+    const text = readFileSync(`${import.meta.dirname}/practice.ts`, "utf8");
+    expect(text).not.toMatch(
+      /transfer bus|generator\||IRS\||system \[AB\]|\^IF\\b|\[\^su\]s\$|"SWITCHES"|"PANELS"/,
+    );
+  });
+
   it("finds twins by the pack's numbered items (engines 1 to 4) and its own side words", () => {
     // Invented: a four-engine airplane whose sides are port and starboard.
     useTwins(["PORT", "STBD"], ["ENG 1 FIRE", "ENG 2 FIRE", "ENG 3 FIRE", "ENG 4 FIRE", "FLAPS"]);

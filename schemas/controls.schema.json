@@ -49,6 +49,10 @@
         "name": {
           "type": "string"
         },
+        "plural": {
+          "description": "The name is plural (\"Fuel pump switches\"): Practice asks \"Where are the …?\".",
+          "type": "boolean"
+        },
         "zone": {
           "description": "Absent for controls with no place in the cockpit, such as a briefing.",
           "type": [
@@ -424,6 +428,13 @@
           },
           "maxItems": 2,
           "minItems": 2
+        },
+        "names": {
+          "description": "For a region drawn as several outlines, each outline's name on the Flight deck page,\nfront to back (\"Forward electronic\"); without them, its places' area names as written.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "region": {
           "description": "The region's `name` on the overview.",
