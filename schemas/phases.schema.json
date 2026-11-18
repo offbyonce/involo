@@ -256,6 +256,66 @@
         "phase"
       ]
     },
+    "StartControl": {
+      "description": "An option on the Start page (decision 0029): its control style, and optionally its own\ntitle and description there (the option's own are used otherwise) and a link to a phase.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "link": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StartLink"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style": {
+          "$ref": "#/$defs/StartStyle"
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "style"
+      ]
+    },
+    "StartLink": {
+      "description": "A link from a Start page option to a phase, e.g. \"Preview the inspection\".",
+      "type": "object",
+      "properties": {
+        "phase": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "phase",
+        "text"
+      ]
+    },
+    "StartStyle": {
+      "description": "How the Start page draws an option: one card per choice, or a segmented row.",
+      "type": "string",
+      "enum": [
+        "cards",
+        "row"
+      ]
+    },
     "SuggestLine": {
       "description": "A suggestion rule's line and margin in the other unit.",
       "type": "object",
@@ -347,7 +407,7 @@
       "type": "object",
       "properties": {
         "ask_in": {
-          "description": "Phases that show the choice above their lists.",
+          "description": "Phases that show the choice above their lists, and `start` for the Start page.",
           "type": "array",
           "items": {
             "type": "string"
@@ -373,6 +433,17 @@
         },
         "id": {
           "type": "string"
+        },
+        "start": {
+          "description": "How the Start page shows the choice; required when `ask_in` names `start`.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StartControl"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "suggests": {
           "description": "How a flight value suggests the answer, for the pilot to confirm (decisions 0022 and\n0027).",

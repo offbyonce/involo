@@ -34,9 +34,9 @@ pub use content::{
     LightNote, LightsFile, NotesFile, OptionChoice, Overview, OverviewArea, OverviewCaption,
     OverviewRegion, OverviewViews, Panel, PanelItem, PanelItemKind, PanelSection, PanelState,
     PanelStatesFile, Phase, PhasesFile, RoleLabel, Rounding, RouteLegCount, RouteLegPart,
-    SeatLabel, SeatViews, ShowIn, SimbriefSource, Stage, StagePhase, StripText, SuggestLine,
-    SuggestRule, Suggests, UserOption, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape,
-    WeightUnit, Zone,
+    SeatLabel, SeatViews, ShowIn, SimbriefSource, Stage, StagePhase, StartControl, StartLink,
+    StartStyle, StripText, SuggestLine, SuggestRule, Suggests, UserOption, ViewFrame, ViewLabel,
+    ViewPlace, ViewRole, ViewShape, WeightUnit, Zone,
 };
 pub use model::{
     AutoStart, AutoStartPick, Checklist, Confirmation, ConfirmationKind, ExpectWhen, FieldId,

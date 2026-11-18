@@ -69,6 +69,7 @@ pub(super) fn phases() -> PhasesFile {
             description: None,
             choices: vec![],
             ask_in: vec![],
+            start: None,
             suggests: None,
         }],
         stages: vec![Stage {
