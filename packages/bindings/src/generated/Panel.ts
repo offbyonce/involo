@@ -4,4 +4,9 @@ import type { PanelSection } from "./PanelSection";
 /**
  * One `panels/*.yaml` file.
  */
-export type Panel = { id: string, title: string, width: number, height: number, sections: Array<PanelSection>, };
+export type Panel = { id: string, title: string, width: number, height: number, 
+/**
+ * The panel's outline, when it is not a rectangle: points in panel units, inside its
+ * box, holding every section (format 6).
+ */
+outline?: Array<[number, number]>, sections: Array<PanelSection>, };

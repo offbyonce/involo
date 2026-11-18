@@ -30,3 +30,11 @@ export function iflyPack(): FlatPack {
   ifly ??= packAsReceived(readFileSync(`${root}/apps/web/public/packs/ifly-737-max8.json`, "utf8"));
   return ifly;
 }
+
+let example: FlatPack | undefined;
+
+/** The built example pack (invented, `just web-packs` builds it for tests), read once. */
+export function examplePack(): FlatPack {
+  example ??= packAsReceived(readFileSync(`${root}/target/test-packs/example-trainer.json`, "utf8"));
+  return example;
+}

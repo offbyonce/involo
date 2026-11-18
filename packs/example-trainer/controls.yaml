@@ -14,6 +14,34 @@ controls:
     zone: overhead-electrical
     location: Left side of the electrical panel.
     function: Connects the battery.
+  - id: speed-knob
+    name: Speed knob
+    location: Left of the autoflight panel.
+    function: Sets the target speed.
+  - id: heading-knob
+    name: Heading knob
+    location: Middle of the autoflight panel.
+    function: Sets the target heading.
+  - id: altitude-knob
+    name: Altitude knob
+    location: Right of the heading knob.
+    function: Sets the target altitude.
+  - id: autopilot
+    name: Autopilot pushbutton
+    location: Right side of the autoflight panel.
+    function: Engages the autopilot.
+  - id: autothrust
+    name: Autothrust pushbutton
+    location: Right of the autopilot pushbutton.
+    function: Engages the autothrust.
+  - id: seat-belts
+    name: Seat belts switch
+    location: Cabin panel, left.
+    function: Turns the seat belt signs on.
+  - id: radio-keypad
+    name: Radio keypad
+    location: Cabin panel, right.
+    function: Enters a frequency.
   - id: briefing
     name: Briefing
     location: Between the crew.

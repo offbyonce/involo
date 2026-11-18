@@ -67,6 +67,7 @@ pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec
             panel.sections.iter().map(|s| s.id.as_str()),
             issues,
         );
+        super::panel_kinds::check_outlines(panel, issues);
         for section in &panel.sections {
             check_item_ids(section, issues);
             for item in &section.items {
@@ -130,6 +131,7 @@ fn check_panel_item(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
         }
     }
     check_selector(at, item, issues);
+    super::panel_kinds::check_kind(at, item, issues);
     // Every other kind is drawn at its one standard size (decision 0020); a size of its own would
     // be ignored, and misleading.
     if (item.width.is_some() || item.height.is_some())
@@ -457,6 +459,7 @@ pub(super) mod tests {
             title: "Overhead".into(),
             width: 100.0,
             height: 100.0,
+            outline: vec![],
             sections: vec![PanelSection {
                 id: "elec".into(),
                 title: "Electrical".into(),
@@ -464,6 +467,7 @@ pub(super) mod tests {
                 y: 0.0,
                 width: 10.0,
                 height: 10.0,
+                outline: vec![],
                 items: vec![PanelItem {
                     id: None,
                     kind: PanelItemKind::Light,
@@ -477,6 +481,8 @@ pub(super) mod tests {
                     rest: None,
                     lit_at: None,
                     angles: None,
+                    legends: vec![],
+                    columns: None,
                     description: "Low".into(),
                     width: None,
                     height: None,

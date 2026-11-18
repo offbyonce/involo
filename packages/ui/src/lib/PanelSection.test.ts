@@ -32,8 +32,16 @@ const items: PanelItem[] = [
   item("handle", 8, { positions: ["IN", "OUT"], rest: "OUT" }),
   item("gauge", 9),
   item("display_unit", 10, { width: 60, height: 34 }),
+  // Format 6: a knob pulled out (its ring is its edge), a legend pushbutton, a rocker, a keypad.
+  item("push_pull_knob", 11, { positions: ["PUSH", "PULL"], rest: "PULL" }),
+  item("legend_pushbutton", 12, {
+    positions: ["ON", "OFF"],
+    legends: [{ text: "OFF", light: "white", litIn: ["OFF"] }],
+  }),
+  item("rocker", 13, { positions: ["ON", "OFF"], rest: "OFF" }),
+  item("keypad", 14, { positions: ["1", "2", "3", "4", "5", "6"] }),
 ];
-const section: Section = { id: "s", title: "Every control", x: 0, y: 0, width: 1100, height: 120, items };
+const section: Section = { id: "s", title: "Every control", x: 0, y: 0, width: 1500, height: 120, items };
 const targets: ItemTarget[] = [
   { section: "s", item: 2, position: 0, lit: false, open: false, resolved: false },
 ];
@@ -48,7 +56,7 @@ function draw(selected: number) {
       section,
       targets,
       guardClosed: false,
-      band: { y0: 0, y1: 120, x0: 0, x1: 1100 },
+      band: { y0: 0, y1: 120, x0: 0, x1: 1500 },
       k: K,
       hit: 22,
       onPick: () => {},

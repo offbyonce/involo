@@ -53,6 +53,8 @@ wasm:
 # example pack is a format demo for authors and is not published.
 web-packs:
     cargo run -q -p involo-pack-cli -- build packs/ifly-737-max8 apps/web/public/packs
+    # The invented example pack, for interface tests only (it draws every format 6 control).
+    cargo run -q -p involo-pack-cli -- build packs/example-trainer target/test-packs
 
 # Build the deployable web site into apps/web/dist (published to GitHub Pages): the placeholder
 # front page, the work-in-progress app at app/ and the SimBrief probe page, with the WebAssembly

@@ -300,10 +300,15 @@ fn check_step(panels: &[involo_checklist_core::Panel], step: &Step, issues: &mut
     for t in &step.targets {
         // One item may have one target per answer of a decision (decision 0022); those are
         // checked in `check_decision`.
-        if t.when.is_none() && !seen.insert(t.at.as_str()) {
+        let located = locate(panels, &t.at);
+        // A keypad has one target per key the step presses (format 6).
+        let keypad = located
+            .and_then(|(s, i)| s.items.get(i))
+            .is_some_and(|i| i.kind == PanelItemKind::Keypad);
+        if t.when.is_none() && !keypad && !seen.insert(t.at.as_str()) {
             issues.push(error(at, format!("target `{}` is listed twice", t.at)));
         }
-        let Some((section, index)) = locate(panels, &t.at) else {
+        let Some((section, index)) = located else {
             issues.push(error(
                 at,
                 format!("target `{}` does not match any panel item", t.at),
@@ -320,7 +325,8 @@ fn check_step(panels: &[involo_checklist_core::Panel], step: &Step, issues: &mut
             ));
         }
         let is_light = item.kind == PanelItemKind::Light;
-        if t.open && t.set.is_some() {
+        // A keypad's open target names the key it may press, drawn dashed (format 6).
+        if t.open && t.set.is_some() && !keypad {
             issues.push(error(
                 at,
                 format!("`{}` leaves its position `open` and also `set`s one", t.at),
@@ -332,8 +338,15 @@ fn check_step(panels: &[involo_checklist_core::Panel], step: &Step, issues: &mut
                 format!("`{}`: a light takes `light`, not `set`", t.at),
             ));
         }
-        if !is_light && t.light.is_some() {
-            issues.push(error(at, format!("`{}`: only a light takes `light`", t.at)));
+        // A legend pushbutton's light is its legends lit by the airplane, not the button.
+        if !is_light && item.kind != PanelItemKind::LegendPushbutton && t.light.is_some() {
+            issues.push(error(
+                at,
+                format!(
+                    "`{}`: only a light or legend pushbutton takes `light`",
+                    t.at
+                ),
+            ));
         }
         check_wording(at, step, item, t, &value, issues);
     }
@@ -494,6 +507,48 @@ mod tests {
         );
     }
 
+    /// The battery switch as a format 6 `kind` with `positions`.
+    fn as_kind(p: &mut Pack, kind: involo_checklist_core::PanelItemKind, positions: &[&str]) {
+        let item = &mut p.content.panels[0].sections[0].items[0];
+        item.kind = kind;
+        item.positions = positions.iter().map(|&s| s.into()).collect();
+    }
+
+    #[test]
+    fn a_keypad_takes_a_target_per_key_and_an_open_one_keeps_its_key() {
+        use involo_checklist_core::PanelItemKind::Keypad;
+        let keys = ["1", "2", "CLR", "ENT"];
+        let at = "oh/elec/BATTERY/1";
+        let mut p = pack_with(
+            "1 THEN ENT",
+            vec![target(at, Some("1"), None), target(at, Some("ENT"), None)],
+        );
+        as_kind(&mut p, Keypad, &keys);
+        assert_eq!(messages(&p), "");
+        let mut open = target(at, Some("ENT"), None);
+        open.open = true;
+        let mut p = pack_with("ENT IF NEEDED", vec![open]);
+        as_kind(&mut p, Keypad, &keys);
+        assert_eq!(messages(&p), "");
+    }
+
+    #[test]
+    fn a_legend_pushbutton_takes_a_position_and_its_light() {
+        use involo_checklist_core::PanelItemKind::LegendPushbutton;
+        let at = "oh/elec/BATTERY/1";
+        let mut p = pack_with(
+            "OFF, FAULT LIGHT ON",
+            vec![target(at, Some("OFF"), Some(LightState::On))],
+        );
+        as_kind(&mut p, LegendPushbutton, &["ON", "OFF"]);
+        p.content.panels[0].sections[0].items[0].legends = vec![involo_checklist_core::Legend {
+            text: "FAULT".into(),
+            light: involo_checklist_core::LightColor::Amber,
+            lit_in: vec![],
+        }];
+        assert_eq!(messages(&p), "");
+    }
+
     #[test]
     fn targets_name_real_items_in_states_they_have() {
         assert_flags(
@@ -509,7 +564,7 @@ mod tests {
                 "ON",
                 vec![target("oh/elec/BATTERY/1", None, Some(LightState::On))],
             ),
-            "only a light takes `light`",
+            "only a light or legend pushbutton takes `light`",
         );
         assert_flags(&pack_with("ON", vec![]), "it has no `targets`");
         assert_flags(

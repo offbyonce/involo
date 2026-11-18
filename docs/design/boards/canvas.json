@@ -1865,6 +1865,86 @@
       "h": 1100,
       "title": "Shared source: References (tweaks: layout, theme)",
       "page": "b11"
+    },
+    "PanelKinds.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1500,
+      "title": "New panel controls, format 6 (dark)",
+      "page": "b12"
+    },
+    "PanelKindsLight.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 1500,
+      "title": "New panel controls, format 6 (light)",
+      "page": "b12"
+    },
+    "MsgDesk.dc.html": {
+      "x": 0,
+      "y": 1620,
+      "w": 1440,
+      "h": 900,
+      "title": "Alert messages: desktop and tablet (dark)",
+      "page": "b12"
+    },
+    "MsgDeskLight.dc.html": {
+      "x": 1520,
+      "y": 1620,
+      "w": 1440,
+      "h": 900,
+      "title": "Alert messages: desktop and tablet (light)",
+      "page": "b12"
+    },
+    "MsgPhone.dc.html": {
+      "x": 0,
+      "y": 2640,
+      "w": 390,
+      "h": 844,
+      "title": "Alert messages: phone (dark)",
+      "page": "b12"
+    },
+    "MsgPhoneLight.dc.html": {
+      "x": 470,
+      "y": 2640,
+      "w": 390,
+      "h": 844,
+      "title": "Alert messages: phone (light)",
+      "page": "b12"
+    },
+    "MsgPane.dc.html": {
+      "x": 940,
+      "y": 2640,
+      "w": 456,
+      "h": 420,
+      "title": "A step with an alert message: side pane (dark)",
+      "page": "b12"
+    },
+    "MsgPaneLight.dc.html": {
+      "x": 1476,
+      "y": 2640,
+      "w": 456,
+      "h": 420,
+      "title": "A step with an alert message: side pane (light)",
+      "page": "b12"
+    },
+    "Messages.dc.html": {
+      "x": 3040,
+      "y": 1620,
+      "w": 1440,
+      "h": 900,
+      "title": "Shared source: alert messages (tweaks: layout, theme)",
+      "page": "b12"
+    },
+    "PanelControls.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 1440,
+      "h": 1500,
+      "title": "Shared source: new panel controls (tweak: theme)",
+      "page": "b12"
     }
   },
   "createdOnFiles": {
@@ -1873,7 +1953,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b11",
+    "page": "b12",
     "view": "canvas"
   },
   "notes": {},
@@ -2110,7 +2190,17 @@
     "RefsDeskLight.dc.html",
     "RefsPhone.dc.html",
     "RefsPhoneLight.dc.html",
-    "References.dc.html"
+    "References.dc.html",
+    "PanelKinds.dc.html",
+    "PanelKindsLight.dc.html",
+    "MsgDesk.dc.html",
+    "MsgDeskLight.dc.html",
+    "MsgPhone.dc.html",
+    "MsgPhoneLight.dc.html",
+    "MsgPane.dc.html",
+    "MsgPaneLight.dc.html",
+    "Messages.dc.html",
+    "PanelControls.dc.html"
   ],
   "pages": [
     {
@@ -2188,6 +2278,10 @@
     {
       "id": "b11",
       "name": "References"
+    },
+    {
+      "id": "b12",
+      "name": "Beta 1: panel controls and messages"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"

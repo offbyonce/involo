@@ -20,7 +20,7 @@
   "phases": "phases.yaml",
   "controls": "controls.yaml",
   "notes": "notes.yaml",
-  "panels": ["panels/overhead.yaml"],
+  "panels": ["panels/overhead.yaml", "panels/autoflight.yaml"],
   "lights": "lights.yaml",
   "faults": "faults.yaml",
   "glossary": "glossary.yaml",

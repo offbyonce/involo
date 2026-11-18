@@ -92,6 +92,10 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
   } = $props();
 
   let focused = $derived(panel.sections.filter((s) => focus.includes(s.id)));
+  /** A section with an outline of its own (format 6). */
+  const shapedSection = (s: Section) => (s.outline?.length ?? 0) >= 3;
+  /** Every section of a panel with an outline of its own is drawn: its outline is drawn behind. */
+  let wholePanel = $derived((panel.outline?.length ?? 0) >= 3 && panel.sections.every((s) => focus.includes(s.id)));
   /** Only the step's sections. */
   let drawn = $derived(focused);
 
@@ -104,7 +108,8 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
    */
   let band = $derived.by((): Band | null => {
     const only = drawn.length === 1 ? drawn[0] : undefined;
-    if (!around || large || !only || tile) return null;
+    // A section with its own outline is drawn whole, so its outline shows (format 6).
+    if (!around || large || !only || tile || shapedSection(only)) return null;
     const words = ` ${named.toUpperCase().replace(/[^A-Z0-9/ ]+/g, " ")} `;
     const ys = only.items.flatMap((it, i) =>
       targets.some((t) => t.section === only.id && t.item === i) || (it.label && words.includes(` ${it.label.toUpperCase()} `))
@@ -147,7 +152,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
    */
   let view = $derived.by(() => {
     const frames = new Map<string, Band | undefined>();
-    const only = drawn.length === 1 && !tile ? drawn[0] : undefined;
+    const only = drawn.length === 1 && !tile && !shapedSection(drawn[0] as Section) ? drawn[0] : undefined;
     if (only) {
       const e = layoutFor(only, -1000).extent;
       const f = { x0: e.x0 - 8, x1: e.x1 + 8, y0: e.y0 - 8, y1: e.y1 + 8 };
@@ -158,10 +163,15 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
         box: { x: only.x + f.x0 - 2, y: only.y + f.y0 - 2, w: f.x1 - f.x0 + 4, h: f.y1 - f.y0 + 4 },
       };
     }
-    const x = Math.min(...drawn.map((s) => s.x)) - 2;
-    const y = Math.min(...drawn.map((s) => s.y)) - 2;
-    const right = Math.max(...drawn.map((s) => s.x + s.width)) + 2;
-    const low = Math.max(...drawn.map((s) => s.y + Math.max(s.height, layoutFor(s, 0).bottom)));
+    // The whole panel drawn, with its own outline: the outline is the drawing's edge.
+    const outlined = wholePanel ? (panel.outline ?? []) : [];
+    const x = Math.min(...drawn.map((s) => s.x), ...outlined.map(([px]) => px)) - 2;
+    const y = Math.min(...drawn.map((s) => s.y), ...outlined.map(([, py]) => py)) - 2;
+    const right = Math.max(...drawn.map((s) => s.x + s.width), ...outlined.map(([px]) => px)) + 2;
+    const low = Math.max(
+      ...drawn.map((s) => s.y + Math.max(s.height, layoutFor(s, 0).bottom)),
+      ...outlined.map(([, py]) => py),
+    );
     return { frames, titled: true, box: { x, y, w: right - x, h: low + 2 - y } };
   });
 
@@ -296,12 +306,24 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     class="schematic"
     viewBox="{view.box.x} {view.box.y} {view.box.w} {view.box.h}"
     style:width="{Math.floor(view.box.w * scale.k)}px"
-    role="img"
+    role={index ? "group" : "img"}
     aria-label="{caption}, schematic.{described ? ` This step: ${described}.` : ''}"
   >
+    {#if wholePanel}
+      <path class="panel-outline" d="M {(panel.outline ?? []).map(([x, y]) => `${x} ${y}`).join(' L ')} Z" />
+    {/if}
     {#each drawn as s (s.id)}
-      <PanelSection section={s} {targets} {guardClosed} band={bandOf(s)} frame={view.frames.get(s.id)} titled={view.titled} tileRx={tile ? TILE_RADIUS / scale.k : null} framed={large || !around || view.titled} k={K} hit={index ? (44 * pageScale) / scale.k : 0} onPick={index ? (section, item) => (picked = { section, item }) : undefined} selected={picked?.section === s.id ? picked.item : null} />
+      <PanelSection section={s} {targets} {guardClosed} band={bandOf(s)} frame={view.frames.get(s.id)} titled={view.titled} tileRx={tile ? TILE_RADIUS / scale.k : null} framed={large || !around || view.titled} k={K} layer={index ? "drawing" : "all"} selected={picked?.section === s.id ? picked.item : null} />
     {/each}
+    {#if index}
+      <!-- Every control can be reached with Tab and is named: the step's controls first, then
+           the rest, in the drawing's order (New panel controls board). -->
+      {#each ["step-hits", "other-hits"] as const as layer (layer)}
+        {#each drawn as s (s.id)}
+          <PanelSection section={s} {targets} {guardClosed} band={bandOf(s)} frame={view.frames.get(s.id)} titled={false} k={K} {layer} hit={(44 * pageScale) / scale.k} onPick={(section, item) => (picked = { section, item })} />
+        {/each}
+      {/each}
+    {/if}
   </svg>
 </div>
 {#if card && ownCard}
@@ -323,6 +345,12 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
 {/if}
 
 <style>
+  /* A panel's own outline, drawn as a section's frame is (format 6). */
+  .panel-outline {
+    fill: var(--panel-bg);
+    stroke: var(--panel-stroke);
+    stroke-width: 1;
+  }
   /* The drawing centers in its room; where it is bigger, the room scrolls. */
   .wrap {
     display: flex;

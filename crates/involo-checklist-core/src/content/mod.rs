@@ -42,7 +42,7 @@ pub use labels::{
 pub use lights::{LightNote, LightsFile};
 pub use notes::{ExplainNote, HowNote, NotesFile};
 pub use panel_states::{PanelState, PanelStatesFile};
-pub use panels::{LightColor, Panel, PanelItem, PanelItemKind, PanelSection};
+pub use panels::{Legend, LightColor, Panel, PanelItem, PanelItemKind, PanelSection};
 pub use phases::{
     IntroParagraph, OptionChoice, Phase, PhasesFile, Stage, StagePhase, StartControl, StartLink,
     StartStyle, SuggestLine, SuggestRule, Suggests, UserOption, WeightUnit,

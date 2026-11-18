@@ -148,6 +148,15 @@ export function half(item: PanelItem): number {
     case "handle":
       // The grip reaches 14.5 below the center at its last position; the name sits clear of it.
       return 16;
+    case "push_pull_knob":
+      // Room for the pulled-out ring whether or not it is drawn, so a step never moves a label.
+      return PUSH_PULL.ring;
+    case "legend_pushbutton":
+      return LEGEND_KEY.h / 2;
+    case "rocker":
+      return ROCKER.h / 2;
+    case "keypad":
+      return keypadSize(item).h / 2;
     default:
       return (item.height ?? 30) / 2;
   }
@@ -176,6 +185,50 @@ export const labelRing = (item: PanelItem) => {
 
 /** A push button, as 3.0 draws it: a key with its name inside and a line along its bottom. */
 export const BUTTON = KEY;
+
+/**
+ * Format 6 controls (New panel controls board), in panel units. A push/pull knob: a dial's body,
+ * a dot in its center when pushed in (larger as a target), a ring `ring` around it when pulled out,
+ * and its two positions beside it, `dx` from its center and `dy` above and below.
+ */
+export const PUSH_PULL = { ring: 14.5, dot: 2.6, dotSet: 3, dx: DIAL + 9.5, dy: 6.5 } as const;
+/** A pushbutton with legends: a key split across its middle, each lit legend an inset `inset`
+ * in from the key's edge and `lit` tall. Its name is above it. */
+export const LEGEND_KEY = { w: 40, h: 30, rx: 3, inset: 3, lit: 10.5 } as const;
+/** A rocker: a body pivoting about a line across its middle, its pressed end an inset `endW` by
+ * `endH`, and its positions `gap` beside it, level with its ends. */
+export const ROCKER = { w: 13, h: 30, rx: 2.5, endW: 9, endH: 12, gap: 6.5 } as const;
+/** A keypad's key, and the grid the keys sit on. */
+export const KEYPAD = { w: 19, h: 12, rx: 2, pitchX: 22, pitchY: 15, columns: 3 } as const;
+
+/** A keypad's columns, rows and size. */
+export function keypadSize(item: PanelItem): { columns: number; rows: number; w: number; h: number } {
+  const keys = positionsOf(item).length;
+  const columns = Math.max(1, Math.min(item.columns ?? KEYPAD.columns, Math.max(1, keys)));
+  const rows = Math.max(1, Math.ceil(keys / columns));
+  return {
+    columns,
+    rows,
+    w: columns * KEYPAD.pitchX - (KEYPAD.pitchX - KEYPAD.w),
+    h: rows * KEYPAD.pitchY - (KEYPAD.pitchY - KEYPAD.h),
+  };
+}
+
+/** Each key's center on a keypad, row by row from the top left. */
+export function keypadKeys(item: PanelItem): { x: number; y: number }[] {
+  const { columns, w, h } = keypadSize(item);
+  return positionsOf(item).map((_, n) => ({
+    x: -w / 2 + KEYPAD.w / 2 + (n % columns) * KEYPAD.pitchX,
+    y: -h / 2 + KEYPAD.h / 2 + Math.floor(n / columns) * KEYPAD.pitchY,
+  }));
+}
+
+/** A legend pushbutton's legends and where each sits: top then bottom; a single one in the bottom
+ * half, as the board's AP button. */
+export const legendSlots = (item: PanelItem) => {
+  const legends = (item.legends ?? []).slice(0, 2);
+  return legends.map((legend, n) => ({ legend, top: legends.length === 2 && n === 0 }));
+};
 
 /**
  * A light's words wrapped to its fixed width, up to three lines as 3.0 does, and their size in
@@ -220,7 +273,7 @@ export function lines(label: string, max = 12): string[] {
 }
 
 /** Whether a control has its name written under it (lights and screens carry it inside). */
-export const labelled = (item: PanelItem) =>
+export const labelled = (item: PanelItem): boolean =>
   item.kind !== "light" &&
   item.kind !== "readout" &&
   item.kind !== "display_unit" &&
@@ -255,6 +308,9 @@ export const labelY = (item: PanelItem, n: number, k: number, px: number = PX.na
 
 /** How far below the section's top a control and its labels reach, in units. */
 export function bottomOf(item: PanelItem, section: PanelSection, hasTarget: boolean, k: number): number {
+  // A legend pushbutton's name is above it; its target state is the line under it.
+  if (item.kind === "legend_pushbutton")
+    return item.y + half(item) + (hasTarget ? 2 + (PX.setTo * 1.2) / k : 0);
   if (!labelled(item)) return item.y + half(item);
   const fit = nameFit(item, section, k);
   const count = fit.lines.length + (hasTarget ? 1 : 0);
@@ -310,6 +366,14 @@ export function halfWidth(item: PanelItem): number {
       return 13;
     case "gauge":
       return 14;
+    case "push_pull_knob":
+      return PUSH_PULL.ring;
+    case "legend_pushbutton":
+      return LEGEND_KEY.w / 2;
+    case "rocker":
+      return ROCKER.w / 2;
+    case "keypad":
+      return keypadSize(item).w / 2;
     default:
       return (item.width ?? 60) / 2;
   }
@@ -360,6 +424,17 @@ export function outline(item: PanelItem, state: { guardOpen: boolean; at: number
       const top = Math.min(-12, gy - 5);
       return box(26, gy + 5 - top, 4, top);
     }
+    case "push_pull_knob":
+      // Pulled out (its second position), the ring is the knob's edge.
+      return { kind: "circle", r: state.at === 1 ? PUSH_PULL.ring : DIAL };
+    case "legend_pushbutton":
+      return box(LEGEND_KEY.w, LEGEND_KEY.h, LEGEND_KEY.rx);
+    case "rocker":
+      return box(ROCKER.w, ROCKER.h, ROCKER.rx);
+    case "keypad": {
+      const { w, h } = keypadSize(item);
+      return box(w, h, KEYPAD.rx);
+    }
     default:
       return box(item.width ?? 60, item.height ?? 30, 3);
   }
@@ -389,8 +464,12 @@ export const leverY = (index: number, count: number) => (count < 2 ? 0 : -9.5 + 
 
 export type PositionLabel = { n: number; x: number; y: number; anchor: "start" | "middle" | "end" };
 export type ItemLayout = {
-  /** The name's lines, size in pixels, and the first line's baseline below the control's center. */
+  /** The name's lines, size in pixels, and the first line's baseline below the control's center
+   * (above it, negative, for a legend pushbutton). */
   name: { lines: string[]; px: number; y: number } | null;
+  /** Lines under a legend pushbutton: its target state, and EXPECTED ON for a legend the step
+   * expects lit; each line's baseline below the control's center. */
+  caption?: { text: string; y: number; target: boolean }[];
   /** Position labels, relative to the control's center. */
   positions: PositionLabel[];
 };
@@ -516,6 +595,29 @@ function place(
       });
     }
     const pos = positionsOf(it);
+    if (it.kind === "legend_pushbutton") {
+      // Under the key: the state the step sets it to, then EXPECTED ON for a legend the step
+      // expects lit by the airplane (New panel controls board).
+      const { open, resolved } = target(i);
+      const lines = [
+        ...(on && t != null && !open
+          ? [{ text: `${resolved ? "◆ " : ""}${pos[t] ?? ""}`, target: true }]
+          : []),
+        ...(lit && (it.legends ?? []).some((l) => !l.litIn?.length)
+          ? [{ text: "EXPECTED ON", target: false }]
+          : []),
+      ];
+      const px = PX.setTo * scale;
+      const line = (px * 1.2) / k;
+      layout.caption = lines.map((l, n) => ({ ...l, y: LEGEND_KEY.h / 2 + 1 + (n + 0.85) * line }));
+      for (const [n, l] of lines.entries()) {
+        const w = em(l.text) * (px / k);
+        const y0 = it.y + LEGEND_KEY.h / 2 + 1 + n * line;
+        const b = { x0: it.x - w / 2, y0, x1: it.x + w / 2, y1: y0 + line };
+        if (!free(b)) clear = false;
+        placed.push(b);
+      }
+    }
     const boxOf = (l: PositionLabel): Box => {
       const w = em(pos[l.n] ?? "") * (posPx / k);
       const x0 = l.anchor === "start" ? l.x : l.anchor === "end" ? l.x - w : l.x - w / 2;
@@ -533,6 +635,29 @@ function place(
           n,
           x: right ? halfWidth(it) + 4 : -halfWidth(it) - 4,
           y: (it.kind === "lever" ? slotY(n, pos.length) : leverY(n, pos.length)) + 3,
+          anchor: right ? "start" : "end",
+        }));
+      const right = side(true);
+      const left = side(false);
+      const chosen = right.every((l) => free(boxOf(l), i))
+        ? right
+        : left.every((l) => free(boxOf(l), i))
+          ? left
+          : right;
+      if (!chosen.every((l) => free(boxOf(l), i))) clear = false;
+      for (const l of chosen) placed.push(boxOf(l));
+      layout.positions = chosen;
+    } else if ((it.kind === "push_pull_knob" || it.kind === "rocker") && pos.length === 2) {
+      // Beside the knob (pushed in above, pulled out below) or the rocker (level with each end),
+      // on the right, or the left if that side is taken.
+      const knob = it.kind === "push_pull_knob";
+      const dx = knob ? PUSH_PULL.dx : ROCKER.w / 2 + ROCKER.gap;
+      const dy = knob ? PUSH_PULL.dy : ROCKER.h / 4;
+      const side = (right: boolean): PositionLabel[] =>
+        [0, 1].map((n) => ({
+          n,
+          x: right ? dx : -dx,
+          y: (n === 0 ? -dy : dy) + (0.36 * posPx) / k,
           anchor: right ? "start" : "end",
         }));
       const right = side(true);
@@ -586,7 +711,25 @@ function place(
         layout.positions.push(l);
       }
     }
-    if (labelled(it)) {
+    if (it.kind === "legend_pushbutton") {
+      // Its name above the key (New panel controls board), or a line or two higher.
+      const fit = nameFit(it, moved, k);
+      const px = fit.px * scale;
+      const line = (px * LINE) / k;
+      const w = (widest(fit.lines) * px) / k;
+      const boxAbove = (dy: number): Box => {
+        const bottom = it.y - half(it) - 2 - dy * line;
+        return { x0: it.x - w / 2, y0: bottom - fit.lines.length * line, x1: it.x + w / 2, y1: bottom };
+      };
+      let dy = [0, 1, 2].find((d) => free(boxAbove(d)));
+      if (dy === undefined) {
+        clear = false;
+        dy = 0;
+      }
+      const box = boxAbove(dy);
+      layout.name = { lines: fit.lines, px, y: box.y0 - it.y + line * 0.82 };
+      placed.push(box);
+    } else if (labelled(it)) {
       const fit = nameFit(it, moved, k);
       const px = fit.px * scale;
       const line = (px * LINE) / k;

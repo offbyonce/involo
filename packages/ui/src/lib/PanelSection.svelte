@@ -20,8 +20,8 @@ What the step asks for, never the simulator's state (decision 0006).
 -->
 <script lang="ts">
   import type { ItemTarget, PanelItem, PanelSection } from "@involo/bindings";
+  import { angleOf, BUTTON, COVER_RAISE, DIAL, grow, half, halfWidth, KEYPAD, keypadKeys, LEGEND_KEY, legendSlots, type Outline, outline, PUSH_PULL, RING_PAD, ROCKER, withinAcross, knobY, LAMP, LEGEND_MIN, TOGGLE, labelled, lampText, layoutSection, leverY, PX, positionsOf, slotY } from "./panel-layout";
   import { em } from "./text-width";
-  import { angleOf, BUTTON, COVER_RAISE, DIAL, grow, half, halfWidth, type Outline, outline, RING_PAD, withinAcross, knobY, LAMP, TOGGLE, labelled, lampText, layoutSection, leverY, PX, positionsOf, slotY } from "./panel-layout";
 
   let {
     section,
@@ -39,6 +39,7 @@ What the step asks for, never the simulator's state (decision 0006).
     onPick,
     selected,
     ringed = null,
+    layer = "all",
   }: {
     section: PanelSection;
     targets: ItemTarget[];
@@ -72,6 +73,9 @@ What the step asks for, never the simulator's state (decision 0006).
     /** A control tapped in the phone's controls list: the only one with the halo in the
      * label-free outline (R6PhoneCtl); -1 when it is in another section. */
     ringed?: number | null | undefined;
+    /** What to draw: everything, or only the tap targets of the step's controls or of the rest,
+     * so a drawing can put every step's control first in the tab order (PanelSchematic). */
+    layer?: "all" | "drawing" | "step-hits" | "other-hits";
   } = $props();
 
   /** The selection ring's width, in drawing units, and the focus ring's, in screen pixels
@@ -93,6 +97,35 @@ What the step asks for, never the simulator's state (decision 0006).
     `${Math.min(PX.screen / k, (boxWidth - 6) / em(label)).toFixed(2)}px`;
 
   let byItem = $derived(new Map(targets.filter((t) => t.section === section.id).map((t) => [t.item, t])));
+  /** A keypad's pressed keys: one target per key (format 6), each set or dashed. */
+  let keysOf = $derived.by(() => {
+    const keys = new Map<number, Map<number, "set" | "open">>();
+    for (const t of targets) {
+      if (t.section !== section.id || t.position == null) continue;
+      const item = keys.get(t.item) ?? new Map();
+      item.set(t.position, t.open ? "open" : "set");
+      keys.set(t.item, item);
+    }
+    return keys;
+  });
+  /** A legend's words at the lamp size, smaller only to fit across the key's inset. */
+  const legendFs = (text: string, scale: number) =>
+    Math.max(LEGEND_MIN, Math.min(PX.lamp * scale, ((LEGEND_KEY.w - 2 * LEGEND_KEY.inset - 2) * k) / Math.max(em(text), 0.01)));
+  /** Whether a legend shows lit: in the position the step sets, or, for a legend the airplane
+   * lights, when the step expects the button's light on. Never the simulator's state. */
+  const legendLit = (litIn: string[] | undefined, positions: string[], t: number | null, on: boolean, expected: boolean) =>
+    on && ((t != null && (litIn ?? []).includes(positions[t] ?? "")) || (expected && !(litIn ?? []).length));
+  /** A section's own outline, drawn in place of its rectangle when it is drawn whole. */
+  let shaped = $derived(
+    (section.outline?.length ?? 0) >= 3 && !frame && band.y0 <= 0 && band.y1 >= section.height && band.x0 <= 0 && band.x1 >= section.width,
+  );
+  let outlinePath = $derived(shaped ? `M ${(section.outline ?? []).map(([x, y]) => `${x} ${y}`).join(" L ")} Z` : "");
+  let outlineMid = $derived.by(() => {
+    const xs = (section.outline ?? []).map(([x]) => x);
+    return xs.length ? (Math.min(...xs) + Math.max(...xs)) / 2 : 0;
+  });
+  const drawing = $derived(layer === "all" || layer === "drawing");
+  const hitsFor = (on: boolean) => layer === "all" || (on ? layer === "step-hits" : layer === "other-hits");
 
 
   let top = $derived(frame ? frame.y0 : band.y0 === 0 ? 0 : band.y0 - TITLE);
@@ -141,9 +174,40 @@ What the step asks for, never the simulator's state (decision 0006).
   {/if}
 {/snippet}
 
+{#snippet tapTarget(item: PanelItem, i: number, on: boolean, own: Outline)}
+      {@const hw = Math.max(halfWidth(item), hit / 2)}
+      {@const hh = Math.max(half(item), hit / 2)}
+      <!-- A tap target of 44 px or more around the control (rules.md §3). Every control is in
+           the tab order, named; a drawing puts the step's controls first (PanelSchematic). -->
+      <rect
+        class="hit"
+        x={-hw}
+        y={-hh}
+        width={2 * hw}
+        height={2 * hh}
+        role="button"
+        tabindex="0"
+        aria-label="{item.label}{on ? ', in this step' : ''}: what it is"
+        onclick={() => onPick?.(section.id, i)}
+        onkeydown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onPick?.(section.id, i))}
+      />
+      <!-- The keyboard focus ring: the selection ring's shape, 2 px outside it (shown by CSS while
+           the tap target has keyboard focus). The tap target itself draws nothing. -->
+      {@render ring(grow(own, RING_PAD + (SELECTION_STROKE / 2) + (2 + FOCUS_PX / 2) / k), "focusring")}
+{/snippet}
+
 <g class:textless transform="translate({section.x} {section.y})">
-  <rect class="frame" class:bare={!framed} class:tile={tileRx != null} x={left} y={top} width={right - left} height={frameBottom - top} rx={tileRx ?? 3} />
-  {#if titled}<text class="title" x={left + 8} y={top + 13} style:font-size={fs(PX.title * layout.scale)}>{section.title.toUpperCase()}</text>{/if}
+  {#if drawing}
+    {#if shaped}
+      <!-- A section with its own outline (format 6): its title centered at the top, as the board's
+           angled glareshield. -->
+      <path class="frame" class:bare={!framed} d={outlinePath} />
+      {#if titled}<text class="title centered" x={outlineMid} y={top + 13} style:font-size={fs(PX.title * layout.scale)}>{section.title.toUpperCase()}</text>{/if}
+    {:else}
+      <rect class="frame" class:bare={!framed} class:tile={tileRx != null} x={left} y={top} width={right - left} height={frameBottom - top} rx={tileRx ?? 3} />
+      {#if titled}<text class="title" x={left + 8} y={top + 13} style:font-size={fs(PX.title * layout.scale)}>{section.title.toUpperCase()}</text>{/if}
+    {/if}
+  {/if}
   {#each shown as { item, i } (i)}
     {@const on = byItem.has(i)}
     {@const positions = positionsOf(item)}
@@ -155,6 +219,7 @@ What the step asks for, never the simulator's state (decision 0006).
     {@const r = (!on || (t == null && !open)) && item.rest ? positions.indexOf(item.rest) : -1}
     <!-- The control's own outline, which the selection and focus rings follow. -->
     {@const own = outline(item, { guardOpen: item.kind === "toggle_switch" && !!item.guarded && !guardShut(on), at: on && t != null ? t : r })}
+    {#if drawing}
     <g class="item {item.kind}" class:on class:resolved={on && (byItem.get(i)?.resolved ?? false)} class:conditional={open} transform="translate({item.x} {item.y})">
       {#if ringed != null ? ringed === i : halo && on}
         {@const hw = item.kind === "light" ? LAMP.w / 2 : halfWidth(item)}
@@ -255,6 +320,63 @@ What the step asks for, never the simulator's state (decision 0006).
         {#each layout.items.get(i)?.positions ?? [] as l (l.n)}
           <text class="pos" class:target={on && l.n === t} class:at-rest={l.n === r} x={l.x} y={l.y} text-anchor={l.anchor} style:font-size={fs(PX.pos * layout.scale)}>{on && l.n === t && byItem.get(i)?.resolved ? "◆ " : ""}{positions[l.n]}</text>
         {/each}
+      {:else if item.kind === "push_pull_knob"}
+        <!-- A push/pull knob (format 6): pushed in, a dot in its center; pulled out, a second ring
+             as the knob stands proud. -->
+        {@const at = on && t != null ? t : r}
+        {#if at === 1}
+          <circle class="pull-ring" class:set-ring={on && t === 1} r={PUSH_PULL.ring} />
+        {/if}
+        <circle class="body" class:changed={on && !open} class:conditional={open} r={DIAL} />
+        {#if at === 0}
+          <circle class={on && t === 0 ? "dot set" : "dot rest"} r={on && t === 0 ? PUSH_PULL.dotSet : PUSH_PULL.dot} />
+        {/if}
+        {#each layout.items.get(i)?.positions ?? [] as l (l.n)}
+          <text class="pos" class:target={on && l.n === t} class:at-rest={l.n === r} x={l.x} y={l.y} text-anchor={l.anchor} style:font-size={fs(PX.pos * layout.scale)}>{on && l.n === t && byItem.get(i)?.resolved ? "◆ " : ""}{positions[l.n]}</text>
+        {/each}
+      {:else if item.kind === "legend_pushbutton"}
+        <!-- A pushbutton with legends (format 6): a key split across its middle, a lit legend a
+             filled inset in its light's color. -->
+        {@const expected = byItem.get(i)?.lit ?? false}
+        {@const inner = LEGEND_KEY.w - 2 * LEGEND_KEY.inset}
+        <!-- A step that only expects a legend lit leaves the key resting, as a light stays
+             unoutlined when lit. -->
+        {@const keySet = on && !open && !(t == null && expected)}
+        <rect class="body key" class:changed={keySet} class:conditional={open} x={-LEGEND_KEY.w / 2} y={-LEGEND_KEY.h / 2} width={LEGEND_KEY.w} height={LEGEND_KEY.h} rx={LEGEND_KEY.rx} />
+        <line class="split" class:step={keySet || open} x1={-inner / 2} x2={inner / 2} y1="0" y2="0" />
+        {#each legendSlots(item) as { legend, top }, n (n)}
+          {@const glow = !open && !textless && legendLit(legend.litIn, positions, t, on, expected)}
+          {@const px = legendFs(legend.text, layout.scale)}
+          {@const mid = top ? -LEGEND_KEY.h / 4 : LEGEND_KEY.h / 4}
+          {#if glow}
+            <rect class="legend-lit {legend.light}" x={-inner / 2} y={mid - LEGEND_KEY.lit / 2} width={inner} height={LEGEND_KEY.lit} rx="1.5" />
+          {/if}
+          <text class="legend {legend.light}" class:lit={glow} y={mid + (px * 0.35) / k} style:font-size={fs(px)}>{legend.text}</text>
+        {/each}
+        {#each layout.items.get(i)?.caption ?? [] as c (c.text)}
+          <text class="set-to" class:caption-target={c.target} y={c.y} style:font-size={fs(PX.setTo * layout.scale)}>{c.text}</text>
+        {/each}
+      {:else if item.kind === "rocker"}
+        <!-- A rocker (format 6): a body that tips about the line across its middle; the pressed
+             end an inset half, filled as the step's target. -->
+        {@const at = on && t != null ? t : r}
+        <rect class="body rocker" class:changed={on && !open} class:conditional={open} x={-ROCKER.w / 2} y={-ROCKER.h / 2} width={ROCKER.w} height={ROCKER.h} rx={ROCKER.rx} />
+        <line class="pivot" class:step={on} x1={-ROCKER.w / 2} x2={ROCKER.w / 2} y1="0" y2="0" />
+        {#if at === 0 || at === 1}
+          <rect class={on && t === at ? "end set" : "end rest"} x={-ROCKER.endW / 2} y={at === 0 ? -ROCKER.h / 2 + 2 : 1} width={ROCKER.endW} height={ROCKER.endH} rx="1.5" />
+        {/if}
+        {#each layout.items.get(i)?.positions ?? [] as l (l.n)}
+          <text class="pos" class:target={on && l.n === t} class:at-rest={l.n === r} x={l.x} y={l.y} text-anchor={l.anchor} style:font-size={fs(PX.pos * layout.scale)}>{on && l.n === t && byItem.get(i)?.resolved ? "◆ " : ""}{positions[l.n]}</text>
+        {/each}
+      {:else if item.kind === "keypad"}
+        <!-- A keypad (format 6): the keys the step presses in its state, the rest resting. -->
+        {@const pressed = keysOf.get(i)}
+        {#each keypadKeys(item) as key, n (n)}
+          {@const state = pressed?.get(n)}
+          {@const px = Math.max(LEGEND_MIN, Math.min(PX.lamp * layout.scale, ((KEYPAD.w - 3) * k) / Math.max(em(positions[n] ?? ""), 0.01)))}
+          <rect class="keycap" class:changed={state === "set"} class:conditional={state === "open"} x={key.x - KEYPAD.w / 2} y={key.y - KEYPAD.h / 2} width={KEYPAD.w} height={KEYPAD.h} rx={KEYPAD.rx} />
+          <text class="keycap-text" class:pressed={state === "set"} class:pending={state === "open"} x={key.x} y={key.y + (px * 0.35) / k} style:font-size={fs(px)}>{positions[n]}</text>
+        {/each}
       {:else if item.kind === "gauge"}
         <circle class="body" class:changed={on} r="14" />
         <path class="scale" d="M -9 6 A 11 11 0 1 1 9 6" />
@@ -278,28 +400,12 @@ What the step asks for, never the simulator's state (decision 0006).
         <!-- The one selection ring, following the control's own outline (after round 6). -->
         {@render ring(grow(own, RING_PAD), "selection")}
       {/if}
-      {#if hit > 0 && onPick}
-        {@const hw = Math.max(halfWidth(item), hit / 2)}
-        {@const hh = Math.max(half(item), hit / 2)}
-        <!-- A tap target of 44 px or more around the control (rules.md §3); the step's controls
-             are in the tab order, the rest open by pointer. -->
-        <rect
-          class="hit"
-          x={-hw}
-          y={-hh}
-          width={2 * hw}
-          height={2 * hh}
-          role="button"
-          tabindex={on ? 0 : -1}
-          aria-label="{item.label}: what it is"
-          onclick={() => onPick(section.id, i)}
-          onkeydown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onPick(section.id, i))}
-        />
-        <!-- The keyboard focus ring: the selection ring's shape, 2 px outside it (shown by CSS while
-             the tap target has keyboard focus). The tap target itself draws nothing. -->
-        {@render ring(grow(own, RING_PAD + (SELECTION_STROKE / 2) + (2 + FOCUS_PX / 2) / k), "focusring")}
-      {/if}
+      {#if layer === "all" && hit > 0 && onPick}{@render tapTarget(item, i, on, own)}{/if}
     </g>
+    {:else if hitsFor(on) && hit > 0 && onPick}
+      <!-- Only the tap target, in a layer of its own so the drawing can order the tab stops. -->
+      <g class="hit-item" transform="translate({item.x} {item.y})">{@render tapTarget(item, i, on, own)}</g>
+    {/if}
   {/each}
 </g>
 
@@ -512,6 +618,14 @@ What the step asks for, never the simulator's state (decision 0006).
   .lamp.lit.blue {
     fill: var(--color-accent);
   }
+  /* White has no lit color: a lit white light or legend is the panel's text color, its words the
+     panel's background (New panel controls board). */
+  .lamp.lit.white {
+    fill: var(--panel-text);
+  }
+  .lamp-text.lit.white {
+    fill: var(--panel-bg);
+  }
   .lamp-text.lit.amber {
     fill: var(--color-on-lit-amber);
   }
@@ -546,5 +660,106 @@ What the step asks for, never the simulator's state (decision 0006).
   }
   .lamp-on {
     fill: var(--panel-text);
+  }
+  .title.centered {
+    text-anchor: middle;
+  }
+  /* Format 6 controls (New panel controls board), in the three states of every control. */
+  .pull-ring {
+    fill: none;
+    stroke: var(--panel-resting);
+    stroke-width: 1.4;
+  }
+  .pull-ring.set-ring {
+    stroke: var(--panel-changed);
+  }
+  .dot.rest {
+    fill: var(--panel-text);
+  }
+  .split,
+  .pivot {
+    stroke: var(--panel-resting);
+  }
+  .split {
+    stroke-width: 0.8;
+  }
+  .pivot {
+    stroke-width: 1;
+  }
+  .split.step,
+  .pivot.step {
+    stroke: var(--panel-changed);
+  }
+  .legend {
+    font-weight: var(--weight-semibold);
+    text-anchor: middle;
+    fill: var(--panel-label);
+  }
+  .legend.lit {
+    font-weight: var(--weight-bold);
+  }
+  .legend-lit.amber {
+    fill: var(--color-lit-amber);
+  }
+  .legend-lit.red {
+    fill: var(--color-danger);
+  }
+  .legend-lit.green {
+    fill: var(--color-done);
+  }
+  .legend-lit.blue {
+    fill: var(--color-accent);
+  }
+  .legend-lit.white {
+    fill: var(--panel-text);
+  }
+  .legend.lit.amber {
+    fill: var(--color-on-lit-amber);
+  }
+  .legend.lit.red,
+  .legend.lit.blue {
+    fill: var(--color-on-accent);
+  }
+  .legend.lit.green {
+    fill: var(--color-on-done);
+  }
+  .legend.lit.white {
+    fill: var(--panel-bg);
+  }
+  .caption-target {
+    font-weight: var(--weight-bold);
+  }
+  .end.rest {
+    fill: none;
+    stroke: var(--panel-resting);
+    stroke-width: 1.2;
+  }
+  .keycap {
+    fill: var(--panel-fill);
+    stroke: var(--panel-resting);
+    stroke-width: 1;
+  }
+  .keycap.changed {
+    fill: var(--panel-changed-fill);
+    stroke: var(--panel-changed);
+    stroke-width: 2;
+  }
+  .keycap.conditional {
+    fill: none;
+    stroke: var(--panel-changed);
+    stroke-width: 1.6;
+    stroke-dasharray: 3 2;
+  }
+  .keycap-text {
+    font-weight: var(--weight-semibold);
+    text-anchor: middle;
+    fill: var(--panel-label);
+  }
+  .keycap-text.pressed {
+    font-weight: var(--weight-bold);
+    fill: var(--panel-changed-text);
+  }
+  .keycap-text.pending {
+    font-weight: var(--weight-bold);
   }
 </style>

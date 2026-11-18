@@ -19,9 +19,23 @@ data_types! {
         Lever,
         /// A handle that is pulled, such as the parking brake and the fire handles.
         Handle,
+        /// A rotary knob that is also pushed in or pulled out. Two positions: pushed in first,
+        /// pulled out second (format 6).
+        PushPullKnob,
+        /// A pushbutton with one or two legends that light (`legends`), set to one of its
+        /// `positions` (format 6).
+        LegendPushbutton,
+        /// A two-way switch that tips about its middle. Two positions: the top end pressed
+        /// first, the bottom end second (format 6).
+        Rocker,
+        /// A block of keys: its `positions` are the keys, row by row, `columns` to a row
+        /// (format 6). A step presses one key per target.
+        Keypad,
     }
 
-    /// The color of a panel light.
+    /// A light's role: which light it is, never a color value. The app draws each role in its
+    /// theme's lit color (decision 0021); white has no lit color of its own and is drawn in the
+    /// panel's text color.
     #[derive(Copy, Eq)]
     #[serde(rename_all = "snake_case")]
     pub enum LightColor {
@@ -30,6 +44,19 @@ data_types! {
         Green,
         Blue,
         White,
+    }
+
+    /// One legend of a legend pushbutton, e.g. FAULT in amber or OFF in white.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
+    pub struct Legend {
+        pub text: String,
+        /// Its light's role.
+        pub light: LightColor,
+        /// The button's positions it is lit in (OFF lit when pushed to OFF). Without any, it is
+        /// lit by the airplane, not the button (FAULT), and shows lit when a step expects the
+        /// button's light on.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub lit_in: Vec<String>,
     }
 
     /// One item on a panel drawing. Positions are our own layout.
@@ -70,6 +97,13 @@ data_types! {
         /// the top of the dial.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub angles: Option<Vec<f64>>,
+        /// Only on a legend pushbutton: its legends, top then bottom; a single legend sits in
+        /// the bottom half.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub legends: Vec<Legend>,
+        /// Only on a keypad: keys to a row. Three when left out.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub columns: Option<u32>,
         pub description: String,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub width: Option<f64>,
@@ -85,6 +119,10 @@ data_types! {
         pub y: f64,
         pub width: f64,
         pub height: f64,
+        /// The section's outline, when it is not a rectangle: points in the section's own units,
+        /// inside its box, holding every item (format 6). Drawn as the rectangle frame is.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub outline: Vec<[f64; 2]>,
         pub items: Vec<PanelItem>,
     }
 
@@ -94,6 +132,10 @@ data_types! {
         pub title: String,
         pub width: f64,
         pub height: f64,
+        /// The panel's outline, when it is not a rectangle: points in panel units, inside its
+        /// box, holding every section (format 6).
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub outline: Vec<[f64; 2]>,
         pub sections: Vec<PanelSection>,
     }
 }
