@@ -190,6 +190,13 @@ works; the extra check is just skipped.
 | `INVOLO_STEPS` | a list of steps, one per line: `phase` or `reference`, the phase id and the step id, tab-separated, with an optional number | `just screenshots`, which shoots each step's panel sheet and preview card | those shots are left out |
 | `INVOLO_PLAN` | a real SimBrief plan file (with `INVOLO_PLAN_OUT`, where to write its compact form) | the ignored test `measures_a_real_plan` in `crates/involo-simbrief` (`cargo test -p involo-simbrief -- --ignored`) | the test is ignored, as it is by default |
 
+`just screenshots` shows every page one fixed time and one seeded random sequence, so two runs of
+a build are pixel-identical and can be compared directly. Its Firefox profiles go in
+`target/screenshots`, or in `~/involo-screenshots` when the checkout is under the system's
+temporary folder (a sandboxed Firefox may not read there); `SCREENSHOTS_WORK` names another
+folder. `SCREENSHOTS_ONLY` (shot name prefixes, comma-separated) and `SCREENSHOTS_THEME` (`dark`
+or `light`) narrow a run.
+
 ## Reporting problems
 
 Open an issue with the aircraft, the checklist and step, what you expected, and your

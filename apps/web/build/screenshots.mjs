@@ -13,12 +13,39 @@
 // SCREENSHOTS_ONLY=phase-desktop-dark,flow limits the run to keys that start with one of those.
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { serve, session, sleep, startFirefox } from "./browser.mjs";
 
 const web = path.resolve(import.meta.dirname, "..");
 const dist = path.join(web, "dist");
-const work = path.resolve(web, "../../target/screenshots");
+/** Firefox profiles and scratch pages: the repository's target folder, unless that is under the
+ * system's temporary folder (a checkout there), which a sandboxed Firefox may not read; then a
+ * folder in the home directory. SCREENSHOTS_WORK names another. */
+const inTarget = path.resolve(web, "../../target/screenshots");
+const work =
+  process.env.SCREENSHOTS_WORK ??
+  (inTarget.startsWith(`${fs.realpathSync(os.tmpdir())}${path.sep}`) || inTarget.startsWith(`${os.tmpdir()}${path.sep}`)
+    ? path.join(os.homedir(), "involo-screenshots")
+    : inTarget);
+/** Every page sees one fixed time and one seeded random sequence, so two runs of a build compare
+ * pixel for pixel (save and import times, Practice's dealt questions). */
+const FROZEN = `() => {
+  const T = Date.UTC(2026, 10, 18, 9, 30);
+  const Real = Date;
+  class Fixed extends Real {
+    constructor(...a) { if (a.length) super(...a); else super(T); }
+    static now() { return T; }
+  }
+  globalThis.Date = Fixed;
+  let seed = 20261118;
+  Math.random = () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}`;
 const BIDI = 9234;
 
 const VIEWPORTS = {
@@ -218,13 +245,16 @@ const tap = (selector) =>
 /** Opens the checklists still folded until their procedure is done. */
 const unfold = `[...document.querySelectorAll("button.folded")].forEach((b) => b.click()); true`;
 /** Presses a key on the page, as the pilot would. */
+/** A panel control's hit target by its label, whether or not the step uses it (", in this step"). */
+const hitOf = (label, within) =>
+  [`${label}: what it is`, `${label}, in this step: what it is`].map((l) => `${within} .hit[aria-label="${l}"]`).join(", ");
 /** Picks a panel control by its label, as a pointer tap (an SVG element has no click()). */
 const pick = (label, within = ".deck-panel") =>
-  `document.querySelector(${JSON.stringify(`${within} .hit[aria-label="${label}: what it is"]`)}).dispatchEvent(new MouseEvent("click", { bubbles: true })); true`;
+  `document.querySelector(${JSON.stringify(hitOf(label, within))}).dispatchEvent(new MouseEvent("click", { bubbles: true })); true`;
 /** Picks a panel control from the keyboard (focused, then Enter), so its focus ring shows. */
 const pickByKey = (label) => [
   { keys: ["\uE008"] },
-  `document.querySelector(${JSON.stringify(`.deck-panel .hit[aria-label="${label}: what it is"]`)}).focus(); true`,
+  `document.querySelector(${JSON.stringify(hitOf(label, ".deck-panel"))}).focus(); true`,
   { keys: ["\uE007"] },
 ];
 const press = (key) => `window.dispatchEvent(new KeyboardEvent("keydown", { key: ${JSON.stringify(key)}, bubbles: true })); true`;
@@ -683,7 +713,7 @@ const SHOTS = [
     name: "board-control",
     full: true,
     only: ["desktop", "tablet-landscape"],
-    app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("p"), tap('.slide-box rect.hit[aria-label="CTR L: what it is"]')] },
+    app: { hash: "#/phase/before-start", before: [...BOARD_STATE, press("p"), tap(hitOf("CTR L", ".slide-box"))] },
   },
   { name: "board-open", full: true, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click(".opener")] } },
   { name: "board-flow", full: true, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, toFlow] } },
@@ -744,6 +774,7 @@ async function openAt(profile, prefs, viewport, firstUrl) {
   const firefox = await startFirefox(profile, BIDI, prefs, window, ["-remote-allow-system-access"]);
   try {
     const browser = await session(BIDI);
+    await browser.send("script.addPreloadScript", { functionDeclaration: FROZEN });
     await browser.send("browsingContext.navigate", { context: browser.context, url: firstUrl, wait: "complete" });
     await browser.send("browsingContext.setViewport", { context: browser.context, viewport });
     const got = await browser.js("[innerWidth, innerHeight].join('x')");
