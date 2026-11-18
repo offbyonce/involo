@@ -1,13 +1,19 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "FlightFile",
-  "description": "`flight.yaml`: the pack's flight fields, in order.",
+  "description": "`flight.yaml`: the pack's Flight pages and its flight fields, in order. The pack gives\ncontent and grouping only; the app decides how every part looks.",
   "type": "object",
   "properties": {
     "fields": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/FlightField"
+      }
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/FlightPage"
       }
     }
   },
@@ -16,6 +22,47 @@
     "fields"
   ],
   "$defs": {
+    "FieldAlso": {
+      "description": "A read-only copy of a field on another page and group, with a link to the field's own\npage, e.g. the runway on the Takeoff page.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "The row's description there; the field's own otherwise.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "group": {
+          "type": "string"
+        },
+        "label": {
+          "description": "The row's label there; the field's own label otherwise.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ofp": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FieldOfp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "page": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "page",
+        "group"
+      ]
+    },
     "FieldChoice": {
       "description": "One choice of a choice field, with the text shown for it when it differs from the value.",
       "type": "object",
@@ -58,6 +105,39 @@
         "step"
       ]
     },
+    "FieldInput": {
+      "description": "The box a value is typed in. Every part is optional: without them, the box takes text of\nany length, or numbers for a number field, and shows no placeholder beyond the app's.",
+      "type": "object",
+      "properties": {
+        "max_length": {
+          "description": "The most characters the box takes.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InputMode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "placeholder": {
+          "description": "What the empty box says, e.g. \"From the FMC\".",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "FieldKind": {
       "description": "What a field holds.",
       "oneOf": [
@@ -78,13 +158,70 @@
         }
       ]
     },
+    "FieldOfp": {
+      "description": "The side panel beside a selected row: where the flight plan (the OFP) prints the value.\nThe app has a panel for each SimBrief source it reads; these parts change it. A field\nwith no source and no panel of its own takes its page's, or the app's \"not in the plan\"\npanel.",
+      "type": "object",
+      "properties": {
+        "body": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "from": {
+          "description": "Show where the plan prints this source (the plan's close-up of it).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SimbriefSource"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "not_in_plan": {
+          "description": "The value is not set from the plan (a clearance, a value from the aircraft's own\ncomputer), which the panel says.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "outline": {
+          "description": "The panel shows the plan's page outline; false shows the close-up alone.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "FieldRange": {
-      "description": "The range a number may take, in one unit (a value of the field's `unit` field), or in\nevery unit when `unit` is left out.",
+      "description": "The range a number may take, in one unit (a value of the field's `unit` field), or in\nevery unit when `unit` is left out. Stored values are checked, so a weight stored in\nthousands has its range in thousands.",
       "type": "object",
       "properties": {
         "max": {
           "type": "number",
           "format": "double"
+        },
+        "message": {
+          "description": "What the Flight pages say under a value outside the range, e.g. \"Enter FL100 to\nFL410\"; `{unit}` is the flight's unit in lower case. Without it, \"Enter {min} to\n{max}\", in the values as the page shows them.",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "min": {
           "type": "number",
@@ -103,10 +240,36 @@
         "max"
       ]
     },
+    "FieldShow": {
+      "description": "How a value reads on the Flight pages: `prefix`, the value, `suffix` (\"FL\" 360, 24.5\n\"%\"), with thousands grouped (18,000) or a plus sign on a positive number (+2). Content\nonly: the app decides how it looks.",
+      "type": "object",
+      "properties": {
+        "grouped": {
+          "type": "boolean"
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "signed": {
+          "type": "boolean"
+        },
+        "suffix": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "FlightField": {
       "description": "One flight field.",
       "type": "object",
       "properties": {
+        "also": {
+          "description": "Read-only copies on other pages.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FieldAlso"
+          }
+        },
         "choices": {
           "description": "For a choice field: its values, in order.",
           "type": "array",
@@ -141,6 +304,17 @@
           "description": "Lower-case letters, digits and underscores, e.g. `zfw`. Steps name it in `fill`,\n`hint` and CDU text, and saved flights key its value by it.",
           "type": "string"
         },
+        "input": {
+          "description": "The Flight pages' box for it.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FieldInput"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "kind": {
           "$ref": "#/$defs/FieldKind"
         },
@@ -154,8 +328,30 @@
             "null"
           ]
         },
+        "needed": {
+          "description": "Counted in \"N to enter\" though no step fills it; a field a step fills always is.",
+          "type": "boolean"
+        },
+        "ofp": {
+          "description": "The side panel's parts for its row.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FieldOfp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "page": {
           "description": "The Flight page and group it shows in.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "phase": {
+          "description": "The phase that uses it, linked from its row (\"Before start ›\").",
           "type": [
             "string",
             "null"
@@ -167,6 +363,21 @@
             "$ref": "#/$defs/FieldRange"
           }
         },
+        "read_only": {
+          "description": "Shown on its page but not typed there.",
+          "type": "boolean"
+        },
+        "show": {
+          "description": "How its value reads on the Flight pages.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FieldShow"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "show_in": {
           "type": "array",
           "items": {
@@ -174,11 +385,18 @@
           }
         },
         "simbrief": {
-          "description": "The plan values that fill it. More than one are added together (reserve fuel and\nalternate fuel, for the FMC's reserves).",
+          "description": "The plan values that fill it. More than one are added together (reserve fuel and\nalternate fuel, for the FMC's reserves). A read-only source (air distance, en route\ntime, trip fuel, taxi fuel) is shown from the plan and never stored.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/SimbriefSource"
           }
+        },
+        "spoken": {
+          "description": "What a link or a second box calls it (\"V1\", \"runway heading\"); its id, in words,\notherwise.",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "strip": {
           "description": "How it reads in the flight strip, when `show_in` names the strip.",
@@ -191,8 +409,29 @@
             }
           ]
         },
+        "suggested_by": {
+          "description": "An option whose suggestion (decision 0027) the row shows as its value.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "toggle": {
+          "description": "A choice field of two choices shown under its description (minimums: BARO or RADIO).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "unit": {
           "description": "For a number: the choice field that holds its unit (`weight_unit`), whose values its\n`ranges` name.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "with": {
+          "description": "A second field typed in the same row (cargo, beside passengers).",
           "type": [
             "string",
             "null"
@@ -204,6 +443,161 @@
         "id",
         "label",
         "kind"
+      ]
+    },
+    "FlightGroup": {
+      "description": "One titled card of a Flight page. Its rows are the fields naming this page and group,\nin `flight.yaml`'s order.",
+      "type": "object",
+      "properties": {
+        "fields": {
+          "description": "The order of its rows, by field id (a field naming this page and group, or a copy\n`also` places here); fields not listed follow in `flight.yaml`'s order.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "note": {
+          "description": "A short note in the card's header, e.g. \"Same unit as fuel\".",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "description": "The flight's notes from ATC, as the card's last row.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NotesRow"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "units": {
+          "description": "A unit toggle in the card's header.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GroupUnits"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "title"
+      ]
+    },
+    "FlightPage": {
+      "description": "One Flight page: one of the app's (`route`, `fuel`, `cruise`, `clearance`, `takeoff`,\n`approach`), with its title, sub-line and cards. Without `pages`, the app's own page\nnames hold every field, each card titled by the fields' `group`.",
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FlightGroup"
+          }
+        },
+        "id": {
+          "type": "string"
+        },
+        "ofp": {
+          "description": "The side panel for the page's fields with no source and no panel of their own.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FieldOfp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "selected": {
+          "description": "The field selected when the page opens; its first otherwise.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sub": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "groups"
+      ]
+    },
+    "GroupUnits": {
+      "description": "A field whose group toggles a unit: the choice field it sets, and the words before the\ntoggle (\"Weights in\"); the field's label otherwise.",
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "field"
+      ]
+    },
+    "InputMode": {
+      "description": "How a value is typed on the Flight pages.",
+      "oneOf": [
+        {
+          "description": "Whole numbers.",
+          "type": "string",
+          "const": "numeric"
+        },
+        {
+          "description": "Numbers with a decimal point.",
+          "type": "string",
+          "const": "decimal"
+        },
+        {
+          "description": "Any text.",
+          "type": "string",
+          "const": "text"
+        }
+      ]
+    },
+    "NotesRow": {
+      "description": "The flight's notes from ATC, as a row of a group: its label and description.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "label"
       ]
     },
     "Rounding": {
@@ -387,6 +781,26 @@
           "description": "The AIRAC cycle.",
           "type": "string",
           "const": "nav_database"
+        },
+        {
+          "description": "The planned air distance, read-only.",
+          "type": "string",
+          "const": "air_distance"
+        },
+        {
+          "description": "The planned time en route, read-only.",
+          "type": "string",
+          "const": "enroute_time"
+        },
+        {
+          "description": "Trip fuel, read-only.",
+          "type": "string",
+          "const": "trip_fuel"
+        },
+        {
+          "description": "Taxi fuel, read-only.",
+          "type": "string",
+          "const": "taxi_fuel"
         }
       ]
     },

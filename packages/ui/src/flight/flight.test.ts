@@ -3,14 +3,16 @@
 
 import type { Decoded, FieldId, Flight, PanelState, SavedPlan, Settings, UserOption } from "@involo/bindings";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/svelte";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { type Host, hostContext } from "../host";
 import { MAX_PLAN_FILE_BYTES } from "../lib/file-limits";
-import { appLabels } from "../test-pack";
+import { appLabels, iflyPack } from "../test-pack";
 import FlightPage from "./FlightPage.svelte";
-import { blankLinks, home, SECTIONS, toEnter } from "./sections";
+import { blankLinks, home, sections, toEnter, useFlightPack } from "./sections";
 
 afterEach(cleanup);
+// The Flight pages are drawn from the pack in use: the iFly pack.
+beforeAll(() => useFlightPack(iflyPack()));
 
 const flight = (values: Partial<Record<FieldId, string>> = {}, notes = ""): Flight =>
   ({
@@ -93,6 +95,8 @@ function page(props: Record<string, unknown>, withHost: Host = host) {
         { value: "rnav", label: "RNAV" },
         { value: "vis", label: "Visual" },
       ],
+      // Asked on the Approach page, as the iFly pack asks it.
+      askIn: ["flight:approach"],
     },
   ];
   const states = [
@@ -139,7 +143,8 @@ describe("Flight sections data", () => {
   });
 
   it("gives every editable field one home and links each step's blanks to it", () => {
-    const fields = SECTIONS.flatMap((s) => s.groups.flatMap((g) => g.rows))
+    const fields = sections()
+      .flatMap((s) => s.groups.flatMap((g) => g.rows))
       .filter((r) => r.field && !r.link)
       .map((r) => r.field);
     expect(new Set(fields).size).toBe(fields.length);
@@ -155,7 +160,7 @@ describe("Flight sections data", () => {
   });
 
   it("words descriptions as the FlightSection board, leaving where to set it to the location line", () => {
-    const rows = SECTIONS.flatMap((s) => s.groups.flatMap((g) => g.rows));
+    const rows = sections().flatMap((s) => s.groups.flatMap((g) => g.rows));
     const desc = (id: string) => rows.find((r) => r.id === id)?.desc;
     expect(desc("heading")).toBe("The heading of your takeoff runway.");
     expect(desc("landing_altitude")).toBe("The destination field elevation, from the plan.");
@@ -273,7 +278,7 @@ describe("FlightPage", () => {
     await fireEvent.click(screen.getByRole("button", { name: "5" }));
     expect(sets.at(-1)).toEqual(["takeoff_flaps", "5"]);
     expect(screen.getByRole("link", { name: "Clearance ›" }).getAttribute("href")).toBe("#/flight/clearance");
-    expect(document.querySelector('[data-row="takeoff_runway"] .ro')?.textContent).toBe("16L");
+    expect(document.querySelector('[data-row="runway@takeoff"] .ro')?.textContent).toBe("16L");
   });
 
   it("Weather: the METAR with the selected group marked, the Altimeter as a field, and the TAF as printed", async () => {
@@ -344,7 +349,7 @@ describe("FlightPage", () => {
   });
 
   it("Fuel and weights shows the center tank's share of the block fuel, read-only, as the suggestion reads it", async () => {
-    page({ section: "fuel", plan, flight: flight({}), centerTank: "1,262 kg" });
+    page({ section: "fuel", plan, flight: flight({}), suggested: { center_tank: "1,262 kg" } });
     const row = (await screen.findByText("Center tank")).closest(".row, li, tr, [data-row]") ?? document.body;
     expect(row.textContent).toContain("1,262 kg");
     expect(row.textContent).toContain("What's left after both wing tanks fill.");

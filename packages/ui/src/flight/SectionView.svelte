@@ -9,7 +9,7 @@ above the cards. The selected row drives the OFP panel beside it.
 <script lang="ts">
   import type { FieldId, UserOption } from "@involo/bindings";
   import FieldRow from "./FieldRow.svelte";
-  import { SECTIONS, toEnter, type Ctx, type Section } from "./sections";
+  import { fieldOf, sections, toEnter, type Ctx, type Section } from "./sections";
 
   let {
     section,
@@ -26,7 +26,8 @@ above the cards. The selected row drives the OFP panel beside it.
     ctx: Ctx;
     selected: string;
     descriptions: boolean;
-    /** The pack's approach type option, with the flight's choice (Approach only). */
+    /** The option the pack asks on this page (the approach type on Approach), with the flight's
+     * choice. */
     approach?: { option: UserOption; value: string } | null;
     onSelect: (row: string) => void;
     onSet: (field: FieldId, value: string) => void;
@@ -34,8 +35,9 @@ above the cards. The selected row drives the OFP panel beside it.
     onNotes: (notes: string) => void;
   } = $props();
 
-  const title = (id: string) => SECTIONS.find((s) => s.id === id)?.title ?? id;
-  let unit = $derived((ctx.values.weight_unit ?? "LB").toUpperCase());
+  const title = (id: string) => sections().find((s) => s.id === id)?.title ?? id;
+  /** The steps an option changes, in words: "The Approach steps change with the type." */
+  const changes = (option: UserOption) => `The ${section.title} steps change with the ${option.title.split(" ").at(-1)?.toLowerCase() ?? "choice"}.`;
   /** The section's "N to enter" sits on its last card with a value still needed (boards). */
   let lastNeeded = $derived.by(() => {
     const missing = toEnter(ctx.values, section.id);
@@ -47,7 +49,7 @@ above the cards. The selected row drives the OFP panel beside it.
   });
 </script>
 
-{#if section.id === "approach" && approach}
+{#if approach}
   <div class="atype">
     <span class="al" id="atype">{approach.option.title}</span>
     <span class="seg" role="group" aria-labelledby="atype">
@@ -57,7 +59,7 @@ above the cards. The selected row drives the OFP panel beside it.
         </button>
       {/each}
     </span>
-    <span class="ah">The Approach steps change with the type.</span>
+    <span class="ah">{changes(approach.option)}</span>
   </div>
 {/if}
 {#each section.groups as group, g (group.title)}
@@ -67,11 +69,13 @@ above the cards. The selected row drives the OFP panel beside it.
       <h3>{group.title}</h3>
       <span class="fill"></span>
       <span class="note">{count ? `${count} to enter` : (group.note?.(ctx) ?? "")}</span>
-      {#if group.units}
-        <span class="note">Weights in</span>
-        <span class="seg small" role="group" aria-label="Weight unit">
-          {#each ["LB", "KG"] as u (u)}
-            <button type="button" aria-pressed={unit === u} onclick={() => onSet("weight_unit", u)}>{u.toLowerCase()}</button>
+      {#if group.units && group.unitField}
+        {@const units = fieldOf(group.unitField)}
+        {@const unit = ctx.values[group.unitField as FieldId] ?? units?.choices?.[0]?.value ?? ""}
+        <span class="note">{group.unitLabel ?? units?.label ?? ""}</span>
+        <span class="seg small" role="group" aria-label={units?.label ?? ""}>
+          {#each units?.choices ?? [] as c (c.value)}
+            <button type="button" aria-pressed={unit === c.value} onclick={() => onSet(group.unitField as FieldId, c.value)}>{(c.label ?? c.value).toLowerCase()}</button>
           {/each}
         </span>
       {/if}

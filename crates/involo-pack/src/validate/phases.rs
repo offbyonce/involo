@@ -115,6 +115,18 @@ pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
             idx.require_field(&option.id, field.as_str(), issues);
         }
         for phase in option.ask_in.iter().filter(|p| *p != START) {
+            // `flight:<page>` asks it on a Flight page (the approach type on Approach).
+            if let Some(page) = phase.strip_prefix("flight:") {
+                if !involo_checklist_core::FIELD_PAGES.contains(&page) {
+                    issues.push(error(
+                        &option.id,
+                        format!(
+                            "`ask_in` names `{phase}`, which is not one of the app's Flight pages"
+                        ),
+                    ));
+                }
+                continue;
+            }
             idx.require_phase(&option.id, phase, issues);
         }
         check_start(option, idx, issues);
@@ -222,6 +234,18 @@ mod tests {
     use involo_checklist_core::{FieldId, OptionChoice, OptionTest, ShowIf};
 
     use super::super::test_support::{assert_flags, messages, pack, step};
+
+    #[test]
+    fn an_option_asked_on_a_flight_page_names_a_real_one() {
+        let mut p = pack(vec![step("a")], vec![]);
+        p.content.phases.as_mut().unwrap().options[0].ask_in = vec!["flight:approach".into()];
+        assert_eq!(messages(&p), "");
+        p.content.phases.as_mut().unwrap().options[0].ask_in = vec!["flight:engines".into()];
+        assert_flags(
+            &p,
+            "`ask_in` names `flight:engines`, which is not one of the app's Flight pages",
+        );
+    }
 
     #[test]
     fn one_flight_phase_at_most_starts_the_engines() {

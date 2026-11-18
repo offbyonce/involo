@@ -17,7 +17,7 @@ it. Every field of the old Flight setup lives in one section.
   import SimBriefView from "./SimBriefView.svelte";
   import StartView from "./StartView.svelte";
   import WeatherView from "./WeatherView.svelte";
-  import { SECTIONS, toEnter, unitOf, type Ctx, type Ofp } from "./sections";
+  import { sections, toEnter, unitOf, type Ctx, type Ofp } from "./sections";
 
   let {
     section,
@@ -25,7 +25,7 @@ it. Every field of the old Flight setup lives in one section.
     flight,
     settings,
     plan,
-    centerTank = null,
+    suggested = {},
     options,
     states,
     panelStateLabels,
@@ -46,7 +46,8 @@ it. Every field of the old Flight setup lives in one section.
     settings: Settings;
     plan: SavedPlan | null;
     /** The center tank's share of the block fuel, from the suggestion rule ("1,262 kg"). */
-    centerTank?: string | null;
+    /** Each option's suggestion as its row shows it, by option id (decision 0027). */
+    suggested?: Record<string, string | null>;
     options: UserOption[];
     states: PanelState[];
     /** The panel state row's words, from the pack's labels. */
@@ -62,6 +63,8 @@ it. Every field of the old Flight setup lives in one section.
     onDescriptions: (on: boolean) => void;
   } = $props();
 
+  /** The pages that hold fields: shown only when the pack fills them. */
+  const FIELD_PAGES = new Set<FlightSection>(["route", "fuel", "cruise", "clearance", "takeoff", "approach"]);
   const NAMES: Record<FlightSection, string> = {
     overview: "Overview",
     route: "Route",
@@ -81,8 +84,10 @@ it. Every field of the old Flight setup lives in one section.
   };
 
   let wxPanel = $state<Ofp | null>(null);
-  let ctx = $derived<Ctx>({ values: flight.values ?? {}, plan, notes: flight.notes ?? "", unit: unitOf(flight), centerTank });
-  let def = $derived(SECTIONS.find((s) => s.id === section) ?? null);
+  let ctx = $derived<Ctx>({ values: flight.values ?? {}, plan, notes: flight.notes ?? "", unit: unitOf(flight), suggested });
+  let def = $derived(sections().find((s) => s.id === section) ?? null);
+  /** The Flight pages the pack fills; a field page it gives no field is left out. */
+  let shownSections = $derived(FLIGHT_SECTIONS.filter((id) => !FIELD_PAGES.has(id) || sections().some((s) => s.id === id)));
   /** The selected row of each section, which the OFP panel follows. */
   let picked = $state<Record<string, string>>({});
   // Each visit to a section starts on the board's selected row.
@@ -103,9 +108,10 @@ it. Every field of the old Flight setup lives in one section.
     return `${o || "—"} → ${d || "—"}${alt}`;
   });
   const time = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  /** The option the pack asks on this page (`ask_in: flight:<page>`), with the flight's choice. */
   let approach = $derived.by(() => {
-    const option = options.find((o) => o.id === "approach");
-    return option ? { option, value: flight.options.approach ?? option.default } : null;
+    const option = options.find((o) => (o.askIn ?? []).includes(`flight:${section}`));
+    return option ? { option, value: flight.options[option.id] ?? option.default } : null;
   });
 
   // A "— enter …" link: select the field's row and put the cursor in its box.
@@ -142,7 +148,7 @@ it. Every field of the old Flight setup lives in one section.
   </header>
   <div class="cols">
     <nav aria-label="Flight sections">
-      {#each FLIGHT_SECTIONS as id (id)}
+      {#each shownSections as id (id)}
         {#if id === "start"}<span class="rule" aria-hidden="true"></span>{/if}
         {@const count = toEnter(flight.values, id).length}
         <a href={flightHref(id)} aria-current={section === id ? "page" : undefined} class:on={section === id}>

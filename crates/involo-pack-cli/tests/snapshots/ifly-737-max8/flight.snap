@@ -2,6 +2,193 @@
 source: crates/involo-pack-cli/tests/snapshot.rs
 ---
 {
+  "pages": [
+    {
+      "id": "route",
+      "title": "Route",
+      "sub": "Where you're going and the way there. Used by the route and CDU steps.",
+      "selected": "route",
+      "groups": [
+        {
+          "title": "Airports",
+          "fields": [
+            "origin",
+            "destination",
+            "alternate",
+            "flight_number"
+          ]
+        },
+        {
+          "title": "The route",
+          "fields": [
+            "route",
+            "planned_distance",
+            "planned_time"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fuel",
+      "title": "Fuel and weights",
+      "sub": "Numbers for the fuel and weight steps and the CDU's PERF INIT page.",
+      "selected": "fuel",
+      "groups": [
+        {
+          "title": "Fuel",
+          "units": {
+            "field": "weight_unit",
+            "label": "Weights in"
+          },
+          "fields": [
+            "fuel",
+            "center_tank_fuel",
+            "trip_fuel",
+            "reserves",
+            "taxi_fuel",
+            "minimum_takeoff_fuel"
+          ]
+        },
+        {
+          "title": "Weights",
+          "note": "Same unit as fuel",
+          "fields": [
+            "zfw",
+            "cg",
+            "passengers",
+            "takeoff_weight"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cruise",
+      "title": "Cruise and levels",
+      "sub": "Used by the climb, cruise and descent steps.",
+      "selected": "cost_index",
+      "groups": [
+        {
+          "title": "Cruise",
+          "fields": [
+            "cruise_level",
+            "cost_index",
+            "cruise_wind",
+            "isa_deviation"
+          ]
+        },
+        {
+          "title": "Levels",
+          "fields": [
+            "transition_altitude",
+            "transition_level"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "clearance",
+      "title": "Clearance",
+      "sub": "What ATC cleared you to fly. The same fields as the flight strip.",
+      "selected": "sid",
+      "ofp": {
+        "from": "sid"
+      },
+      "groups": [
+        {
+          "title": "Departure clearance",
+          "fields": [
+            "runway",
+            "sid",
+            "transition",
+            "initial_altitude",
+            "squawk"
+          ]
+        },
+        {
+          "title": "Frequencies",
+          "fields": [
+            "ground_frequency",
+            "tower_frequency",
+            "departure_frequency"
+          ]
+        },
+        {
+          "title": "Notes from ATC",
+          "notes": {
+            "label": "Note",
+            "description": "Anything else ATC told you."
+          }
+        }
+      ]
+    },
+    {
+      "id": "takeoff",
+      "title": "Takeoff",
+      "sub": "Numbers for the takeoff steps and the CDU's TAKEOFF REF page.",
+      "selected": "v2",
+      "ofp": {
+        "from": "takeoff_weight",
+        "title": "Takeoff speeds come from the FMC",
+        "body": "The OFP plans the flight, not the takeoff. Speeds and trim come from the CDU's TAKEOFF REF page once weights and flaps are set. Some SimBrief layouts add takeoff performance at the end.",
+        "note": "The FMC uses the takeoff weight for these speeds.",
+        "not_in_plan": true
+      },
+      "groups": [
+        {
+          "title": "Runway",
+          "fields": [
+            "runway",
+            "heading"
+          ]
+        },
+        {
+          "title": "Settings and speeds",
+          "fields": [
+            "takeoff_flaps",
+            "thrust_rating",
+            "assumed_temperature",
+            "v1",
+            "vr",
+            "v2",
+            "takeoff_trim"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "approach",
+      "title": "Approach",
+      "sub": "Used by the Descent and Approach steps and the approach briefing. Arrival values live only here.",
+      "selected": "arrival_runway",
+      "ofp": {
+        "from": "arrival_runway",
+        "body": "Minimums come from the approach chart, and the landing speed and flaps from the CDU's APPROACH REF page. The OFP doesn't print them.",
+        "note": "The arrival in the plan is where these values apply.",
+        "not_in_plan": true,
+        "outline": false
+      },
+      "groups": [
+        {
+          "title": "Arrival",
+          "fields": [
+            "arrival_runway",
+            "star",
+            "transition_level"
+          ]
+        },
+        {
+          "title": "Landing",
+          "fields": [
+            "minimums",
+            "vref",
+            "landing_flaps",
+            "autobrake",
+            "landing_altitude"
+          ]
+        }
+      ]
+    }
+  ],
   "fields": [
     {
       "id": "origin",
@@ -16,7 +203,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       ],
       "simbrief": [
         "origin"
-      ]
+      ],
+      "input": {
+        "max_length": 4
+      }
     },
     {
       "id": "destination",
@@ -34,7 +224,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       },
       "simbrief": [
         "destination"
-      ]
+      ],
+      "input": {
+        "max_length": 4
+      }
     },
     {
       "id": "alternate",
@@ -46,7 +239,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Airports",
       "simbrief": [
         "alternate"
-      ]
+      ],
+      "input": {
+        "max_length": 4
+      }
     },
     {
       "id": "flight_number",
@@ -58,7 +254,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Airports",
       "simbrief": [
         "flight_number"
-      ]
+      ],
+      "input": {
+        "max_length": 7
+      }
     },
     {
       "id": "route",
@@ -70,7 +269,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "The route",
       "simbrief": [
         "route"
-      ]
+      ],
+      "input": {
+        "max_length": 400,
+        "mode": "text"
+      }
     },
     {
       "id": "runway",
@@ -88,6 +291,24 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       },
       "simbrief": [
         "runway"
+      ],
+      "input": {
+        "max_length": 4
+      },
+      "also": [
+        {
+          "page": "takeoff",
+          "group": "Runway",
+          "label": "Takeoff runway",
+          "description": "Set in Clearance.",
+          "ofp": {
+            "from": "takeoff_weight",
+            "title": "Takeoff speeds come from the FMC",
+            "body": "The OFP plans the flight, not the takeoff. Speeds and trim come from the CDU's TAKEOFF REF page once weights and flaps are set. Some SimBrief layouts add takeoff performance at the end.",
+            "note": "The FMC uses the takeoff weight for these speeds.",
+            "not_in_plan": true
+          }
+        }
       ]
     },
     {
@@ -103,7 +324,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       ],
       "simbrief": [
         "sid"
-      ]
+      ],
+      "input": {
+        "max_length": 8
+      }
     },
     {
       "id": "transition",
@@ -121,7 +345,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       },
       "simbrief": [
         "transition"
-      ]
+      ],
+      "input": {
+        "max_length": 8
+      }
     },
     {
       "id": "initial_altitude",
@@ -131,7 +358,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 0.0,
-          "max": 41000.0
+          "max": 41000.0,
+          "message": "Enter 0 to 41,000 ft"
         }
       ],
       "location": "Set on the MCP › ALTITUDE",
@@ -142,6 +370,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       ],
       "strip": {
         "suffix": " FT"
+      },
+      "input": {
+        "max_length": 5,
+        "mode": "numeric"
       }
     },
     {
@@ -157,6 +389,13 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       ],
       "strip": {
         "prefix": "SQK "
+      },
+      "input": {
+        "max_length": 4,
+        "mode": "numeric"
+      },
+      "ofp": {
+        "title": "Your squawk comes from ATC"
       }
     },
     {
@@ -172,6 +411,13 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       ],
       "strip": {
         "prefix": "GND "
+      },
+      "input": {
+        "max_length": 7,
+        "mode": "decimal"
+      },
+      "ofp": {
+        "title": "Frequencies come from the chart and ATIS"
       }
     },
     {
@@ -181,7 +427,14 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "kind": "text",
       "location": "Set on the radio panel",
       "page": "clearance",
-      "group": "Frequencies"
+      "group": "Frequencies",
+      "input": {
+        "max_length": 7,
+        "mode": "decimal"
+      },
+      "ofp": {
+        "title": "Frequencies come from the chart and ATIS"
+      }
     },
     {
       "id": "departure_frequency",
@@ -196,6 +449,14 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       ],
       "strip": {
         "prefix": "DEP "
+      },
+      "input": {
+        "max_length": 7,
+        "mode": "decimal",
+        "placeholder": "Enter"
+      },
+      "ofp": {
+        "title": "Frequencies come from the chart and ATIS"
       }
     },
     {
@@ -207,17 +468,20 @@ source: crates/involo-pack-cli/tests/snapshot.rs
         {
           "unit": "inHg",
           "min": 28.0,
-          "max": 31.0
+          "max": 31.0,
+          "message": "Enter 28.00 to 31.00 inHg"
         },
         {
           "unit": "hPa",
           "min": 948.0,
-          "max": 1050.0
+          "max": 1050.0,
+          "message": "Enter 948 to 1050 hPa"
         }
       ],
       "simbrief": [
         "origin_altimeter"
-      ]
+      ],
+      "spoken": "QNH"
     },
     {
       "id": "destination_qnh",
@@ -228,17 +492,20 @@ source: crates/involo-pack-cli/tests/snapshot.rs
         {
           "unit": "inHg",
           "min": 28.0,
-          "max": 31.0
+          "max": 31.0,
+          "message": "Enter 28.00 to 31.00 inHg"
         },
         {
           "unit": "hPa",
           "min": 948.0,
-          "max": 1050.0
+          "max": 1050.0,
+          "message": "Enter 948 to 1050 hPa"
         }
       ],
       "simbrief": [
         "destination_altimeter"
-      ]
+      ],
+      "spoken": "QNH"
     },
     {
       "id": "heading",
@@ -248,12 +515,21 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 1.0,
-          "max": 360.0
+          "max": 360.0,
+          "message": "Enter 001 to 360"
         }
       ],
       "location": "Set on the MCP › HEADING",
       "page": "takeoff",
-      "group": "Runway"
+      "group": "Runway",
+      "input": {
+        "max_length": 3,
+        "mode": "numeric"
+      },
+      "show": {
+        "suffix": "°"
+      },
+      "spoken": "runway heading"
     },
     {
       "id": "takeoff_flaps",
@@ -302,7 +578,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Landing",
       "show_in": [
         "arrival"
-      ]
+      ],
+      "ofp": {
+        "title": "Landing flaps come from the FMC"
+      }
     },
     {
       "id": "v1",
@@ -312,12 +591,18 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 80.0,
-          "max": 250.0
+          "max": 250.0,
+          "message": "Enter 80 to 250 knots"
         }
       ],
       "location": "Enter on the CDU › TAKEOFF REF",
       "page": "takeoff",
-      "group": "Settings and speeds"
+      "group": "Settings and speeds",
+      "input": {
+        "max_length": 3,
+        "mode": "numeric"
+      },
+      "spoken": "V1"
     },
     {
       "id": "vr",
@@ -327,12 +612,18 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 80.0,
-          "max": 250.0
+          "max": 250.0,
+          "message": "Enter 80 to 250 knots"
         }
       ],
       "location": "Enter on the CDU › TAKEOFF REF",
       "page": "takeoff",
-      "group": "Settings and speeds"
+      "group": "Settings and speeds",
+      "input": {
+        "max_length": 3,
+        "mode": "numeric"
+      },
+      "spoken": "VR"
     },
     {
       "id": "v2",
@@ -342,12 +633,19 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 100.0,
-          "max": 250.0
+          "max": 250.0,
+          "message": "Enter 100 to 250 knots"
         }
       ],
       "location": "Enter on the CDU › TAKEOFF REF",
       "page": "takeoff",
-      "group": "Settings and speeds"
+      "group": "Settings and speeds",
+      "input": {
+        "max_length": 3,
+        "mode": "numeric",
+        "placeholder": "From the FMC"
+      },
+      "spoken": "V2"
     },
     {
       "id": "vref",
@@ -357,7 +655,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 100.0,
-          "max": 250.0
+          "max": 250.0,
+          "message": "Enter 100 to 250 knots"
         }
       ],
       "location": "Enter on the CDU › APPROACH REF",
@@ -365,7 +664,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Landing",
       "show_in": [
         "arrival"
-      ]
+      ],
+      "input": {
+        "max_length": 3,
+        "mode": "numeric",
+        "placeholder": "From the FMC"
+      },
+      "spoken": "VREF",
+      "ofp": {
+        "title": "Landing speed comes from the FMC"
+      }
     },
     {
       "id": "cg",
@@ -375,12 +683,24 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 0.0,
-          "max": 50.0
+          "max": 50.0,
+          "message": "Enter 0 to 50% MAC"
         }
       ],
       "location": "Enter on the CDU › TAKEOFF REF",
       "page": "fuel",
-      "group": "Weights"
+      "group": "Weights",
+      "input": {
+        "mode": "decimal"
+      },
+      "show": {
+        "suffix": "%"
+      },
+      "ofp": {
+        "from": "zero_fuel_weight",
+        "title": "The CG is in the weights section",
+        "note": "Some layouts print the CG beside the zero fuel weight."
+      }
     },
     {
       "id": "takeoff_trim",
@@ -390,12 +710,18 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 0.0,
-          "max": 15.0
+          "max": 15.0,
+          "message": "Enter 0.00 to 15.00 units"
         }
       ],
       "location": "Enter on the CDU › TAKEOFF REF",
       "page": "takeoff",
-      "group": "Settings and speeds"
+      "group": "Settings and speeds",
+      "input": {
+        "max_length": 5,
+        "mode": "decimal",
+        "placeholder": "From the FMC"
+      }
     },
     {
       "id": "autobrake",
@@ -424,7 +750,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Landing",
       "show_in": [
         "arrival"
-      ]
+      ],
+      "ofp": {
+        "title": "Autobrake is your choice for the runway"
+      }
     },
     {
       "id": "minimums",
@@ -434,7 +763,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 0.0,
-          "max": 14000.0
+          "max": 14000.0,
+          "message": "Enter 0 to 14,000 ft"
         }
       ],
       "location": "Set on the EFIS › MINS",
@@ -442,7 +772,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Landing",
       "show_in": [
         "arrival"
-      ]
+      ],
+      "input": {
+        "max_length": 5,
+        "mode": "numeric",
+        "placeholder": "Enter"
+      },
+      "toggle": "minimums_type",
+      "ofp": {
+        "title": "Minimums come from the approach chart"
+      }
     },
     {
       "id": "landing_altitude",
@@ -452,7 +791,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": -1000.0,
-          "max": 14000.0
+          "max": 14000.0,
+          "message": "Enter −1,000 to 14,000 ft"
         }
       ],
       "location": "Set on the pressurization panel › LAND ALT",
@@ -463,7 +803,14 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       ],
       "simbrief": [
         "destination_elevation"
-      ]
+      ],
+      "input": {
+        "max_length": 5,
+        "mode": "numeric"
+      },
+      "ofp": {
+        "body": "The header's route line ends with the arrival: the STAR, then the destination and its runway. The destination's elevation is in the header too. Minimums and landing speed come from the approach chart and the FMC, not the OFP."
+      }
     },
     {
       "id": "arrival_runway",
@@ -475,7 +822,13 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Arrival",
       "simbrief": [
         "arrival_runway"
-      ]
+      ],
+      "input": {
+        "max_length": 4
+      },
+      "ofp": {
+        "body": "The header's route line ends with the arrival: the STAR, then the destination and its runway. The destination's elevation is in the header too. Minimums and landing speed come from the approach chart and the FMC, not the OFP."
+      }
     },
     {
       "id": "star",
@@ -487,16 +840,29 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Arrival",
       "simbrief": [
         "star"
-      ]
+      ],
+      "input": {
+        "max_length": 8,
+        "placeholder": "Enter"
+      },
+      "needed": true,
+      "ofp": {
+        "body": "The header's route line ends with the arrival: the STAR, then the destination and its runway. The destination's elevation is in the header too. Minimums and landing speed come from the approach chart and the FMC, not the OFP."
+      }
     },
     {
       "id": "minimum_takeoff_fuel",
       "label": "Minimum takeoff fuel",
+      "description": "The least fuel to start the takeoff with: trip, contingency, alternate and final reserve. Check you have at least this before takeoff.",
       "kind": "number",
       "unit": "weight_unit",
+      "page": "fuel",
+      "group": "Fuel",
       "simbrief": [
         "minimum_takeoff_fuel"
-      ]
+      ],
+      "read_only": true,
+      "phase": "before-start"
     },
     {
       "id": "fuel",
@@ -509,7 +875,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Fuel",
       "simbrief": [
         "block_fuel"
-      ]
+      ],
+      "input": {
+        "mode": "numeric"
+      }
     },
     {
       "id": "zfw",
@@ -520,7 +889,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 0.0,
-          "max": 400.0
+          "max": 400.0,
+          "message": "Enter 0 to 400,000 {unit}"
         }
       ],
       "location": "Enter on the CDU › PERF INIT",
@@ -533,7 +903,13 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       },
       "simbrief": [
         "zero_fuel_weight"
-      ]
+      ],
+      "input": {
+        "mode": "decimal"
+      },
+      "ofp": {
+        "note": "Enter it in thousands, as the CDU takes it."
+      }
     },
     {
       "id": "takeoff_weight",
@@ -544,7 +920,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 0.0,
-          "max": 400.0
+          "max": 400.0,
+          "message": "Enter 0 to 400,000 {unit}"
         }
       ],
       "location": "Enter on the CDU › PERF INIT",
@@ -557,7 +934,13 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       },
       "simbrief": [
         "takeoff_weight"
-      ]
+      ],
+      "input": {
+        "mode": "decimal"
+      },
+      "ofp": {
+        "note": "Cross-check it with the FMC's gross weight."
+      }
     },
     {
       "id": "passengers",
@@ -567,14 +950,20 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 0.0,
-          "max": 500.0
+          "max": 500.0,
+          "message": "Enter 0 to 500"
         }
       ],
       "page": "fuel",
       "group": "Weights",
       "simbrief": [
         "passengers"
-      ]
+      ],
+      "input": {
+        "max_length": 3,
+        "mode": "numeric"
+      },
+      "with": "cargo"
     },
     {
       "id": "cargo",
@@ -584,7 +973,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 0.0,
-          "max": 100.0
+          "max": 100.0,
+          "message": "Enter 0 to 100,000 {unit}"
         }
       ],
       "page": "fuel",
@@ -596,7 +986,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       },
       "simbrief": [
         "cargo"
-      ]
+      ],
+      "input": {
+        "max_length": 7,
+        "mode": "decimal"
+      }
     },
     {
       "id": "reserves",
@@ -607,7 +1001,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 0.0,
-          "max": 100.0
+          "max": 100.0,
+          "message": "Enter 0 to 100,000 {unit}"
         }
       ],
       "location": "Enter on the CDU › PERF INIT",
@@ -621,7 +1016,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "simbrief": [
         "reserve_fuel",
         "alternate_fuel"
-      ]
+      ],
+      "input": {
+        "mode": "decimal"
+      }
     },
     {
       "id": "cost_index",
@@ -631,7 +1029,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 0.0,
-          "max": 9999.0
+          "max": 9999.0,
+          "message": "Enter 0 to 9999"
         }
       ],
       "location": "Enter on the CDU › PERF INIT",
@@ -639,7 +1038,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Cruise",
       "simbrief": [
         "cost_index"
-      ]
+      ],
+      "input": {
+        "max_length": 4,
+        "mode": "numeric"
+      }
     },
     {
       "id": "cruise_level",
@@ -649,7 +1052,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 100.0,
-          "max": 410.0
+          "max": 410.0,
+          "message": "Enter FL100 to FL410"
         }
       ],
       "location": "Enter on the CDU › PERF INIT",
@@ -657,7 +1061,14 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Cruise",
       "simbrief": [
         "cruise_level"
-      ]
+      ],
+      "input": {
+        "max_length": 3,
+        "mode": "numeric"
+      },
+      "show": {
+        "prefix": "FL"
+      }
     },
     {
       "id": "cruise_wind",
@@ -669,7 +1080,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Cruise",
       "simbrief": [
         "cruise_wind"
-      ]
+      ],
+      "input": {
+        "max_length": 7
+      }
     },
     {
       "id": "thrust_rating",
@@ -698,7 +1112,14 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "kind": "number",
       "location": "Enter on the CDU › N1 LIMIT",
       "page": "takeoff",
-      "group": "Settings and speeds"
+      "group": "Settings and speeds",
+      "input": {
+        "max_length": 3,
+        "mode": "numeric"
+      },
+      "show": {
+        "suffix": " °C"
+      }
     },
     {
       "id": "thrust_reduction_altitude",
@@ -718,7 +1139,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": -60.0,
-          "max": 60.0
+          "max": 60.0,
+          "message": "Enter −60 to +60"
         }
       ],
       "location": "Enter on the CDU › PERF INIT",
@@ -726,7 +1148,14 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Cruise",
       "simbrief": [
         "isa_deviation"
-      ]
+      ],
+      "input": {
+        "max_length": 3,
+        "mode": "numeric"
+      },
+      "show": {
+        "signed": true
+      }
     },
     {
       "id": "transition_altitude",
@@ -736,7 +1165,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "ranges": [
         {
           "min": 1000.0,
-          "max": 20000.0
+          "max": 20000.0,
+          "message": "Enter 1,000 to 20,000 ft"
         }
       ],
       "location": "Enter on the CDU › PERF INIT",
@@ -744,23 +1174,46 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "group": "Levels",
       "simbrief": [
         "transition_altitude"
-      ]
+      ],
+      "input": {
+        "max_length": 5,
+        "mode": "numeric"
+      },
+      "show": {
+        "grouped": true
+      }
     },
     {
       "id": "transition_level",
       "label": "Transition level",
-      "description": "Where you switch back to the local setting on the way down. Also on Approach.",
+      "description": "Where you set the altimeters to the local setting on the way down.",
       "kind": "number",
       "ranges": [
         {
           "min": 10.0,
-          "max": 600.0
+          "max": 600.0,
+          "message": "Enter FL10 to FL600"
         }
       ],
-      "page": "cruise",
-      "group": "Levels",
+      "location": "Enter on the CDU › DESCENT",
+      "page": "approach",
+      "group": "Arrival",
       "simbrief": [
         "transition_level"
+      ],
+      "input": {
+        "max_length": 3,
+        "mode": "numeric"
+      },
+      "show": {
+        "prefix": "FL"
+      },
+      "also": [
+        {
+          "page": "cruise",
+          "group": "Levels",
+          "description": "Where you switch back to the local setting on the way down. Also on Approach."
+        }
       ]
     },
     {
@@ -857,6 +1310,68 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       "id": "utc_date",
       "label": "UTC date",
       "kind": "text"
+    },
+    {
+      "id": "planned_distance",
+      "label": "Distance",
+      "description": "Planned air distance, which allows for the wind.",
+      "kind": "number",
+      "page": "route",
+      "group": "The route",
+      "simbrief": [
+        "air_distance"
+      ],
+      "read_only": true
+    },
+    {
+      "id": "planned_time",
+      "label": "Planned time",
+      "description": "Planned time from takeoff to landing.",
+      "kind": "text",
+      "page": "route",
+      "group": "The route",
+      "simbrief": [
+        "enroute_time"
+      ],
+      "read_only": true
+    },
+    {
+      "id": "center_tank_fuel",
+      "label": "Center tank",
+      "description": "What's left after both wing tanks fill. The Center tank fuel step suggests its answer from this.",
+      "kind": "text",
+      "page": "fuel",
+      "group": "Fuel",
+      "phase": "before-start",
+      "suggested_by": "center_tank",
+      "ofp": {
+        "from": "block_fuel",
+        "note": "The center tank takes what's left of the block fuel after both wing tanks fill."
+      }
+    },
+    {
+      "id": "trip_fuel",
+      "label": "Trip fuel",
+      "description": "Planned burn from takeoff to landing.",
+      "kind": "number",
+      "page": "fuel",
+      "group": "Fuel",
+      "simbrief": [
+        "trip_fuel"
+      ],
+      "read_only": true
+    },
+    {
+      "id": "taxi_fuel",
+      "label": "Taxi fuel",
+      "description": "Planned burn before takeoff.",
+      "kind": "number",
+      "page": "fuel",
+      "group": "Fuel",
+      "simbrief": [
+        "taxi_fuel"
+      ],
+      "read_only": true
     }
   ]
 }

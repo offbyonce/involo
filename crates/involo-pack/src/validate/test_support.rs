@@ -115,6 +115,17 @@ pub(super) fn flight() -> involo_checklist_core::FlightFile {
         strip: None,
         display: None,
         simbrief: vec![],
+        input: None,
+        show: None,
+        spoken: None,
+        with: None,
+        toggle: None,
+        also: vec![],
+        read_only: false,
+        phase: None,
+        suggested_by: None,
+        needed: false,
+        ofp: None,
     };
     let choice = |id: &str, values: &[&str]| {
         let mut f = field(id, FieldKind::Choice);
@@ -132,6 +143,7 @@ pub(super) fn flight() -> involo_checklist_core::FlightFile {
     let mut min_fuel = fuel.clone();
     min_fuel.id = "minimum_takeoff_fuel".into();
     involo_checklist_core::FlightFile {
+        pages: vec![],
         fields: vec![
             fuel,
             min_fuel,

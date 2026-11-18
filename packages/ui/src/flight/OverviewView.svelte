@@ -7,11 +7,11 @@ its field; "This flight" holds the key values, each linking to its section.
 -->
 <script lang="ts">
   import { flightHref } from "../route.svelte";
-  import { SECTIONS, toEnter, type Ctx } from "./sections";
+  import { sections, toEnter, type Ctx } from "./sections";
 
   let { ctx, descriptions }: { ctx: Ctx; descriptions: boolean } = $props();
 
-  const sectionOf = (id: string) => SECTIONS.find((s) => s.groups.some((g) => g.rows.some((r) => r.id === id)));
+  const sectionOf = (id: string) => sections().find((s) => s.groups.some((g) => g.rows.some((r) => r.id === id)));
   const first = (text: string) => text.split(/(?<=\.)\s/)[0] ?? text;
   const v = (k: keyof Ctx["values"]) => ctx.values[k] ?? "";
   const grouped = (n: number) => Math.round(n).toLocaleString("en-US");
