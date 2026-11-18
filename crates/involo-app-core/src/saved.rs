@@ -233,8 +233,9 @@ mod tests {
 
     #[test]
     fn a_flight_saved_before_packs_defined_their_fields_keeps_every_value() {
-        // Format 4, as the app saved it while flight fields were a fixed list (kept as it was,
-        // never regenerated). Values are keyed by field id, as text, so nothing moves.
+        // Format 4, written by the app's own code while flight fields were a fixed list: a flight
+        // with 22 values, a panel state, a tick and notes (kept as it was, never regenerated).
+        // Values are keyed by field id, as text, so nothing moves.
         let text = include_str!("../tests/fixtures/flight-format-4.json");
         let saved: serde_json::Value = serde_json::from_str(text).unwrap();
         let Loaded::Ready {
@@ -254,6 +255,8 @@ mod tests {
             serde_json::from_value(saved["values"].clone()).unwrap();
         assert_eq!(values, expected);
         assert_eq!(values.len(), 22);
+        assert_eq!(value.panel_state.as_deref(), Some("gpu"));
+        assert_eq!(value.notes, "Taxi via A, hold short 16L");
         assert_eq!(
             serde_json::to_value(&value).unwrap()["values"],
             saved["values"]
