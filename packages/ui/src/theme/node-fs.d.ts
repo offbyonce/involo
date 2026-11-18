@@ -7,7 +7,12 @@ declare module "node:fs" {
   export function readFileSync(path: string, encoding: "utf8"): string;
   /** The test pack helper reads the WebAssembly module's bytes. */
   export function readFileSync(path: string): Uint8Array;
+  /** `just practice-diff`'s dump test writes every question to a file. */
+  export function writeFileSync(path: string, text: string): void;
 }
+
+/** The environment, for a test that runs only when a variable is set (`just practice-diff`). */
+declare const process: { env: Record<string, string | undefined> };
 
 interface ImportMeta {
   /** The folder of this module (Node and Vitest). */

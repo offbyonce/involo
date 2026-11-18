@@ -67,6 +67,30 @@ site: wasm web-packs
 update-test: site
     node apps/web/build/update-test.mjs
 
+# Builds <base> in a worktree under target/practice-diff and writes every question from each with
+# packages/ui/src/lib/practice-dump.test.ts; the diff is empty when a change leaves the questions
+# word for word as they were. Not part of `just ci`.
+# Diff every iFly practice question on <base> (main by default) against this checkout.
+practice-diff base="main":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    dir="$PWD/target/practice-diff"
+    dump="packages/ui/src/lib/practice-dump.test.ts"
+    rm -rf "$dir" && mkdir -p "$dir"
+    git worktree remove --force "$dir/base" 2>/dev/null || true
+    git worktree add --detach "$dir/base" "{{base}}" >/dev/null
+    cp "$dump" "$dir/base/$dump"
+    just wasm web-packs >/dev/null
+    (cd packages/ui && PRACTICE_DUMP="$dir/branch.json" pnpm exec vitest run src/lib/practice-dump.test.ts >/dev/null)
+    (cd "$dir/base" && pnpm install --frozen-lockfile --prefer-offline >/dev/null && just wasm web-packs >/dev/null \
+      && cd packages/ui && PRACTICE_DUMP="$dir/base.json" pnpm exec vitest run src/lib/practice-dump.test.ts >/dev/null)
+    git worktree remove --force "$dir/base"
+    if diff -u "$dir/base.json" "$dir/branch.json" > "$dir/diff.txt"; then
+      echo "practice-diff: no difference from {{base}} ($(grep -c '"id":' "$dir/branch.json") questions)"
+    else
+      echo "practice-diff: differences from {{base}} in $dir/diff.txt"; exit 1
+    fi
+
 # Screenshots of the built app for review (phone, both tablets, 1440 and 2560, dark and light), to a
 # folder outside the repo. Needs Firefox; not part of `just ci`.
 screenshots out: site
