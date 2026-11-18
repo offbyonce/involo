@@ -18,7 +18,7 @@ import type {
   LogEdit,
   LoggedFlight,
   OpenStep,
-  PhaseView,
+  PhaseModel,
   Plan,
   PlanSource,
   PlanValues,
@@ -55,9 +55,9 @@ export async function exampleChecklist(): Promise<Checklist> {
 }
 
 /** Reads a flattened pack's JSON text, as written by `involo-pack build`; the module keeps it loaded. */
-export async function loadPack(json: string): Promise<FlatPack> {
+export async function parsePack(json: string): Promise<FlatPack> {
   await load();
-  return unwrap<FlatPack>(wasm.load_pack(json));
+  return unwrap<FlatPack>(wasm.parse_pack(json));
 }
 
 export async function newFlight(pack: string): Promise<Flight> {
@@ -93,26 +93,26 @@ export async function suggestion(pack: string, flight: Flight, option: string): 
   return unwrap<Suggestion | null>(wasm.suggestion(pack, JSON.stringify(flight), option));
 }
 
-export async function phaseView(
+export async function phaseModel(
   pack: string,
   flight: Flight,
   settings: Settings,
   phase: string,
-): Promise<PhaseView> {
+): Promise<PhaseModel> {
   await load();
-  return unwrap<PhaseView>(wasm.phase_view(pack, JSON.stringify(flight), JSON.stringify(settings), phase));
+  return unwrap<PhaseModel>(wasm.phase_model(pack, JSON.stringify(flight), JSON.stringify(settings), phase));
 }
 
 /** Reads a saved flight: ready (migrated if older), newer, or unreadable (decision 0012). */
-export async function loadFlight(json: string): Promise<Loaded<Flight>> {
+export async function parseFlight(json: string): Promise<Loaded<Flight>> {
   await load();
-  return unwrap<Loaded<Flight>>(wasm.load_flight(json));
+  return unwrap<Loaded<Flight>>(wasm.parse_flight(json));
 }
 
 /** Reads saved settings: ready (migrated if older), newer, or unreadable (decision 0012). */
-export async function loadSettings(json: string): Promise<Loaded<Settings>> {
+export async function parseSettings(json: string): Promise<Loaded<Settings>> {
   await load();
-  return unwrap<Loaded<Settings>>(wasm.load_settings(json));
+  return unwrap<Loaded<Settings>>(wasm.parse_settings(json));
 }
 
 export async function defaultSettings(): Promise<Settings> {
@@ -133,9 +133,9 @@ export async function parsePlan(text: string): Promise<Plan> {
 }
 
 /** Reads the saved SimBrief plan (decision 0019). */
-export async function loadPlan(json: string): Promise<Loaded<SavedPlan>> {
+export async function parseSavedPlan(json: string): Promise<Loaded<SavedPlan>> {
   await load();
-  return unwrap<Loaded<SavedPlan>>(wasm.load_plan(json));
+  return unwrap<Loaded<SavedPlan>>(wasm.parse_saved_plan(json));
 }
 
 /** The saved plan's format number. */
@@ -169,9 +169,9 @@ export async function newLog(): Promise<Log> {
 }
 
 /** Reads the saved flight log: ready (migrated if older), newer, or unreadable. */
-export async function loadLog(json: string): Promise<Loaded<Log>> {
+export async function parseLog(json: string): Promise<Loaded<Log>> {
   await load();
-  return unwrap<Loaded<Log>>(wasm.load_log(json));
+  return unwrap<Loaded<Log>>(wasm.parse_log(json));
 }
 
 /** The flight as a log entry, logged at `at`. */

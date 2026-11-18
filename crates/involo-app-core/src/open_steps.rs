@@ -99,7 +99,7 @@ mod tests {
     use super::*;
     use crate::actions::{Action, apply};
     use crate::flight::new_flight;
-    use crate::phase_view::phase_view;
+    use crate::phase_model::phase_model;
     use crate::test_support::ifly_pack;
 
     #[test]
@@ -107,7 +107,7 @@ mod tests {
         let pack = ifly_pack();
         let s = Settings::default();
         let mut flight = new_flight(&pack);
-        let cold = phase_view(&pack, &flight, &s, "cold-dark").unwrap().lists[0]
+        let cold = phase_model(&pack, &flight, &s, "cold-dark").unwrap().lists[0]
             .steps
             .clone();
         assert!(

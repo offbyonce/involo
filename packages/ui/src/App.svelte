@@ -18,10 +18,10 @@ in Rust. The host saves progress and settings on the device.
     type FlatPack,
     type Flight,
     isAppError,
-    type ListView,
+    type StepLayout,
     type Log,
     type LoggedFlight,
-    type PhaseView,
+    type PhaseModel,
     type PlanSource,
     type Progress,
     type Rail,
@@ -149,9 +149,9 @@ in Rust. The host saves progress and settings on the device.
   /** Saved data the app could not use, kept until the pilot decides (decisions 0012 and 0019);
    * `stuck` when starting fresh couldn't set it aside, so nothing was moved. */
   let kept = $state<{ what: Kept; state: "newer" | "unreadable"; text: string; stuck?: boolean }[]>([]);
-  let view = $state<PhaseView | null>(null);
+  let view = $state<PhaseModel | null>(null);
   /** In Essentials, the same phase in Full, for "Show N more steps from Full". */
-  let fullView = $state<PhaseView | null>(null);
+  let fullView = $state<PhaseModel | null>(null);
   let error = $state<string | null>(null);
   let menuOpen = $state(false);
   /** The step shown in the context panel; null means the current step. */
@@ -231,7 +231,7 @@ in Rust. The host saves progress and settings on the device.
       lists = new Map(pack.lists.map((l) => [l.id, l]));
       intros = new Map((pack.content.phases?.phases ?? []).map((p) => [p.id, p.intro ?? []]));
       // What is saved on this device, if anything; what cannot be used is kept, never dropped.
-      const saved = await host.loadSaved(aircraft.id);
+      const saved = await host.readSaved(aircraft.id);
       const usable = <T,>(what: Kept, item: SavedItem<T>): T | null => {
         if (!item) return null;
         if (item.loaded.state === "ready") return item.loaded.value;
@@ -244,8 +244,8 @@ in Rust. The host saves progress and settings on the device.
       settings = usable("settings", saved.settings) ?? (await host.defaultSettings());
       const savedFlight = usable("flight", saved.flight);
       flight = savedFlight && savedFlight.pack === aircraft.id ? savedFlight : await host.newFlight(aircraft.id);
-      plan = usable("plan", await host.loadPlan(aircraft.id));
-      await loadLog();
+      plan = usable("plan", await host.readPlan(aircraft.id));
+      await openLog();
       await refresh();
     } catch (e) {
       fail(e);
@@ -301,7 +301,7 @@ in Rust. The host saves progress and settings on the device.
     if (!s) return;
     if (s.essentials) {
       safely(
-        host.phaseView(packId, f, { ...s, essentials: false }, id),
+        host.phaseModel(packId, f, { ...s, essentials: false }, id),
         (v) => {
           if (!stale) fullView = v;
         },
@@ -313,7 +313,7 @@ in Rust. The host saves progress and settings on the device.
       fullView = null;
     }
     safely(
-      host.phaseView(packId, f, s, id),
+      host.phaseModel(packId, f, s, id),
       (v) => {
         if (!stale) view = v;
       },
@@ -328,7 +328,7 @@ in Rust. The host saves progress and settings on the device.
     };
   });
 
-  let listView = $derived<ListView>(settings?.listView ?? "checklist");
+  let listView = $derived<StepLayout>(settings?.listView ?? "checklist");
   let detail = $derived(settings?.detail ?? "expanded");
   let flow = $derived(screen !== "reference" && listView === "flow");
   let total = $derived<Progress>(
@@ -494,7 +494,7 @@ in Rust. The host saves progress and settings on the device.
    */
   async function reloadSaved(): Promise<void> {
     if (!packId) return;
-    const saved = await host.loadSaved(packId);
+    const saved = await host.readSaved(packId);
     let changed = false;
     const adopt = <T,>(what: "flight" | "settings", item: SavedItem<T>, current: T | null): T | null => {
       if (!item) return null;
@@ -565,8 +565,8 @@ in Rust. The host saves progress and settings on the device.
    * or unreadable, or a read that failed) is kept as it is: the page says so, Export JSON saves its
    * text as it was, and nothing saves over it.
    */
-  async function loadLog(): Promise<void> {
-    const saved = await host.loadLog();
+  async function openLog(): Promise<void> {
+    const saved = await host.readLog();
     if (saved?.loaded.state === "ready") {
       log = saved.loaded.value;
       return;
@@ -589,9 +589,9 @@ in Rust. The host saves progress and settings on the device.
    */
   async function changeLog(edit: Parameters<typeof host.editLog>[1], keep = false) {
     if (!log || logBlocked) return null;
-    const saved = await host.loadLog();
+    const saved = await host.readLog();
     if (saved && saved.loaded.state !== "ready") {
-      await loadLog();
+      await openLog();
       return null;
     }
     const base = saved?.loaded.state === "ready" ? saved.loaded.value : log;
@@ -987,7 +987,7 @@ in Rust. The host saves progress and settings on the device.
     cursor = null;
     return tickAndOffer({ type: "tick", step: id, at: Date.now() });
   };
-  const changeView = (v: ListView) => {
+  const changeView = (v: StepLayout) => {
     if (settings) void changeSettings({ ...settings, listView: v });
   };
 
@@ -1048,7 +1048,7 @@ in Rust. The host saves progress and settings on the device.
     if (screen !== "how" || !id || !f || !s) return;
     let stale = false;
     safely(
-      host.phaseView(packId, f, s, id),
+      host.phaseModel(packId, f, s, id),
       (v) => {
         const c = v.lists.find((l) => l.current)?.current ?? null;
         const st = c ? index?.step(c) : undefined;

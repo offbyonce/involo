@@ -28,7 +28,7 @@ test("the module answers with app facts and the example checklist", () => {
 
 test("the flattened iFly pack loads", () => {
   const pack = ok(
-    wasm.load_pack(fs.readFileSync(path.join(here, "public/packs/ifly-737-max8.json"), "utf8")),
+    wasm.parse_pack(fs.readFileSync(path.join(here, "public/packs/ifly-737-max8.json"), "utf8")),
   );
   assert.equal(pack.manifest.id, "ifly-737-max8");
   assert.equal(pack.lists.length, 65);
@@ -47,7 +47,7 @@ test("SimBrief plans read in both forms, and errors arrive tagged", () => {
 });
 
 test("the module keeps a loaded pack for flights, actions and the rail", () => {
-  ok(wasm.load_pack(fs.readFileSync(path.join(here, "public/packs/ifly-737-max8.json"), "utf8")));
+  ok(wasm.parse_pack(fs.readFileSync(path.join(here, "public/packs/ifly-737-max8.json"), "utf8")));
   const flight = ok(wasm.new_flight("ifly-737-max8"));
   assert.equal(flight.options.power, "gpu");
   const step = "ifly-737-max8.exterior.left-forward-fuselage";
@@ -66,7 +66,7 @@ test("the module keeps a loaded pack for flights, actions and the rail", () => {
   const open = ok(wasm.open_steps("ifly-737-max8", JSON.stringify(skipped), settings, ""));
   assert.equal(open.find((o) => o.step === step)?.skipped, true);
   const essentials = JSON.stringify({ ...JSON.parse(settings), essentials: true });
-  const view = ok(wasm.phase_view("ifly-737-max8", JSON.stringify(skipped), essentials, "preflight"));
+  const view = ok(wasm.phase_model("ifly-737-max8", JSON.stringify(skipped), essentials, "preflight"));
   assert.ok(view.lists.every((l) => l.steps.every((s) => s.essential)));
-  assert.equal(JSON.parse(wasm.load_flight('{"format":99}')).ok.state, "newer");
+  assert.equal(JSON.parse(wasm.parse_flight('{"format":99}')).ok.state, "newer");
 });

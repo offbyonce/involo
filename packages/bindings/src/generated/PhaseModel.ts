@@ -7,7 +7,7 @@ import type { StripPart } from "./StripPart";
 /**
  * One phase, ready to show.
  */
-export type PhaseView = { id: string, title: string, reference: boolean, 
+export type PhaseModel = { id: string, title: string, reference: boolean, 
 /**
  * The stage the phase shows in for these options, if any.
  */

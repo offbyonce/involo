@@ -6,12 +6,12 @@
 //! Authors write pack content in YAML. This crate reads it strictly into the typed
 //! model from `involo-checklist-core`, validates them, and writes plain JSON for the app.
 
+pub mod draft_targets;
 pub mod load;
 pub mod manifest;
 pub mod patch;
 pub mod resolve;
 pub mod schema;
-pub mod suggest;
 pub mod terms;
 pub mod validate;
 

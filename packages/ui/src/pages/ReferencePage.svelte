@@ -9,7 +9,7 @@ type, as non-normal lists need.
 -->
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import type { Checklist, Detail, Flight, PhaseView, RailPhase } from "@involo/bindings";
+  import type { Checklist, Detail, Flight, PhaseModel, RailPhase } from "@involo/bindings";
   import Icon from "../lib/Icon.svelte";
   import ListCard from "../lib/ListCard.svelte";
   import { referenceTabs } from "../lib/reference-tabs";
@@ -36,7 +36,7 @@ type, as non-normal lists need.
   }: {
     index: PackIndex;
     phases: RailPhase[];
-    view: PhaseView | null;
+    view: PhaseModel | null;
     intro: { heading?: string | null; text: string }[];
     lists: Map<string, Checklist>;
     flight: Flight;

@@ -74,7 +74,7 @@ pub struct PhaseLink {
 #[derive(Debug, Clone, PartialEq, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
-pub struct PhaseView {
+pub struct PhaseModel {
     pub id: String,
     pub title: String,
     pub reference: bool,
@@ -118,12 +118,12 @@ fn step_row(
     }
 }
 
-pub fn phase_view(
+pub fn phase_model(
     pack: &FlatPack,
     flight: &Flight,
     settings: &Settings,
     id: &str,
-) -> Result<PhaseView, AppError> {
+) -> Result<PhaseModel, AppError> {
     view(
         pack,
         &crate::flight::with_defaults(pack, flight),
@@ -132,13 +132,13 @@ pub fn phase_view(
     )
 }
 
-/// [`phase_view`] for a flight with every option at a value.
+/// [`phase_model`] for a flight with every option at a value.
 fn view(
     pack: &FlatPack,
     flight: &Flight,
     settings: &Settings,
     id: &str,
-) -> Result<PhaseView, AppError> {
+) -> Result<PhaseModel, AppError> {
     let shown = Shown::new(pack, settings);
     let phase = pack
         .content
@@ -229,7 +229,7 @@ fn view(
         Some((n + 1, in_stage.len()))
     });
 
-    Ok(PhaseView {
+    Ok(PhaseModel {
         id: phase.id.clone(),
         title: phase.title.clone(),
         reference: phase.reference,
@@ -253,7 +253,7 @@ mod tests {
     use crate::flight::new_flight;
     use crate::test_support::ifly_pack;
 
-    fn first_steps(view: &PhaseView, n: usize) -> Vec<StepId> {
+    fn first_steps(view: &PhaseModel, n: usize) -> Vec<StepId> {
         view.lists[0]
             .steps
             .iter()
@@ -280,7 +280,7 @@ mod tests {
             };
             flight = apply(&pack, flight, action).unwrap();
         }
-        let view = phase_view(&pack, &flight, &Settings::default(), "before-start").unwrap();
+        let view = phase_model(&pack, &flight, &Settings::default(), "before-start").unwrap();
         let row = view
             .lists
             .iter()
@@ -295,7 +295,7 @@ mod tests {
     fn a_new_flight_starts_on_the_first_step() {
         let pack = ifly_pack();
         let flight = new_flight(&pack);
-        let view = phase_view(&pack, &flight, &Settings::default(), "cold-dark").unwrap();
+        let view = phase_model(&pack, &flight, &Settings::default(), "cold-dark").unwrap();
         assert_eq!(view.stage.as_deref(), Some("Preflight"));
         assert_eq!(view.position, Some((1, 4)));
         assert!(view.previous.is_none());
@@ -311,7 +311,7 @@ mod tests {
     fn ticking_moves_current_and_a_skip_keeps_the_list_open() {
         let pack = ifly_pack();
         let mut flight = new_flight(&pack);
-        let view = phase_view(&pack, &flight, &Settings::default(), "cold-dark").unwrap();
+        let view = phase_model(&pack, &flight, &Settings::default(), "cold-dark").unwrap();
         let ids: Vec<StepId> = view.lists[0].steps.iter().map(|s| s.id.clone()).collect();
         let [first, second] = [ids[0].clone(), ids[1].clone()];
         flight = apply(&pack, flight, Action::Tick { step: first, at: 1 }).unwrap();
@@ -324,7 +324,7 @@ mod tests {
             },
         )
         .unwrap();
-        let view = phase_view(&pack, &flight, &Settings::default(), "cold-dark").unwrap();
+        let view = phase_model(&pack, &flight, &Settings::default(), "cold-dark").unwrap();
         let states: Vec<_> = view.lists[0].steps.iter().map(|s| s.state).collect();
         assert_eq!(
             states[..3],
@@ -341,7 +341,7 @@ mod tests {
             )
             .unwrap();
         }
-        let view = phase_view(&pack, &flight, &Settings::default(), "cold-dark").unwrap();
+        let view = phase_model(&pack, &flight, &Settings::default(), "cold-dark").unwrap();
         assert!(
             !view.lists[0].complete,
             "a skipped step keeps the list open"
@@ -357,7 +357,7 @@ mod tests {
         )
         .unwrap();
         assert!(
-            phase_view(&pack, &flight, &Settings::default(), "cold-dark")
+            phase_model(&pack, &flight, &Settings::default(), "cold-dark")
                 .unwrap()
                 .complete
         );
@@ -376,11 +376,11 @@ mod tests {
             },
         )
         .unwrap();
-        let gpu_next = phase_view(&pack, &flight, &Settings::default(), "cold-dark")
+        let gpu_next = phase_model(&pack, &flight, &Settings::default(), "cold-dark")
             .unwrap()
             .next
             .unwrap();
-        let apu_next = phase_view(&pack, &apu, &Settings::default(), "cold-dark")
+        let apu_next = phase_model(&pack, &apu, &Settings::default(), "cold-dark")
             .unwrap()
             .next
             .unwrap();
@@ -388,7 +388,7 @@ mod tests {
         assert_eq!(apu_next.id, "apu-power");
         assert_ne!(
             first_steps(
-                &phase_view(&pack, &apu, &Settings::default(), "apu-power").unwrap(),
+                &phase_model(&pack, &apu, &Settings::default(), "apu-power").unwrap(),
                 1
             ),
             vec![]
@@ -398,7 +398,7 @@ mod tests {
     #[test]
     fn reference_phases_have_no_place_in_the_rail() {
         let pack = ifly_pack();
-        let view = phase_view(&pack, &new_flight(&pack), &Settings::default(), "memory").unwrap();
+        let view = phase_model(&pack, &new_flight(&pack), &Settings::default(), "memory").unwrap();
         assert!(view.reference);
         assert_eq!(view.stage, None);
         assert_eq!(view.position, None);
@@ -415,7 +415,7 @@ mod tests {
             ..Settings::default()
         };
         let count = |f: &Flight, s: &Settings, phase: &str| -> usize {
-            phase_view(&pack, f, s, phase)
+            phase_model(&pack, f, s, phase)
                 .unwrap()
                 .lists
                 .iter()
@@ -424,7 +424,7 @@ mod tests {
         };
         // Fewer steps in Essentials, every one marked essential, the rest counted as hidden.
         assert!(count(&flight, &ess, "preflight") < count(&flight, &full, "preflight"));
-        let v = phase_view(&pack, &flight, &ess, "preflight").unwrap();
+        let v = phase_model(&pack, &flight, &ess, "preflight").unwrap();
         assert!(v.lists.iter().flat_map(|l| &l.steps).all(|s| s.essential));
         let hidden: usize = v.lists.iter().map(|l| l.hidden).sum();
         assert_eq!(
@@ -456,7 +456,7 @@ mod tests {
             r.stages
                 .iter()
                 .flat_map(|s| &s.phases)
-                .flat_map(|p| phase_view(&pack, f, &ess, &p.id).unwrap().lists)
+                .flat_map(|p| phase_model(&pack, f, &ess, &p.id).unwrap().lists)
                 .flat_map(|l| l.steps)
                 .map(|s| s.id)
                 .collect()
@@ -478,7 +478,7 @@ mod tests {
     fn the_pilots_changes_to_essentials_win() {
         let pack = ifly_pack();
         let flight = new_flight(&pack);
-        let full = phase_view(&pack, &flight, &Settings::default(), "cold-dark").unwrap();
+        let full = phase_model(&pack, &flight, &Settings::default(), "cold-dark").unwrap();
         let steps = &full.lists[0].steps;
         let out = steps.iter().find(|s| !s.essential).unwrap().id.clone();
         let inn = steps.iter().find(|s| s.essential).unwrap().id.clone();
@@ -492,7 +492,7 @@ mod tests {
             .or_default();
         changes.added.insert(out.clone());
         changes.removed.insert(inn.clone());
-        let ids: Vec<_> = phase_view(&pack, &flight, &s, "cold-dark").unwrap().lists[0]
+        let ids: Vec<_> = phase_model(&pack, &flight, &s, "cold-dark").unwrap().lists[0]
             .steps
             .iter()
             .map(|r| r.id.clone())
@@ -505,7 +505,7 @@ mod tests {
         let pack = ifly_pack();
         let s = Settings::default();
         let mut flight = new_flight(&pack);
-        let view = phase_view(&pack, &flight, &s, "cold-dark").unwrap();
+        let view = phase_model(&pack, &flight, &s, "cold-dark").unwrap();
         let ids: Vec<StepId> = view.lists[0].steps.iter().map(|r| r.id.clone()).collect();
         flight = apply(
             &pack,
@@ -551,7 +551,7 @@ mod tests {
             },
         )
         .unwrap();
-        let after = phase_view(&pack, &flight, &s, "cold-dark").unwrap();
+        let after = phase_model(&pack, &flight, &s, "cold-dark").unwrap();
         assert_eq!(
             after.lists[0].progress.done + after.lists[0].progress.skipped,
             0
@@ -574,7 +574,7 @@ mod tests {
         let pack = ifly_pack();
         let mut flight = new_flight(&pack);
         let current = |f: &Flight| -> Vec<StepId> {
-            phase_view(&pack, f, &Settings::default(), "before-start")
+            phase_model(&pack, f, &Settings::default(), "before-start")
                 .unwrap()
                 .lists
                 .iter()
@@ -583,7 +583,7 @@ mod tests {
                 .map(|s| s.id.clone())
                 .collect()
         };
-        let view = phase_view(&pack, &flight, &Settings::default(), "before-start").unwrap();
+        let view = phase_model(&pack, &flight, &Settings::default(), "before-start").unwrap();
         assert!(view.lists.len() > 1);
         assert_eq!(current(&flight), vec![view.lists[0].steps[0].id.clone()]);
         assert!(view.lists[1..].iter().all(|l| l.current.is_none()));
@@ -599,7 +599,7 @@ mod tests {
             )
             .unwrap();
         }
-        let view = phase_view(&pack, &flight, &Settings::default(), "before-start").unwrap();
+        let view = phase_model(&pack, &flight, &Settings::default(), "before-start").unwrap();
         assert_eq!(current(&flight), vec![view.lists[1].steps[0].id.clone()]);
     }
 
@@ -610,7 +610,7 @@ mod tests {
         let pack = ifly_pack();
         let flight = new_flight(&pack);
         for phase in ["before-start", "cold-dark", "preflight", "memory"] {
-            for list in phase_view(&pack, &flight, &Settings::default(), phase)
+            for list in phase_model(&pack, &flight, &Settings::default(), phase)
                 .unwrap()
                 .lists
             {
@@ -637,7 +637,7 @@ mod tests {
         for f in [&flight, &turn] {
             for stage in crate::rail::rail(&pack, f, &Settings::default()).stages {
                 for p in stage.phases {
-                    for list in phase_view(&pack, f, &Settings::default(), &p.id)
+                    for list in phase_model(&pack, f, &Settings::default(), &p.id)
                         .unwrap()
                         .lists
                     {
@@ -653,7 +653,7 @@ mod tests {
     fn an_unknown_phase_is_an_error() {
         let pack = ifly_pack();
         assert!(matches!(
-            phase_view(&pack, &new_flight(&pack), &Settings::default(), "nope"),
+            phase_model(&pack, &new_flight(&pack), &Settings::default(), "nope"),
             Err(AppError::InvalidAction(_))
         ));
     }

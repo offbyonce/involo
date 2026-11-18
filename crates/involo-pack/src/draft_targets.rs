@@ -13,7 +13,7 @@ use serde::Serialize;
 
 /// Proposed targets for one step, and why any of them may be wrong.
 #[derive(Debug, Clone, Serialize)]
-pub struct Suggestion {
+pub struct TargetDraft {
     pub targets: Vec<StepTarget>,
     /// Each place the reading was not certain, in words an author can check.
     pub flags: Vec<String>,
@@ -179,7 +179,7 @@ fn drop_unnamed_switches(
 
 /// Draft the targets of a step from its controls and wording, reading positions by their names
 /// and the pack's other words for them.
-pub fn suggest(panels: &[Panel], step: &Step, words: &PositionWords) -> Suggestion {
+pub fn draft_targets(panels: &[Panel], step: &Step, words: &PositionWords) -> TargetDraft {
     let mut flags = vec![];
     let found: Vec<Found> = panels
         .iter()
@@ -274,7 +274,7 @@ pub fn suggest(panels: &[Panel], step: &Step, words: &PositionWords) -> Suggesti
         flags.push("no target found".into());
     }
     flags.dedup();
-    Suggestion {
+    TargetDraft {
         targets: out.into_iter().map(|(_, t)| t).collect(),
         flags,
     }
@@ -284,7 +284,7 @@ pub fn suggest(panels: &[Panel], step: &Step, words: &PositionWords) -> Suggesti
 mod tests {
     use involo_checklist_core::LightState;
 
-    use super::suggest;
+    use super::draft_targets;
 
     fn ifly() -> crate::Pack {
         let dir =
@@ -304,7 +304,7 @@ mod tests {
     fn a_light_name_containing_on_does_not_set_its_switch() {
         // "GUARD CLOSED, PASS OXY ON LIGHT OUT": the switch is not at ON, and the light is out.
         let pack = ifly();
-        let s = suggest(
+        let s = draft_targets(
             &pack.content.panels,
             step(&pack, "ifly-737-max8.preflight.passenger-oxygen-switch"),
             &pack.content.labels.position_words,
@@ -326,7 +326,7 @@ mod tests {
     #[test]
     fn a_switch_step_leaves_out_its_lights_and_says_so() {
         let pack = ifly();
-        let s = suggest(
+        let s = draft_targets(
             &pack.content.panels,
             step(&pack, "ifly-737-max8.before-start.fuel-pump-switches"),
             &pack.content.labels.position_words,

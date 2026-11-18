@@ -65,7 +65,7 @@ pub enum Detail {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export)]
-pub enum ListView {
+pub enum StepLayout {
     /// Every item in the list.
     #[default]
     Checklist,
@@ -94,7 +94,7 @@ pub struct Settings {
     pub dimming: u8,
     pub text_size: TextSize,
     pub detail: Detail,
-    pub list_view: ListView,
+    pub list_view: StepLayout,
     /// Essentials only, instead of every step.
     pub essentials: bool,
     /// Pack id to the pilot's changes to Essentials.
@@ -122,7 +122,7 @@ impl Default for Settings {
             dimming: 0,
             text_size: TextSize::default(),
             detail: Detail::default(),
-            list_view: ListView::default(),
+            list_view: StepLayout::default(),
             essentials: false,
             essentials_changes: BTreeMap::new(),
             panel_preview: true,

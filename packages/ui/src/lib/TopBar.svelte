@@ -10,7 +10,7 @@ button (with the phase on phone, and an amber dot when another stage holds an op
 the stage and phase picker; phone keeps Checklist / Flow in the menu.
 -->
 <script lang="ts">
-  import type { ListView, Rail } from "@involo/bindings";
+  import type { StepLayout, Rail } from "@involo/bindings";
   import { phaseHref } from "../route.svelte";
   import Icon from "./Icon.svelte";
   import headerMark from "../icons/brand/header-mark.svg?raw";
@@ -38,7 +38,7 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
     /** The stage of the phase on screen, if any. */
     stage: string | null;
     /** The list view, when a phase is on screen. */
-    view: ListView | null;
+    view: StepLayout | null;
     menuOpen: boolean;
     /** Phases holding an open step (skipped or missed), for the amber dots. */
     open?: string[];
@@ -46,7 +46,7 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
     phase?: string | null;
     pickerOpen?: boolean;
     onMenu: () => void;
-    onView: (view: ListView) => void;
+    onView: (view: StepLayout) => void;
     onPicker?: () => void;
     /** Opens Find (Find boards); no button without it. */
     onFind?: (() => void) | undefined;

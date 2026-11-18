@@ -15,23 +15,23 @@ import {
   decodeTaf,
   defaultSettings,
   editLog,
-  loadLog,
-  loadPack,
   logCsv,
   logEntry,
   newFlight,
   newLog,
   openSteps,
+  parseLog,
+  parsePack,
   parsePlan,
-  phaseView,
+  phaseModel,
   planFormat,
   planUrl,
   planValues,
   rail,
   suggestion,
 } from "./core";
-import { readLog, writeLog } from "./log-store.js";
-import { loadPlan, loadSaved, save, savePlan, setAside } from "./saved";
+import { readLog as readLogText, writeLog } from "./log-store.js";
+import { readPlan, readSaved, save, savePlan, setAside } from "./saved";
 import { fetchPlanText } from "./simbrief-fetch.js";
 
 /** Whether the browser has been asked this visit to keep the log (decision 0026). */
@@ -61,14 +61,14 @@ async function fetchText(path: string): Promise<string> {
 export const webHost: Host = {
   appInfo,
   packs: async () => JSON.parse(await fetchText("../packs/index.json")) as PackSummary[],
-  loadPack: async (id) => loadPack(await fetchText(`../packs/${encodeURIComponent(id)}.json`)),
+  loadPack: async (id) => parsePack(await fetchText(`../packs/${encodeURIComponent(id)}.json`)),
   newFlight,
   apply,
   rail,
-  phaseView,
+  phaseModel,
   openSteps,
   suggestion,
-  loadSaved,
+  readSaved,
   save,
   setAside,
   defaultSettings,
@@ -76,15 +76,15 @@ export const webHost: Host = {
   fetchPlan: async (user) => compact(await fetchPlanText(await planUrl(user), { own: simbriefSays })),
   readPlanFile: compact,
   planValues: (pack, plan) => planValues(pack, plan.plan),
-  loadPlan,
+  readPlan,
   savePlan,
   decodeMetar,
   decodeTaf,
   newLog,
-  loadLog: async () => {
+  readLog: async () => {
     let text: string | null;
     try {
-      text = await readLog();
+      text = await readLogText();
     } catch (e) {
       // Kept as unreadable, so nothing is saved over a log that may be there.
       return {
@@ -92,7 +92,7 @@ export const webHost: Host = {
         text: "",
       };
     }
-    return text === null ? null : { loaded: await loadLog(text), text };
+    return text === null ? null : { loaded: await parseLog(text), text };
   },
   saveLog: async (log, keep) => {
     const saved = await writeLog(JSON.stringify(log));

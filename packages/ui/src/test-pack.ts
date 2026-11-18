@@ -7,7 +7,7 @@
 
 import { readFileSync } from "node:fs";
 import type { FlatPack, Labels } from "@involo/bindings";
-import { initSync, load_pack } from "../../../apps/web/src/wasm/involo_web_host.js";
+import { initSync, parse_pack } from "../../../apps/web/src/wasm/involo_web_host.js";
 
 const root = `${import.meta.dirname}/../../..`;
 let ready = false;
@@ -18,7 +18,7 @@ export function packAsReceived(json: string): FlatPack {
     initSync({ module: readFileSync(`${root}/apps/web/src/wasm/involo_web_host_bg.wasm`) });
     ready = true;
   }
-  const reply = JSON.parse(load_pack(json)) as { ok: FlatPack } | { error: { message: string } };
+  const reply = JSON.parse(parse_pack(json)) as { ok: FlatPack } | { error: { message: string } };
   if ("error" in reply) throw new Error(reply.error.message);
   return reply.ok;
 }
