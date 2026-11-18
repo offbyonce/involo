@@ -88,7 +88,10 @@ const pack = {
           ],
           askIn: ["power-up"],
         },
+        // The iFly pack's Start page options.
+        ...(iflyPack().content.phases?.options ?? []).filter((o) => o.id === "exterior" || o.id === "start"),
       ],
+      startPage: ["exterior", "panel_state", "start"],
       stages: [],
       phases: [],
     },

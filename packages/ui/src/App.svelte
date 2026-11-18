@@ -1181,6 +1181,7 @@ in Rust. The host saves progress and settings on the device.
       options={index.options}
       states={index.panelStates}
       panelStateLabels={index.labels.panelStates}
+      startPage={index.startPage}
       backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
       onSet={(field, value) => act({ type: "setValue", field, value })}
       onNotes={(notes) => act({ type: "setNotes", notes })}

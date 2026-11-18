@@ -38,6 +38,8 @@ data_types! {
     pub enum StartStyle {
         Cards,
         Row,
+        /// An on/off switch, for an option of two values: `on` names the value it sets when on.
+        Toggle,
     }
 
     /// A link from a Start page option to a phase, e.g. "Preview the inspection".
@@ -56,6 +58,9 @@ data_types! {
         pub description: Option<String>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub link: Option<StartLink>,
+        /// With `style: toggle`: the value the switch sets when on; off sets the other.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub on: Option<String>,
     }
 
     /// What suggests an option's answer: a rule (decision 0027), or, as format 4 wrote it, a bare
@@ -159,6 +164,7 @@ data_types! {
     }
 
     /// `phases.yaml`.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct PhasesFile {
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub options: Vec<UserOption>,
@@ -168,5 +174,9 @@ data_types! {
         pub turnaround: Option<ShowIf>,
         pub stages: Vec<Stage>,
         pub phases: Vec<Phase>,
+        /// The Start page's order: the ids of options asked there, and `panel_state` for the
+        /// panel-state picker. Without it, the options in this file's order, then the picker.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub start_page: Vec<String>,
     }
 }

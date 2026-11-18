@@ -110,6 +110,13 @@ side panel's words (`ofp`). Every one is optional: a field with only an id, labe
 gets a row. The pack gives content and grouping only; the app decides how it looks. An option is
 asked on a Flight page with `ask_in: [flight:approach]`.
 
+**The Start page.** An option `ask_in` names `start` shows on the Start page with its `start`
+block: a `style` (`row`, `cards`, or `toggle` with `on`, the value its on position sets, for an
+option of two values), and optionally its own `title`, `description` and a `link` to a phase. The
+page's order is `phases.yaml`'s `start_page`: option ids and `panel_state` for the panel-state
+picker, whose words are the labels' `panel_states`; without it, the options in file order, then
+the picker.
+
 **Panel controls.** Besides switches, selectors, buttons, lights, levers and handles, a panel item
 may be a `push_pull_knob` (two positions, pushed in first), a `rocker` (two positions, the top end
 first), a `legend_pushbutton` (its `positions`, and one or two `legends`, each with its `text`, its

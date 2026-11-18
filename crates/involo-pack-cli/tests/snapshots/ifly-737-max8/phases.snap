@@ -55,9 +55,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
         "start"
       ],
       "start": {
-        "style": "row",
+        "style": "toggle",
         "title": "Turnaround",
-        "description": "Next leg in the same airplane. Starts from the turnaround steps instead of cold and dark."
+        "description": "Next leg in the same airplane. Starts from the turnaround steps instead of cold and dark.",
+        "on": "turn"
       }
     },
     {
@@ -113,12 +114,13 @@ source: crates/involo-pack-cli/tests/snapshot.rs
         "start"
       ],
       "start": {
-        "style": "row",
+        "style": "toggle",
         "description": "The walk around the airplane before you board: 18 numbered stops on a diagram. Off skips the stage; anything you ticked is kept.",
         "link": {
           "phase": "exterior",
           "text": "Preview the inspection"
-        }
+        },
+        "on": "on"
       }
     },
     {
@@ -572,5 +574,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
         "procedures-go-around"
       ]
     }
+  ],
+  "start_page": [
+    "exterior",
+    "power",
+    "panel_state",
+    "start"
   ]
 }

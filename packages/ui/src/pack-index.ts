@@ -41,6 +41,8 @@ export type PackIndex = {
   options: UserOption[];
   /** The panel states the pack offers (a simulator's saved starting points). */
   panelStates: PanelState[];
+  /** The Start page's order (the pack's `start_page`): option ids and `panel_state`. */
+  startPage: string[];
   /** A shared "how to do it" note's steps, by id. */
   how(id: string): string[] | undefined;
   /** A shared explanation, by id. */
@@ -208,6 +210,7 @@ export function indexPack(pack: FlatPack): PackIndex {
     seatFrame: seatFrame(pack.content.controls?.overview?.views?.seat, pack.content.labels),
     options: pack.content.phases?.options ?? [],
     panelStates: pack.content.panelStates?.states ?? [],
+    startPage: pack.content.phases?.startPage ?? [],
     section: (id) => sections.get(id),
     panelOf: (id) => panels.get(id),
     zoneDrawn: (zone) => drawnZones.has(zone),

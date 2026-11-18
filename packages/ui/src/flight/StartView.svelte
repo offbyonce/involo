@@ -2,13 +2,14 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-Start options (Start.dc.html): the Exterior inspection toggle with Preview the inspection (the
-Exterior phase), Power source (also asked at Power up), the pack's panel state, and Turnaround. The
-descriptions are the board's.
+Start options (Start.dc.html), from the pack (decision 0029): each option its `ask_in` names
+`start`, in its style (a toggle, a segmented row, or cards), with its title, description and phase
+link, and the panel-state picker in the pack's words, in the order the pack's `start_page` gives.
 -->
 <script lang="ts">
   import type { Flight, PanelState, PanelStateLabels, UserOption } from "@involo/bindings";
   import { phaseHref } from "../route.svelte";
+  import OptionChoices from "../lib/OptionChoices.svelte";
   import Toggle from "../lib/Toggle.svelte";
   import Icon from "../lib/Icon.svelte";
 
@@ -17,6 +18,7 @@ descriptions are the board's.
     options,
     states,
     labels,
+    order = [],
     onOption,
     onPanelState,
   }: {
@@ -25,63 +27,77 @@ descriptions are the board's.
     states: PanelState[];
     /** The panel state row's words, from the pack's labels. */
     labels: PanelStateLabels;
+    /** The page's order (the pack's `start_page`): option ids and `panel_state`. */
+    order?: string[];
     onOption: (option: string, value: string) => void;
     onPanelState: (state: string | null) => void;
   } = $props();
 
-  const opt = (id: string) => options.find((o) => o.id === id);
-  const value = (id: string) => flight.options[id] ?? opt(id)?.default ?? "";
-  let power = $derived(opt("power"));
+  /** The picker's place in `order`, and what `ask_in` names for this page. */
+  const PICKER = "panel_state";
+  const THIS_PAGE = "start";
+  let asked = $derived(options.filter((o) => o.start && (o.askIn ?? []).includes(THIS_PAGE)));
+  let entries = $derived(order.length ? order : [...asked.map((o) => o.id), PICKER]);
+  const value = (o: UserOption) => flight.options[o.id] ?? o.default ?? "";
+  /** The other of a toggle's two values. */
+  const other = (o: UserOption, v: string) => o.values.find((x) => x !== v) ?? v;
 </script>
 
-<section class="card">
+{#snippet text(o: UserOption)}
   <div class="text">
-    <span class="t" id="st-ext">Exterior inspection</span>
-    <span class="d">The walk around the airplane before you board: 18 numbered stops on a diagram. Off skips the stage; anything you ticked is kept.</span>
-    <a class="link" href={phaseHref("exterior")}>Preview the inspection</a>
+    <span class="t" id="st-{o.id}">{o.start?.title ?? o.title}</span>
+    {#if o.start?.description ?? o.description}<span class="d">{o.start?.description ?? o.description}</span>{/if}
+    {#if o.start?.link}<a class="link" href={phaseHref(o.start.link.phase)}>{o.start.link.text}</a>{/if}
   </div>
-  <Toggle on={value("exterior") !== "off"} labelledby="st-ext" onToggle={() => onOption("exterior", value("exterior") === "off" ? "on" : "off")} />
-</section>
-{#if power}
-  <section class="card">
-    <div class="text">
-      <span class="t" id="st-power">{power.title}</span>
-      <span class="d">On ground power, the APU starts before the Before start procedure. The Power up step asks the same question, so you can choose there too.</span>
-    </div>
-    <span class="seg" role="group" aria-labelledby="st-power">
-      {#each power.values as v (v)}
-        <button type="button" aria-pressed={value("power") === v} onclick={() => onOption("power", v)}>
-          {power.choices?.find((c) => c.value === v)?.label ?? v}
-        </button>
-      {/each}
-    </span>
-  </section>
-{/if}
-{#if states.length}
-  <section class="card">
-    <div class="text">
-      <span class="t">{labels.title}</span>
-      <span class="d">{labels.description}</span>
-    </div>
-    <label class="pick">
-      Panel state
-      <span class="sel">
-        <select value={flight.panelState ?? ""} onchange={(e) => onPanelState(e.currentTarget.value || null)}>
-          <option value="">{labels.placeholder}</option>
-          {#each states as s (s.id)}<option value={s.id}>{s.title}</option>{/each}
-        </select>
-        <Icon name="chevron-down" />
-      </span>
-    </label>
-  </section>
-{/if}
-<section class="card">
-  <div class="text">
-    <span class="t" id="st-turn">Turnaround</span>
-    <span class="d">Next leg in the same airplane. Starts from the turnaround steps instead of cold and dark.</span>
-  </div>
-  <Toggle on={value("start") === "turn"} labelledby="st-turn" onToggle={() => onOption("start", value("start") === "turn" ? "cold" : "turn")} />
-</section>
+{/snippet}
+
+{#each entries as entry (entry)}
+  {#if entry === PICKER}
+    {#if states.length}
+      <section class="card">
+        <div class="text">
+          <span class="t">{labels.title}</span>
+          <span class="d">{labels.description}</span>
+        </div>
+        <label class="pick">
+          Panel state
+          <span class="sel">
+            <select value={flight.panelState ?? ""} onchange={(e) => onPanelState(e.currentTarget.value || null)}>
+              <option value="">{labels.placeholder}</option>
+              {#each states as s (s.id)}<option value={s.id}>{s.title}</option>{/each}
+            </select>
+            <Icon name="chevron-down" />
+          </span>
+        </label>
+      </section>
+    {/if}
+  {:else}
+    {@const o = asked.find((x) => x.id === entry)}
+    {#if o?.start?.style === "toggle"}
+      {@const on = o.start.on ?? o.values[0] ?? ""}
+      <section class="card">
+        {@render text(o)}
+        <Toggle on={value(o) === on} labelledby="st-{o.id}" onToggle={() => onOption(o.id, value(o) === on ? other(o, on) : on)} />
+      </section>
+    {:else if o?.start?.style === "row"}
+      <section class="card">
+        {@render text(o)}
+        <span class="seg" role="group" aria-labelledby="st-{o.id}">
+          {#each o.values as v (v)}
+            <button type="button" aria-pressed={value(o) === v} onclick={() => onOption(o.id, v)}>
+              {o.choices?.find((c) => c.value === v)?.label ?? v}
+            </button>
+          {/each}
+        </span>
+      </section>
+    {:else if o}
+      <section class="card column">
+        {@render text(o)}
+        <OptionChoices option={o} value={value(o)} cards onChoose={(v) => onOption(o.id, v)} />
+      </section>
+    {/if}
+  {/if}
+{/each}
 
 <style>
   .card {
@@ -95,6 +111,11 @@ descriptions are the board's.
     border: var(--border-thin) solid var(--color-border);
     border-radius: var(--radius-panel);
     background: var(--color-surface);
+  }
+  /* Cards: the option's words above its choice cards. */
+  .card.column {
+    flex-direction: column;
+    align-items: stretch;
   }
   .text {
     flex: 1;

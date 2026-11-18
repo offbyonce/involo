@@ -3,4 +3,4 @@
 /**
  * How the Start page draws an option: one card per choice, or a segmented row.
  */
-export type StartStyle = "cards" | "row";
+export type StartStyle = "cards" | "row" | "toggle";
