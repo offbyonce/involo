@@ -687,6 +687,7 @@ pub(super) mod tests {
         let mut p = alias_pack(vec![]);
         let region = |name: &str, x: f64| OverviewRegion {
             name: name.into(),
+            short: None,
             code: None,
             x,
             y: 0.0,
@@ -752,6 +753,7 @@ pub(super) mod tests {
                 areas: vec![],
                 regions: vec![OverviewRegion {
                     name: "Overhead".into(),
+                    short: None,
                     code: None,
                     x: 0.0,
                     y: 0.0,
@@ -840,6 +842,7 @@ pub(super) mod tests {
                 areas: vec![],
                 regions: vec![OverviewRegion {
                     name: "Overhead".into(),
+                    short: None,
                     code: None,
                     x: 0.0,
                     y: 0.0,

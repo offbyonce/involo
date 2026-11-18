@@ -13,7 +13,7 @@ Each part ends in an "In Involo" box whose link goes to the real place: the pilo
 -->
 <script lang="ts">
   import { safely } from "../lib/safely";
-  import { HOW, type HowBlock, type HowCounts, type HowLink, fill, runs } from "../lib/how-content";
+  import { flowAreas, HOW, type HowBlock, type HowCounts, type HowLink, fill, runs } from "../lib/how-content";
   import FlowFigure from "../lib/FlowFigure.svelte";
   import Icon from "../lib/Icon.svelte";
   import { flightHref, howHref, phaseHref } from "../route.svelte";
@@ -22,6 +22,7 @@ Each part ends in an "In Involo" box whose link goes to the real place: the pilo
   let {
     part,
     counts,
+    areas = flowAreas(null),
     phase,
     step,
     backHref,
@@ -30,6 +31,8 @@ Each part ends in an "In Involo" box whose link goes to the real place: the pilo
     /** The part in the address, if any. */
     part: number | null;
     counts: HowCounts;
+    /** Part 2's figure: the pack's flight deck areas, by short name (`flowAreas`). */
+    areas?: string[];
     /** The pilot's current phase: the last one open this visit, else the first with steps to do. */
     phase: { id: string; title: string } | null;
     /** That phase's current step, if it has one. */
@@ -157,7 +160,7 @@ Each part ends in an "In Involo" box whose link goes to the real place: the pilo
     <div class="fig">
       <div class="col">
         <span class="fh">{f.flowHeading}</span>
-        <FlowFigure />
+        <FlowFigure {areas} />
       </div>
       <div class="col">
         <span class="fh">{f.checklistHeading}</span>

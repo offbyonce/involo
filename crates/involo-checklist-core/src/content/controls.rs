@@ -53,6 +53,10 @@ data_types! {
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct OverviewRegion {
         pub name: String,
+        /// The area's short name, e.g. "Overhead", where a picture of a flow names the areas;
+        /// regions may share one. Without it, the name.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub short: Option<String>,
         /// A short reference shown after the name, e.g. "P5".
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub code: Option<String>,

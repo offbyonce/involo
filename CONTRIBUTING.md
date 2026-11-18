@@ -140,7 +140,9 @@ an optional `labels.yaml`, listed in `pack.json` as `labels`. Every key is optio
 out keeps the app's own word. Write only what differs. Reference tabs follow the order of
 `reference.groups`; `side_words` are the words that tell one of a pair from the other (left and
 right, captain and first officer), which Practice uses. The phase that starts the engines carries
-`engine_start: true` in `phases.yaml`, for Practice's "Before engine start".
+`engine_start: true` in `phases.yaml`, for Practice's "Before engine start". An overview region's
+optional `short` name ("Overhead", shared by both overhead regions) names that area in the How
+page's flow figure.
 
 **Overlap check.** `just overlap` flags any run of 8 or more words matching plain-text reference
 files (see `INVOLO_OVERLAP_REFS` under "Optional local files" below). It also compares each list's

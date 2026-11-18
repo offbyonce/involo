@@ -151,9 +151,11 @@ export const HOW = {
   /** Part 2's figure (the HowItWorks board). */
   figure: {
     flowHeading: "1 · THE FLOW, FROM MEMORY",
-    flowLabel: "A flow sweeps across the panels in a fixed pattern, one area after another",
-    /** Four areas in sweep order, named by number: a schematic of the idea, no aircraft's panels. */
-    panels: { first: "AREA 1", second: "AREA 2", third: "AREA 3", fourth: "AREA 4" },
+    /** The figure's spoken label: {areas} are its boxes' names, "overhead, glareshield, main panel,
+     * then pedestal". */
+    flowLabel: "A flow sweeps across the panels in a fixed pattern: {areas}",
+    /** A box's name when the pack names no flight deck areas: {n} is 1 to 4. */
+    area: "AREA {n}",
     start: "start",
     end: "end",
     checklistHeading: "2 · THE CHECKLIST, READ ALOUD",
@@ -211,6 +213,34 @@ export function howCountsOf(pack: FlatPack | null | undefined, stages: string[])
     groups: andList(groups),
     reference: labels?.reference.title ?? "",
   };
+}
+
+/**
+ * The figure's four boxes (part 2): the pack's flight deck areas in its order, by their short
+ * names, each name once ("Overhead" for both overhead regions), skipping an area with no panels on
+ * the map (Around the flight deck); "AREA 1" to "AREA 4" where the pack names none.
+ */
+export function flowAreas(pack: FlatPack | null | undefined): string[] {
+  const overview = pack?.content.controls?.overview;
+  const boxes = overview?.areas ?? [];
+  const names: string[] = [];
+  for (const r of overview?.regions ?? []) {
+    const mapped = boxes.some((a) => {
+      const [x, y] = [a.x + a.width / 2, a.y + a.height / 2];
+      return x >= r.x && x <= r.x + r.width && y >= r.y && y <= r.y + r.height;
+    });
+    const name = (r.short ?? r.name).toUpperCase();
+    if (mapped && !names.includes(name)) names.push(name);
+  }
+  return [0, 1, 2, 3].map((n) => names[n] ?? fill(HOW.figure.area, { n: n + 1 }));
+}
+
+/** The figure's spoken label, its areas in sweep order: "…: overhead, glareshield, main panel,
+ * then pedestal". */
+export function flowLabelOf(areas: string[]): string {
+  const words = areas.map((a) => a.toLowerCase());
+  const list = words.length < 2 ? (words[0] ?? "") : `${words.slice(0, -1).join(", ")}, then ${words.at(-1)}`;
+  return fill(HOW.figure.flowLabel, { areas: list });
 }
 
 /** A line with its {placeholders} filled from `values`; a name with no value stays as written. */

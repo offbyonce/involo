@@ -78,7 +78,10 @@ describe("How procedures work, desktop (HowDesk)", () => {
       "Where is this?the panel, with the control in blue",
     ]);
     const fig = container.querySelector("figure");
-    expect(fig?.querySelector("svg")?.getAttribute("aria-label")).toBe(HOW.figure.flowLabel);
+    // No areas given: the figure's fallback names.
+    expect(fig?.querySelector("svg")?.getAttribute("aria-label")).toBe(
+      "A flow sweeps across the panels in a fixed pattern: area 1, area 2, area 3, then area 4",
+    );
     expect([...(fig?.querySelectorAll("svg text") ?? [])].map((t) => t.textContent)).toEqual([
       "AREA 1",
       "AREA 2",

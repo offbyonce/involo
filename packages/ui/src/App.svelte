@@ -69,7 +69,7 @@ in Rust. The host saves progress and settings on the device.
   import { sentence } from "./lib/sentence";
   import Tour from "./lib/Tour.svelte";
   import { tour } from "./lib/tour-state.svelte";
-  import { howCountsOf } from "./lib/how-content";
+  import { flowAreas, howCountsOf } from "./lib/how-content";
   import { currentRoute, flightHref, phaseHref } from "./route.svelte";
   import { applyPalette, applyScale } from "./theme/tokens";
 
@@ -1145,6 +1145,7 @@ in Rust. The host saves progress and settings on the device.
     <HowPage
       part={route.value.part}
       counts={howCounts}
+      areas={flowAreas(flatPack)}
       phase={howPhase}
       step={howStep}
       backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
