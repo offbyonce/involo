@@ -9,7 +9,7 @@ keeping its proportions, unless that would draw a label under 11 px; then it is 
 smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width view.
 -->
 <script lang="ts">
-  import { panelCaption } from "./panel-name";
+  import { panelCaption, sectionName } from "./panel-name";
   import type { ItemTarget, Panel, PanelSection as Section } from "@involo/bindings";
   import { drawingScale, K, layoutSection, openingScroll, positionsOf, roomScale, tileScale } from "./panel-layout";
   import PanelSection from "./PanelSection.svelte";
@@ -24,6 +24,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     guardClosed = false,
     large = false,
     index,
+    sides = undefined,
     picked = $bindable(),
     around = false,
     named = "",
@@ -52,6 +53,8 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     large?: boolean | undefined;
     /** With the pack's index, tapping a control opens its card: what it is and what it does. */
     index?: PackIndex | undefined;
+    /** Words that pair two panels in the caption; the index's side words by default. */
+    sides?: string[] | undefined;
     /** The side pane's drawing (Checklist board): a section drawn alone shows the rows around the
      * step's controls, whole across; the larger view shows the whole section. */
     around?: boolean | undefined;
@@ -294,7 +297,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
       .join("; "),
   );
   /** The drawing's name, and the larger view's title: the pane card's caption ("Fuel panel"). */
-  let caption = $derived(panelCaption(focused.map((s) => s.title)));
+  let caption = $derived(panelCaption(focused.map(sectionName), sides ?? index?.sideWords ?? []));
 </script>
 
 <div

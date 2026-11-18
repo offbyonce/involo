@@ -4,7 +4,16 @@ import type { PanelItem } from "./PanelItem";
 /**
  * A labeled section of a panel.
  */
-export type PanelSection = { id: string, title: string, x: number, y: number, width: number, height: number, 
+export type PanelSection = { id: string, 
+/**
+ * The title drawn on the panel, as the pack writes it.
+ */
+title: string, 
+/**
+ * What card titles, captions and "Also" lines call the panel ("Fuel panel"), when it is
+ * not the title as written.
+ */
+name?: string | null, x: number, y: number, width: number, height: number, 
 /**
  * The section's outline, when it is not a rectangle: points in the section's own units,
  * inside its box, holding every item (format 6). Drawn as the rectangle frame is.

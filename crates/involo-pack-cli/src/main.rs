@@ -68,7 +68,11 @@ fn suggest_targets(dir: &Path) -> Result<bool> {
         if step.controls.is_empty() {
             continue;
         }
-        let s = involo_pack::suggest::suggest(&pack.content.panels, step);
+        let s = involo_pack::suggest::suggest(
+            &pack.content.panels,
+            step,
+            &pack.content.labels.position_words,
+        );
         out.insert(step.id.to_string(), serde_json::to_value(s)?);
     }
     println!("{}", serde_json::to_string_pretty(&out)?);

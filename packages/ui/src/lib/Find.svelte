@@ -5,18 +5,22 @@ SPDX-License-Identifier: MIT
 Find (Find.dc.html: FindDesk, FindDeskNone, FindDeskStart and the phone boards). From 900 px
 a 640 px dialog 88 px from the top, centered, on the pop-over tokens over color.scrim; below 900 px a
 full-screen sheet with a back button and a boxed field. It searches every step, control and term
-in the pack: Steps, Controls, Terms, each with its count and its first three matches ("Show all N";
-Terms shows every match). The first result is active; ↑ and ↓ move, Enter opens. A step goes to the
-step and opens it, a control opens its Where is this?, a term opens the Glossary at that
-term. Before typing: the help line and the Try chips; no match: "Nothing
-matches “…”". Esc, the scrim and the back button close it.
+in the pack, and its alert messages when it has them (FindMessages.dc.html): Steps, Alert messages,
+Controls, Terms, each with its count and its first three matches ("Show all N"; Terms shows every
+match). The first result is active; ↑ and ↓ move, Enter opens. A step goes to the step and opens
+it, a message opens on the Alert messages tab, a control opens its Where is this?, a term opens
+the Glossary at that term. Before typing: the help line and the Try chips (the pack's examples);
+no match: "Nothing matches “…”". Esc, the scrim and the back button close it.
 -->
 <script lang="ts">
-  import type { Rail } from "@involo/bindings";
+  import type { Message, Rail } from "@involo/bindings";
   import { onMount, tick } from "svelte";
   import { answered } from "./answers.svelte";
   import { type FindControl, type FindIndex, type FindTerm, type FoundStep, findIn, findOnly, foundValue, marked } from "./find-index";
   import Icon from "./Icon.svelte";
+  import LevelBadge from "./LevelBadge.svelte";
+  import MessageText from "./MessageText.svelte";
+  import { matches } from "./messages";
   import { trapFocus } from "./trap";
 
   let {
@@ -31,6 +35,9 @@ matches “…”". Esc, the scrim and the back button close it.
     onTerm = () => {},
     onClose,
     only = null,
+    examples = [],
+    messages = [],
+    onMessage = () => {},
   }: {
     find: FindIndex;
     rail: Rail | null;
@@ -47,9 +54,14 @@ matches “…”". Esc, the scrim and the back button close it.
     onClose: () => void;
     /** Opened on a set of steps (References' simulator model notes): their name, and the steps. */
     only?: { label: string; steps: string[] } | null;
+    /** The pack's examples: the Try chips, and the first two in the no-match hint. */
+    examples?: string[];
+    /** The pack's alert messages; none when it has no alert display. */
+    messages?: Message[];
+    /** A message opens on the Alert messages tab. */
+    onMessage?: (id: string) => void;
   } = $props();
 
-  const TRY = ["Fuel panel", "Parking brake", "MCP", "Transponder"];
   const FIRST = 3;
 
   let query = $state("");
@@ -60,20 +72,28 @@ matches “…”". Esc, the scrim and the back button close it.
   let found = $derived(scope ? findOnly(find, scope.steps, query, rail) : findIn(find, query, rail, { phase, step: current }));
   /** Results show: on typed words, or at once when Find opened on a set of steps. */
   let showing = $derived(!!scope || query.trim() !== "");
-  let all = $state({ steps: false, controls: false });
+  let all = $state({ steps: false, messages: false, controls: false });
   /** A control no step on this flight uses, opened in place. */
   let opened = $state<string | null>(null);
   $effect(() => {
     void query;
-    all = { steps: false, controls: false };
+    all = { steps: false, messages: false, controls: false };
     opened = null;
     active = 0;
   });
   let steps = $derived(all.steps || scope ? found.steps : found.steps.slice(0, FIRST));
+  /** Messages whose text or meaning matches; none on a set of steps. */
+  let foundMessages = $derived(scope || !query.trim() ? [] : messages.filter((m) => matches(m, query)));
+  let shownMessages = $derived(all.messages ? foundMessages : foundMessages.slice(0, FIRST));
   let controls = $derived(all.controls ? found.controls : found.controls.slice(0, FIRST));
-  type Row = { kind: "step"; s: FoundStep } | { kind: "control"; c: FindControl } | { kind: "term"; t: FindTerm };
+  type Row =
+    | { kind: "step"; s: FoundStep }
+    | { kind: "message"; m: Message }
+    | { kind: "control"; c: FindControl }
+    | { kind: "term"; t: FindTerm };
   let rows = $derived<Row[]>([
     ...steps.map((s) => ({ kind: "step" as const, s })),
+    ...shownMessages.map((m) => ({ kind: "message" as const, m })),
     ...controls.map((c) => ({ kind: "control" as const, c })),
     ...found.terms.map((t) => ({ kind: "term" as const, t })),
   ]);
@@ -85,14 +105,18 @@ matches “…”". Esc, the scrim and the back button close it.
     if (none) return `Nothing matches “${query.trim()}”`;
     if (scope) return `${scope.label}: ${found.steps.length} step${found.steps.length === 1 ? "" : "s"}`;
     const n = (k: number, one: string) => `${k} ${one}${k === 1 ? "" : "s"}`;
-    return [n(found.steps.length, "step"), n(found.controls.length, "control"), n(found.terms.length, "term")].join(", ");
+    const said = [n(found.steps.length, "step"), n(found.controls.length, "control"), n(found.terms.length, "term")];
+    if (foundMessages.length) said.splice(1, 0, n(foundMessages.length, "alert message"));
+    return said.join(", ");
   });
 
-  const keyOf = (r: Row) => (r.kind === "step" ? `s:${r.s.id}` : r.kind === "control" ? `c:${r.c.id}` : `t:${r.t.term}`);
+  const keyOf = (r: Row) =>
+    r.kind === "step" ? `s:${r.s.id}` : r.kind === "message" ? `m:${r.m.id}` : r.kind === "control" ? `c:${r.c.id}` : `t:${r.t.term}`;
   const stateOf = (id: string) => (id === current ? "current" : done[id] !== undefined ? "done" : "todo");
 
   function choose(r: Row): void {
     if (r.kind === "step") onStep(r.s.id);
+    else if (r.kind === "message") onMessage(r.m.id);
     else if (r.kind === "control" && r.c.step) onControl(r.c);
     else if (r.kind === "term") onTerm(r.t.term);
     else opened = opened === keyOf(r) ? null : keyOf(r);
@@ -104,7 +128,7 @@ matches “…”". Esc, the scrim and the back button close it.
     document.getElementById(`find-r-${active}`)?.scrollIntoView?.({ block: "nearest" });
   }
   /** Show all keeps the active result where it was, and focus in the field. */
-  async function showAll(section: "steps" | "controls"): Promise<void> {
+  async function showAll(section: "steps" | "messages" | "controls"): Promise<void> {
     const r = rows[active];
     const was = r ? keyOf(r) : null;
     all = { ...all, [section]: true };
@@ -166,7 +190,7 @@ matches “…”". Esc, the scrim and the back button close it.
         type="text"
         role="combobox"
         aria-expanded={rows.length > 0}
-        aria-controls="find-steps find-controls find-terms"
+        aria-controls="find-steps find-messages find-controls find-terms"
         aria-autocomplete="list"
         aria-activedescendant={rows[active] ? `find-r-${active}` : undefined}
         aria-label="Find a step, control or term"
@@ -189,7 +213,7 @@ matches “…”". Esc, the scrim and the back button close it.
         aria-label="Search every step, control and term"
         onclick={() => {
           scope = null;
-          all = { steps: false, controls: false };
+          all = { steps: false, messages: false, controls: false };
           opened = null;
           active = 0;
           input?.focus();
@@ -204,14 +228,16 @@ matches “…”". Esc, the scrim and the back button close it.
         <div class="try">
           <span>Try</span>
           <div class="chips">
-            {#each TRY as word (word)}<button type="button" onclick={() => fill(word)}>{word}</button>{/each}
+            {#each examples as word (word)}<button type="button" onclick={() => fill(word)}>{word}</button>{/each}
           </div>
         </div>
       </div>
     {:else if none}
       <div class="none">
         <b>Nothing matches “{query.trim()}”</b>
-        <p class="help">Find looks through every step, control and term for this aircraft. Check the spelling, or try a panel or control name, like Fuel or MCP.</p>
+        <p class="help">
+          Find looks through every step, control and term for this aircraft. Check the spelling, or try a panel or control name{#if examples.length >= 2}, like {examples[0]} or {examples[1]}{/if}.
+        </p>
       </div>
     {:else}
       {#if found.steps.length}
@@ -237,11 +263,35 @@ matches “…”". Esc, the scrim and the back button close it.
           <button class="all" type="button" onclick={() => void showAll("steps")}>Show all {found.steps.length} steps</button>
         {/if}
       {/if}
+      {#if foundMessages.length}
+        {@render head("Alert messages", foundMessages.length, "find-messages-h")}
+        <div class="group" id="find-messages" role="listbox" aria-labelledby="find-messages-h">
+          {#each shownMessages as m, i (m.id)}
+            {@const at = steps.length + i}
+            {@const mt = marked(m.text, query)}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <div class="opt" role="option" tabindex="-1" id="find-r-{at}" aria-selected={active === at} onclick={() => onMessage(m.id)}>
+              <span class="ic kind"><Icon name="bell" /></span>
+              <span class="txt mres"
+                ><span class="line"
+                  ><MessageText text={m.text} level={m.level} compact
+                    >{#if mt}{mt[0]}<mark>{mt[1]}</mark>{mt[2]}{:else}{m.text}{/if}</MessageText
+                  ><LevelBadge level={m.level} compact /></span
+                ><span class="sub meaning">{@render title(m.meaning)}</span></span
+              >
+              <span class="end"><Icon name="chevron-right" /></span>
+            </div>
+          {/each}
+        </div>
+        {#if foundMessages.length > FIRST && !all.messages}
+          <button class="all" type="button" onclick={() => void showAll("messages")}>Show all {foundMessages.length} alert messages</button>
+        {/if}
+      {/if}
       {#if found.controls.length}
         {@render head("Controls", found.controls.length, "find-controls-h")}
         <div class="group" id="find-controls" role="listbox" aria-labelledby="find-controls-h">
           {#each controls as c, i (c.id)}
-            {@const at = steps.length + i}
+            {@const at = steps.length + shownMessages.length + i}
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <div
               class="opt"
@@ -270,7 +320,7 @@ matches “…”". Esc, the scrim and the back button close it.
         {@render head("Terms", found.terms.length, "find-terms-h")}
         <div class="group" id="find-terms" role="listbox" aria-labelledby="find-terms-h">
           {#each found.terms as t, i (t.term)}
-            {@const at = steps.length + controls.length + i}
+            {@const at = steps.length + shownMessages.length + controls.length + i}
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <div
               class="opt"
@@ -519,6 +569,20 @@ matches “…”". Esc, the scrim and the back button close it.
     gap: var(--border-thick) var(--space-2);
     color: var(--color-text-muted);
     font-size: calc(var(--font-size-caption) + var(--border-thin));
+  }
+  /* A message result (FindMessages): the message and its level on one line, its meaning below. */
+  .mres {
+    gap: var(--space-1);
+  }
+  /* The meaning wraps as text, the match marked inline. */
+  .meaning {
+    display: block;
+  }
+  .line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
   }
   /* A long value clamps to two lines. */
   .val {

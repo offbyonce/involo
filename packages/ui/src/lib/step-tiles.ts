@@ -8,7 +8,7 @@
 
 import type { ItemTarget, Panel, PanelSection, Step } from "@involo/bindings";
 import type { PackIndex } from "../pack-index";
-import { panelTitle } from "./panel-name";
+import { panelTitle, sectionName } from "./panel-name";
 
 export type DrawnTile = { kind: "drawn"; id: string; panel: Panel; section: PanelSection; title: string };
 export type ListedTile = { kind: "listed"; id: string; title: string; controls: string[] };
@@ -36,7 +36,7 @@ export function stepTiles(index: PackIndex, step: Step, targets: ItemTarget[]): 
     // A panel with a control the step sets comes first, then the others it uses, then its lights.
     const level = mine.some((t) => t.position != null || t.open) ? 0 : checks ? 2 : 1;
     tiles.push({
-      tile: { kind: "drawn", id, panel, section, title: section.title },
+      tile: { kind: "drawn", id, panel, section, title: sectionName(section) },
       level,
       rank: rank(ids),
       at: tiles.length,
@@ -66,4 +66,8 @@ export function stepTiles(index: PackIndex, step: Step, targets: ItemTarget[]): 
 }
 
 /** The sheet's title and "Also:" line for the step's tiles. */
-export const tilesTitle = (tiles: Tile[]) => panelTitle(tiles.map((t) => t.title));
+export const tilesTitle = (tiles: Tile[], sides: readonly string[] = []) =>
+  panelTitle(
+    tiles.map((t) => t.title),
+    sides,
+  );

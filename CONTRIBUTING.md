@@ -154,7 +154,17 @@ area's title and groups, crew roles and seats, the panel-state picker, basis tag
 an optional `labels.yaml`, listed in `pack.json` as `labels`. Every key is optional, and a key left
 out keeps the app's own word. Write only what differs. Reference tabs follow the order of
 `reference.groups`; `side_words` are the words that tell one of a pair from the other (left and
-right, captain and first officer), which Practice uses. The phase that starts the engines carries
+right, captain and first officer), which Practice uses, and which, with the seated roles' names,
+name two panels as a pair ("L and R wiper panels"), in the order the words are listed.
+`find_examples` are Find's Try chips, and its first two are the no-match hint's examples.
+`glossary_exceptions` are terms whose first sentence is not shown as their expansion.
+`position_words` (`DN: [DOWN]`) are other words for a position, merged over the defaults; `check`
+and `suggest-targets` read a step's wording with them. A panel section's optional `name` is what
+card titles, captions and "Also" lines call it ("Fuel panel") when that is not its drawn `title`;
+the interface adds nothing to a name. On the Flight deck page, a region the side view draws as
+several outlines is split into that many areas by its places' `area` names, top to bottom on the
+map; with a side view, a region it does not draw lists the places with no region of their own,
+last. The phase that starts the engines carries
 `engine_start: true` in `phases.yaml`, for Practice's "Before engine start". An overview region's
 optional `short` name ("Overhead", shared by both overhead regions) names that area in the How
 page's flow figure.

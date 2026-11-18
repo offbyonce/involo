@@ -29,6 +29,7 @@ sections:
         height: 84
   - id: ed
     title: Engine display and autobrake
+    name: Engine display and autobrake panel
     x: 226
     "y": 6
     width: 348
@@ -282,6 +283,7 @@ sections:
         description: Either switch cuts all electric stabilizer trim.
   - id: fi
     title: Fire protection
+    name: Fire protection panel
     x: 10
     "y": 534
     width: 818
@@ -412,6 +414,7 @@ sections:
         description: Green during the extinguisher test.
   - id: r1
     title: Radio 1
+    name: Radio 1 panel
     x: 10
     "y": 698
     width: 222
@@ -430,6 +433,7 @@ sections:
         height: 44
   - id: cf
     title: Cargo fire
+    name: Cargo fire panel
     x: 238
     "y": 698
     width: 300
@@ -497,6 +501,7 @@ sections:
         description: Discharges the bottle into the armed compartment.
   - id: r2
     title: Radio 2
+    name: Radio 2 panel
     x: 542
     "y": 698
     width: 222
@@ -513,6 +518,7 @@ sections:
         height: 44
   - id: n1
     title: NAV 1
+    name: NAV 1 panel
     x: 10
     "y": 814
     width: 222
@@ -529,6 +535,7 @@ sections:
         height: 44
   - id: wx
     title: Weather radar
+    name: Weather radar panel
     x: 238
     "y": 827
     width: 224
@@ -545,6 +552,7 @@ sections:
         height: 44
   - id: n2
     title: NAV 2
+    name: NAV 2 panel
     x: 468
     "y": 827
     width: 222
@@ -561,6 +569,7 @@ sections:
         height: 44
   - id: a1
     title: Audio 1
+    name: Audio 1 panel
     x: 10
     "y": 902
     width: 222
@@ -578,6 +587,7 @@ sections:
         height: 44
   - id: atc
     title: ATC/TCAS
+    name: ATC/TCAS panel
     x: 238
     "y": 915
     width: 265
@@ -630,6 +640,7 @@ sections:
         description: Second altitude source selector.
   - id: a2
     title: Audio 2
+    name: Audio 2 panel
     x: 507
     "y": 915
     width: 222
@@ -647,6 +658,7 @@ sections:
         height: 44
   - id: r3
     title: Radio 3
+    name: Radio 3 panel
     x: 10
     "y": 990
     width: 222
@@ -661,6 +673,7 @@ sections:
         height: 28
   - id: adf
     title: ADF
+    name: ADF panel
     x: 238
     "y": 1050
     width: 454
@@ -723,6 +736,7 @@ sections:
         description: ADF 2 mode. TEST button in the center.
   - id: lp
     title: Lighting
+    name: Lighting panel
     x: 10
     "y": 1054
     width: 222
@@ -744,6 +758,7 @@ sections:
         description: Panel lights.
   - id: tr
     title: Trim
+    name: Trim panel
     x: 238
     "y": 1150
     width: 249
@@ -776,6 +791,7 @@ sections:
         description: Rudder trim.
   - id: dr
     title: Stab override and door
+    name: Stab override and door panel
     x: 491
     "y": 1150
     width: 222

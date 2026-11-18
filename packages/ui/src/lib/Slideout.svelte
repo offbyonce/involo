@@ -29,7 +29,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   import { openingTop, positionsOf } from "./panel-layout";
   import PanelTiles from "./PanelTiles.svelte";
   import { stepTiles, tilesTitle } from "./step-tiles";
-  import { panelCaption } from "./panel-name";
+  import { panelCaption, sectionName } from "./panel-name";
   import { stepTitle } from "./sentence";
   import ViewDrawing from "./ViewDrawing.svelte";
   import { areaOf, deckAreas, deckHref } from "./deck";
@@ -70,7 +70,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
    * its Check names, the main control's first. */
   let tiles = $derived(stepTiles(index, step, targets));
   let drawnTiles = $derived(tiles.flatMap((t) => (t.kind === "drawn" ? [t] : [])));
-  let named = $derived(tilesTitle(tiles));
+  let named = $derived(tilesTitle(tiles, index.sideWords));
   let caption = $derived(named.title);
   /** One drawn panel alone (the navigator follows it when it is wider than the room). */
   let single = $derived(tiles.length === 1 ? drawnTiles[0] : undefined);
@@ -96,9 +96,10 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
     const across = it.kind === "toggle_switch" && ways.length ? positions.map((p, n) => `${p} (${ways[n]})`) : positions;
     const target = targets.find((t) => t.section === section && t.item === item);
     const setTo = target && target.position != null ? positions[target.position] : null;
+    const sec = index.section(section);
     return {
       title: control ? `${it.label} · ${control.name.charAt(0).toLowerCase()}${control.name.slice(1)}` : it.label,
-      where: [index.section(section)?.title ? panelCaption([index.section(section)?.title ?? ""]) : null, zone?.area].filter(Boolean).join(" · "),
+      where: [sec ? panelCaption([sectionName(sec)], index.sideWords) : null, zone?.area].filter(Boolean).join(" · "),
       positions: across.join(" · "),
       inStep: target ? (setTo ? `${setTo}${target.resolved ? " ◆" : ""}` : target.lit ? "Expected on" : target.open ? "Only if the step's condition applies" : "Used by this step") : null,
       does: it.description || control?.function || null,

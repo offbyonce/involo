@@ -11,6 +11,7 @@ height: 520
 sections:
   - id: elt
     title: ELT
+    name: ELT panel
     x: 8
     "y": 206
     width: 228
@@ -36,6 +37,7 @@ sections:
         description: Emergency locator transmitter. Stays guarded.
   - id: le
     title: LE devices
+    name: LE devices panel
     x: 8
     "y": 296
     width: 228
@@ -55,6 +57,7 @@ sections:
         description: Tests the leading edge device lights.
   - id: irs
     title: IRS
+    name: IRS panel
     x: 238
     "y": 70
     width: 273
@@ -196,6 +199,7 @@ sections:
         description: Right IRS mode.
   - id: svc
     title: Service interphone
+    name: Service interphone panel
     x: 1156
     "y": 220
     width: 96
@@ -224,6 +228,7 @@ sections:
         height: 120
   - id: eng
     title: Engine
+    name: Engine panel
     x: 570
     "y": 182
     width: 232
@@ -297,6 +302,7 @@ sections:
         description: Engine 2 control. ON is normal. ALTN shows alternate mode.
   - id: oxy
     title: Oxygen
+    name: Oxygen panel
     x: 570
     "y": 304
     width: 226
@@ -330,6 +336,7 @@ sections:
         description: The passenger masks have dropped and oxygen is flowing in the cabin.
   - id: bb
     title: Broadband system
+    name: Broadband system panel
     x: 800
     "y": 112
     width: 192
@@ -344,6 +351,7 @@ sections:
         description: Cabin broadband power.
   - id: rec
     title: Flight recorder and Mach test
+    name: Flight recorder and Mach test panel
     x: 828
     "y": 182
     width: 324
@@ -383,6 +391,7 @@ sections:
         description: Tests the overspeed clacker.
   - id: stall
     title: Stall warning test
+    name: Stall warning test panel
     x: 800
     "y": 304
     width: 155
@@ -404,6 +413,7 @@ sections:
         description: Tests the right stick shaker.
   - id: jam
     title: Elevator jam
+    name: Elevator jam panel
     x: 60
     "y": 400
     width: 156
@@ -429,6 +439,7 @@ sections:
         description: Not simulated.
   - id: mnt
     title: Maintenance
+    name: Maintenance panel
     x: 218
     "y": 432
     width: 250
@@ -444,6 +455,7 @@ sections:
         description: Not simulated.
   - id: dome
     title: Dome light
+    name: Dome light panel
     x: 472
     "y": 432
     width: 96
@@ -458,6 +470,7 @@ sections:
         description: Flight deck dome light.
   - id: gear
     title: Gear lights
+    name: Gear lights panel
     x: 572
     "y": 422
     width: 195

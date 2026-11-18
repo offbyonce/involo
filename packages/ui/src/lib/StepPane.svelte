@@ -80,7 +80,7 @@ and a caution note under If not. A step with no control shows the steps coming u
   let tiles = $derived(stepTiles(index, step, targets));
   let drawnTiles = $derived(tiles.flatMap((t) => (t.kind === "drawn" ? [t] : [])));
   let listedTiles = $derived(tiles.flatMap((t) => (t.kind === "listed" ? [t] : [])));
-  let cardName = $derived(tilesTitle(tiles).title);
+  let cardName = $derived(tilesTitle(tiles, index.sideWords).title);
   /** The step's own control, for How to do it's link to its card. */
   let own = $derived.by(() => {
     const id = place?.control?.id;
@@ -184,7 +184,7 @@ and a caution note under If not. A step with no control shows the steps coming u
     </button>
     {#if preview}
       {#if tiles.length}
-        <button class="preview" data-tour="where" type="button" aria-label="Show the whole {[cardName, tilesTitle(tiles).also].filter(Boolean).join(", ")}" onclick={() => onOpen({ entry: "panel" })}>
+        <button class="preview" data-tour="where" type="button" aria-label="Show the whole {[cardName, tilesTitle(tiles, index.sideWords).also].filter(Boolean).join(", ")}" onclick={() => onOpen({ entry: "panel" })}>
           {#if drawnTiles[0]}
             <PanelPreview panel={drawnTiles[0].panel} focus={[]} tiles={drawnTiles.map((d) => d.section)} {targets} {guardClosed} label="The whole {cardName}" />
           {/if}

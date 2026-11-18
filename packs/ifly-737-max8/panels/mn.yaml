@@ -11,6 +11,7 @@ height: 610
 sections:
   - id: cl
     title: Captain lights
+    name: Captain lights panel
     x: 10
     "y": 6
     width: 918
@@ -127,6 +128,7 @@ sections:
         height: 170
   - id: ctr
     title: Standby and gear
+    name: Standby and gear panel
     x: 932
     "y": 6
     width: 174
@@ -213,6 +215,7 @@ sections:
         description: "Guarded at NORM, which steers with system A. ALT uses system B."
   - id: fl
     title: First officer lights
+    name: First officer lights panel
     x: 1110
     "y": 6
     width: 907
@@ -295,6 +298,7 @@ sections:
         height: 170
   - id: clt
     title: Captain display select and lighting
+    name: Captain display select and lighting panel
     x: 10
     "y": 349
     width: 590
@@ -358,6 +362,7 @@ sections:
         description: Inboard display brightness.
   - id: gp
     title: "Ground proximity, display select and air"
+    name: Ground proximity, display select and air panel
     x: 582
     "y": 486
     width: 619

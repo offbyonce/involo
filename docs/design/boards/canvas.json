@@ -1961,6 +1961,102 @@
       "h": 460,
       "title": "An emergency list with the message that calls for it (light)",
       "page": "b12"
+    },
+    "FindMsgDesk.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Find with alert messages: desktop and tablet (dark)",
+      "page": "b13"
+    },
+    "FindMsgDeskLight.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Find with alert messages: desktop and tablet (light)",
+      "page": "b13"
+    },
+    "FindMsgPhone.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Find with alert messages: phone (dark)",
+      "page": "b13"
+    },
+    "FindMsgPhoneLight.dc.html": {
+      "x": 3510,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Find with alert messages: phone (light)",
+      "page": "b13"
+    },
+    "RolesDesk.dc.html": {
+      "x": 0,
+      "y": 1020,
+      "w": 1440,
+      "h": 900,
+      "title": "Crew roles and list methods: desktop and tablet (dark)",
+      "page": "b13"
+    },
+    "RolesDeskLight.dc.html": {
+      "x": 1520,
+      "y": 1020,
+      "w": 1440,
+      "h": 900,
+      "title": "Crew roles and list methods: desktop and tablet (light)",
+      "page": "b13"
+    },
+    "RolesPhone.dc.html": {
+      "x": 3040,
+      "y": 1020,
+      "w": 390,
+      "h": 844,
+      "title": "Crew roles: challenge and response on phone (dark)",
+      "page": "b13"
+    },
+    "RolesPhoneLight.dc.html": {
+      "x": 3510,
+      "y": 1020,
+      "w": 390,
+      "h": 844,
+      "title": "Crew roles: challenge and response on phone (light)",
+      "page": "b13"
+    },
+    "SeatSetting.dc.html": {
+      "x": 0,
+      "y": 2040,
+      "w": 720,
+      "h": 300,
+      "title": "Settings: your seat (dark)",
+      "page": "b13"
+    },
+    "SeatSettingLight.dc.html": {
+      "x": 800,
+      "y": 2040,
+      "w": 720,
+      "h": 300,
+      "title": "Settings: your seat (light)",
+      "page": "b13"
+    },
+    "FindMessages.dc.html": {
+      "x": 4060,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Shared source: Find with alert messages (tweaks: layout, theme)",
+      "page": "b13"
+    },
+    "Roles.dc.html": {
+      "x": 4060,
+      "y": 1020,
+      "w": 1440,
+      "h": 900,
+      "title": "Shared source: crew roles (tweaks: layout, theme)",
+      "page": "b13"
     }
   },
   "createdOnFiles": {
@@ -1969,7 +2065,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b12",
+    "page": "b13",
     "view": "canvas"
   },
   "notes": {},
@@ -2218,7 +2314,19 @@
     "Messages.dc.html",
     "PanelControls.dc.html",
     "MsgEmergency.dc.html",
-    "MsgEmergencyLight.dc.html"
+    "MsgEmergencyLight.dc.html",
+    "FindMsgDesk.dc.html",
+    "FindMsgDeskLight.dc.html",
+    "FindMsgPhone.dc.html",
+    "FindMsgPhoneLight.dc.html",
+    "RolesDesk.dc.html",
+    "RolesDeskLight.dc.html",
+    "RolesPhone.dc.html",
+    "RolesPhoneLight.dc.html",
+    "SeatSetting.dc.html",
+    "SeatSettingLight.dc.html",
+    "FindMessages.dc.html",
+    "Roles.dc.html"
   ],
   "pages": [
     {
@@ -2300,6 +2408,10 @@
     {
       "id": "b12",
       "name": "Beta 1: panel controls and messages"
+    },
+    {
+      "id": "b13",
+      "name": "Beta 1: Find and crew roles"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"

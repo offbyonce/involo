@@ -58,7 +58,7 @@ the list on wide screens and inside the step on narrow ones.
   });
   /** The step's panels as tiles. */
   let tiles = $derived(stepTiles(index, step, targets));
-  let cardName = $derived(tilesTitle(tiles).title);
+  let cardName = $derived(tilesTitle(tiles, index.sideWords).title);
   let guardClosed = $derived(/\bGUARDS? CLOSED\b/i.test(step.expect));
   let setTo = $derived(
     targets

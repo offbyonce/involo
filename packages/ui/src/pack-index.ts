@@ -77,6 +77,9 @@ export type PackIndex = {
   controlDrawn(control: string): boolean;
   /** The words the interface shows for this pack: its labels over the app's defaults. */
   labels: Labels;
+  /** Words that tell one of a pair from the other (labels `side_words`), then the seated roles'
+   * names and short names: panel names pair by them. */
+  sideWords: string[];
   /** The aircraft's alert messages, in the pack's order; none when it has no alert display. */
   messages: Message[];
   /** The messages that call for a step (that list it in their `steps`). */
@@ -216,6 +219,10 @@ export function indexPack(pack: FlatPack): PackIndex {
     zoneDrawn: (zone) => drawnZones.has(zone),
     controlDrawn: (control) => drawnControls.has(control),
     labels: pack.content.labels,
+    sideWords: [
+      ...pack.content.labels.sideWords,
+      ...pack.content.labels.roles.filter((r) => r.seat).flatMap((r) => [r.title, r.short]),
+    ],
     messages,
     messagesFor: (stepId) => messages.filter((m) => (m.steps ?? []).includes(stepId)),
     messagesCalling: (listId) => messages.filter((m) => m.list === listId),

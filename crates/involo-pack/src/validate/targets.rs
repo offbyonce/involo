@@ -8,8 +8,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use involo_checklist_core::{
-    LightState, PanelItemKind, Step, clauses, locate, named_position, names, names_position,
-    says_light_on, switch_value,
+    LightState, PanelItemKind, PositionWords, Step, clauses, locate, named_position, names,
+    names_position, says_light_on, switch_value,
 };
 
 use super::{Issue, error};
@@ -17,6 +17,7 @@ use crate::Pack;
 
 pub(super) fn check_step_targets(pack: &Pack, issues: &mut Vec<Issue>) {
     let panels = &pack.content.panels;
+    let words = &pack.content.labels.position_words;
     let options: BTreeMap<&str, Vec<&str>> = pack
         .content
         .phases
@@ -40,9 +41,9 @@ pub(super) fn check_step_targets(pack: &Pack, issues: &mut Vec<Issue>) {
         .map(|t| t.term.as_str())
         .collect();
     for step in pack.checklists.iter().flat_map(|l| &l.steps) {
-        check_step(panels, step, issues);
+        check_step(panels, step, words, issues);
         check_decision(&options, step, issues);
-        check_expect_when(&options, step, issues);
+        check_expect_when(&options, step, words, issues);
         for term in &step.terms {
             if !glossary.contains(term.as_str()) {
                 issues.push(error(
@@ -126,7 +127,12 @@ fn check_decision(options: &BTreeMap<&str, Vec<&str>>, step: &Step, issues: &mut
 
 /// A value per answer (decision 0027): a real option and value, each once, on a step whose targets
 /// depend on that option; and each value names the position of every target for its answer.
-fn check_expect_when(options: &BTreeMap<&str, Vec<&str>>, step: &Step, issues: &mut Vec<Issue>) {
+fn check_expect_when(
+    options: &BTreeMap<&str, Vec<&str>>,
+    step: &Step,
+    words: &PositionWords,
+    issues: &mut Vec<Issue>,
+) {
     let at = step.id.as_str();
     let mut seen = BTreeSet::new();
     for e in &step.expect_when {
@@ -183,7 +189,7 @@ fn check_expect_when(options: &BTreeMap<&str, Vec<&str>>, step: &Step, issues: &
         }
         for t in answered {
             let Some(set) = &t.set else { continue };
-            if !names_position(&e.expect, set) {
+            if !names_position(&e.expect, set, words) {
                 issues.push(error(
                     at,
                     format!(
@@ -194,14 +200,14 @@ fn check_expect_when(options: &BTreeMap<&str, Vec<&str>>, step: &Step, issues: &
             }
         }
     }
-    check_answers_differ(step, issues);
+    check_answers_differ(step, words, issues);
 }
 
 /// Two answers whose targets set an item differently must say so where their values differ: the
 /// parts of one answer's value that the other's lacks name its own position, not the other's
 /// ("MAIN PUMPS ON · CENTER PUMPS OFF" against "… · CENTER PUMPS ON"). A value that only shares
 /// a word with the position elsewhere ("MAIN PUMPS ON") does not count.
-fn check_answers_differ(step: &Step, issues: &mut Vec<Issue>) {
+fn check_answers_differ(step: &Step, words: &PositionWords, issues: &mut Vec<Issue>) {
     let at = step.id.as_str();
     let parts = |v: &str| -> Vec<String> {
         v.split(['·', ','])
@@ -247,10 +253,10 @@ fn check_answers_differ(step: &Step, issues: &mut Vec<Issue>) {
                     (only(&vb, &va), &pa, &b.equals),
                 ] {
                     let own = if equals == &a.equals { &pa } else { &pb };
-                    let says_own = mine.iter().any(|c| names_position(c, own));
+                    let says_own = mine.iter().any(|c| names_position(c, own, words));
                     let says_other = mine
                         .iter()
-                        .any(|c| names_position(c, other) && !names_position(c, own));
+                        .any(|c| names_position(c, other, words) && !names_position(c, own, words));
                     if !says_own || says_other {
                         issues.push(error(
                             at,
@@ -266,7 +272,12 @@ fn check_answers_differ(step: &Step, issues: &mut Vec<Issue>) {
     }
 }
 
-fn check_step(panels: &[involo_checklist_core::Panel], step: &Step, issues: &mut Vec<Issue>) {
+fn check_step(
+    panels: &[involo_checklist_core::Panel],
+    step: &Step,
+    words: &PositionWords,
+    issues: &mut Vec<Issue>,
+) {
     let at = step.id.as_str();
     let drawable = panels
         .iter()
@@ -296,7 +307,12 @@ fn check_step(panels: &[involo_checklist_core::Panel], step: &Step, issues: &mut
         .filter(|i| i.kind != PanelItemKind::Light)
         .flat_map(|i| i.positions.iter().map(|p| p.trim()))
         .collect();
-    let value = switch_value(&step.expect, lights.iter().copied(), &switch_positions);
+    let value = switch_value(
+        &step.expect,
+        lights.iter().copied(),
+        &switch_positions,
+        words,
+    );
     for t in &step.targets {
         // One item may have one target per answer of a decision (decision 0022); those are
         // checked in `check_decision`.
@@ -348,7 +364,7 @@ fn check_step(panels: &[involo_checklist_core::Panel], step: &Step, issues: &mut
                 ),
             ));
         }
-        check_wording(at, step, item, t, &value, issues);
+        check_wording(at, step, item, t, (&value, words), issues);
     }
 }
 
@@ -361,7 +377,7 @@ fn check_wording(
     step: &Step,
     item: &involo_checklist_core::PanelItem,
     t: &involo_checklist_core::StepTarget,
-    value: &str,
+    (value, words): (&str, &PositionWords),
     issues: &mut Vec<Issue>,
 ) {
     let is_light = item.kind == PanelItemKind::Light;
@@ -372,7 +388,7 @@ fn check_wording(
                 at,
                 format!("`{}`: `{set}` is not one of its positions", t.at),
             ));
-        } else if t.when.is_none() && !names_position(value, set) {
+        } else if t.when.is_none() && !names_position(value, set, words) {
             issues.push(error(
                 at,
                 format!(
@@ -383,7 +399,7 @@ fn check_wording(
         }
     } else if !is_light
         && !t.open
-        && let Some(n) = named_position(value, &item.positions)
+        && let Some(n) = named_position(value, &item.positions, words)
     {
         issues.push(error(
             at,

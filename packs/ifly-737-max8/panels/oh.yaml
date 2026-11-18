@@ -11,6 +11,7 @@ height: 1640
 sections:
   - id: fctl
     title: Flight control
+    name: Flight control panel
     x: 10
     "y": 6
     width: 235
@@ -174,6 +175,7 @@ sections:
         description: Damps Dutch roll.
   - id: nav
     title: Navigation
+    name: Navigation panel
     x: 10
     "y": 356
     width: 235
@@ -233,6 +235,7 @@ sections:
         description: Chooses which EFIS panel controls both sides.
   - id: fuel
     title: Fuel
+    name: Fuel panel
     x: 10
     "y": 618
     width: 309
@@ -414,6 +417,7 @@ sections:
         description: "Aft pump, tank 2."
   - id: elecu
     title: Electrical meters
+    name: Electrical meters panel
     x: 252
     "y": 120
     width: 265
@@ -509,6 +513,7 @@ sections:
         description: Power to seat equipment.
   - id: elecm
     title: Generator drive and standby
+    name: Generator drive and standby panel
     x: 252
     "y": 442
     width: 225
@@ -570,6 +575,7 @@ sections:
         description: Disconnects generator drive 2. Not reset in flight.
   - id: elecl
     title: Ground power and generators
+    name: Ground power and generators panel
     x: 323
     "y": 1178
     width: 245
@@ -701,6 +707,7 @@ sections:
         description: Spring-loaded. Puts generator 2 on the bus.
   - id: wipe
     title: L wiper
+    name: L wiper panel
     x: 380
     "y": 863
     width: 97
@@ -717,6 +724,7 @@ sections:
         description: Left windshield wiper.
   - id: col
     title: Lights and service
+    name: Lights and service panel
     x: 504
     "y": 442
     width: 142
@@ -835,6 +843,7 @@ sections:
         description: Calls the ground crew.
   - id: rwip
     title: R wiper
+    name: R wiper panel
     x: 482
     "y": 1456
     width: 110
@@ -851,6 +860,7 @@ sections:
         description: Right windshield wiper.
   - id: heat
     title: Window and probe heat
+    name: Window and probe heat panel
     x: 596
     "y": 6
     width: 249
@@ -1046,6 +1056,7 @@ sections:
         description: Probe heat system B.
   - id: aice
     title: Anti-ice
+    name: Anti-ice panel
     x: 650
     "y": 332
     width: 267
@@ -1152,6 +1163,7 @@ sections:
         description: Bleed air to the engine 2 inlet.
   - id: hyd
     title: Hydraulic pumps
+    name: Hydraulic pumps panel
     x: 650
     "y": 486
     width: 241
@@ -1243,6 +1255,7 @@ sections:
         description: "Engine 2 pump, system B."
   - id: door
     title: Doors
+    name: Doors panel
     x: 596
     "y": 1178
     width: 232
@@ -1374,6 +1387,7 @@ sections:
         description: Headphone jack.
   - id: cab
     title: Cabin altitude
+    name: Cabin altitude panel
     x: 596
     "y": 1348
     width: 210
@@ -1400,6 +1414,7 @@ sections:
         description: Silences the cabin altitude horn.
   - id: vrec
     title: Voice recorder
+    name: Voice recorder panel
     x: 849
     "y": 6
     width: 178
@@ -1416,6 +1431,7 @@ sections:
         description: AUTO runs the recorder automatically.
   - id: air
     title: Air temperature
+    name: Air temperature panel
     x: 849
     "y": 72
     width: 184
@@ -1499,6 +1515,7 @@ sections:
         description: Aft cabin temperature.
   - id: bleed
     title: Bleed air
+    name: Bleed air panel
     x: 921
     "y": 332
     width: 197
@@ -1649,6 +1666,7 @@ sections:
         description: Engine 2 bleed air.
   - id: press
     title: Cabin pressure
+    name: Cabin pressure panel
     x: 842
     "y": 1131
     width: 203
@@ -1741,6 +1759,7 @@ sections:
         description: Pressurization mode.
   - id: ltl
     title: Landing and taxi lights
+    name: Landing and taxi lights panel
     x: 10
     "y": 1102
     width: 300
@@ -1793,6 +1812,7 @@ sections:
         description: Taxi light.
   - id: apu
     title: APU
+    name: APU panel
     x: 314
     "y": 1532
     width: 84
@@ -1809,6 +1829,7 @@ sections:
         description: START is spring-loaded back to ON.
   - id: start
     title: Engine start
+    name: Engine start panel
     x: 402
     "y": 1544
     width: 290
@@ -1843,6 +1864,7 @@ sections:
         description: Engine 2 start and ignition.
   - id: lte
     title: Exterior lights
+    name: Exterior lights panel
     x: 696
     "y": 914
     width: 294
@@ -1896,6 +1918,7 @@ sections:
         description: Wheel well lights.
   - id: apul
     title: APU lights
+    name: APU lights panel
     x: 252
     "y": 1456
     width: 121

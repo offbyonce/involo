@@ -6,7 +6,7 @@
 //! says where its reading was not certain.
 
 use involo_checklist_core::{
-    LightState, Panel, PanelItem, PanelItemKind, Step, StepTarget, clauses, locator,
+    LightState, Panel, PanelItem, PanelItemKind, PositionWords, Step, StepTarget, clauses, locator,
     named_position, names, says_light_on, switch_value,
 };
 use serde::Serialize;
@@ -40,7 +40,11 @@ fn positions_of(item: &PanelItem) -> Vec<String> {
 }
 
 /// Each switch's position, where the wording (light names taken out) names exactly one.
-fn read_positions(found: &[Found], value: &str, flags: &mut Vec<String>) -> Vec<Option<String>> {
+fn read_positions(
+    found: &[Found],
+    (value, words): (&str, &PositionWords),
+    flags: &mut Vec<String>,
+) -> Vec<Option<String>> {
     found
         .iter()
         .map(|f| {
@@ -48,7 +52,7 @@ fn read_positions(found: &[Found], value: &str, flags: &mut Vec<String>) -> Vec<
             if f.item.positions.is_empty() {
                 return None;
             }
-            if let Some(i) = named_position(value, &f.item.positions) {
+            if let Some(i) = named_position(value, &f.item.positions, words) {
                 return ps.get(i).cloned();
             }
             if f.item.kind != PanelItemKind::Light && ps.len() > 1 {
@@ -173,8 +177,9 @@ fn drop_unnamed_switches(
         .collect()
 }
 
-/// Draft the targets of a step from its controls and wording.
-pub fn suggest(panels: &[Panel], step: &Step) -> Suggestion {
+/// Draft the targets of a step from its controls and wording, reading positions by their names
+/// and the pack's other words for them.
+pub fn suggest(panels: &[Panel], step: &Step, words: &PositionWords) -> Suggestion {
     let mut flags = vec![];
     let found: Vec<Found> = panels
         .iter()
@@ -207,8 +212,9 @@ pub fn suggest(panels: &[Panel], step: &Step) -> Suggestion {
             .filter(|f| is_light(f))
             .map(|f| f.item.label.as_str()),
         &switch_positions,
+        words,
     );
-    let set = read_positions(&found, &value, &mut flags);
+    let set = read_positions(&found, (&value, words), &mut flags);
     let sets_a_switch = found
         .iter()
         .zip(&set)
@@ -301,6 +307,7 @@ mod tests {
         let s = suggest(
             &pack.content.panels,
             step(&pack, "ifly-737-max8.preflight.passenger-oxygen-switch"),
+            &pack.content.labels.position_words,
         );
         let switch = s
             .targets
@@ -322,6 +329,7 @@ mod tests {
         let s = suggest(
             &pack.content.panels,
             step(&pack, "ifly-737-max8.before-start.fuel-pump-switches"),
+            &pack.content.labels.position_words,
         );
         assert!(s.targets.iter().all(|t| !t.at.contains("LOW PRESSURE")));
         assert!(
