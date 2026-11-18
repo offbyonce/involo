@@ -667,6 +667,25 @@ function readOf(f: FlightField): Row["read"] {
   }
 }
 
+/** The altimeter settings the Weather page edits, found by their SimBrief source: the departure's
+ * and the destination's fields, and the choice field their unit names (inHg or hPa). */
+export function altimeters(): {
+  departure: FieldId | null;
+  destination: FieldId | null;
+  unit: FieldId | null;
+} {
+  const by = (source: SimbriefSource) =>
+    [...model.fields.values()].find((f) => (f.simbrief ?? []).includes(source)) ?? null;
+  const departure = by("origin_altimeter");
+  const destination = by("destination_altimeter");
+  const unit = departure?.unit ?? destination?.unit ?? null;
+  return {
+    departure: (departure?.id as FieldId) ?? null,
+    destination: (destination?.id as FieldId) ?? null,
+    unit: (unit as FieldId) ?? null,
+  };
+}
+
 /** The section that holds a field, and its row, for "— enter …" links and Still to enter. */
 export function home(field: FieldId): { section: FlightSection; row: Row } | null {
   for (const s of model.sections)
@@ -700,7 +719,9 @@ export function blankLinks(fill: FieldId[]): ({ href: string; name: string } | n
     if (field === "manual") return null;
     const def = model.fields.get(field);
     const name = def ? spokenOf(def) : field.replace(/_/g, " ");
-    if (field === "qnh" || field === "destination_qnh") return { href: `#/flight/weather/${field}`, name };
+    const alt = altimeters();
+    if (field === alt.departure || field === alt.destination)
+      return { href: `#/flight/weather/${field}`, name };
     const at = home(field);
     return at ? { href: `#/flight/${at.section}/${field}`, name } : null;
   });

@@ -15,7 +15,7 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
   import { safely } from "../lib/safely";
   import Icon from "../lib/Icon.svelte";
   import { flightHref } from "../route.svelte";
-  import { rangeMessage, type Ofp, type Part } from "./sections";
+  import { altimeters, rangeMessage, type Ofp, type Part } from "./sections";
 
   let {
     flight,
@@ -38,13 +38,16 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
   const host = getHost();
   let vals = $derived<Partial<Record<FieldId, string>>>(flight.values ?? {});
   type Tab = "departure" | "destination" | "alternate" | "winds";
+  /** The pack's altimeter fields, by their SimBrief source. */
+  const alt = altimeters();
+  const isAlt = (w: string | null) => !!w && (w === alt.departure || w === alt.destination);
   // svelte-ignore state_referenced_locally
-  let tab = $state<Tab>(wanted === "destination_qnh" || wanted === "destination" ? "destination" : wanted === "alternate" ? "alternate" : wanted === "winds" ? "winds" : "departure");
+  let tab = $state<Tab>((alt.destination && wanted === alt.destination) || wanted === "destination" ? "destination" : wanted === "alternate" ? "alternate" : wanted === "winds" ? "winds" : "departure");
   $effect(() => {
-    if (wanted === "destination_qnh" || wanted === "destination") tab = "destination";
-    else if (wanted === "qnh" || wanted === "departure") tab = "departure";
+    if ((alt.destination && wanted === alt.destination) || wanted === "destination") tab = "destination";
+    else if ((alt.departure && wanted === alt.departure) || wanted === "departure") tab = "departure";
     // A step's "— enter QNH" link: the cursor goes to the Altimeter box.
-    if (wanted === "qnh" || wanted === "destination_qnh") setTimeout(() => document.getElementById("wx-alt")?.focus(), 0);
+    if (isAlt(wanted)) setTimeout(() => document.getElementById("wx-alt")?.focus(), 0);
   });
 
   let TABS = $derived<{ id: Tab; label: string }[]>([
@@ -92,8 +95,8 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
   let picked = $state<number | null>(null);
   let selected = $derived(picked !== null && rows.some((x) => x.i === picked) ? picked : (rows.find((x) => x.r.element === "wind")?.i ?? rows[0]?.i ?? null));
   let altRow = $derived(rows.find((x) => x.r.element === "altimeter") ?? null);
-  let field = $derived<FieldId | null>(tab === "departure" ? "qnh" : tab === "destination" ? "destination_qnh" : null);
-  let unit = $derived(vals.qnh_unit ?? (altRow?.r.raw[0]?.startsWith("Q") ? "hPa" : "inHg"));
+  let field = $derived<FieldId | null>(tab === "departure" ? alt.departure : tab === "destination" ? alt.destination : null);
+  let unit = $derived((alt.unit ? vals[alt.unit] : undefined) ?? (altRow?.r.raw[0]?.startsWith("Q") ? "hPa" : "inHg"));
   let more = $state<number | null>(null);
   let altMessage = $derived(field ? rangeMessage(field, { values: vals, plan, notes: "", unit: "" }) : null);
   let tafOpen = $state(false);
@@ -159,8 +162,9 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
   /** The other unit: both airports' settings follow (1 inHg is 33.8639 hPa). */
   function setUnit(next: "inHg" | "hPa"): void {
     if (next === unit) return;
-    onSet("qnh_unit", next);
-    for (const f of ["qnh", "destination_qnh"] as const) {
+    if (alt.unit) onSet(alt.unit, next);
+    for (const f of [alt.departure, alt.destination]) {
+      if (!f) continue;
       const n = Number(vals[f]);
       if (!vals[f] || !Number.isFinite(n)) continue;
       onSet(f, next === "hPa" ? String(Math.round(n * 33.8639)) : (n / 33.8639).toFixed(2));
@@ -407,7 +411,7 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
   <div class="xrow alt" class:sel={selected === i && i >= 0}>
     <label class="label" for="wx-alt">Altimeter</label>
     <span class="val">
-      <input id="wx-alt" class="box" data-field={field} class:need={!vals[field ?? "qnh"]} value={vals[field ?? "qnh"] ?? ""} placeholder="Enter" inputmode="decimal" aria-invalid={field && altMessage ? "true" : undefined} aria-describedby={field && altMessage ? "wx-alt-err" : undefined} onchange={(e) => setAltimeter(e.currentTarget.value)} />
+      <input id="wx-alt" class="box" data-field={field} class:need={!(field && vals[field])} value={(field && vals[field]) || ""} placeholder="Enter" inputmode="decimal" aria-invalid={field && altMessage ? "true" : undefined} aria-describedby={field && altMessage ? "wx-alt-err" : undefined} onchange={(e) => setAltimeter(e.currentTarget.value)} />
       {#if r}<span class="raw">From METAR {r.raw.join(" ")}</span>{/if}
       {#if field && altMessage}<span class="err" id="wx-alt-err" role="alert"><Icon name="field-alert" />{altMessage}</span>{/if}
     </span>

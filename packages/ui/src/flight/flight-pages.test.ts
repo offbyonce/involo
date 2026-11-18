@@ -137,7 +137,7 @@ describe("the Flight pages for any pack", () => {
     expect(sections).not.toMatch(/CDU|FMC|MCP|EFIS|PERF INIT|TAKEOFF REF|APPROACH REF|DEP\/ARR|› RTE/);
     expect(sections).not.toMatch(/"TO-1"|"MAX"|\["1", "5", "10"|FLAPS|AUTOBRAKE|THRUST/);
     expect(sections).not.toMatch(/within\(\d|Enter FL|41,000|400,000/);
-    // No interface code reads the option ids center_tank or approach.
+    // No interface code reads the option ids center_tank or approach, or the altimeter field ids.
     const files = import.meta.glob<string>(
       ["../**/*.svelte", "../**/*.ts", "!../**/*.test.ts", "!./flight-dump.ts", "!../**/*fixture*.ts"],
       {
@@ -148,6 +148,8 @@ describe("the Flight pages for any pack", () => {
     );
     for (const [file, text] of Object.entries(files)) {
       expect(text, file).not.toMatch(/center_tank|options\.approach\b|\.id === "approach"/);
+      // Nor the altimeter fields' ids: they are found by their SimBrief source.
+      expect(text, file).not.toMatch(/\bqnh|destination_qnh|qnh_unit/);
     }
   });
 });
