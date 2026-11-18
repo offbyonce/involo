@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
+import type { FlatPack, Phase } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import { iflyPack } from "../test-pack";
-import { buildReferences, CONFIRMING, SOURCES } from "./references";
+import { buildReferences } from "./references";
 
 const pack = iflyPack();
 
@@ -20,7 +21,7 @@ describe("References, counted from the pack (decision 0007)", () => {
   });
 
   it("knows every basis tag the pack's lists use, so none shows unnamed", () => {
-    const known = new Set<string>([...SOURCES.map((s) => s.tag), CONFIRMING.tag]);
+    const known = new Set<string>(pack.content.labels.basisTags.map((t) => t.id));
     for (const l of pack.lists)
       for (const tag of l.basis) expect(known.has(tag), `${l.id}: ${tag}`).toBe(true);
   });
@@ -67,5 +68,38 @@ describe("References, counted from the pack (decision 0007)", () => {
     expect(after.confirming).toBe(0);
     expect(after.sources[0]?.count).toBe(57);
     expect(after.rows.some((r) => r.basis === "prior-release")).toBe(false);
+  });
+
+  it("takes the reference title, groups and basis tags from a pack's labels", () => {
+    // Invented: a reference area called Abnormal, its lists in four groups, and two tags of its own.
+    const p = structuredClone(pack) as FlatPack;
+    const labels = p.content.labels;
+    labels.reference.title = "Abnormal";
+    labels.listKinds.quick = "QRH";
+    labels.basisTags = [
+      { id: "own-tests", label: "Our own tests", about: "Flown and checked by the authors." },
+      { id: "draft", label: "Draft", pending: true },
+    ];
+    for (const l of p.lists) l.basis = l.kind === "flow" ? ["own-tests"] : ["draft"];
+    const phases = p.content.phases?.phases as Phase[];
+    for (const ph of phases) if (ph.reference) ph.group = ph.group === "quick" ? "quick" : "extra";
+    const r = buildReferences(p);
+    expect(r.sources).toEqual([
+      {
+        tag: "own-tests",
+        name: "Our own tests",
+        about: "Flown and checked by the authors.",
+        count: p.lists.filter((l) => l.kind === "flow").length,
+      },
+    ]);
+    expect(r.pending).toEqual([
+      { tag: "draft", name: "Draft", count: p.lists.filter((l) => l.kind !== "flow").length },
+    ]);
+    expect(r.names).toEqual({ "own-tests": "Our own tests", draft: "Draft" });
+    expect(r.rows.find((row) => row.title === "APU fire")).toMatchObject({
+      stage: "Abnormal",
+      kind: "QRH",
+      basis: "draft",
+    });
   });
 });

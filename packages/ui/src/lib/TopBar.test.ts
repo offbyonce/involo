@@ -25,6 +25,7 @@ const rail: Rail = {
 };
 const base = {
   aircraft: "Test Jet",
+  reference: "Emergency",
   rail,
   stage: "Bravo",
   view: null,

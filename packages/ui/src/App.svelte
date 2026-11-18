@@ -8,6 +8,7 @@ from the host (decision 0012): a flight, settings, the rail and the phase on scr
 in Rust. The host saves progress and settings on the device.
 -->
 <script lang="ts">
+  import { referenceTabs } from "./lib/reference-tabs";
   import {
     type Action,
     type AppInfo,
@@ -272,7 +273,8 @@ in Rust. The host saves progress and settings on the device.
   let phaseId = $derived.by(() => {
     const r = route.value;
     if (r.screen === "phase") return r.id;
-    if (r.screen === "reference") return r.id ?? rail?.reference[0]?.id ?? null;
+    // The reference area opens on its first tab, by group (decision 0029).
+    if (r.screen === "reference") return r.id ?? (index && rail ? referenceTabs(index.labels, rail.reference)[0]?.id : null) ?? null;
     if (r.screen === "start") return rail?.stages[0]?.phases[0]?.id ?? null;
     return null;
   });
@@ -1091,7 +1093,7 @@ in Rust. The host saves progress and settings on the device.
 {/if}
 {#if route.value.screen === "glossary" && index}
   <div class="flightwrap">
-    <GlossaryPage terms={glossary} term={route.value.term} {rail} backHref={lastPhase ? phaseHref(lastPhase) : "#/"} onStep={goToStep} />
+    <GlossaryPage terms={glossary} term={route.value.term} {rail} referenceTitle={index?.labels.reference.title ?? ""} backHref={lastPhase ? phaseHref(lastPhase) : "#/"} onStep={goToStep} />
   </div>
 {:else if route.value.screen === "practice" && index && flatPack}
   <div class="flightwrap">
@@ -1211,6 +1213,7 @@ in Rust. The host saves progress and settings on the device.
 <div class="shell" data-app-ready={rail && (view || screen === "settings" || screen === "flight" || screen === "open") ? "" : undefined}>
   <TopBar
     aircraft={index?.name ?? ""}
+    reference={index?.labels.reference.title ?? ""}
     {rail}
     {stage}
     view={settings && view && (screen === "phase" || screen === "start") ? listView : null}

@@ -2,8 +2,9 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
-Behind the Emergency button, as in 3.0: a tab for each reference phase (memory items, quick
-reference, non-normal), its introduction, and its lists as cards that open. Steps here use larger
+Behind the reference area's button (the pack's `labels.reference.title`; the app's default word otherwise), as
+in 3.0: a tab for each reference phase by its group, in the labels' order (decision 0029), its
+introduction, and its lists as cards that open. Steps here use larger
 type, as non-normal lists need.
 -->
 <script lang="ts">
@@ -11,6 +12,7 @@ type, as non-normal lists need.
   import type { Checklist, Detail, Flight, PhaseView, RailPhase } from "@involo/bindings";
   import Icon from "../lib/Icon.svelte";
   import ListCard from "../lib/ListCard.svelte";
+  import { referenceTabs } from "../lib/reference-tabs";
   import type { PackIndex } from "../pack-index";
 
   let {
@@ -53,12 +55,13 @@ type, as non-normal lists need.
   } = $props();
 
   // The notice is under every screen already; a pack introduction that repeats it is skipped.
+  let tabs = $derived(referenceTabs(index.labels, phases));
   let shown = $derived(intro.filter((p) => p.heading || !/^Simulator training only\./.test(p.text)));
 </script>
 
-<h1>Emergency</h1>
+<h1>{index.labels.reference.title}</h1>
 <nav class="tabs" aria-label="Reference">
-  {#each phases as p (p.id)}
+  {#each tabs as p (p.id)}
     <a href="#/reference/{encodeURIComponent(p.id)}" aria-current={p.id === view?.id ? "page" : undefined}>{p.title}</a>
   {/each}
 </nav>

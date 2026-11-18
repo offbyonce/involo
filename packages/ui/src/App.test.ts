@@ -17,6 +17,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App.svelte";
 import { type Host, hostContext } from "./host";
+import { appLabels } from "./test-pack";
 
 function phase(id: string, title: string, done: number, skipped: number, total: number): RailPhase {
   const progress = { done, skipped, toDo: total - done - skipped, total };
@@ -59,6 +60,7 @@ const pack = {
     },
   ],
   content: {
+    labels: appLabels(),
     // An invented term, for the Glossary.
     glossary: { terms: [{ term: "WGT", meaning: "Widget gate timer. Times the widget gate." }] },
     phases: {
@@ -1171,6 +1173,11 @@ describe("App", () => {
       })),
       content: {
         ...pack.content,
+        // The pack names its tag, as the iFly pack's labels do.
+        labels: {
+          ...appLabels(),
+          basisTags: [{ id: "ifly-docs", label: "Simulator documentation", about: "How the model works." }],
+        },
         phases: {
           ...pack.content.phases,
           stages: [{ id: "preflight", title: "Preflight", phases: [{ phase: "power-up" }] }],
