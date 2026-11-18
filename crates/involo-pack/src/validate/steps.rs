@@ -150,6 +150,12 @@ pub(super) fn check_list(list: &Checklist, idx: &Index, issues: &mut Vec<Issue>)
     for step in &list.steps {
         check_step(step, idx, issues);
     }
+    if let Some(first) = list.steps.first().filter(|s| s.branch) {
+        issues.push(error(
+            first.id.as_str(),
+            "a list's first step cannot open a branch (`branch: true`)",
+        ));
+    }
 }
 
 /// Words too common to tell two sentences apart.
@@ -462,5 +468,18 @@ mod tests {
         let mut s = step("a");
         s.explain = Some("nope".into());
         assert_flags(&pack(vec![s], vec![]), "unknown explanation");
+    }
+
+    #[test]
+    fn only_a_later_step_opens_a_branch() {
+        let mut first = step("a");
+        first.branch = true;
+        let mut later = step("b");
+        later.branch = true;
+        assert_flags(
+            &pack(vec![first, step("c")], vec![]),
+            "a list's first step cannot open a branch",
+        );
+        assert_eq!(messages(&pack(vec![step("c"), later], vec![])), "");
     }
 }

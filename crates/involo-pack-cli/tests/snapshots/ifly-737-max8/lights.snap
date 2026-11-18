@@ -12,6 +12,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fctl/LOW PRESSURE/1",
+      "which": "standby hydraulic pump",
       "meaning": "The standby hydraulic pump is selected to run but is not giving pressure.",
       "when": "Abnormal. Normally out, because the standby pump only runs when needed.",
       "action": "If you need the standby system, run the standby hydraulic checklist.",
@@ -26,6 +27,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fctl/LOW PRESSURE/2",
+      "which": "system A",
       "meaning": "Hydraulic system A is not giving pressure to the ailerons, elevator and rudder.",
       "when": "Normal before the hydraulic pumps are on, or with FLT CONTROL A switched OFF. It goes out with the switch at STBY RUD, once the standby rudder valve opens. Abnormal in flight.",
       "action": "On the ground, switch the hydraulic pumps on. In flight, check system A pressure and quantity and run the checklist.",
@@ -33,6 +35,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fctl/LOW PRESSURE/3",
+      "which": "system B",
       "meaning": "Hydraulic system B is not giving pressure to the ailerons, elevator and rudder.",
       "when": "Normal before the hydraulic pumps are on, or with FLT CONTROL B switched OFF. It goes out with the switch at STBY RUD, once the standby rudder valve opens. Abnormal in flight.",
       "action": "On the ground, switch the hydraulic pumps on. In flight, check system B pressure and quantity and run the checklist.",
@@ -82,6 +85,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fuel/FILTER BYPASS/1",
+      "which": "engine 1",
       "meaning": "The engine 1 fuel filter is clogging, often from contamination or ice, and fuel may soon go around it.",
       "when": "Abnormal.",
       "action": "Run the filter bypass checklist and watch engine 1 closely.",
@@ -89,6 +93,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fuel/FILTER BYPASS/2",
+      "which": "engine 2",
       "meaning": "The engine 2 fuel filter is clogging, often from contamination or ice, and fuel may soon go around it.",
       "when": "Abnormal.",
       "action": "Run the filter bypass checklist and watch engine 2 closely.",
@@ -96,6 +101,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fuel/LOW PRESSURE/1",
+      "which": "CTR L",
       "meaning": "The left center tank pump (CTR L) is switched on but not delivering fuel. With both center lights on, the center tank is empty.",
       "when": "Expected near the end of the center tank fuel.",
       "action": "When both center lights are on, switch both center pumps OFF.",
@@ -103,6 +109,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fuel/LOW PRESSURE/2",
+      "which": "CTR R",
       "meaning": "The right center tank pump (CTR R) is switched on but not delivering fuel. With both center lights on, the center tank is empty.",
       "when": "Expected near the end of the center tank fuel.",
       "action": "When both center lights are on, switch both center pumps OFF.",
@@ -110,6 +117,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fuel/LOW PRESSURE/3",
+      "which": "AFT 1",
       "meaning": "The left aft pump (AFT 1) is not delivering fuel, or it is switched off.",
       "when": "Normal before start with the pumps off. Abnormal with the pump on. One light alone does not set MASTER CAUTION; both lights in the same tank do.",
       "action": "Before start, switch the pumps on and check the light goes out. In flight, switch that pump OFF and run the fuel pump low pressure checklist.",
@@ -117,6 +125,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fuel/LOW PRESSURE/4",
+      "which": "FWD 1",
       "meaning": "The left forward pump (FWD 1) is not delivering fuel, or it is switched off.",
       "when": "Normal before start with the pumps off. Abnormal with the pump on. One light alone does not set MASTER CAUTION; both lights in the same tank do.",
       "action": "Before start, switch the pumps on and check the light goes out. In flight, switch that pump OFF and run the fuel pump low pressure checklist.",
@@ -124,6 +133,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fuel/LOW PRESSURE/5",
+      "which": "FWD 2",
       "meaning": "The right forward pump (FWD 2) is not delivering fuel, or it is switched off.",
       "when": "Normal before start with the pumps off. Abnormal with the pump on. One light alone does not set MASTER CAUTION; both lights in the same tank do.",
       "action": "Before start, switch the pumps on and check the light goes out. In flight, switch that pump OFF and run the fuel pump low pressure checklist.",
@@ -131,6 +141,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fuel/LOW PRESSURE/6",
+      "which": "AFT 2",
       "meaning": "The right aft pump (AFT 2) is not delivering fuel, or it is switched off.",
       "when": "Normal before start with the pumps off. Abnormal with the pump on. One light alone does not set MASTER CAUTION; both lights in the same tank do.",
       "action": "Before start, switch the pumps on and check the light goes out. In flight, switch that pump OFF and run the fuel pump low pressure checklist.",
@@ -138,6 +149,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fuel/ENG VALVE CLOSED/1",
+      "which": "engine 1",
       "meaning": "Shows the engine 1 fuel valve: dim when closed, out when open, bright while moving or if it disagrees with the start lever.",
       "when": "Dim with the start lever at CUTOFF, out with it at IDLE.",
       "action": "If it stays bright, run the fuel valve checklist.",
@@ -145,6 +157,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fuel/SPAR VALVE CLOSED/1",
+      "which": "engine 1",
       "meaning": "Shows the engine 1 spar valve: dim when closed, out when open, bright while moving or if it disagrees with the start lever.",
       "when": "Dim with the start lever at CUTOFF, out with it at IDLE.",
       "action": "If it stays bright, run the fuel valve checklist.",
@@ -152,6 +165,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fuel/ENG VALVE CLOSED/2",
+      "which": "engine 2",
       "meaning": "Shows the engine 2 fuel valve: dim when closed, out when open, bright while moving or if it disagrees with the start lever.",
       "when": "Dim with the start lever at CUTOFF, out with it at IDLE.",
       "action": "If it stays bright, run the fuel valve checklist.",
@@ -159,6 +173,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/fuel/SPAR VALVE CLOSED/2",
+      "which": "engine 2",
       "meaning": "Shows the engine 2 spar valve: dim when closed, out when open, bright while moving or if it disagrees with the start lever.",
       "when": "Dim with the start lever at CUTOFF, out with it at IDLE.",
       "action": "If it stays bright, run the fuel valve checklist.",
@@ -215,6 +230,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/elecl/TRANSFER BUS OFF/1",
+      "which": "transfer bus 1",
       "meaning": "Transfer bus 1 has no power, so the systems on it are off.",
       "when": "Normal before any AC power is selected. Abnormal once a generator or ground power is on.",
       "action": "Select a power source for that bus: ground power, the APU generator or an engine generator.",
@@ -222,6 +238,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/elecl/TRANSFER BUS OFF/2",
+      "which": "transfer bus 2",
       "meaning": "Transfer bus 2 has no power, so the systems on it are off.",
       "when": "Normal before any AC power is selected. Abnormal once a generator or ground power is on.",
       "action": "Select a power source for that bus: ground power, the APU generator or an engine generator.",
@@ -229,6 +246,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/elecl/SOURCE OFF/1",
+      "which": "transfer bus 1",
       "meaning": "No source has been selected for transfer bus 1, or the source you selected has been disconnected.",
       "when": "Normal on battery power before you select ground power or the APU generator.",
       "action": "Switch ground power, the APU generator or the engine 1 generator onto the bus.",
@@ -236,6 +254,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/elecl/SOURCE OFF/2",
+      "which": "transfer bus 2",
       "meaning": "No source has been selected for transfer bus 2, or the source you selected has been disconnected.",
       "when": "Normal on battery power before you select ground power or the APU generator.",
       "action": "Switch ground power, the APU generator or the engine 2 generator onto the bus.",
@@ -250,6 +269,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/elecl/GEN OFF BUS/1",
+      "which": "engine 1",
       "meaning": "The engine 1 generator is not powering its transfer bus.",
       "when": "Normal before engine start and after shutdown. Abnormal with the engine running and the switch on.",
       "action": "After start, switch the generator on. If it stays on, check the DRIVE light and run the checklist.",
@@ -257,6 +277,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/elecl/GEN OFF BUS/2",
+      "which": "engine 2",
       "meaning": "The engine 2 generator is not powering its transfer bus.",
       "when": "Normal before engine start and after shutdown. Abnormal with the engine running and the switch on.",
       "action": "After start, switch the generator on. If it stays on, check the DRIVE light and run the checklist.",
@@ -278,6 +299,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/col/EQUIP OFF/1",
+      "which": "fan that supplies cooling air",
       "meaning": "The fan that supplies cooling air to the avionics has failed.",
       "when": "Abnormal.",
       "action": "Move the cooling SUPPLY switch to ALTN. The light should go out.",
@@ -285,6 +307,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/col/EQUIP OFF/2",
+      "which": "fan that pulls warm air out",
       "meaning": "The fan that pulls warm air out of the avionics has failed.",
       "when": "Abnormal.",
       "action": "Move the cooling EXHAUST switch to ALTN. The light should go out.",
@@ -306,6 +329,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/heat/OVERHEAT/1",
+      "which": "left side",
       "meaning": "The left side window heater has overheated and cut out, or its power was interrupted.",
       "when": "Abnormal.",
       "action": "Switch that window heat OFF, wait a few minutes, then ON again. If it comes back, leave it OFF and follow the checklist.",
@@ -313,6 +337,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/heat/OVERHEAT/2",
+      "which": "left forward",
       "meaning": "The left forward window heater has overheated and cut out, or its power was interrupted.",
       "when": "Abnormal.",
       "action": "Switch that window heat OFF, wait a few minutes, then ON again. If it comes back, leave it OFF and follow the checklist.",
@@ -320,6 +345,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/heat/OVERHEAT/3",
+      "which": "right forward",
       "meaning": "The right forward window heater has overheated and cut out, or its power was interrupted.",
       "when": "Abnormal.",
       "action": "Switch that window heat OFF, wait a few minutes, then ON again. If it comes back, leave it OFF and follow the checklist.",
@@ -327,6 +353,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/heat/OVERHEAT/4",
+      "which": "right side",
       "meaning": "The right side window heater has overheated and cut out, or its power was interrupted.",
       "when": "Abnormal.",
       "action": "Switch that window heat OFF, wait a few minutes, then ON again. If it comes back, leave it OFF and follow the checklist.",
@@ -334,6 +361,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/heat/ON/1",
+      "which": "left side",
       "meaning": "Heat is going to the left side window.",
       "when": "Normal with window heat on. It can cycle off when the window is warm enough.",
       "action": "No action needed.",
@@ -341,6 +369,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/heat/ON/2",
+      "which": "left forward",
       "meaning": "Heat is going to the left forward window.",
       "when": "Normal with window heat on. It can cycle off when the window is warm enough.",
       "action": "No action needed.",
@@ -348,6 +377,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/heat/ON/3",
+      "which": "right forward",
       "meaning": "Heat is going to the right forward window.",
       "when": "Normal with window heat on. It can cycle off when the window is warm enough.",
       "action": "No action needed.",
@@ -355,6 +385,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/heat/ON/4",
+      "which": "right side",
       "meaning": "Heat is going to the right side window.",
       "when": "Normal with window heat on. It can cycle off when the window is warm enough.",
       "action": "No action needed.",
@@ -453,6 +484,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/aice/COWL ANTI-ICE/1",
+      "which": "engine 1",
       "meaning": "Too much pressure in the engine 1 cowl anti-ice duct, downstream of the valve.",
       "when": "Abnormal.",
       "action": "Reduce engine 1 thrust until the light goes out, and run the checklist.",
@@ -460,6 +492,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/aice/COWL ANTI-ICE/2",
+      "which": "engine 2",
       "meaning": "Too much pressure in the engine 2 cowl anti-ice duct, downstream of the valve.",
       "when": "Abnormal.",
       "action": "Reduce engine 2 thrust until the light goes out, and run the checklist.",
@@ -467,6 +500,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/aice/COWL VALVE/1",
+      "which": "engine 1",
       "meaning": "The engine 1 cowl anti-ice valve is moving, or does not match the switch.",
       "when": "Normal briefly when you switch engine anti-ice. Abnormal if it stays on.",
       "action": "If it stays on, run the cowl valve checklist.",
@@ -474,6 +508,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/aice/COWL VALVE/2",
+      "which": "engine 2",
       "meaning": "The engine 2 cowl anti-ice valve is moving, or does not match the switch.",
       "when": "Normal briefly when you switch engine anti-ice. Abnormal if it stays on.",
       "action": "If it stays on, run the cowl valve checklist.",
@@ -481,6 +516,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/hyd/OVERHEAT/1",
+      "which": "electric hydraulic pump 2",
       "meaning": "Electric hydraulic pump 2 (system A) has got too hot.",
       "when": "Abnormal.",
       "action": "Switch electric pump 2 OFF and run the checklist.",
@@ -488,6 +524,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/hyd/OVERHEAT/2",
+      "which": "electric hydraulic pump 1",
       "meaning": "Electric hydraulic pump 1 (system B) has got too hot.",
       "when": "Abnormal.",
       "action": "Switch electric pump 1 OFF and run the checklist.",
@@ -495,6 +532,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/hyd/LOW PRESSURE/1",
+      "which": "engine 1",
       "meaning": "The engine 1 hydraulic pump (system A) is not giving pressure.",
       "when": "Normal before engine start. Abnormal with the engine running and the pump on.",
       "action": "Before start, ignore it. With the engine running, run the hydraulic pump checklist.",
@@ -502,6 +540,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/hyd/LOW PRESSURE/2",
+      "which": "electric hydraulic pump 2",
       "meaning": "Electric hydraulic pump 2 (system A) is not giving pressure.",
       "when": "Normal with the pump switched OFF. Abnormal once it is ON.",
       "action": "Switch it ON before pushback. If it stays on, run the hydraulic pump checklist.",
@@ -509,6 +548,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/hyd/LOW PRESSURE/3",
+      "which": "electric hydraulic pump 1",
       "meaning": "Electric hydraulic pump 1 (system B) is not giving pressure.",
       "when": "Normal with the pump switched OFF. Abnormal once it is ON.",
       "action": "Switch it ON before pushback. If it stays on, run the hydraulic pump checklist.",
@@ -516,6 +556,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/hyd/LOW PRESSURE/4",
+      "which": "engine 2",
       "meaning": "The engine 2 hydraulic pump (system B) is not giving pressure.",
       "when": "Normal before engine start. Abnormal with the engine running and the pump on.",
       "action": "Before start, ignore it. With the engine running, run the hydraulic pump checklist.",
@@ -600,6 +641,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/air/ZONE TEMP/1",
+      "which": "flight deck",
       "meaning": "The duct air going to the flight deck has overheated, or that zone's temperature control has failed.",
       "when": "Abnormal.",
       "action": "Run the zone temperature checklist. After a duct overheat, select a cooler temperature and press TRIP RESET once it has cooled.",
@@ -607,6 +649,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/air/ZONE TEMP/2",
+      "which": "forward cabin",
       "meaning": "The duct air going to the forward cabin has overheated, or that zone's temperature control has failed.",
       "when": "Abnormal.",
       "action": "Run the zone temperature checklist. After a duct overheat, select a cooler temperature and press TRIP RESET once it has cooled.",
@@ -614,6 +657,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/air/ZONE TEMP/3",
+      "which": "rear cabin",
       "meaning": "The duct air going to the rear cabin has overheated, or that zone's temperature control has failed.",
       "when": "Abnormal.",
       "action": "Run the zone temperature checklist. After a duct overheat, select a cooler temperature and press TRIP RESET once it has cooled.",
@@ -628,6 +672,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/bleed/PACK/1",
+      "which": "left",
       "meaning": "The left air conditioning pack has shut down from overheating, or has failed.",
       "when": "Abnormal.",
       "action": "Run the pack checklist. Once it has cooled, select a warmer temperature and press TRIP RESET. A control failure may not reset.",
@@ -635,6 +680,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/bleed/PACK/2",
+      "which": "right",
       "meaning": "The right air conditioning pack has shut down from overheating, or has failed.",
       "when": "Abnormal.",
       "action": "Run the pack checklist. Once it has cooled, select a warmer temperature and press TRIP RESET. A control failure may not reset.",
@@ -642,6 +688,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/bleed/WING-BODY OVERHEAT/1",
+      "which": "left side",
       "meaning": "Hot bleed air is leaking from a duct on the left side: the left engine strut, left wing, left air conditioning bay, the area under the cabin floor, or the APU bleed duct.",
       "when": "Abnormal.",
       "action": "Run the wing-body overheat checklist. It usually means shutting off that side's bleed air.",
@@ -649,6 +696,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/bleed/WING-BODY OVERHEAT/2",
+      "which": "right side",
       "meaning": "Hot bleed air is leaking from a duct on the right side: the right engine strut, right wing or right air conditioning bay.",
       "when": "Abnormal.",
       "action": "Run the wing-body overheat checklist. It usually means shutting off that side's bleed air.",
@@ -656,6 +704,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/bleed/BLEED/1",
+      "which": "engine 1",
       "meaning": "The engine 1 bleed valve has shut because the bleed air was too hot, or its pressure too high or too low, or the bleed system has failed. It can also mean the bleeds are set wrong after takeoff or a go-around.",
       "when": "Abnormal.",
       "action": "Check both engine BLEED switches are ON. Then run the bleed checklist, and press TRIP RESET once it has cooled. A system failure may not reset.",
@@ -663,6 +712,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "oh/bleed/BLEED/2",
+      "which": "engine 2",
       "meaning": "The engine 2 bleed valve has shut because the bleed air was too hot, or its pressure too high or too low, or the bleed system has failed. It can also mean the bleeds are set wrong after takeoff or a go-around.",
       "when": "Abnormal.",
       "action": "Check both engine BLEED switches are ON. Then run the bleed checklist, and press TRIP RESET once it has cooled. A system failure may not reset.",
@@ -726,6 +776,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "aft/irs/ALIGN/1",
+      "which": "left IRS",
       "meaning": "The left IRS is still finding its position and heading, so the airplane must stay still.",
       "when": "Normal for several minutes after you select NAV. Flashing means alignment cannot finish, for example no position was entered or it differs a lot from the last one.",
       "action": "Wait without moving the airplane. If it flashes, check the position entered in the FMC.",
@@ -733,6 +784,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "aft/irs/ALIGN/2",
+      "which": "right IRS",
       "meaning": "The right IRS is still finding its position and heading, so the airplane must stay still.",
       "when": "Normal for several minutes after you select NAV. Flashing means alignment cannot finish, for example no position was entered or it differs a lot from the last one.",
       "action": "Wait without moving the airplane. If it flashes, check the position entered in the FMC.",
@@ -740,6 +792,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "aft/irs/ON DC/1",
+      "which": "left IRS",
       "meaning": "The left IRS is running on battery power because its normal AC power is lost.",
       "when": "Normal for a few seconds at switch on during the self test. Abnormal later.",
       "action": "If it stays on, get AC power on the buses, because the battery will run down. On the ground a horn in the nose wheel well warns of this.",
@@ -747,6 +800,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "aft/irs/ON DC/2",
+      "which": "right IRS",
       "meaning": "The right IRS is running on battery power because its normal AC power is lost.",
       "when": "Normal for a few seconds at switch on during the self test. Abnormal later.",
       "action": "If it stays on, get AC power on the buses, because the battery will run down. On the ground a horn in the nose wheel well warns of this.",
@@ -754,6 +808,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "aft/irs/FAULT/1",
+      "which": "left IRS",
       "meaning": "The left IRS has a fault and its attitude or navigation data may be lost.",
       "when": "Abnormal.",
       "action": "Run the IRS fault checklist. You may need to realign it or use the other IRS.",
@@ -761,6 +816,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "aft/irs/FAULT/2",
+      "which": "right IRS",
       "meaning": "The right IRS has a fault and its attitude or navigation data may be lost.",
       "when": "Abnormal.",
       "action": "Run the IRS fault checklist. You may need to realign it or use the other IRS.",
@@ -768,6 +824,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "aft/irs/DC FAIL/1",
+      "which": "left IRS",
       "meaning": "The left IRS has lost its battery backup.",
       "when": "Abnormal.",
       "action": "It keeps running on AC. Note it, and watch for an ON DC light.",
@@ -775,6 +832,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "aft/irs/DC FAIL/2",
+      "which": "right IRS",
       "meaning": "The right IRS has lost its battery backup.",
       "when": "Abnormal.",
       "action": "It keeps running on AC. Note it, and watch for an ON DC light.",
@@ -796,6 +854,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "aft/eng/REVERSER LIMITED/1",
+      "which": "engine 1",
       "meaning": "An engine 1 thrust reverser fault. In flight it means that reverser may not deploy, or reverse is limited to idle.",
       "when": "Abnormal.",
       "action": "Plan for a longer landing roll and use the brakes and autobrake as needed.",
@@ -803,6 +862,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "aft/eng/REVERSER LIMITED/2",
+      "which": "engine 2",
       "meaning": "An engine 2 thrust reverser fault. In flight it means that reverser may not deploy, or reverse is limited to idle.",
       "when": "Abnormal.",
       "action": "Plan for a longer landing roll and use the brakes and autobrake as needed.",
@@ -810,6 +870,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "aft/eng/ENGINE CONTROL/1",
+      "which": "engine 1",
       "meaning": "The engine 1 control system has a fault that stops the airplane being dispatched. It only shows on the ground with the engine running: below 80 knots before takeoff, or about 30 seconds after landing.",
       "when": "Abnormal, ground only.",
       "action": "Do not take off. Return to the gate.",
@@ -817,6 +878,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "aft/eng/ENGINE CONTROL/2",
+      "which": "engine 2",
       "meaning": "The engine 2 control system has a fault that stops the airplane being dispatched. It only shows on the ground with the engine running: below 80 knots before takeoff, or about 30 seconds after landing.",
       "when": "Abnormal, ground only.",
       "action": "Do not take off. Return to the gate.",
@@ -922,6 +984,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "mn/ctr/LEFT GEAR/1",
+      "which": "moving",
       "meaning": "The left main gear is moving or not where the gear lever says, or it is not down and locked with a thrust lever at idle below 800 ft.",
       "when": "Normal while the gear is moving. Abnormal if it stays on.",
       "action": "If it stays on, run the gear checklist. Do not land until you have three green lights.",
@@ -929,6 +992,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "mn/ctr/LEFT GEAR/2",
+      "which": "down and locked",
       "meaning": "The left main gear is down and locked.",
       "when": "Normal on the ground and with the gear down.",
       "action": "No action needed.",
@@ -936,6 +1000,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "mn/ctr/NOSE GEAR/1",
+      "which": "moving",
       "meaning": "The nose gear is moving or not where the gear lever says, or it is not down and locked with a thrust lever at idle below 800 ft.",
       "when": "Normal while the gear is moving. Abnormal if it stays on.",
       "action": "If it stays on, run the gear checklist. Do not land until you have three green lights.",
@@ -943,6 +1008,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "mn/ctr/NOSE GEAR/2",
+      "which": "down and locked",
       "meaning": "The nose gear is down and locked.",
       "when": "Normal on the ground and with the gear down.",
       "action": "No action needed.",
@@ -950,6 +1016,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "mn/ctr/RIGHT GEAR/1",
+      "which": "moving",
       "meaning": "The right main gear is moving or not where the gear lever says, or it is not down and locked with a thrust lever at idle below 800 ft.",
       "when": "Normal while the gear is moving. Abnormal if it stays on.",
       "action": "If it stays on, run the gear checklist. Do not land until you have three green lights.",
@@ -957,6 +1024,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     },
     {
       "locator": "mn/ctr/RIGHT GEAR/2",
+      "which": "down and locked",
       "meaning": "The right main gear is down and locked.",
       "when": "Normal on the ground and with the gear down.",
       "action": "No action needed.",

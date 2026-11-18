@@ -135,6 +135,7 @@ export const PACK: FlatPack = {
       findExamples: [],
       glossaryExceptions: [],
       sideWords: [],
+      plainWords: [],
       basisTags: [],
     },
   },

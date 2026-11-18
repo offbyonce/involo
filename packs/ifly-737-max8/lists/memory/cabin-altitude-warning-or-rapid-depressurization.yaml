@@ -61,6 +61,7 @@ steps:
   - id: ifly-737-max8.memory.if-cabin-altitude-is-uncontrollable
     number: 5
     text: IF CABIN ALTITUDE IS UNCONTROLLABLE
+    branch: true
     expect: FASTEN BELTS ON
     terms: ["P5"]
     controls:
@@ -72,6 +73,7 @@ steps:
   - id: ifly-737-max8.memory.if-cabin-altitude-is-above-or-expected-to-go
     number: 6
     text: "IF CABIN ALTITUDE IS ABOVE, OR EXPECTED TO GO ABOVE, 14,000 FT"
+    branch: true
     expect: "PASS OXYGEN ON, GO TO EMERGENCY DESCENT"
     terms: ["P5"]
     controls:
@@ -85,6 +87,7 @@ steps:
   - id: ifly-737-max8.memory.if-cabin-altitude-is-controllable
     number: 7
     text: "IF THE CABIN ALTITUDE RESPONDS"
+    branch: true
     expect: "STAY IN MANUAL. MASKS CAN COME OFF ONCE THE CABIN IS 10,000 FT OR LOWER"
     terms: ["P5"]
     controls:

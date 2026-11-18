@@ -312,6 +312,10 @@
       "description": "One challenge and response line.",
       "type": "object",
       "properties": {
+        "branch": {
+          "description": "The step opens a case of its own (\"IF RUNAWAY CONTINUES\"): which case applies decides\nwhat follows, so Practice never asks across it. Never on a list's first step.",
+          "type": "boolean"
+        },
         "callout": {
           "description": "What the crew says.",
           "type": [

@@ -51,6 +51,21 @@ describe("the Flight deck's areas (Deck board)", () => {
     expect(plain.every((a) => a.region !== null && a.side === null)).toBe(true);
   });
 
+  it("name a split region's areas as the side view names its outlines, else as written", () => {
+    expect(areas.slice(4, 7).map((a) => a.name)).toEqual([
+      "Forward electronic",
+      "Control stand",
+      "Aft electronic",
+    ]);
+    const plain = structuredClone(pack);
+    for (const p of plain.content.controls?.overview?.views?.side?.places ?? []) p.names = [];
+    expect(
+      deckAreas(indexPack(plain))
+        .slice(4, 7)
+        .map((a) => a.name),
+    ).toEqual(["Forward electronic panel", "Control stand", "Aft electronic panel"]);
+  });
+
   it("hold no area names in the code", async () => {
     const { readFileSync } = await import("node:fs");
     const text = readFileSync(`${import.meta.dirname}/deck.ts`, "utf8");

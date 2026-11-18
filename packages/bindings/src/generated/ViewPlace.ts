@@ -11,4 +11,9 @@ region: string, shapes: Array<Array<[number, number]>>,
 /**
  * Where the region's name goes when it is the one shown, if the view names it.
  */
-labelAt?: [number, number] | null, };
+labelAt?: [number, number] | null, 
+/**
+ * For a region drawn as several outlines, each outline's name on the Flight deck page,
+ * front to back ("Forward electronic"); without them, its places' area names as written.
+ */
+names?: Array<string>, };

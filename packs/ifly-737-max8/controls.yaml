@@ -322,16 +322,19 @@ controls:
     function: "Three positions: BAT, OFF, AUTO. Leave it in AUTO with the guard down so standby power switches itself over."
   - id: altflap
     name: Alternate flaps switches
+    plural: true
     zone: fctl
     location: "Flight control panel, right side. The arm switch is guarded and sits beside the UP/OFF/DOWN position switch."
     function: Moves the flaps electrically if hydraulics fail. Stays off in normal use.
   - id: wiper
     name: Wiper selectors
+    plural: true
     zone: wipe
     location: "Low on the forward overhead, just above the engine start row. One knob for each side."
     function: "Rotary knobs for each windshield wiper: PARK, INT, LOW, HIGH."
   - id: hydpumps
     name: Hydraulic pump switches
+    plural: true
     zone: hyd
     location: "Hydraulic panel, right of center on the forward overhead. Four switches in a row."
     function: ENG 1 and ELEC 2 feed system A. ELEC 1 and ENG 2 feed system B.
@@ -357,6 +360,7 @@ controls:
     function: Puts external power on the buses. Wait for the GRD POWER AVAILABLE light before switching on.
   - id: ovhtdet
     name: Overheat detector switches
+    plural: true
     zone: fire
     location: "Fire protection panel on the aft electronic panel, one switch for each engine: A, NORMAL or B."
     function: "Chooses which detector loop warns of an engine overheat or fire. NORMAL uses both."
@@ -372,6 +376,7 @@ controls:
     function: "OFF, ON and START. Hold to START, release to ON. START is spring-loaded back to ON."
   - id: apugen
     name: APU generator switches
+    plural: true
     zone: elecl
     location: "Electrical panel, between the two engine generator switches."
     function: Two switches that put APU power on each AC transfer bus.
@@ -382,6 +387,7 @@ controls:
     function: Switching the APU generators on takes ground power off the buses. Then remove the cart from the EFB.
   - id: irs
     name: IRS mode selectors
+    plural: true
     zone: airs
     location: Aft overhead. Left and right rotary selectors under the IRS display.
     function: "OFF, ALIGN, NAV, ATT. Set both to NAV and let them align before moving."
@@ -397,11 +403,13 @@ controls:
     function: Helps land with a jammed elevator. Not simulated in the iFly.
   - id: gpslts
     name: "GPS, ILS, GLS and MAINT lights"
+    plural: true
     zone: alights
     location: "Aft overhead. GPS, ILS and GLS lights sit above the IRS status lights; the amber MAINT light is on the forward edge strip."
     function: Amber caution lights. All should be out on the ground before flight.
   - id: eec
     name: EEC switches
+    plural: true
     zone: aeng
     location: "Engine panel on the aft overhead. One ON/ALTN button for each engine, with REVERSER LIMITED and ENGINE CONTROL lights."
     function: "Electronic engine control. Normal is ON with the lights out. ALTN means alternate mode, automatic or selected."
@@ -417,6 +425,7 @@ controls:
     function: Needle gauge showing crew oxygen pressure. Read it and confirm it is enough for the flight.
   - id: gearovhd
     name: Overhead gear indicator lights
+    plural: true
     zone: agear
     location: "Aft overhead, forward edge. LEFT and RIGHT GEAR side by side with NOSE GEAR below. Separate from the main gear lights."
     function: A second set of gear position lights. Green means down and locked.
@@ -437,16 +446,19 @@ controls:
     function: Holds the three manual gear release handles. Confirm the door is closed.
   - id: cdu
     name: Control display units
+    plural: true
     zone: cdu
     location: "Forward electronic panel. One CDU in front of each pilot, either side of the pedestal."
     function: "Flight management system entry. Program route, performance, N1 limit and takeoff reference."
   - id: fltctrl
     name: Flight control switches
+    plural: true
     zone: fctl
     location: "Top left of the flight control panel. Two guarded switches, A and B."
     function: "OFF, STBY RUD and ON. Normal is ON with guards closed."
   - id: spoilsw
     name: Spoiler switches
+    plural: true
     zone: fctl
     location: "Flight control panel, next to the flight control switches. Two guarded switches."
     function: Controls hydraulic power to the flight spoilers. Normal is ON with guards closed.
@@ -457,21 +469,25 @@ controls:
     function: Damps Dutch roll. Engages only with the B FLT CONTROL switch ON. The amber YAW DAMPER light shows it is not engaged.
   - id: stbyhyd
     name: Standby hydraulic lights
+    plural: true
     zone: fctl
     location: "Flight control panel, under the flight control switches."
     function: "LOW QUANTITY, LOW PRESSURE and STBY RUD ON lights. All should be off."
   - id: fctllts
     name: Flight control warning lights
+    plural: true
     zone: fctl
     location: Right side of the flight control panel. A stack of amber lights.
     function: "FEEL DIFF PRESS, SPEED TRIM FAIL, MACH TRIM FAIL, AUTO SLAT FAIL and the MAX-only SPOILERS light."
   - id: navsw
     name: Navigation transfer switches
+    plural: true
     zone: nav
     location: "Below the flight control panel. VHF NAV, IRS and FMC switches."
     function: "Lets one side use the other side's navigation source. Normal is NORMAL on all three."
   - id: dispsw
     name: Display source switches
+    plural: true
     zone: nav
     location: Next to the navigation switches. SOURCE and CONTROL PANEL.
     function: "SOURCE goes to AUTO, CONTROL PANEL to NORMAL."
@@ -482,11 +498,13 @@ controls:
     function: Connects the left and right fuel manifolds. Closed for normal flight.
   - id: fuellts
     name: Fuel valve and filter lights
+    plural: true
     zone: fuel
     location: "Top of the fuel panel, one set for each engine: ENG VALVE CLOSED, SPAR VALVE CLOSED and FILTER BYPASS."
     function: "The valve lights show each engine's fuel valve and spar valve closed, bright while a valve moves. FILTER BYPASS shows a clogging fuel filter."
   - id: fuelpumps
     name: Fuel pump switches
+    plural: true
     zone: fuel
     location: "Fuel panel, left side of the forward overhead, below the navigation switches. Six switches: L and R forward and aft, plus two center tank switches."
     function: Each tank has pumps feeding the engines. Low pressure lights sit beside each switch.
@@ -497,16 +515,19 @@ controls:
     function: Runs a center tank pump. With fuel in the center tank, the center pumps feed the engines first.
   - id: cabutil
     name: CAB/UTIL and IFE/PASS SEAT switches
+    plural: true
     zone: elecu
     location: "Top of the electrical panel, close to the battery switch."
     function: "Power to galleys, cabin utility and seat equipment."
   - id: eleclts
     name: Electrical warning lights
+    plural: true
     zone: elecu
     location: "Electrical panel. BAT DISCHARGE, TR UNIT and ELEC."
     function: Amber fault lights. All should be off.
   - id: gendrive
     name: Generator drive disconnects
+    plural: true
     zone: elecl
     location: "Electrical panel, under red guards. An amber DRIVE light sits above each switch."
     function: "Disconnects a failed generator drive. It cannot be reconnected in flight, so leave the guards closed. The DRIVE light shows low oil pressure in the drive, so it is on whenever that engine is stopped."
@@ -522,6 +543,7 @@ controls:
     function: Amber warning that a smoke detector in a lavatory has gone off. It should be out on the ground.
   - id: equip
     name: Equipment cooling switches
+    plural: true
     zone: cool
     location: Top center of the forward overhead. SUPPLY and EXHAUST.
     function: Cooling fans for the avionics. NORM with OFF lights out.
@@ -532,26 +554,31 @@ controls:
     function: Guard down holds it in ARMED so the lights come on with a power loss.
   - id: signs
     name: Passenger signs
+    plural: true
     zone: cool
     location: "Forward overhead, near the emergency exit lights switch. NO SMOKING and FASTEN BELTS selectors."
     function: "NO SMOKING and FASTEN BELTS each have OFF, AUTO and ON. AUTO switches the sign with gear or flap position and cabin altitude. FASTEN BELTS ON tells the cabin to sit down."
   - id: wheat
     name: Window heat switches
+    plural: true
     zone: heat
     location: "Window heat panel, forward overhead. Four switches: L SIDE, L FWD, R FWD and R SIDE."
     function: Heats the flight deck windows so they resist bird strikes and stay clear of ice and fog.
   - id: pheat
     name: Probe heat switches
+    plural: true
     zone: heat
     location: Beside the window heat switches.
     function: "Heats the pitot tubes, AOA vanes and temperature probe. AUTO heats them while either engine runs. ON heats them at once."
   - id: aice
     name: Engine and wing anti-ice switches
+    plural: true
     zone: aice
     location: Anti-ice panel on the forward overhead. WING plus ENG 1 and ENG 2.
     function: Uses bleed air to keep ice off the wing and engine inlets.
   - id: elechyd
     name: Electric hydraulic pump switches
+    plural: true
     zone: hyd
     location: Middle two switches of the hydraulic panel.
     function: "ELEC 2 feeds system A, ELEC 1 feeds system B. OFF before power up, ON before engine start, OFF at shutdown."
@@ -562,16 +589,19 @@ controls:
     function: Adds hot air to the pack output to fine-tune each zone temperature.
   - id: tempsw
     name: Temperature selectors
+    plural: true
     zone: air
     location: Top row of the air conditioning panel.
     function: "Set the temperature for the flight deck and the two cabin zones. AUTO is normal, C cooler, W warmer."
   - id: recirc
     name: Recirculation fan switches
+    plural: true
     zone: air
     location: "Air conditioning panel, above the packs."
     function: Reuses cabin air to reduce pack load. Normal is AUTO.
   - id: packs
     name: Pack switches
+    plural: true
     zone: bleed
     location: Bleed air panel. L and R.
     function: "OFF, AUTO and HIGH. Supplies conditioned air to the cabin. HIGH gives more flow, used with one pack or on the ground with the APU."
@@ -587,11 +617,13 @@ controls:
     function: Feeds APU air into the bleed ducts for engine start and the packs on the ground. Works only with the APU running.
   - id: packlts
     name: Pack warning lights
+    plural: true
     zone: bleed
     location: "Bleed air panel, by the pack switches."
     function: Amber PACK lights. They go out when the packs run correctly.
   - id: engbleed
     name: Engine bleed switches
+    plural: true
     zone: bleed
     location: "Bleed air panel, ENG 1 and ENG 2."
     function: Takes engine bleed air into the pneumatic system.
@@ -627,11 +659,13 @@ controls:
     function: Red beacon. On before engine start or any movement.
   - id: wingww
     name: Wing and wheel well light switches
+    plural: true
     zone: lte
     location: "Exterior light row, right side."
     function: "WING lights the wing leading edge, for ice checks at night. WHEEL WELL lights the gear bays for ground crew."
   - id: fd
     name: Flight director switches
+    plural: true
     zone: mcp
     location: Each end of the MCP. One F/D switch per pilot.
     function: "Shows flight director guidance on the PFD. The first switch on becomes master, shown by the MA light."
@@ -647,11 +681,13 @@ controls:
     function: Pull down to disconnect the autopilot. Normal is UP.
   - id: efispanel
     name: EFIS control panels
+    plural: true
     zone: efis
     location: "Glareshield, one panel at each end."
     function: "Sets baro, minimums, range and ND options such as WXR and TERR. Weather radar is not simulated in the iFly."
   - id: ltest
     name: Lights test switches
+    plural: true
     zone: p1
     location: "Main panel, left of the standby display. The LIGHTS switch has TEST, BRT and DIM. The A/P and A/T TEST switch is further left, with positions 1 and 2."
     function: Tests annunciators. Master LIGHTS test also covers most warning lights.
@@ -662,6 +698,7 @@ controls:
     function: Amber light for autopilot trim problems. Should be off.
   - id: fltinst
     name: Primary flight and navigation displays
+    plural: true
     zone: du
     location: "Outboard and inboard display units (DUs), one pair for each pilot."
     function: The MAX Display System uses four large display units. Check the primary flight display (PFD) and navigation display (ND) for correct indications.
@@ -702,6 +739,7 @@ controls:
     function: "Positions include DOWN, ARMED, FLIGHT and UP. ARMED deploys spoilers on landing."
   - id: thrust
     name: Thrust and reverse levers
+    plural: true
     zone: thr
     location: Center of the control stand.
     function: The forward levers set thrust. The smaller reverse levers on top lift to deploy reverse thrust after landing.
@@ -712,11 +750,13 @@ controls:
     function: "Sets the flaps: UP, 1, 2, 5, 10, 15, 25, 30, 40. Flap position shows on the inboard display with the engine indications."
   - id: slever
     name: Engine start levers
+    plural: true
     zone: sl
     location: "Control stand, aft of the thrust levers."
     function: CUTOFF and IDLE. IDLE opens the fuel valves and fires the selected igniter during start.
   - id: stabcut
     name: Stabilizer trim cutout switches
+    plural: true
     zone: stab
     location: "Aft end of the control stand, right side. Guarded."
     function: "PRI and B/U on the MAX. They are wired in series and do the same job: CUTOUT on either one stops stabilizer trim motor inputs, including MCAS. Normal is NORMAL with guards closed."
@@ -732,6 +772,7 @@ controls:
     function: Test detectors and extinguisher readiness.
   - id: radios
     name: Radio tuning panels
+    plural: true
     zone: radio
     location: "Aft electronic panel on the pedestal, one panel beside each pilot."
     function: Sets the active and standby VHF frequencies. The transfer switch swaps them.
@@ -757,11 +798,13 @@ controls:
     function: "The mode selector has ALT OFF, XPNDR, TA ONLY and TA/RA. Separate XPNDR and ALT SOURCE controls choose STBY or AUTO, and source 1 or 2."
   - id: n1
     name: N1 bugs
+    plural: true
     zone: du
     location: Engine indications on the inboard display unit.
     function: Green references for the takeoff thrust target. Compare with the CDU.
   - id: mcpset
     name: "MCP speed, heading, altitude and modes"
+    plural: true
     zone: mcp
     location: "Mode control panel, center of the glareshield."
     function: "Set V2, runway heading and initial altitude, then arm the autothrottle and the departure mode."
@@ -787,6 +830,7 @@ controls:
     function: Compare minimum takeoff fuel with departing fuel.
   - id: windows
     name: Flight deck windows
+    plural: true
     zone: side
     location: Sliding windows beside each pilot.
     function: Close and lock them before departure.
@@ -801,6 +845,7 @@ controls:
     function: "A short review between pilots of the taxi route, the departure and what to do if something goes wrong."
   - id: engen
     name: Engine generator switches
+    plural: true
     zone: elecl
     location: "Electrical panel, left and right of the APU generator switches."
     function: Puts engine generator power on the buses.
@@ -811,6 +856,7 @@ controls:
     function: Shows system information on the inboard display.
   - id: fltcon
     name: Flight controls
+    plural: true
     zone: yoke
     location: "Yoke, column and rudder pedals, while watching the flight control indication on the display."
     function: "Check full, free movement in all directions."
@@ -876,6 +922,7 @@ controls:
     function: Tower permission to land. Do not land without it.
   - id: chocks
     name: Chocks and cones
+    plural: true
     zone: out
     location: "Outside, set by the ground crew or through the EFB in the sim."
     function: Blocks placed against the tires so the airplane stays put when the parking brake is released.
@@ -886,6 +933,7 @@ controls:
     function: Switch off the power source for the airplane before the battery goes off.
   - id: oxym
     name: Oxygen masks
+    plural: true
     zone: side
     location: Stowed at the outboard side of each pilot seat.
     function: "Each pilot has a quick-donning mask. Test it, and leave the regulator on 100% ready for use."
@@ -895,6 +943,7 @@ controls:
     function: "A short review of the approach chart, minimums, the missed approach and the plan after landing."
   - id: pushsim
     name: Pushback controls
+    plural: true
     zone: efb
     location: Your pushback tool or the EFB.
     function: "Starts and steers the tug. It is a sim step, so there is no switch for it on the real panel."
@@ -905,6 +954,7 @@ controls:
     function: Request the clearance and read it back.
   - id: engmon
     name: Engine indications
+    plural: true
     zone: du
     location: Engine indications on the inboard display unit. Press ENG on the engine display control panel for the secondary indications.
     function: "Shows N1, N2, EGT, fuel flow and oil pressure. During engine start, abort if EGT does not rise, N1 or N2 does not rise after EGT rises, EGT nears the start limit, or there is no oil pressure by the time the engine is stable."
@@ -915,11 +965,13 @@ controls:
     function: "Shows while the engine is being motored by the starter. Keep the start lever in CUTOFF until this clears. It shows over the N2 readout, typically at about 18 to 24% N2."
   - id: toga
     name: TO/GA switches
+    plural: true
     zone: thr
     location: "On the thrust lever handles themselves: a button on the front of each handle, under your fingers as you hold the levers. Not a separate panel."
     function: Engages takeoff or go-around thrust and guidance.
   - id: rollmode
     name: MCP roll modes
+    plural: true
     zone: mcp
     location: LNAV and HDG SEL buttons on the MCP.
     function: Sets lateral guidance after takeoff or a go-around.
@@ -930,6 +982,7 @@ controls:
     function: Engages autopilot A or B to fly the modes shown on the top of the PFD. Check the FMA after you press it.
   - id: fma
     name: Flight mode annunciations
+    plural: true
     zone: du
     location: Top of each PFD.
     function: "The three boxes at the top of each PFD show what the autothrottle, roll and pitch modes are doing now. Always read them after you change a mode."
@@ -959,11 +1012,13 @@ controls:
     function: "Guarded. NORM steers with hydraulic system A, ALT with system B. Leave at NORM."
   - id: dsel
     name: PFD/MFD selectors
+    plural: true
     zone: dselp
     location: "Lower strip under each pilot's displays. Selectors for the outboard and inboard display units."
     function: NORM shows the PFD and MFD in their usual places. OUTBD and INBD move them if a display fails.
   - id: audio
     name: Audio control panels
+    plural: true
     zone: acp
     location: "Aft electronic panel, one audio control panel on each side, below the NAV radios."
     function: Selects which radios and navigation audio you hear.
@@ -974,6 +1029,7 @@ controls:
     function: "Check condition, security and that nothing is blocked."
   - id: firesw
     name: Engine fire switches
+    plural: true
     zone: fire
     location: Overheat/fire protection panel on the aft pedestal.
     function: Pull to arm and shut off the engine. Rotate to discharge a bottle. Press the override to unlock a switch if needed.
@@ -989,6 +1045,7 @@ controls:
     function: Hold the column firmly, and use main electric trim to reduce forces.
   - id: stabtrim
     name: Main electric stabilizer trim switches
+    plural: true
     zone: yoke
     location: "On the outboard grip of each control wheel: two thumb switches, moved together."
     function: Trims the stabilizer nose down or nose up while held.
@@ -1004,11 +1061,13 @@ controls:
     function: Used in MAN mode. Hold CLOSE until the valve shows closed.
   - id: mask
     name: Oxygen masks
+    plural: true
     zone: side
     location: Stowed at the outboard side of each pilot seat.
     function: "Don the mask and set the regulator to 100%."
   - id: stalltest
     name: Stall warning test switches
+    plural: true
     zone: atest
     location: "Aft overhead, below the Mach airspeed warning test: two small round buttons, NO. 1 and NO. 2."
     function: Tests the stick shaker on each side.
@@ -1029,11 +1088,13 @@ controls:
     function: "Changes the cabin pressure settings for an airport above 10,000 ft. Not simulated in the iFly."
   - id: landlt
     name: Landing light switches
+    plural: true
     zone: ltl
     location: "Bottom row of the forward overhead, left side. LANDING L and R."
     function: "OFF, FLASH and ON. On for takeoff and landing, off above 10,000 ft."
   - id: turnoff
     name: Runway turnoff light switches
+    plural: true
     zone: ltl
     location: "Bottom row of the forward overhead, right of the landing light switches. TURNOFF L and R."
     function: OFF and ON. Light the ground to each side of the nose for turns.
@@ -1044,6 +1105,7 @@ controls:
     function: "OFF and ON. Lights the wing leading edge, for ice checks at night."
   - id: apdisc
     name: Autopilot and autothrottle disconnect switches
+    plural: true
     zone: yoke
     location: "Autopilot: a button on the outer horn of each control wheel. Autothrottle: a button on the outer end of each thrust lever handle, where the A/T DISENGAGE arrows point."
     function: "Disengages the autopilot or the autothrottle. A warning sounds or flashes; press the same switch again to silence it."
@@ -1059,6 +1121,7 @@ controls:
     function: "STATUS light, ERASE and TEST buttons and a HEADPHONE jack for the cockpit voice recorder. The VOICE RECORDER switch itself is at the top right of the forward overhead."
   - id: pitchmode
     name: MCP pitch modes
+    plural: true
     zone: mcp
     location: "LVL CHG and VNAV buttons on the MCP, left of the heading knob."
     function: "Sets vertical guidance: LVL CHG climbs or descends at the MCP speed, VNAV follows the FMC path."
@@ -1069,6 +1132,7 @@ controls:
     function: "Tests the squib circuits of the engine and APU fire bottles. Spring-loaded to the center; hold at 1, then at 2."
   - id: panellts
     name: Panel and flood light controls
+    plural: true
     zone: dselp
     location: "Main panel lower strip on each side: MAIN PANEL, BACKGROUND and AFDS FLOOD knobs. Also the PANEL and CIRCUIT BREAKER knobs on the forward overhead, FLOOD and PANEL on the aft pedestal, and the DOME WHITE switch on the aft overhead."
     function: "Sets the brightness of the panel backlighting and flood lights. Turn up for a night or dim flight deck, down in daylight."
@@ -1642,6 +1706,7 @@ overview:
             - [[112, 178], [112, 156], [146, 138], [148, 178]]
             - [[148, 178], [148, 138], [194, 138], [200, 154], [200, 178]]
             - [[200, 178], [200, 154], [256, 154], [256, 178]]
+          names: [Forward electronic, Control stand, Aft electronic]
       labels:
         - text: WINDSHIELD
           x: 4

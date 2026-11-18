@@ -9,7 +9,8 @@ import type { SeatLabel } from "./SeatLabel";
 
 /**
  * `labels.yaml`. Every key is optional; a key left out keeps the app's default. Lists
- * (`seats`, `roles`, `find_examples`, `glossary_exceptions`) replace the default list;
+ * (`seats`, `roles`, `find_examples`, `glossary_exceptions`, `side_words`, `plain_words`)
+ * replace the default list;
  * `position_words`, reference `groups` and `basis_tags` are merged with the defaults by key.
  */
-export type LabelsFile = { listKinds?: ListKindLabelsFile | null, methods?: MethodLabelsFile | null, seats?: Array<SeatLabel> | null, roles?: Array<RoleLabel> | null, reference?: ReferenceLabelsFile | null, seatViewTitle?: string | null, panelStates?: PanelStateLabelsFile | null, positionWords?: { [key in string]: Array<string> } | null, findExamples?: Array<string> | null, glossaryExceptions?: Array<string> | null, sideWords?: Array<string> | null, basisTags?: Array<BasisTagLabel>, };
+export type LabelsFile = { listKinds?: ListKindLabelsFile | null, methods?: MethodLabelsFile | null, seats?: Array<SeatLabel> | null, roles?: Array<RoleLabel> | null, reference?: ReferenceLabelsFile | null, seatViewTitle?: string | null, panelStates?: PanelStateLabelsFile | null, positionWords?: { [key in string]: Array<string> } | null, findExamples?: Array<string> | null, glossaryExceptions?: Array<string> | null, sideWords?: Array<string> | null, plainWords?: Array<string> | null, basisTags?: Array<BasisTagLabel>, };

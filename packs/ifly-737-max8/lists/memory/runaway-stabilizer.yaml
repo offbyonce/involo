@@ -70,6 +70,7 @@ steps:
   - id: ifly-737-max8.memory.if-runaway-stops-after-autopilot-is-disengaged
     number: 6
     text: IF RUNAWAY STOPS AFTER AUTOPILOT IS DISENGAGED
+    branch: true
     expect: DO NOT RE-ENGAGE AUTOPILOT OR AUTOTHROTTLE. END OF PROCEDURE
     terms: ["P7"]
     controls:
@@ -82,6 +83,7 @@ steps:
   - id: ifly-737-max8.memory.if-runaway-continues
     number: 7
     text: IF RUNAWAY CONTINUES
+    branch: true
     expect: BOTH STAB TRIM CUTOUT SWITCHES TO CUTOUT
     terms: ["STAB TRIM CUTOUT"]
     controls:
@@ -97,6 +99,7 @@ steps:
   - id: ifly-737-max8.memory.if-runaway-still-continues
     number: 8
     text: IF RUNAWAY STILL CONTINUES
+    branch: true
     expect: GRASP AND HOLD THE STABILIZER TRIM WHEEL
     controls:
       - stabwheel

@@ -84,6 +84,11 @@ note?: string | null,
  */
 noteCaution?: boolean, 
 /**
+ * The step opens a case of its own ("IF RUNAWAY CONTINUES"): which case applies decides
+ * what follows, so Practice never asks across it. Never on a list's first step.
+ */
+branch?: boolean, 
+/**
  * Glossary terms the step uses, shown under Why (each must be in the glossary).
  */
 terms?: Array<string>, why?: string | null, check?: string | null, checkDetail?: string | null, ifNot?: string | null, ifNotDetail?: string | null, 

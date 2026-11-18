@@ -95,6 +95,9 @@ data_types! {
         /// Words that tell one of a pair from the other, by side or seat (`LEFT`, `CAPTAIN`):
         /// Practice never offers two answers that differ only by them, or by an item's number.
         pub side_words: Vec<String>,
+        /// Words that say nothing about where a control is (`AND`, `PANEL`, `SWITCH`): Practice's
+        /// where questions ignore them when they match control and panel names.
+        pub plain_words: Vec<String>,
         /// Labels for the manifest's basis tags, in the order the manifest lists them.
         pub basis_tags: Vec<BasisTagLabel>,
     }
@@ -146,7 +149,8 @@ data_types! {
     }
 
     /// `labels.yaml`. Every key is optional; a key left out keeps the app's default. Lists
-    /// (`seats`, `roles`, `find_examples`, `glossary_exceptions`) replace the default list;
+    /// (`seats`, `roles`, `find_examples`, `glossary_exceptions`, `side_words`, `plain_words`)
+    /// replace the default list;
     /// `position_words`, reference `groups` and `basis_tags` are merged with the defaults by key.
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct LabelsFile {
@@ -172,10 +176,42 @@ data_types! {
         pub glossary_exceptions: Option<Vec<String>>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub side_words: Option<Vec<String>>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub plain_words: Option<Vec<String>>,
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub basis_tags: Vec<BasisTagLabel>,
     }
 }
+
+/// The app's default words that say nothing about where a control is.
+const PLAIN_WORDS: &[&str] = &[
+    "AND",
+    "THE",
+    "OF",
+    "FOR",
+    "WITH",
+    "ON",
+    "IN",
+    "TO",
+    "PANEL",
+    "PANELS",
+    "SWITCH",
+    "SWITCHES",
+    "SELECTOR",
+    "SELECTORS",
+    "LIGHT",
+    "LIGHTS",
+    "CONTROL",
+    "CONTROLS",
+    "INDICATOR",
+    "INDICATORS",
+    "DISPLAY",
+    "DISPLAYS",
+    "UNIT",
+    "UNITS",
+    "LEVER",
+    "LEVERS",
+];
 
 impl Default for Labels {
     /// The app's words today, before any pack sets its own.
@@ -238,6 +274,7 @@ impl Default for Labels {
             ]
             .map(s)
             .to_vec(),
+            plain_words: PLAIN_WORDS.iter().map(|w| s(w)).collect(),
             basis_tags: vec![
                 BasisTagLabel {
                     id: s("regulator-docs"),
@@ -361,6 +398,9 @@ impl Labels {
         if let Some(w) = &f.side_words {
             self.side_words.clone_from(w);
         }
+        if let Some(w) = &f.plain_words {
+            self.plain_words.clone_from(w);
+        }
     }
 }
 
@@ -417,6 +457,7 @@ mod tests {
             find_examples: None,
             glossary_exceptions: None,
             side_words: None,
+            plain_words: None,
             basis_tags: vec![BasisTagLabel {
                 id: "regulator-docs".into(),
                 label: "Authority guidance".into(),

@@ -120,6 +120,7 @@ steps:
   - id: ifly-737-max8.quick-reference.if-a-fire-warning-is-observed-or-indicated
     number: 11
     text: IF A FIRE WARNING IS OBSERVED OR INDICATED
+    branch: true
     expect: ROTATE ILLUMINATED SWITCH TO THE STOP AND HOLD 1 SECOND
     controls:
       - firesw

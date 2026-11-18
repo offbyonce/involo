@@ -104,6 +104,36 @@ pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec
         }
         check_confirmations(&light.locator, &light.confirmed_by, issues);
     }
+    check_light_names(&file.lights, issues);
+}
+
+/// Lights sharing a label on one section each say which they are (`which`), each differently.
+fn check_light_names(lights: &[involo_checklist_core::LightNote], issues: &mut Vec<Issue>) {
+    let mut groups: BTreeMap<&str, Vec<&involo_checklist_core::LightNote>> = BTreeMap::new();
+    for light in lights {
+        // The locator without its count: panel, section and label.
+        let key = light
+            .locator
+            .rsplit_once('/')
+            .map_or(light.locator.as_str(), |(k, _)| k);
+        groups.entry(key).or_default().push(light);
+    }
+    for group in groups.values().filter(|g| g.len() > 1) {
+        let mut seen = std::collections::BTreeSet::new();
+        for light in group {
+            match light.which.as_deref().map(str::trim) {
+                None | Some("") => issues.push(error(
+                    &light.locator,
+                    "another light shares its label on this section, so it needs `which`",
+                )),
+                Some(w) if !seen.insert(w) => issues.push(error(
+                    &light.locator,
+                    format!("`which: {w}` is the same as another light with its label"),
+                )),
+                Some(_) => {}
+            }
+        }
+    }
 }
 
 fn check_panel_item(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
@@ -400,6 +430,17 @@ fn check_view(
     }
     unique(&at, frame.places.iter().map(|p| p.region.as_str()), issues);
     for place in &frame.places {
+        if !place.names.is_empty() && place.names.len() != place.shapes.len() {
+            issues.push(error(
+                &at,
+                format!(
+                    "place `{}` has {} names for {} outlines",
+                    place.region,
+                    place.names.len(),
+                    place.shapes.len()
+                ),
+            ));
+        }
         if !regions.contains(place.region.as_str()) {
             issues.push(error(
                 &at,
@@ -458,6 +499,7 @@ pub(super) mod tests {
         p.content.controls = Some(ControlsFile {
             zones: vec![],
             controls: vec![Control {
+                plural: false,
                 id: "bat".into(),
                 name: "Battery".into(),
                 zone: None,
@@ -618,6 +660,7 @@ pub(super) mod tests {
     fn light(locator: &str) -> LightsFile {
         LightsFile {
             lights: vec![LightNote {
+                which: None,
                 locator: locator.into(),
                 meaning: "M".into(),
                 when: "W".into(),
@@ -626,6 +669,80 @@ pub(super) mod tests {
                 confirmed_by: vec![],
             }],
         }
+    }
+
+    #[test]
+    fn a_place_has_one_name_per_outline() {
+        use involo_checklist_core::{ViewFrame, ViewPlace};
+        use std::collections::BTreeSet;
+        let outline = |x: f64| vec![[x, 10.0], [x + 20.0, 10.0], [x + 20.0, 20.0]];
+        let frame = |names: Vec<String>| ViewFrame {
+            width: 100.0,
+            height: 60.0,
+            shapes: vec![],
+            places: vec![ViewPlace {
+                region: "Console".into(),
+                shapes: vec![outline(10.0), outline(40.0)],
+                label_at: None,
+                names,
+            }],
+            labels: vec![],
+        };
+        let regions = BTreeSet::from(["Console"]);
+        let flags = |f: &ViewFrame| {
+            let mut issues = vec![];
+            super::check_view("seat", f, &regions, &mut issues);
+            issues
+                .iter()
+                .map(|i| i.message.clone())
+                .collect::<Vec<_>>()
+                .join("\n")
+        };
+        assert!(!flags(&frame(vec![])).contains("names"));
+        assert!(!flags(&frame(vec!["Front".into(), "Back".into()])).contains("names"));
+        assert!(
+            flags(&frame(vec!["Front".into()]))
+                .contains("place `Console` has 1 names for 2 outlines")
+        );
+    }
+
+    #[test]
+    fn lights_sharing_a_label_each_say_which_they_are() {
+        let note = |locator: &str, which: Option<&str>| LightNote {
+            which: which.map(Into::into),
+            ..light(locator).lights.remove(0)
+        };
+        let flags = |lights: &[LightNote]| {
+            let mut issues = vec![];
+            super::check_light_names(lights, &mut issues);
+            issues
+                .iter()
+                .map(|i| i.message.clone())
+                .collect::<Vec<_>>()
+                .join("\n")
+        };
+        // A label used once needs nothing; a shared one needs a different `which` on each.
+        assert_eq!(flags(&[note("oh/elec/BAT/1", None)]), "");
+        let named = [
+            note("oh/elec/LOW/1", Some("engine 1")),
+            note("oh/elec/LOW/2", Some("engine 2")),
+        ];
+        assert_eq!(flags(&named), "");
+        let missing = [
+            note("oh/elec/LOW/1", Some("engine 1")),
+            note("oh/elec/LOW/2", None),
+        ];
+        assert!(flags(&missing).contains("needs `which`"));
+        let same = [
+            note("oh/elec/LOW/1", Some("engine 1")),
+            note("oh/elec/LOW/2", Some("engine 1")),
+        ];
+        assert!(flags(&same).contains("`which: engine 1` is the same as another"));
+        // The same label on another section is another light.
+        assert_eq!(
+            flags(&[note("oh/elec/LOW/1", None), note("oh/fuel/LOW/1", None)]),
+            ""
+        );
     }
 
     #[test]
@@ -748,15 +865,20 @@ pub(super) mod tests {
         assert!(joined.contains("lie inside the overview"), "{joined}");
     }
 
-    #[test]
-    fn side_and_seat_views_name_real_regions_inside_their_frames() {
-        use involo_checklist_core::{OverviewViews, ViewFrame, ViewPlace, ViewRole, ViewShape};
-        let mut p = alias_pack(vec![]);
-        let place = |region: &str, x: f64| ViewPlace {
+    /// A view's place for `region`: one outline at `x`.
+    fn place(region: &str, x: f64) -> involo_checklist_core::ViewPlace {
+        involo_checklist_core::ViewPlace {
+            names: vec![],
             region: region.into(),
             shapes: vec![vec![[x, 10.0], [x + 20.0, 10.0], [x + 20.0, 20.0]]],
             label_at: None,
-        };
+        }
+    }
+
+    #[test]
+    fn side_and_seat_views_name_real_regions_inside_their_frames() {
+        use involo_checklist_core::{OverviewViews, ViewFrame, ViewRole, ViewShape};
+        let mut p = alias_pack(vec![]);
         let shape = |role, points: Vec<[f64; 2]>| ViewShape {
             points,
             closed: false,

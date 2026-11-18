@@ -7,4 +7,8 @@ export type Control = { id: string, name: string,
 /**
  * Absent for controls with no place in the cockpit, such as a briefing.
  */
-zone?: string | null, location: string, function: string, };
+zone?: string | null, location: string, function: string, 
+/**
+ * The name is plural ("Fuel pump switches"): Practice asks "Where are the …?".
+ */
+plural?: boolean, };

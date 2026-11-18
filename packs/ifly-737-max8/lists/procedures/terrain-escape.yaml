@@ -44,6 +44,7 @@ steps:
   - id: ifly-737-max8.procedures.if-terrain-remains-a-threat
     number: 5
     text: IF TERRAIN REMAINS A THREAT
+    branch: true
     expect: "ROTATE TO PITCH LIMIT, STICK SHAKER OR INITIAL BUFFET"
     controls:
       - column
