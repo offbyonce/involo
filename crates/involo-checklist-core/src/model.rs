@@ -32,6 +32,53 @@ impl std::fmt::Display for StepId {
     }
 }
 
+/// A flight field's id, e.g. `zfw`: one of the fields the pack defines in `flight.yaml`
+/// (decision 0029), or one of the app's own, [`FieldId::MANUAL`] and [`FieldId::ROUTE_LEG`].
+/// Saved flights key their values by it, as text.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(transparent)]
+pub struct FieldId(pub String);
+
+impl FieldId {
+    /// A blank the pilot types in, with no linked value. Only valid in a step's `fill`.
+    pub const MANUAL: &'static str = "manual";
+    /// One part of a route row, in CDU text, with `index` and `part`.
+    pub const ROUTE_LEG: &'static str = "route_leg";
+
+    pub fn new(id: impl Into<String>) -> Self {
+        Self(id.into())
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    /// One of the app's own fields, which no pack defines.
+    pub fn is_built_in(&self) -> bool {
+        self.0 == Self::MANUAL || self.0 == Self::ROUTE_LEG
+    }
+}
+
+impl std::fmt::Display for FieldId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl From<&str> for FieldId {
+    fn from(id: &str) -> Self {
+        Self(id.to_owned())
+    }
+}
+
+impl std::borrow::Borrow<str> for FieldId {
+    fn borrow(&self) -> &str {
+        &self.0
+    }
+}
+
 /// The highest route row a CDU field can refer to.
 pub const MAX_ROUTE_LEG: u32 = 30;
 
@@ -107,94 +154,12 @@ data_types! {
         AnyOf { any_of: Vec<OptionTest> },
     }
 
-    /// The fixed list of flight values the app can fill in. Packs cannot add names; a new one
-    /// needs an app release.
-    #[derive(Copy, Eq, PartialOrd, Ord)]
-    #[serde(rename_all = "snake_case")]
-    pub enum FillField {
-        /// A blank the pilot types in, with no linked value. Only valid in a step's `fill`.
-        Manual,
-        Origin,
-        Destination,
-        /// The first alternate airport (decision 0019, amended).
-        Alternate,
-        FlightNumber,
-        Route,
-        Runway,
-        Sid,
-        Transition,
-        InitialAltitude,
-        Squawk,
-        GroundFrequency,
-        TowerFrequency,
-        DepartureFrequency,
-        /// The departure airport's altimeter setting.
-        Qnh,
-        /// The destination airport's altimeter setting.
-        DestinationQnh,
-        Heading,
-        TakeoffFlaps,
-        LandingFlaps,
-        V1,
-        Vr,
-        V2,
-        Vref,
-        Cg,
-        TakeoffTrim,
-        Autobrake,
-        Minimums,
-        LandingAltitude,
-        /// The runway the pilot expects to land on.
-        ArrivalRunway,
-        /// The arrival procedure.
-        Star,
-        MinimumTakeoffFuel,
-        Fuel,
-        Zfw,
-        TakeoffWeight,
-        Passengers,
-        Cargo,
-        Reserves,
-        CostIndex,
-        CruiseLevel,
-        CruiseWind,
-        /// The takeoff thrust rating, e.g. `26K`.
-        ThrustRating,
-        AssumedTemperature,
-        ThrustReductionAltitude,
-        AccelerationAltitude,
-        IsaDeviation,
-        TransitionAltitude,
-        TransitionLevel,
-        /// `LB` or `KG`, for fuel and weights.
-        WeightUnit,
-        /// `inHg` or `hPa`, for the QNH.
-        QnhUnit,
-        /// `BARO` or `RADIO`, for the minimums.
-        MinimumsType,
-        /// Fuel in thousands, rounded up to the next tenth (calculated).
-        FuelThousands,
-        /// Fuel plus zero fuel weight, in thousands (calculated).
-        GrossWeight,
-        /// Outside air temperature at top of climb (calculated).
-        TopOfClimbOat,
-        /// Latitude and longitude of the departure airport.
-        OriginPosition,
-        /// The navigation database cycle (calculated).
-        NavDatabase,
-        /// The dates that cycle is active (calculated).
-        NavActiveDates,
-        UtcTime,
-        UtcDate,
-        /// One row of the route. Only valid in CDU text, with an `index` and a `part`.
-        RouteLeg,
-    }
 
     /// One piece of a hint shown beside a step, e.g. `GND` and the ground frequency.
     pub struct HintPart {
         /// Literal text before the value, including any space, e.g. `SQUAWK `.
         pub prefix: String,
-        pub field: FillField,
+        pub field: FieldId,
     }
 
     /// A stop on the walkaround drawing.
@@ -301,7 +266,7 @@ data_types! {
         pub targets: Vec<StepTarget>,
         /// One field per `___` in `expect`, in order.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub fill: Vec<FillField>,
+        pub fill: Vec<FieldId>,
         /// Flight values shown beside the expected response.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub hint: Vec<HintPart>,

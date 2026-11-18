@@ -3,7 +3,7 @@
 
 //! `phases.yaml`: options, stages and phases.
 
-use crate::model::{FillField, ShowIf};
+use crate::model::{FieldId, ShowIf};
 
 data_types! {
     /// A choice the pilot makes that decides what is shown, e.g. the power source.
@@ -20,13 +20,42 @@ data_types! {
         /// How each value is shown. When present, every value has exactly one.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub choices: Vec<OptionChoice>,
-        /// Phases that show the choice above their lists.
+        /// Phases that show the choice above their lists, and `start` for the Start page.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub ask_in: Vec<String>,
+        /// How the Start page shows the choice; required when `ask_in` names `start`.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub start: Option<StartControl>,
         /// How a flight value suggests the answer, for the pilot to confirm (decisions 0022 and
         /// 0027).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub suggests: Option<Suggests>,
+    }
+
+    /// How the Start page draws an option: one card per choice, or a segmented row.
+    #[derive(Copy, Eq)]
+    #[serde(rename_all = "snake_case")]
+    pub enum StartStyle {
+        Cards,
+        Row,
+    }
+
+    /// A link from a Start page option to a phase, e.g. "Preview the inspection".
+    pub struct StartLink {
+        pub phase: String,
+        pub text: String,
+    }
+
+    /// An option on the Start page (decision 0029): its control style, and optionally its own
+    /// title and description there (the option's own are used otherwise) and a link to a phase.
+    pub struct StartControl {
+        pub style: StartStyle,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub title: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub description: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub link: Option<StartLink>,
     }
 
     /// What suggests an option's answer: a rule (decision 0027), or, as format 4 wrote it, a bare
@@ -34,7 +63,7 @@ data_types! {
     #[serde(untagged)]
     pub enum Suggests {
         Rule(SuggestRule),
-        Field(FillField),
+        Field(FieldId),
     }
 
     /// A weight from the flight, less `minus`, above `more_than` suggests `then`, otherwise
@@ -42,7 +71,7 @@ data_types! {
     /// (decision 0027). The amounts are in `unit`. With `minus` at 0, nothing is suggested.
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct SuggestRule {
-        pub field: FillField,
+        pub field: FieldId,
         pub unit: WeightUnit,
         pub minus: u32,
         pub more_than: u32,

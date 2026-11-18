@@ -1,0 +1,413 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FlightFile",
+  "description": "`flight.yaml`: the pack's flight fields, in order.",
+  "type": "object",
+  "properties": {
+    "fields": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/FlightField"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "fields"
+  ],
+  "$defs": {
+    "FieldChoice": {
+      "description": "One choice of a choice field, with the text shown for it when it differs from the value.",
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "value"
+      ]
+    },
+    "FieldDisplay": {
+      "description": "How a number from a plan is stored: divided by `scale` (1000 for thousands, as the CDU\ntakes a weight), then rounded to a multiple of `step` (0.1 keeps one decimal).",
+      "type": "object",
+      "properties": {
+        "round": {
+          "$ref": "#/$defs/Rounding"
+        },
+        "scale": {
+          "type": "number",
+          "format": "double"
+        },
+        "step": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "scale",
+        "round",
+        "step"
+      ]
+    },
+    "FieldKind": {
+      "description": "What a field holds.",
+      "oneOf": [
+        {
+          "description": "A number, with ranges per unit when it has a `unit`.",
+          "type": "string",
+          "const": "number"
+        },
+        {
+          "description": "Any text.",
+          "type": "string",
+          "const": "text"
+        },
+        {
+          "description": "One of the field's `choices`.",
+          "type": "string",
+          "const": "choice"
+        }
+      ]
+    },
+    "FieldRange": {
+      "description": "The range a number may take, in one unit (a value of the field's `unit` field), or in\nevery unit when `unit` is left out.",
+      "type": "object",
+      "properties": {
+        "max": {
+          "type": "number",
+          "format": "double"
+        },
+        "min": {
+          "type": "number",
+          "format": "double"
+        },
+        "unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "min",
+        "max"
+      ]
+    },
+    "FlightField": {
+      "description": "One flight field.",
+      "type": "object",
+      "properties": {
+        "choices": {
+          "description": "For a choice field: its values, in order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FieldChoice"
+          }
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "display": {
+          "description": "How a number from a plan is stored.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FieldDisplay"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "group": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "description": "Lower-case letters, digits and underscores, e.g. `zfw`. Steps name it in `fill`,\n`hint` and CDU text, and saved flights key its value by it.",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/FieldKind"
+        },
+        "label": {
+          "type": "string"
+        },
+        "location": {
+          "description": "Where the value goes in the aircraft, e.g. \"Enter on the CDU › PERF INIT\".",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "page": {
+          "description": "The Flight page and group it shows in.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ranges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FieldRange"
+          }
+        },
+        "show_in": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ShowIn"
+          }
+        },
+        "simbrief": {
+          "description": "The plan values that fill it. More than one are added together (reserve fuel and\nalternate fuel, for the FMC's reserves).",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SimbriefSource"
+          }
+        },
+        "strip": {
+          "description": "How it reads in the flight strip, when `show_in` names the strip.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StripText"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unit": {
+          "description": "For a number: the choice field that holds its unit (`weight_unit`), whose values its\n`ranges` name.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "kind"
+      ]
+    },
+    "Rounding": {
+      "description": "Which way a value is rounded to its `step`.",
+      "type": "string",
+      "enum": [
+        "up",
+        "down",
+        "nearest"
+      ]
+    },
+    "ShowIn": {
+      "description": "Where else a field's value shows, besides the Flight pages.",
+      "oneOf": [
+        {
+          "description": "The flight strip's summary, in the pack's order.",
+          "type": "string",
+          "const": "strip"
+        },
+        {
+          "description": "The Arrival data box.",
+          "type": "string",
+          "const": "arrival"
+        }
+      ]
+    },
+    "SimbriefSource": {
+      "description": "A value the app reads from a SimBrief plan. The list is the app's: it describes SimBrief,\nso a pack chooses among these sources but cannot add one.",
+      "oneOf": [
+        {
+          "description": "Departure airport, ICAO code.",
+          "type": "string",
+          "const": "origin"
+        },
+        {
+          "description": "Destination airport, ICAO code.",
+          "type": "string",
+          "const": "destination"
+        },
+        {
+          "description": "The first alternate, ICAO code.",
+          "type": "string",
+          "const": "alternate"
+        },
+        {
+          "description": "Airline code and flight number, at most seven characters.",
+          "type": "string",
+          "const": "flight_number"
+        },
+        {
+          "description": "The cruise flight level.",
+          "type": "string",
+          "const": "cruise_level"
+        },
+        {
+          "description": "The departure runway.",
+          "type": "string",
+          "const": "runway"
+        },
+        {
+          "description": "The SID.",
+          "type": "string",
+          "const": "sid"
+        },
+        {
+          "description": "The SID's transition.",
+          "type": "string",
+          "const": "transition"
+        },
+        {
+          "description": "The arrival runway.",
+          "type": "string",
+          "const": "arrival_runway"
+        },
+        {
+          "description": "The STAR.",
+          "type": "string",
+          "const": "star"
+        },
+        {
+          "description": "The filed route.",
+          "type": "string",
+          "const": "route"
+        },
+        {
+          "description": "Block (ramp) fuel, in the plan's unit.",
+          "type": "string",
+          "const": "block_fuel"
+        },
+        {
+          "description": "Reserve fuel, in the plan's unit.",
+          "type": "string",
+          "const": "reserve_fuel"
+        },
+        {
+          "description": "Alternate fuel, in the plan's unit.",
+          "type": "string",
+          "const": "alternate_fuel"
+        },
+        {
+          "description": "Minimum takeoff fuel, in the plan's unit.",
+          "type": "string",
+          "const": "minimum_takeoff_fuel"
+        },
+        {
+          "description": "The plan's weight unit, `LB` or `KG`.",
+          "type": "string",
+          "const": "weight_unit"
+        },
+        {
+          "description": "Zero fuel weight, in the plan's unit.",
+          "type": "string",
+          "const": "zero_fuel_weight"
+        },
+        {
+          "description": "Planned takeoff weight, in the plan's unit.",
+          "type": "string",
+          "const": "takeoff_weight"
+        },
+        {
+          "description": "Passengers.",
+          "type": "string",
+          "const": "passengers"
+        },
+        {
+          "description": "Cargo, in the plan's unit.",
+          "type": "string",
+          "const": "cargo"
+        },
+        {
+          "description": "Cost index.",
+          "type": "string",
+          "const": "cost_index"
+        },
+        {
+          "description": "Average wind at cruise, `ddd/sss`.",
+          "type": "string",
+          "const": "cruise_wind"
+        },
+        {
+          "description": "Average ISA deviation at cruise.",
+          "type": "string",
+          "const": "isa_deviation"
+        },
+        {
+          "description": "The departure's transition altitude, in feet.",
+          "type": "string",
+          "const": "transition_altitude"
+        },
+        {
+          "description": "The destination's transition level, as a flight level.",
+          "type": "string",
+          "const": "transition_level"
+        },
+        {
+          "description": "The destination's elevation, in feet.",
+          "type": "string",
+          "const": "destination_elevation"
+        },
+        {
+          "description": "The departure's altimeter setting, from its METAR.",
+          "type": "string",
+          "const": "origin_altimeter"
+        },
+        {
+          "description": "The destination's altimeter setting, from its METAR, in the departure's unit.",
+          "type": "string",
+          "const": "destination_altimeter"
+        },
+        {
+          "description": "The altimeter setting's unit, `inHg` or `hPa`.",
+          "type": "string",
+          "const": "altimeter_unit"
+        },
+        {
+          "description": "The departure airport's position, latitude and longitude.",
+          "type": "string",
+          "const": "origin_position"
+        },
+        {
+          "description": "The AIRAC cycle.",
+          "type": "string",
+          "const": "nav_database"
+        }
+      ]
+    },
+    "StripText": {
+      "description": "How a field's value reads in the flight strip: `prefix`, the value, `suffix`. A field with\n`join` follows the strip part before it, after that text (the destination after the\ndeparture with \" → \", a transition after its SID with \".\").",
+      "type": "object",
+      "properties": {
+        "join": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "suffix": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

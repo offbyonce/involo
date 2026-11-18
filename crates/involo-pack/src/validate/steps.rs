@@ -3,7 +3,7 @@
 
 //! Lists and their steps.
 
-use involo_checklist_core::{Checklist, FillField, Step};
+use involo_checklist_core::{Checklist, FieldId, Step};
 
 use super::confirmations::check_confirmations;
 use super::index::Index;
@@ -76,7 +76,14 @@ fn check_step(step: &Step, idx: &Index, issues: &mut Vec<Issue>) {
             ),
         ));
     }
-    if step.hint.iter().any(|h| h.field == FillField::Manual) {
+    for field in step.fill.iter().chain(step.hint.iter().map(|h| &h.field)) {
+        idx.require_field(at, field.as_str(), issues);
+    }
+    if step
+        .hint
+        .iter()
+        .any(|h| h.field.as_str() == FieldId::MANUAL)
+    {
         issues.push(error(at, "`manual` is only valid in a step's `fill`"));
     }
     let hint_fields = step.hint.iter().map(|h| &h.field);
@@ -84,7 +91,7 @@ fn check_step(step: &Step, idx: &Index, issues: &mut Vec<Issue>) {
         .fill
         .iter()
         .chain(hint_fields)
-        .any(|f| *f == FillField::RouteLeg)
+        .any(|f| f.as_str() == FieldId::ROUTE_LEG)
     {
         issues.push(error(at, ROUTE_LEG_ONLY_IN_CDU));
     }
@@ -188,7 +195,7 @@ pub(super) fn check_notes_repeat_how(pack: &crate::Pack, issues: &mut Vec<Issue>
 #[cfg(test)]
 mod tests {
     use involo_checklist_core::{
-        CduField, CduFile, CduPage, CduPart, CduScreen, CduWalkthrough, FillField, HintPart,
+        CduField, CduFile, CduPage, CduPart, CduScreen, CduWalkthrough, FieldId, HintPart,
     };
 
     use super::super::test_support::{assert_flags, messages, pack, step};
@@ -318,16 +325,52 @@ mod tests {
         assert_flags(&p, "must be lower-case");
     }
 
+    /// The demo pack with a field the app has never heard of.
+    fn with_flex() -> crate::Pack {
+        let mut p = pack(vec![step("a")], vec![]);
+        let mut flex = super::super::test_support::flight().fields[4].clone();
+        flex.id = "flex_temperature".into();
+        p.content.flight.as_mut().unwrap().fields.push(flex);
+        p
+    }
+
+    #[test]
+    fn a_field_the_pack_defines_fills_blanks_and_hints_and_an_unknown_one_fails() {
+        let mut p = with_flex();
+        let s = &mut p.checklists[0].steps[0];
+        s.expect = "FLEX ___".into();
+        s.fill = vec![FieldId::from("flex_temperature")];
+        s.hint = vec![HintPart {
+            field: FieldId::from("flex_temperature"),
+            prefix: "FLEX ".into(),
+        }];
+        assert_eq!(messages(&p), "");
+        p.checklists[0].steps[0].fill = vec![FieldId::from("assumed_temp")];
+        assert_flags(
+            &p,
+            "`assumed_temp` is not a flight field the pack defines in flight.yaml",
+        );
+        let mut p = with_flex();
+        p.checklists[0].steps[0].hint = vec![HintPart {
+            field: FieldId::from("trim_units"),
+            prefix: String::new(),
+        }];
+        assert_flags(
+            &p,
+            "`trim_units` is not a flight field the pack defines in flight.yaml",
+        );
+    }
+
     #[test]
     fn fill_must_match_the_blanks() {
         let mut s = step("a");
         s.expect = "V1 ___ VR ___".into();
-        s.fill = vec![FillField::V1];
+        s.fill = vec![FieldId::from("v1")];
         assert_flags(
             &pack(vec![s.clone()], vec![]),
             "1 entries but `expect` has 2 blanks",
         );
-        s.fill = vec![FillField::V1, FillField::Manual];
+        s.fill = vec![FieldId::from("v1"), FieldId::from("manual")];
         assert_eq!(messages(&pack(vec![s], vec![])), "");
     }
 
@@ -345,7 +388,7 @@ mod tests {
         let mut s = step("a");
         s.hint = vec![HintPart {
             prefix: "X ".into(),
-            field: FillField::Manual,
+            field: FieldId::from("manual"),
         }];
         assert_flags(&pack(vec![s], vec![]), "only valid in a step's `fill`");
 
@@ -359,7 +402,7 @@ mod tests {
                     key: None,
                     title: "Check".into(),
                     action: vec![CduPart::Field(CduField {
-                        field: FillField::Manual,
+                        field: FieldId::from("manual"),
                         style: None,
                         before: None,
                         after: None,

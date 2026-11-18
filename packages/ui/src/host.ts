@@ -77,7 +77,7 @@ export interface Host {
   /** A saved OFP file the pilot chose, read once on this device into the compact plan. */
   readPlanFile(text: string): Promise<SavedPlan>;
   /** The flight values a plan fills in. */
-  planValues(plan: SavedPlan): Promise<PlanValues>;
+  planValues(pack: string, plan: SavedPlan): Promise<PlanValues>;
   /**
    * The plan kept on this device for a pack, read by Rust as ready, newer or unreadable, with the
    * saved text, so a plan this version can't use is kept and reported (decision 0019). Null when

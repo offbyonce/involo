@@ -19,6 +19,12 @@ options:
         description: Start the APU now, straight after power up.
     ask_in:
       - cold-dark
+      - start
+    start:
+      style: row
+      description: >-
+        On ground power, the APU starts before the Before start procedure. The Power up step asks
+        the same question, so you can choose there too.
   - id: start
     title: Start type
     values:
@@ -31,6 +37,13 @@ options:
         label: Cold and dark
       - value: turn
         label: Turnaround
+    ask_in:
+      - start
+    start:
+      style: row
+      title: Turnaround
+      description: >-
+        Next leg in the same airplane. Starts from the turnaround steps instead of cold and dark.
   - id: approach
     title: Approach type
     values:
@@ -61,6 +74,16 @@ options:
         label: "On"
       - value: "off"
         label: "Off"
+    ask_in:
+      - start
+    start:
+      style: row
+      description: >-
+        The walk around the airplane before you board: 18 numbered stops on a diagram. Off skips
+        the stage; anything you ticked is kept.
+      link:
+        phase: exterior
+        text: Preview the inspection
   - id: center_tank
     title: Center tank
     description: The center tank holds

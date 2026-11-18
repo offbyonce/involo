@@ -6,7 +6,7 @@
 //! above a line suggests one value, otherwise the other, and near the line it says so. The
 //! pilot confirms or changes it.
 
-use involo_checklist_core::{FillField, SuggestRule, Suggests, WeightUnit};
+use involo_checklist_core::{SuggestRule, Suggests, WeightUnit};
 use involo_pack::FlatPack;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -42,7 +42,9 @@ pub fn suggestion(pack: &FlatPack, flight: &Flight, option: &str) -> Option<Sugg
             Some(Suggests::Rule(rule)) => Some(rule),
             _ => None,
         })?;
-    from_rule(rule, flight)
+    // The flight's weight unit is the value of the field's own unit field (decision 0029).
+    let unit = crate::values::field(pack, &rule.field).and_then(|f| f.unit.as_deref());
+    from_rule(rule, unit, flight)
 }
 
 /// A whole number of the flight's unit, never below 0; none for a figure no plan gives.
@@ -55,7 +57,7 @@ fn whole(x: f64) -> Option<u32> {
     Some(x as u32)
 }
 
-fn from_rule(rule: &SuggestRule, flight: &Flight) -> Option<Suggestion> {
+fn from_rule(rule: &SuggestRule, unit: Option<&str>, flight: &Flight) -> Option<Suggestion> {
     if rule.minus == 0 {
         return None;
     }
@@ -67,9 +69,8 @@ fn from_rule(rule: &SuggestRule, flight: &Flight) -> Option<Suggestion> {
         .parse()
         .ok()
         .filter(|n: &f64| n.is_finite() && *n >= 0.0)?;
-    let kg_flight = flight
-        .values
-        .get(&FillField::WeightUnit)
+    let kg_flight = unit
+        .and_then(|u| flight.values.get(u))
         .is_some_and(|u| u.eq_ignore_ascii_case("KG"));
     // Everything in the rule's unit, then the amount back in the flight's.
     let to_rule = match (kg_flight, rule.unit) {
@@ -111,10 +112,11 @@ mod tests {
     use super::*;
     use crate::new_flight;
     use crate::test_support::ifly_pack;
+    use involo_checklist_core::FieldId;
 
     fn rule(minus: u32) -> SuggestRule {
         SuggestRule {
-            field: FillField::Fuel,
+            field: FieldId::from("fuel"),
             unit: WeightUnit::Kg,
             minus,
             more_than: 450,
@@ -130,13 +132,13 @@ mod tests {
 
     fn flight(fuel: &str, unit: &str) -> Flight {
         let mut f = new_flight(&ifly_pack());
-        f.values.insert(FillField::Fuel, fuel.into());
-        f.values.insert(FillField::WeightUnit, unit.into());
+        f.values.insert(FieldId::from("fuel"), fuel.into());
+        f.values.insert(FieldId::from("weight_unit"), unit.into());
         f
     }
 
     fn says(r: &SuggestRule, fuel: &str, unit: &str) -> (String, u32, String, bool) {
-        let s = from_rule(r, &flight(fuel, unit)).unwrap();
+        let s = from_rule(r, Some("weight_unit"), &flight(fuel, unit)).unwrap();
         (s.value, s.amount, s.unit, s.near)
     }
 
@@ -172,11 +174,17 @@ mod tests {
 
     #[test]
     fn suggests_nothing_until_the_subtraction_is_known_or_without_a_value() {
-        assert_eq!(from_rule(&rule(0), &flight("20000", "LB")), None);
-        assert_eq!(from_rule(&rule(7738), &flight("lots", "LB")), None);
+        assert_eq!(
+            from_rule(&rule(0), Some("weight_unit"), &flight("20000", "LB")),
+            None
+        );
+        assert_eq!(
+            from_rule(&rule(7738), Some("weight_unit"), &flight("lots", "LB")),
+            None
+        );
         let mut empty = new_flight(&ifly_pack());
         empty.values.clear();
-        assert_eq!(from_rule(&rule(7738), &empty), None);
+        assert_eq!(from_rule(&rule(7738), Some("weight_unit"), &empty), None);
     }
 
     #[test]

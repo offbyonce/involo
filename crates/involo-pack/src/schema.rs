@@ -5,8 +5,8 @@
 //! give pack authors editor autocomplete; a test fails if they drift from the code.
 
 use involo_checklist_core::{
-    AliasesFile, BriefingsFile, CduFile, Checklist, ControlsFile, FaultsFile, GlossaryFile,
-    LabelsFile, LightsFile, NotesFile, Panel, PanelStatesFile, PhasesFile,
+    AliasesFile, BriefingsFile, CduFile, Checklist, ControlsFile, FaultsFile, FlightFile,
+    GlossaryFile, LabelsFile, LightsFile, NotesFile, Panel, PanelStatesFile, PhasesFile,
 };
 
 use crate::manifest::PackManifest;
@@ -20,6 +20,7 @@ pub fn all() -> Vec<(&'static str, String)> {
         ("checklist.schema.json", render::<Checklist>()),
         ("controls.schema.json", render::<ControlsFile>()),
         ("faults.schema.json", render::<FaultsFile>()),
+        ("flight.schema.json", render::<FlightFile>()),
         ("glossary.schema.json", render::<GlossaryFile>()),
         ("labels.schema.json", render::<LabelsFile>()),
         ("lights.schema.json", render::<LightsFile>()),

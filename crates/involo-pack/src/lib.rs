@@ -56,6 +56,9 @@ pub struct PackContent {
     pub panel_states: Option<involo_checklist_core::PanelStatesFile>,
     pub cdu: Option<involo_checklist_core::CduFile>,
     pub aliases: Option<involo_checklist_core::AliasesFile>,
+    /// The pack's flight fields (decision 0029).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub flight: Option<involo_checklist_core::FlightFile>,
     /// The words the interface shows for this pack: its `labels.yaml` over the app's defaults,
     /// always complete (decision 0029).
     #[serde(default)]

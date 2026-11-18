@@ -408,6 +408,7 @@ mod tests {
                 engine: semver::VersionReq::parse(">=0.1").unwrap(),
                 aircraft: None,
                 extends: std::collections::BTreeMap::default(),
+                flight: None,
                 labels: None,
                 license: "CC-BY-NC-SA-4.0".into(),
                 attribution: vec![],

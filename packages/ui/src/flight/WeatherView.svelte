@@ -10,7 +10,7 @@ En route winds come from the plan's navigation log. Decoding is Rust's code tabl
 not cover shows as printed, "Not decoded". Descriptions are the boards' stand-ins.
 -->
 <script lang="ts">
-  import type { Decoded, DecodedRow, Element, FillField, Flight, SavedPlan } from "@involo/bindings";
+  import type { Decoded, DecodedRow, Element, FieldId, Flight, SavedPlan } from "@involo/bindings";
   import { getHost } from "../host";
   import { safely } from "../lib/safely";
   import Icon from "../lib/Icon.svelte";
@@ -30,13 +30,13 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
     descriptions: boolean;
     /** The tab to open: departure, destination, alternate or winds (or a field in it). */
     tab: string | null;
-    onSet: (field: FillField, value: string) => void;
+    onSet: (field: FieldId, value: string) => void;
     /** The OFP panel for the selected row, which the page shows beside the section. */
     panel?: Ofp | null;
   } = $props();
 
   const host = getHost();
-  let vals = $derived<Partial<Record<FillField, string>>>(flight.values ?? {});
+  let vals = $derived<Partial<Record<FieldId, string>>>(flight.values ?? {});
   type Tab = "departure" | "destination" | "alternate" | "winds";
   // svelte-ignore state_referenced_locally
   let tab = $state<Tab>(wanted === "destination_qnh" || wanted === "destination" ? "destination" : wanted === "alternate" ? "alternate" : wanted === "winds" ? "winds" : "departure");
@@ -92,7 +92,7 @@ not cover shows as printed, "Not decoded". Descriptions are the boards' stand-in
   let picked = $state<number | null>(null);
   let selected = $derived(picked !== null && rows.some((x) => x.i === picked) ? picked : (rows.find((x) => x.r.element === "wind")?.i ?? rows[0]?.i ?? null));
   let altRow = $derived(rows.find((x) => x.r.element === "altimeter") ?? null);
-  let field = $derived<FillField | null>(tab === "departure" ? "qnh" : tab === "destination" ? "destination_qnh" : null);
+  let field = $derived<FieldId | null>(tab === "departure" ? "qnh" : tab === "destination" ? "destination_qnh" : null);
   let unit = $derived(vals.qnh_unit ?? (altRow?.r.raw[0]?.startsWith("Q") ? "hPa" : "inHg"));
   let more = $state<number | null>(null);
   let altMessage = $derived(field ? rangeMessage(field, { values: vals, plan, notes: "", unit: "" }) : null);

@@ -4,7 +4,8 @@
 //! Flight values as steps show them (decision 0019): the text of each blank and a step's hint,
 //! and the values a unit choice may take.
 
-use involo_checklist_core::{FillField, Step};
+use involo_checklist_core::{FieldId, FlightField, ShowIn, SimbriefSource, Step};
+use involo_pack::FlatPack;
 use serde::Serialize;
 use ts_rs::TS;
 
@@ -15,50 +16,59 @@ use crate::flight::Flight;
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct StripPart {
-    pub field: FillField,
+    pub field: FieldId,
     pub text: String,
 }
 
-/// The flight strip's summary, as 3.0 built it: the route, runway, departure with its
-/// transition, initial altitude, squawk and frequencies, each only when known.
-pub fn strip(flight: &Flight) -> Vec<StripPart> {
-    let v = |f: FillField| {
-        flight
+/// The pack's flight fields, in its order.
+pub fn fields(pack: &FlatPack) -> impl Iterator<Item = &FlightField> {
+    pack.content.flight.iter().flat_map(|f| &f.fields)
+}
+
+/// The pack's field with this id.
+pub fn field<'a>(pack: &'a FlatPack, id: &FieldId) -> Option<&'a FlightField> {
+    fields(pack).find(|f| f.id == id.as_str())
+}
+
+/// The pack's first field filled from this SimBrief source (the departure, for the log).
+pub fn field_from(pack: &FlatPack, source: SimbriefSource) -> Option<&FlightField> {
+    fields(pack).find(|f| f.simbrief.first() == Some(&source))
+}
+
+/// The flight strip's summary: the fields `show_in` the strip names, in the pack's order, each
+/// only when known, written as its `strip` text says. A field that `join`s follows the part
+/// before it (the destination after the departure), and the part keeps the first field of the
+/// group, which its pop-out focuses.
+pub fn strip(pack: &FlatPack, flight: &Flight) -> Vec<StripPart> {
+    let mut out: Vec<StripPart> = vec![];
+    // The field that starts the group the next joining field belongs to.
+    let mut group: Option<&str> = None;
+    for f in fields(pack).filter(|f| f.show_in.contains(&ShowIn::Strip)) {
+        let text = f.strip.as_ref();
+        let join = text.and_then(|t| t.join.as_deref());
+        if join.is_none() {
+            group = Some(f.id.as_str());
+        }
+        let Some(value) = flight
             .values
-            .get(&f)
+            .get(f.id.as_str())
             .map(|s| s.trim())
             .filter(|s| !s.is_empty())
-    };
-    let mut out = vec![];
-    let mut push = |field, text: String| out.push(StripPart { field, text });
-    let route: Vec<&str> = [FillField::Origin, FillField::Destination]
-        .into_iter()
-        .filter_map(v)
-        .collect();
-    if !route.is_empty() {
-        push(FillField::Origin, route.join(" → "));
-    }
-    if let Some(r) = v(FillField::Runway) {
-        push(FillField::Runway, format!("RWY {r}"));
-    }
-    if let Some(sid) = v(FillField::Sid) {
-        let text = match v(FillField::Transition) {
-            Some(t) => format!("{sid}.{t}"),
-            None => sid.to_owned(),
+        else {
+            continue;
         };
-        push(FillField::Sid, text);
-    }
-    if let Some(a) = v(FillField::InitialAltitude) {
-        push(FillField::InitialAltitude, format!("{a} FT"));
-    }
-    if let Some(sq) = v(FillField::Squawk) {
-        push(FillField::Squawk, format!("SQK {sq}"));
-    }
-    if let Some(g) = v(FillField::GroundFrequency) {
-        push(FillField::GroundFrequency, format!("GND {g}"));
-    }
-    if let Some(d) = v(FillField::DepartureFrequency) {
-        push(FillField::DepartureFrequency, format!("DEP {d}"));
+        let (prefix, suffix) = text.map_or(("", ""), |t| (t.prefix.as_str(), t.suffix.as_str()));
+        let piece = format!("{prefix}{value}{suffix}");
+        let head = group.unwrap_or(f.id.as_str());
+        match (join, out.last_mut()) {
+            (Some(sep), Some(last)) if last.field.as_str() == head => {
+                last.text = format!("{}{sep}{piece}", last.text);
+            }
+            _ => out.push(StripPart {
+                field: FieldId::new(head),
+                text: piece,
+            }),
+        }
     }
     out
 }
@@ -113,22 +123,22 @@ pub fn hint(flight: &Flight, step: &Step) -> String {
         .join(" · ")
 }
 
-/// The values the Arrival data box asks for, as 3.0's did.
-pub const ARRIVAL: [FillField; 5] = [
-    FillField::LandingAltitude,
-    FillField::LandingFlaps,
-    FillField::Vref,
-    FillField::Autobrake,
-    FillField::Minimums,
-];
+/// The fields the Arrival data box asks for: those `show_in` it names, in the pack's order.
+pub fn arrival_fields(pack: &FlatPack) -> Vec<&str> {
+    fields(pack)
+        .filter(|f| f.show_in.contains(&ShowIn::Arrival))
+        .map(|f| f.id.as_str())
+        .collect()
+}
 
 /// Whether a phase shows the Arrival data box: it is the first phase, in flight order, whose
 /// steps have blanks for arrival values (the descent, in the iFly pack, as in 3.0).
 pub fn asks_arrival<'a>(
-    pack: &involo_pack::FlatPack,
+    pack: &FlatPack,
     order: impl IntoIterator<Item = &'a str>,
     id: &str,
 ) -> bool {
+    let arrival = arrival_fields(pack);
     let needs = |phase: &str| {
         pack.content
             .phases
@@ -139,19 +149,14 @@ pub fn asks_arrival<'a>(
             .flat_map(|p| &p.lists)
             .filter_map(|l| pack.lists.iter().find(|x| &x.id == l))
             .flat_map(|l| &l.steps)
-            .any(|s| s.fill.iter().any(|f| ARRIVAL.contains(f)))
+            .any(|s| s.fill.iter().any(|f| arrival.contains(&f.as_str())))
     };
     order.into_iter().find(|p| needs(p)) == Some(id)
 }
 
 /// The values a choice field may take, or `None` for a field that takes any text.
-pub fn allowed(field: FillField) -> Option<&'static [&'static str]> {
-    match field {
-        FillField::WeightUnit => Some(&["LB", "KG"]),
-        FillField::QnhUnit => Some(&["inHg", "hPa"]),
-        FillField::MinimumsType => Some(&["BARO", "RADIO"]),
-        _ => None,
-    }
+pub fn allowed(field: &FlightField) -> Option<Vec<&str>> {
+    (!field.choices.is_empty()).then(|| field.choices.iter().map(|c| c.value.as_str()).collect())
 }
 
 #[cfg(test)]
@@ -171,7 +176,7 @@ mod tests {
             .unwrap()
     }
 
-    fn set(pack: &FlatPack, flight: Flight, field: FillField, value: &str) -> Flight {
+    fn set(pack: &FlatPack, flight: Flight, field: FieldId, value: &str) -> Flight {
         let action = Action::SetValue {
             field,
             value: value.into(),
@@ -183,7 +188,7 @@ mod tests {
     fn a_blank_shows_the_pilots_entry_else_the_flight_value_else_nothing() {
         let pack = ifly_pack();
         let mcp = step(&pack, "ifly-737-max8.before-start.mcp-check");
-        let flight = set(&pack, new_flight(&pack), FillField::V2, "145");
+        let flight = set(&pack, new_flight(&pack), FieldId::from("v2"), "145");
         assert_eq!(blank_values(&flight, mcp), ["145", "", ""]);
         let typed = apply(
             &pack,
@@ -216,9 +221,14 @@ mod tests {
         let radios = step(&pack, "ifly-737-max8.preflight.radio-tuning-panels");
         let flight = new_flight(&pack);
         assert_eq!(hint(&flight, radios), "");
-        let flight = set(&pack, flight, FillField::DepartureFrequency, "125.600");
+        let flight = set(
+            &pack,
+            flight,
+            FieldId::from("departure_frequency"),
+            "125.600",
+        );
         assert_eq!(hint(&flight, radios), "DEP 125.600");
-        let flight = set(&pack, flight, FillField::GroundFrequency, "121.700");
+        let flight = set(&pack, flight, FieldId::from("ground_frequency"), "121.700");
         assert_eq!(hint(&flight, radios), "GND 121.700 · DEP 125.600");
     }
 
@@ -226,21 +236,21 @@ mod tests {
     fn the_strip_sums_up_the_clearance_as_3_0_did() {
         let pack = ifly_pack();
         let flight = new_flight(&pack);
-        assert_eq!(strip(&flight), []);
+        assert_eq!(strip(&pack, &flight), []);
         let mut flight = flight;
         for (f, v) in [
-            (FillField::Destination, "KSFO"),
-            (FillField::Runway, "16L"),
-            (FillField::Sid, "SUMMA2"),
-            (FillField::Transition, "SEA"),
-            (FillField::Squawk, "4521"),
+            (FieldId::from("destination"), "KSFO"),
+            (FieldId::from("runway"), "16L"),
+            (FieldId::from("sid"), "SUMMA2"),
+            (FieldId::from("transition"), "SEA"),
+            (FieldId::from("squawk"), "4521"),
         ] {
             flight = set(&pack, flight, f, v);
         }
-        let texts: Vec<String> = strip(&flight).into_iter().map(|p| p.text).collect();
+        let texts: Vec<String> = strip(&pack, &flight).into_iter().map(|p| p.text).collect();
         assert_eq!(texts, ["KSFO", "RWY 16L", "SUMMA2.SEA", "SQK 4521"]);
-        let flight = set(&pack, flight, FillField::Origin, "KSEA");
-        assert_eq!(strip(&flight)[0].text, "KSEA → KSFO");
+        let flight = set(&pack, flight, FieldId::from("origin"), "KSEA");
+        assert_eq!(strip(&pack, &flight)[0].text, "KSEA → KSFO");
         let notes = Action::SetNotes {
             notes: "Taxi via A\nClimb 7000 \n\n".into(),
         };
@@ -263,15 +273,15 @@ mod tests {
     #[test]
     fn unit_choices_take_only_their_values_and_an_empty_value_removes() {
         let pack = ifly_pack();
-        let flight = set(&pack, new_flight(&pack), FillField::QnhUnit, "hPa");
-        assert_eq!(flight.values[&FillField::QnhUnit], "hPa");
+        let flight = set(&pack, new_flight(&pack), FieldId::from("qnh_unit"), "hPa");
+        assert_eq!(flight.values[&FieldId::from("qnh_unit")], "hPa");
         for (field, bad) in [
-            (FillField::QnhUnit, "mb"),
-            (FillField::MinimumsType, "DH"),
-            (FillField::WeightUnit, "kg"),
+            (FieldId::from("qnh_unit"), "mb"),
+            (FieldId::from("minimums_type"), "DH"),
+            (FieldId::from("weight_unit"), "kg"),
         ] {
             let action = Action::SetValue {
-                field,
+                field: field.clone(),
                 value: bad.into(),
             };
             assert!(
@@ -279,11 +289,11 @@ mod tests {
                 "{field:?} {bad}"
             );
         }
-        let cleared = set(&pack, flight, FillField::QnhUnit, " ");
-        assert!(!cleared.values.contains_key(&FillField::QnhUnit));
+        let cleared = set(&pack, flight, FieldId::from("qnh_unit"), " ");
+        assert!(!cleared.values.contains_key(&FieldId::from("qnh_unit")));
         // A space typed between words stays: the interface saves on every keystroke.
-        let route = set(&pack, cleared, FillField::Route, "SUMMA2 ");
-        assert_eq!(route.values[&FillField::Route], "SUMMA2 ");
+        let route = set(&pack, cleared, FieldId::from("route"), "SUMMA2 ");
+        assert_eq!(route.values[&FieldId::from("route")], "SUMMA2 ");
     }
 
     #[test]
@@ -297,9 +307,33 @@ mod tests {
         };
         assert!(apply(&pack, flight.clone(), no_blank).is_err());
         let manual = Action::SetValue {
-            field: FillField::Manual,
+            field: FieldId::from("manual"),
             value: "1".into(),
         };
         assert!(apply(&pack, flight, manual).is_err());
+    }
+
+    #[test]
+    fn a_field_the_pack_shows_in_the_strip_appears_there_in_the_pack_s_order() {
+        let mut pack = ifly_pack();
+        let fields = &mut pack.content.flight.as_mut().unwrap().fields;
+        let mut flex = fields.iter().find(|f| f.id == "v1").unwrap().clone();
+        flex.id = "flex_temperature".into();
+        flex.show_in = vec![involo_checklist_core::ShowIn::Strip];
+        flex.strip = Some(involo_checklist_core::StripText {
+            prefix: "FLEX ".into(),
+            suffix: "°".into(),
+            join: None,
+        });
+        fields.insert(0, flex);
+        let flight = set(
+            &pack,
+            new_flight(&pack),
+            FieldId::from("flex_temperature"),
+            "42",
+        );
+        let flight = set(&pack, flight, FieldId::from("runway"), "16L");
+        let texts: Vec<String> = strip(&pack, &flight).into_iter().map(|p| p.text).collect();
+        assert_eq!(texts, ["FLEX 42°", "RWY 16L"]);
     }
 }

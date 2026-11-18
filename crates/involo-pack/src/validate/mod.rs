@@ -9,6 +9,7 @@ mod aliases;
 mod cdu;
 mod confirmations;
 mod files;
+mod flight;
 mod ids;
 mod index;
 mod labels;
@@ -25,6 +26,7 @@ use std::fmt;
 
 use cdu::check_cdu;
 use files::{check_files, check_manifest};
+use flight::check_flight;
 use index::Index;
 use labels::check_labels;
 use links::check_links;
@@ -99,9 +101,10 @@ fn validate_with_allow_list(pack: &Pack, allow: &[&str]) -> Vec<Issue> {
     check_step_targets(pack, &mut issues);
     check_phases(pack, &idx, &mut issues);
     check_labels(pack, &mut issues);
+    check_flight(pack, &mut issues);
     check_panels_and_lights(pack, &idx, &mut issues);
     check_other_references(pack, &idx, &mut issues);
-    check_cdu(pack, &mut issues);
+    check_cdu(pack, &idx, &mut issues);
     check_links(pack, allow, &mut issues);
     issues.sort_by(|a, b| b.severity.cmp(&a.severity).then_with(|| a.at.cmp(&b.at)));
     issues

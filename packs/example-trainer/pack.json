@@ -27,5 +27,6 @@
   "briefings": "briefings.yaml",
   "panelStates": "panel-states.yaml",
   "cdu": "cdu.yaml",
-  "aliases": "aliases.yaml"
+  "aliases": "aliases.yaml",
+  "flight": "flight.yaml"
 }

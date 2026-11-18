@@ -171,10 +171,13 @@ pub fn parse_plan(text: &str) -> String {
     reply(involo_app_core::parse_plan(text))
 }
 
-/// The flight values a plan fills in (decision 0019).
+/// The flight values a plan fills in for a loaded pack's fields (decisions 0019 and 0029).
 #[wasm_bindgen]
-pub fn plan_values(plan: &str) -> String {
-    reply((|| involo_app_core::plan_values(&read("plan", plan)?))())
+pub fn plan_values(pack: &str, plan: &str) -> String {
+    reply((|| {
+        let plan = read("plan", plan)?;
+        with_pack(pack, |p| involo_app_core::plan_values(p, &plan))
+    })())
 }
 
 /// Read the saved SimBrief plan: ready (migrated if older), newer or unreadable.
@@ -300,11 +303,6 @@ mod tests {
             ))["ok"]["origin"]["icao"],
             "EGLL"
         );
-        assert_eq!(
-            json(&plan_values(r#"{"origin":{"icao":"EGLL"}}"#))["error"]["kind"],
-            "FlightPlan",
-            "a plan with no destination fills nothing"
-        );
     }
 
     #[test]
@@ -313,6 +311,14 @@ mod tests {
             std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
         let pack = FlatPack::from(involo_pack::load_pack_dir(&dir).unwrap());
         assert!(json(&load_pack(&serde_json::to_string(&pack).unwrap()))["ok"].is_object());
+        assert_eq!(
+            json(&plan_values(
+                "example-trainer",
+                r#"{"origin":{"icao":"EGLL"}}"#
+            ))["error"]["kind"],
+            "FlightPlan",
+            "a plan with no destination fills nothing"
+        );
         let flight = json(&new_flight("example-trainer"))["ok"].to_string();
         let action = r#"{"type":"tick","step":"example-trainer.before-start.battery","at":7}"#;
         let ticked = json(&apply("example-trainer", &flight, action))["ok"].clone();

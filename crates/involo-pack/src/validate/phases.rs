@@ -5,24 +5,55 @@
 
 use std::collections::BTreeSet;
 
-use involo_checklist_core::{FillField, Quick, Suggests, UserOption};
+use involo_checklist_core::{FieldKind, Quick, Suggests, UserOption};
 
 use super::index::Index;
 use super::{Issue, error};
 use crate::Pack;
 
+/// What `ask_in` names for the Start page.
+const START: &str = "start";
+
+/// An option asked on the Start page says how it is drawn there; a link names a real phase.
+fn check_start(option: &UserOption, idx: &Index, issues: &mut Vec<Issue>) {
+    let asked = option.ask_in.iter().any(|p| p == START);
+    match (&option.start, asked) {
+        (None, true) => issues.push(error(
+            &option.id,
+            "asked on the Start page, so it needs `start` with a `style` (cards or row)",
+        )),
+        (Some(_), false) => issues.push(error(
+            &option.id,
+            "`start` is for an option `ask_in` names `start`",
+        )),
+        (Some(control), true) => {
+            if let Some(link) = &control.link {
+                idx.require_phase(&option.id, &link.phase, issues);
+            }
+        }
+        (None, false) => {}
+    }
+}
+
 /// A suggestion rule (decision 0027) reads a planned fuel weight and suggests one of the option's
 /// own values.
-fn check_suggests(option: &UserOption, issues: &mut Vec<Issue>) {
+fn check_suggests(pack: &Pack, option: &UserOption, issues: &mut Vec<Issue>) {
     let Some(Suggests::Rule(rule)) = &option.suggests else {
         return;
     };
-    let weights = [FillField::Fuel, FillField::MinimumTakeoffFuel];
-    if !weights.contains(&rule.field) {
+    // A weight: a number field whose unit field offers LB and KG.
+    let fields = || pack.content.flight.iter().flat_map(|f| &f.fields);
+    let field = fields().find(|f| f.id == rule.field.as_str());
+    let unit = field
+        .and_then(|f| f.unit.as_deref())
+        .and_then(|u| fields().find(|f| f.id == u));
+    let weighs =
+        |c: &str| unit.is_some_and(|u| u.choices.iter().any(|x| x.value.eq_ignore_ascii_case(c)));
+    if field.is_none_or(|f| f.kind != FieldKind::Number) || !(weighs("LB") && weighs("KG")) {
         issues.push(error(
             &option.id,
             format!(
-                "`suggests` reads `{:?}`, which is not a fuel weight",
+                "`suggests` reads `{}`, which is not a weight field (a number whose unit is LB or KG)",
                 rule.field
             ),
         ));
@@ -58,10 +89,14 @@ pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
     for option in &file.options {
         idx.check_option_value(&option.id, &option.id, &option.default, issues);
         check_choices(option, issues);
-        check_suggests(option, issues);
-        for phase in &option.ask_in {
+        check_suggests(pack, option, issues);
+        if let Some(Suggests::Field(field)) = &option.suggests {
+            idx.require_field(&option.id, field.as_str(), issues);
+        }
+        for phase in option.ask_in.iter().filter(|p| *p != START) {
             idx.require_phase(&option.id, phase, issues);
         }
+        check_start(option, idx, issues);
     }
     let mut placed = BTreeSet::new();
     for phase in &file.phases {
@@ -163,9 +198,59 @@ fn check_choices(option: &UserOption, issues: &mut Vec<Issue>) {
 
 #[cfg(test)]
 mod tests {
-    use involo_checklist_core::{FillField, OptionChoice, OptionTest, ShowIf};
+    use involo_checklist_core::{FieldId, OptionChoice, OptionTest, ShowIf};
 
     use super::super::test_support::{assert_flags, messages, pack, step};
+
+    fn on_start(control: Option<involo_checklist_core::StartControl>) -> crate::Pack {
+        let mut p = pack(vec![step("a")], vec![]);
+        let option = &mut p.content.phases.as_mut().unwrap().options[0];
+        option.ask_in.push("start".into());
+        option.start = control;
+        p
+    }
+
+    fn control(
+        style: involo_checklist_core::StartStyle,
+        link: Option<&str>,
+    ) -> involo_checklist_core::StartControl {
+        involo_checklist_core::StartControl {
+            style,
+            title: None,
+            description: Some("What it changes.".into()),
+            link: link.map(|phase| involo_checklist_core::StartLink {
+                phase: phase.into(),
+                text: "Preview".into(),
+            }),
+        }
+    }
+
+    #[test]
+    fn an_option_on_the_start_page_passes_in_either_style() {
+        use involo_checklist_core::StartStyle;
+        for style in [StartStyle::Cards, StartStyle::Row] {
+            assert_eq!(
+                messages(&on_start(Some(control(style, Some("preflight"))))),
+                ""
+            );
+        }
+    }
+
+    #[test]
+    fn an_option_on_the_start_page_needs_a_style_and_a_real_linked_phase() {
+        use involo_checklist_core::StartStyle;
+        assert_flags(
+            &on_start(None),
+            "asked on the Start page, so it needs `start` with a `style` (cards or row)",
+        );
+        assert_flags(
+            &on_start(Some(control(StartStyle::Row, Some("walkaround")))),
+            "walkaround",
+        );
+        let mut p = pack(vec![step("a")], vec![]);
+        p.content.phases.as_mut().unwrap().options[0].start = Some(control(StartStyle::Row, None));
+        assert_flags(&p, "`start` is for an option `ask_in` names `start`");
+    }
 
     #[test]
     fn a_stage_needs_an_id_of_its_own() {
@@ -278,19 +363,19 @@ mod tests {
             }
             p
         };
-        assert!(!messages(&with(rule(FillField::Fuel, "apu"))).contains("suggests"));
+        assert!(!messages(&with(rule(FieldId::from("fuel"), "apu"))).contains("suggests"));
         assert_flags(
-            &with(rule(FillField::Qnh, "apu")),
-            "`suggests` reads `Qnh`, which is not a fuel weight",
+            &with(rule(FieldId::from("qnh"), "apu")),
+            "`suggests` reads `qnh`, which is not a weight field",
         );
         assert_flags(
-            &with(rule(FillField::Fuel, "battery")),
+            &with(rule(FieldId::from("fuel"), "battery")),
             "`suggests` names `battery`, which is not one of the option's values",
         );
         // Format 4's bare field still reads, and suggests nothing.
         assert!(
             !messages(&with(Some(involo_checklist_core::Suggests::Field(
-                FillField::Fuel
+                FieldId::from("fuel")
             ))))
             .contains("suggests")
         );

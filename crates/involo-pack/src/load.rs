@@ -113,6 +113,7 @@ pub fn load_pack_dir(dir: &Path) -> Result<Pack, LoadError> {
         panel_states: load_optional(dir, manifest.panel_states.as_ref())?,
         cdu: load_optional(dir, manifest.cdu.as_ref())?,
         aliases: load_optional(dir, manifest.aliases.as_ref())?,
+        flight: load_optional(dir, manifest.flight.as_ref())?,
         labels: involo_checklist_core::Labels::default(),
     };
     let labels_file: Option<involo_checklist_core::LabelsFile> =
@@ -266,11 +267,10 @@ steps:
     }
 
     #[test]
-    fn fill_names_come_from_the_app() {
-        let list = parse(&with_step_field("fill: [zfw, v1, cost_index, manual]")).unwrap();
-        assert_eq!(list.steps[0].fill.len(), 4);
-        let err = parse(&with_step_field("fill: [my_field]")).unwrap_err();
-        assert!(err.contains("my_field"), "{err}");
+    fn fill_names_any_field_and_check_holds_it_to_the_pack() {
+        // Any name reads; `involo-pack check` holds it to the pack's flight.yaml (decision 0029).
+        let list = parse(&with_step_field("fill: [zfw, flex_temperature, manual]")).unwrap();
+        assert_eq!(list.steps[0].fill[1].as_str(), "flex_temperature");
     }
 
     #[test]
@@ -296,8 +296,6 @@ steps:
             file.walkthroughs[0].pages[0].action[1],
             CduPart::RouteCount(_)
         ));
-        let retired = doc("[{field: route_leg1_via}]");
-        assert!(parse_yaml::<CduFile>(&retired, Path::new("c.yaml")).is_err());
 
         let nested = doc("[{when_known: [runway], show: [{when_known: [sid], show: [x]}]}]");
         assert!(parse_yaml::<CduFile>(&nested, Path::new("c.yaml")).is_err());

@@ -10,7 +10,7 @@ text, with a "Section ›" link under the description. Selecting the row (a clic
 the "Find it in your OFP" panel at it. Descriptions Off keeps the label, the value and the location line.
 -->
 <script lang="ts">
-  import type { FillField } from "@involo/bindings";
+  import type { FieldId } from "@involo/bindings";
   import { flightHref, phaseHref } from "../route.svelte";
   import Icon from "../lib/Icon.svelte";
   import { type Ctx, type Row, rangeMessage } from "./sections";
@@ -32,7 +32,7 @@ the "Find it in your OFP" panel at it. Descriptions Off keeps the label, the val
     /** The title of the section a cross-section row links to. */
     sectionTitle: (id: NonNullable<Row["link"]>) => string;
     onSelect: () => void;
-    onSet: (field: FillField, value: string) => void;
+    onSet: (field: FieldId, value: string) => void;
     onNotes?: (notes: string) => void;
   } = $props();
 
@@ -40,7 +40,7 @@ the "Find it in your OFP" panel at it. Descriptions Off keeps the label, the val
   const grouped = (n: number) => Math.round(n).toLocaleString("en-US");
 
   /** A value as the box shows it: weights in full with the unit, headings with °, levels with FL. */
-  function shown(field: FillField, weight?: "full" | "thousands"): string {
+  function shown(field: FieldId, weight?: "full" | "thousands"): string {
     const raw = ctx.values[field] ?? "";
     if (!raw) return "";
     if (weight) {

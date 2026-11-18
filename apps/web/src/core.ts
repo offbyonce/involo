@@ -157,9 +157,9 @@ export async function decodeTaf(text: string): Promise<Decoded> {
 }
 
 /** The flight values a plan fills in (decision 0019). */
-export async function planValues(plan: Plan): Promise<PlanValues> {
+export async function planValues(pack: string, plan: Plan): Promise<PlanValues> {
   await load();
-  return unwrap<PlanValues>(wasm.plan_values(JSON.stringify(plan)));
+  return unwrap<PlanValues>(wasm.plan_values(pack, JSON.stringify(plan)));
 }
 
 /** An empty flight log (decision 0026). */

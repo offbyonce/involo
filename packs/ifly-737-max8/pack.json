@@ -101,5 +101,6 @@
   "panelStates": "panel-states.yaml",
   "cdu": "cdu.yaml",
   "aliases": "aliases.yaml",
+  "flight": "flight.yaml",
   "labels": "labels.yaml"
 }

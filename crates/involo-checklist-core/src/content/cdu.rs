@@ -3,7 +3,7 @@
 
 //! `cdu.yaml`: CDU walkthroughs and the text they show.
 
-use crate::model::FillField;
+use crate::model::FieldId;
 
 data_types! {
     /// How text appears on the CDU screen.
@@ -35,7 +35,7 @@ data_types! {
     /// A live flight value. Calculations happen in the app, never in the pack.
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct CduField {
-        pub field: FillField,
+        pub field: FieldId,
         /// For `route_leg`: the row, from 1 to `MAX_ROUTE_LEG`.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub index: Option<u32>,
@@ -100,7 +100,7 @@ data_types! {
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct CduWhen {
         /// Every one of these must be known for `show` to appear.
-        pub when_known: Vec<FillField>,
+        pub when_known: Vec<FieldId>,
         pub show: Vec<CduInline>,
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub otherwise: Vec<CduInline>,

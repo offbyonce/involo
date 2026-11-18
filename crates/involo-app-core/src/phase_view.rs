@@ -240,7 +240,7 @@ fn view(
         lists,
         complete: progress.complete(),
         progress,
-        strip: strip(flight),
+        strip: strip(pack, flight),
         note: last_note(flight),
         arrival: asks_arrival(pack, order.iter().map(|(_, p, _)| *p), &phase.id),
     })
@@ -267,9 +267,12 @@ mod tests {
         let pack = ifly_pack();
         let mut flight = new_flight(&pack);
         for (field, value) in [
-            (involo_checklist_core::FillField::V2, "145"),
-            (involo_checklist_core::FillField::Heading, "163"),
-            (involo_checklist_core::FillField::InitialAltitude, "5000"),
+            (involo_checklist_core::FieldId::from("v2"), "145"),
+            (involo_checklist_core::FieldId::from("heading"), "163"),
+            (
+                involo_checklist_core::FieldId::from("initial_altitude"),
+                "5000",
+            ),
         ] {
             let action = Action::SetValue {
                 field,

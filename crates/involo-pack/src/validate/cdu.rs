@@ -4,17 +4,19 @@
 //! CDU walkthrough text.
 
 use involo_checklist_core::{
-    CduField, CduInline, CduPart, CduRouteCount, CduText, CduWhen, FillField, MAX_ROUTE_LEG,
+    CduField, CduInline, CduPart, CduRouteCount, CduText, CduWhen, FieldId, MAX_ROUTE_LEG,
 };
 
+use super::index::Index;
 use super::{Issue, error};
 use crate::Pack;
 
-fn check_cdu_field(at: &str, field: &CduField, issues: &mut Vec<Issue>) {
-    if field.field == FillField::Manual {
+fn check_cdu_field(at: &str, field: &CduField, idx: &Index, issues: &mut Vec<Issue>) {
+    idx.require_field(at, field.field.as_str(), issues);
+    if field.field.as_str() == FieldId::MANUAL {
         issues.push(error(at, "`manual` is only valid in a step's `fill`"));
     }
-    if field.field == FillField::RouteLeg {
+    if field.field.as_str() == FieldId::ROUTE_LEG {
         if field.part.is_none() || field.index.is_none() {
             issues.push(error(at, "`route_leg` needs an `index` and a `part`"));
         }
@@ -38,44 +40,55 @@ fn check_route_count(at: &str, count: &CduRouteCount, issues: &mut Vec<Issue>) {
     }
 }
 
-fn check_cdu_inline(at: &str, part: &CduInline, issues: &mut Vec<Issue>) {
+fn check_cdu_inline(at: &str, part: &CduInline, idx: &Index, issues: &mut Vec<Issue>) {
     match part {
-        CduInline::Field(field) => check_cdu_field(at, field, issues),
+        CduInline::Field(field) => check_cdu_field(at, field, idx, issues),
         CduInline::RouteCount(count) => check_route_count(at, count, issues),
         CduInline::Text(_) | CduInline::Styled(_) => {}
     }
 }
 
-fn check_cdu_when(at: &str, when: &CduWhen, issues: &mut Vec<Issue>) {
+fn check_cdu_when(at: &str, when: &CduWhen, idx: &Index, issues: &mut Vec<Issue>) {
+    for field in &when.when_known {
+        idx.require_field(at, field.as_str(), issues);
+    }
     if when.when_known.is_empty() {
         issues.push(error(at, "`when_known` must name a field"));
     }
-    if when.when_known.contains(&FillField::Manual) {
+    if when
+        .when_known
+        .iter()
+        .any(|f| f.as_str() == FieldId::MANUAL)
+    {
         issues.push(error(at, "`manual` is only valid in a step's `fill`"));
     }
-    if when.when_known.contains(&FillField::RouteLeg) {
+    if when
+        .when_known
+        .iter()
+        .any(|f| f.as_str() == FieldId::ROUTE_LEG)
+    {
         issues.push(error(
             at,
             "`when_known` cannot test `route_leg`; test `route`",
         ));
     }
     for part in when.show.iter().chain(&when.otherwise) {
-        check_cdu_inline(at, part, issues);
+        check_cdu_inline(at, part, idx, issues);
     }
 }
 
-fn check_cdu_text(at: &str, text: &CduText, issues: &mut Vec<Issue>) {
+fn check_cdu_text(at: &str, text: &CduText, idx: &Index, issues: &mut Vec<Issue>) {
     for part in text {
         match part {
-            CduPart::Field(field) => check_cdu_field(at, field, issues),
+            CduPart::Field(field) => check_cdu_field(at, field, idx, issues),
             CduPart::RouteCount(count) => check_route_count(at, count, issues),
-            CduPart::When(when) => check_cdu_when(at, when, issues),
+            CduPart::When(when) => check_cdu_when(at, when, idx, issues),
             CduPart::Text(_) | CduPart::Styled(_) => {}
         }
     }
 }
 
-pub(super) fn check_cdu(pack: &Pack, issues: &mut Vec<Issue>) {
+pub(super) fn check_cdu(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
     let Some(file) = &pack.content.cdu else {
         return;
     };
@@ -96,7 +109,7 @@ pub(super) fn check_cdu(pack: &Pack, issues: &mut Vec<Issue>) {
                 &screen.scratchpad,
             ];
             for text in texts.into_iter().chain(cells) {
-                check_cdu_text(&at, text, issues);
+                check_cdu_text(&at, text, idx, issues);
             }
         }
     }
@@ -106,7 +119,7 @@ pub(super) fn check_cdu(pack: &Pack, issues: &mut Vec<Issue>) {
 mod tests {
     use involo_checklist_core::{
         AliasKind, CduField, CduFile, CduInline, CduPage, CduPart, CduRouteCount, CduScreen,
-        CduText, CduWalkthrough, CduWhen, FillField, HintPart, MAX_ROUTE_LEG, RouteLegCount,
+        CduText, CduWalkthrough, CduWhen, FieldId, HintPart, MAX_ROUTE_LEG, RouteLegCount,
         RouteLegPart,
     };
 
@@ -116,7 +129,7 @@ mod tests {
     #[test]
     fn route_leg_needs_a_valid_index_and_part() {
         let leg = |index, part| {
-            let mut f = field(FillField::RouteLeg);
+            let mut f = field(FieldId::from("route_leg"));
             f.index = index;
             f.part = part;
             cdu_pack(vec![CduPart::Field(f)])
@@ -134,24 +147,24 @@ mod tests {
 
     #[test]
     fn route_leg_stays_in_cdu_text() {
-        let mut f = field(FillField::Runway);
+        let mut f = field(FieldId::from("runway"));
         f.index = Some(1);
         assert_flags(&cdu_pack(vec![CduPart::Field(f)]), "only `route_leg` takes");
 
         let mut s = step("a");
         s.expect = "___".into();
-        s.fill = vec![FillField::RouteLeg];
+        s.fill = vec![FieldId::from("route_leg")];
         assert_flags(&pack(vec![s], vec![]), "only valid in CDU text");
 
         let mut s = step("a");
         s.hint = vec![HintPart {
             prefix: "X ".into(),
-            field: FillField::RouteLeg,
+            field: FieldId::from("route_leg"),
         }];
         assert_flags(&pack(vec![s], vec![]), "only valid in CDU text");
 
         let when = CduWhen {
-            when_known: vec![FillField::RouteLeg],
+            when_known: vec![FieldId::from("route_leg")],
             show: vec![CduInline::Text("x".into())],
             otherwise: vec![],
         };
@@ -180,6 +193,21 @@ mod tests {
         assert_flags(&count(0), "`per_page` must be at least 1");
     }
 
+    #[test]
+    fn cdu_text_names_the_pack_s_own_fields() {
+        let mut p = cdu_pack(vec![CduPart::Field(field(FieldId::from(
+            "flex_temperature",
+        )))]);
+        assert_flags(
+            &p,
+            "`flex_temperature` is not a flight field the pack defines in flight.yaml",
+        );
+        let mut flex = super::super::test_support::flight().fields[4].clone();
+        flex.id = "flex_temperature".into();
+        p.content.flight.as_mut().unwrap().fields.push(flex);
+        assert_eq!(messages(&p), "");
+    }
+
     fn cdu_pack(action: CduText) -> Pack {
         let mut p = pack(vec![step("a")], vec![]);
         p.content.cdu = Some(CduFile {
@@ -206,7 +234,7 @@ mod tests {
         p
     }
 
-    fn field(field: FillField) -> CduField {
+    fn field(field: FieldId) -> CduField {
         CduField {
             field,
             style: None,
@@ -222,10 +250,10 @@ mod tests {
     #[test]
     fn cdu_groups_are_checked() {
         let good = CduWhen {
-            when_known: vec![FillField::Runway],
+            when_known: vec![FieldId::from("runway")],
             show: vec![
                 CduInline::Text("<SEL> ".into()),
-                CduInline::Field(field(FillField::Runway)),
+                CduInline::Field(field(FieldId::from("runway"))),
             ],
             otherwise: vec![],
         };
@@ -241,11 +269,11 @@ mod tests {
         let mut manual_shown = good.clone();
         manual_shown
             .show
-            .push(CduInline::Field(field(FillField::Manual)));
+            .push(CduInline::Field(field(FieldId::from("manual"))));
         assert_flags(&cdu_pack(vec![CduPart::When(manual_shown)]), "`manual`");
 
         let mut manual_tested = good;
-        manual_tested.when_known = vec![FillField::Manual];
+        manual_tested.when_known = vec![FieldId::from("manual")];
         assert_flags(&cdu_pack(vec![CduPart::When(manual_tested)]), "`manual`");
     }
 }
