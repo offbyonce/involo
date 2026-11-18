@@ -11,6 +11,19 @@
     "id": {
       "type": "string"
     },
+    "outline": {
+      "description": "The panel's outline, when it is not a rectangle: points in panel units, inside its\nbox, holding every section (format 6).",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number",
+          "format": "double"
+        },
+        "maxItems": 2,
+        "minItems": 2
+      }
+    },
     "sections": {
       "type": "array",
       "items": {
@@ -34,8 +47,33 @@
     "sections"
   ],
   "$defs": {
+    "Legend": {
+      "description": "One legend of a legend pushbutton, e.g. FAULT in amber or OFF in white.",
+      "type": "object",
+      "properties": {
+        "light": {
+          "description": "Its light's role.",
+          "$ref": "#/$defs/LightColor"
+        },
+        "lit_in": {
+          "description": "The button's positions it is lit in (OFF lit when pushed to OFF). Without any, it is\nlit by the airplane, not the button (FAULT), and shows lit when a step expects the\nbutton's light on.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "light"
+      ]
+    },
     "LightColor": {
-      "description": "The color of a panel light.",
+      "description": "A light's role: which light it is, never a color value. The app draws each role in its\ntheme's lit color (decision 0021); white has no lit color of its own and is drawn in the\npanel's text color.",
       "type": "string",
       "enum": [
         "amber",
@@ -71,6 +109,15 @@
             }
           ]
         },
+        "columns": {
+          "description": "Only on a keypad: keys to a row. Three when left out.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        },
         "controls": {
           "description": "Ids of the controls this item belongs to.",
           "type": "array",
@@ -104,6 +151,13 @@
         },
         "label": {
           "type": "string"
+        },
+        "legends": {
+          "description": "Only on a legend pushbutton: its legends, top then bottom; a single legend sits in\nthe bottom half.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Legend"
+          }
         },
         "lit_at": {
           "description": "Only on a light: the position, on another item it shares a control with, that turns\nit on, e.g. the parking brake at SET. Drawings show the light on, as expected, when a\nstep asks for that position.",
@@ -175,6 +229,26 @@
           "description": "A handle that is pulled, such as the parking brake and the fire handles.",
           "type": "string",
           "const": "handle"
+        },
+        {
+          "description": "A rotary knob that is also pushed in or pulled out. Two positions: pushed in first,\npulled out second (format 6).",
+          "type": "string",
+          "const": "push_pull_knob"
+        },
+        {
+          "description": "A pushbutton with one or two legends that light (`legends`), set to one of its\n`positions` (format 6).",
+          "type": "string",
+          "const": "legend_pushbutton"
+        },
+        {
+          "description": "A two-way switch that tips about its middle. Two positions: the top end pressed\nfirst, the bottom end second (format 6).",
+          "type": "string",
+          "const": "rocker"
+        },
+        {
+          "description": "A block of keys: its `positions` are the keys, row by row, `columns` to a row\n(format 6). A step presses one key per target.",
+          "type": "string",
+          "const": "keypad"
         }
       ]
     },
@@ -193,6 +267,19 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/PanelItem"
+          }
+        },
+        "outline": {
+          "description": "The section's outline, when it is not a rectangle: points in the section's own units,\ninside its box, holding every item (format 6). Drawn as the rectangle frame is.",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "maxItems": 2,
+            "minItems": 2
           }
         },
         "title": {

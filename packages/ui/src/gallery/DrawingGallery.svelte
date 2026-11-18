@@ -11,6 +11,7 @@ each region. `?theme=dark|light` picks the theme.
   import type { FlatPack, ItemTarget, Panel, PanelItem } from "@involo/bindings";
   import PanelSchematic from "../lib/PanelSchematic.svelte";
   import { safely } from "../lib/safely";
+  import { indexPack } from "../pack-index";
   import { seatFrame } from "../lib/seat-frame";
   import ViewDrawing from "../lib/ViewDrawing.svelte";
   import { applyPalette } from "../theme/tokens";
@@ -95,6 +96,88 @@ each region. `?theme=dark|light` picks the theme.
       states: [RESTING, CHANGED(1)],
     },
     {
+      title: "White light",
+      item: { kind: "light", label: "AVAIL", color: "white" },
+      states: [
+        { name: "Unlit", target: null },
+        { name: "Lit", target: set(null, { lit: true }) },
+      ],
+    },
+    // Format 6 (New panel controls board).
+    {
+      title: "Push/pull knob",
+      item: { kind: "push_pull_knob", label: "ALT", positions: ["PUSH", "PULL"], rest: "PUSH" },
+      states: [
+        { name: "Resting: pushed in", target: null },
+        { name: "Changed: PULL", target: set(1) },
+        { name: "Changed: PUSH", target: set(0) },
+        RESOLVED(1),
+        CONDITIONAL,
+      ],
+    },
+    {
+      title: "Pushbutton with legends",
+      item: {
+        kind: "legend_pushbutton",
+        label: "PUMP 1",
+        positions: ["ON (PUSHED OUT)", "OFF (PUSHED IN)"],
+        legends: [
+          { text: "FAULT", light: "amber" },
+          { text: "OFF", light: "white", litIn: ["OFF (PUSHED IN)"] },
+        ],
+      },
+      states: [
+        { name: "Resting: no legend lit", target: null },
+        { name: "Changed: OFF, lit", target: set(1) },
+        { name: "A legend expected on", target: set(null, { lit: true }) },
+        CONDITIONAL,
+      ],
+    },
+    {
+      title: "Legend light roles",
+      item: {
+        kind: "legend_pushbutton",
+        label: "ROLES",
+        positions: ["A", "B"],
+        legends: [
+          { text: "RED", light: "red", litIn: ["A"] },
+          { text: "GREEN", light: "green", litIn: ["A"] },
+        ],
+      },
+      states: [{ name: "Red and green, lit", target: set(0) }],
+    },
+    {
+      title: "Legend light roles, blue",
+      item: {
+        kind: "legend_pushbutton",
+        label: "ROLES",
+        positions: ["A", "B"],
+        legends: [
+          { text: "BLUE", light: "blue", litIn: ["A"] },
+          { text: "WHITE", light: "white", litIn: ["A"] },
+        ],
+      },
+      states: [{ name: "Blue and white, lit", target: set(0) }],
+    },
+    {
+      title: "Rocker",
+      item: { kind: "rocker", label: "SEAT BELTS", positions: ["ON", "OFF"], rest: "OFF" },
+      states: [{ name: "Resting: OFF pressed", target: null }, { name: "Changed: ON", target: set(0) }, RESOLVED(0), CONDITIONAL],
+    },
+    {
+      title: "Keypad",
+      item: {
+        kind: "keypad",
+        label: "RADIO",
+        positions: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "CLR", "0", "ENT"],
+      },
+      states: [
+        RESTING,
+        { name: "Changed: ENT", target: set(11) },
+        { name: "Conditional: ENT", target: set(11, { open: true }) },
+      ],
+    },
+    {
       title: "Gauge and screen",
       item: { kind: "gauge", label: "TEMP" },
       states: [RESTING, CHANGED(null)],
@@ -119,6 +202,51 @@ each region. `?theme=dark|light` picks the theme.
         },
       ],
     }) as Panel;
+
+  /** The board's invented panel: an angled outline, three push/pull knobs and two legend
+   * pushbuttons; the step sets ALT to PULL, and HDG, which the step does not use, has keyboard
+   * focus (New panel controls board). */
+  const knob = (label: string, x: number): PanelItem =>
+    ({ kind: "push_pull_knob", label, x, y: 66, positions: ["PUSH", "PULL"], rest: "PUSH", controls: [], description: "" }) as PanelItem;
+  const legendButton = (label: string, x: number): PanelItem =>
+    ({
+      kind: "legend_pushbutton",
+      label,
+      x,
+      y: 70,
+      positions: ["OFF", "ON"],
+      legends: [{ text: "ON", light: "green", litIn: ["ON"] }],
+      controls: [],
+      description: "",
+    }) as PanelItem;
+  const autoflight: Panel = {
+    id: "gallery-autoflight",
+    title: "Autoflight panel",
+    width: 510,
+    height: 150,
+    sections: [
+      {
+        id: "af",
+        title: "Autoflight panel",
+        x: 10,
+        y: 10,
+        width: 490,
+        height: 132,
+        outline: [
+          [20, 0],
+          [470, 0],
+          [490, 26],
+          [490, 132],
+          [0, 132],
+          [0, 26],
+        ],
+        items: [knob("SPD", 70), knob("HDG", 170), knob("ALT", 270), legendButton("AP", 386), legendButton("A/THR", 440)],
+      },
+    ],
+  } as Panel;
+  /** Tap targets, so every control is a tab stop as in the app (focus HDG with Tab to see its
+   * ring). */
+  let index = $derived(pack ? indexPack(pack) : undefined);
 
   let regions = $derived(pack?.content.controls?.overview?.regions ?? []);
   let views = $derived(pack?.content.controls?.overview?.views ?? null);
@@ -148,6 +276,20 @@ each region. `?theme=dark|light` picks the theme.
       </div>
     </section>
   {/each}
+
+  <section class="kind" data-kind="On a panel">
+    <h2>On a panel: an angled outline, ALT set to PULL, focus on HDG</h2>
+    <figure class="cell" data-cell="On a panel">
+      <div class="draw">
+        <PanelSchematic
+          panel={autoflight}
+          focus={["af"]}
+          targets={[{ section: "af", item: 2, position: 1, lit: false, open: false, resolved: false }]}
+          {index}
+        />
+      </div>
+    </figure>
+  </section>
 
   {#if views}
     <section class="kind" data-kind="Where is this?">

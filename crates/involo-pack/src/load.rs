@@ -209,6 +209,22 @@ steps:
     }
 
     #[test]
+    fn a_legend_names_a_light_role_the_app_knows() {
+        let panel = |light: &str| {
+            format!(
+                "id: p\ntitle: P\nwidth: 100\nheight: 60\nsections:\n  - id: s\n    title: S\n    x: 0\n    y: 0\n    width: 100\n    height: 60\n    items:\n      - kind: legend_pushbutton\n        label: PUMP 1\n        x: 50\n        y: 30\n        positions: [ON, OFF]\n        legends:\n          - text: FAULT\n            light: {light}\n        description: A pump.\n"
+            )
+        };
+        let read = |light: &str| {
+            super::parse_yaml::<involo_checklist_core::Panel>(&panel(light), Path::new("p.yaml"))
+        };
+        assert!(read("amber").is_ok());
+        let err = read("purple").unwrap_err().to_string();
+        assert!(err.contains("purple"), "{err}");
+        assert!(err.contains("line 20"), "{err}");
+    }
+
+    #[test]
     fn duplicate_key_is_rejected() {
         let err = parse("id: p\ntitle: P\ntitle: Q\nsteps: []\n").unwrap_err();
         assert!(err.contains("duplicate"), "{err}");

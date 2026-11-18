@@ -40,6 +40,27 @@ steps:
         from: [example-trainer.start.computer]
         pick: latest
 
+  - id: example-trainer.start.altitude
+    text: Altitude knob
+    expect: PULL
+    controls: [altitude-knob]
+    targets:
+      - {at: "autoflight/autoflight/#alt", set: PULL}
+
+  - id: example-trainer.start.seat-belts
+    text: Seat belts
+    expect: "ON"
+    controls: [seat-belts]
+    targets:
+      - {at: "autoflight/cabin/#seat-belts", set: "ON"}
+
+  - id: example-trainer.start.radio
+    text: Radio frequency
+    expect: ENT
+    controls: [radio-keypad]
+    targets:
+      - {at: "autoflight/cabin/#radio", set: ENT}
+
   - id: example-trainer.start.radar
     text: Weather radar
     expect: 'OFF'

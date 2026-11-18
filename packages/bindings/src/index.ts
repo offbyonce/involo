@@ -30,6 +30,8 @@ export type { FlightFile } from "./generated/FlightFile";
 export type { ItemTarget } from "./generated/ItemTarget";
 export type { LabelAnchor } from "./generated/LabelAnchor";
 export type { Labels } from "./generated/Labels";
+export type { Legend } from "./generated/Legend";
+export type { LightColor } from "./generated/LightColor";
 export type { ListKind } from "./generated/ListKind";
 export type { ListMethod } from "./generated/ListMethod";
 export type { ListView } from "./generated/ListView";

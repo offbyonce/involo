@@ -14,6 +14,7 @@ mod ids;
 mod index;
 mod labels;
 mod links;
+mod panel_kinds;
 mod panels;
 mod phases;
 mod references;

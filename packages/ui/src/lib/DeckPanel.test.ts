@@ -44,8 +44,10 @@ describe("the Flight deck's selected panel (panel-highlight fixes)", () => {
     expect(container.querySelectorAll(".selection")).toHaveLength(1);
     await fireEvent.click(hit("STALL TEST 1"));
     expect(container.querySelectorAll(".selection")).toHaveLength(1);
-    expect(container.querySelector(".selection")?.closest("g.item")).toBe(
-      hit("STALL TEST 1").closest("g.item"),
+    // The tap targets are a layer of their own (every control in the tab order, the step's first),
+    // at the same place as the control they open.
+    expect(container.querySelector(".selection")?.closest("g.item")?.getAttribute("transform")).toBe(
+      hit("STALL TEST 1").closest("g.hit-item")?.getAttribute("transform"),
     );
     const cards = container.querySelectorAll(".control-card");
     expect(cards).toHaveLength(1);

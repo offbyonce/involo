@@ -102,6 +102,16 @@ choice), unit and ranges, where it goes in the aircraft, where else it shows (th
 Arrival data box), how a plan's number is stored (`display`) and the SimBrief values that fill it.
 SimBrief sources are the app's list (see `flight.schema.json`); a pack picks among them.
 
+**Panel controls.** Besides switches, selectors, buttons, lights, levers and handles, a panel item
+may be a `push_pull_knob` (two positions, pushed in first), a `rocker` (two positions, the top end
+first), a `legend_pushbutton` (its `positions`, and one or two `legends`, each with its `text`, its
+`light` role and the positions it is `lit_in`; a legend without `lit_in` is lit by the airplane and
+shows lit when a step expects the button's light on) or a `keypad` (its keys as `positions`,
+`columns` to a row; a step has one target per key it presses). A panel or section may give an
+`outline`, three points or more, in place of its rectangle; it must hold everything drawn in it.
+Packs name light roles (amber, red, green, blue, white), never colors. See the example pack's
+`panels/autoflight.yaml`.
+
 **Labels.** Words the interface shows that belong to the aircraft (list kind names, the reference
 area's title and groups, crew roles and seats, the panel-state picker, basis tag labels) can go in
 an optional `labels.yaml`, listed in `pack.json` as `labels`. Every key is optional, and a key left

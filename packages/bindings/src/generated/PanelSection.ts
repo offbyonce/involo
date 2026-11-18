@@ -4,4 +4,9 @@ import type { PanelItem } from "./PanelItem";
 /**
  * A labeled section of a panel.
  */
-export type PanelSection = { id: string, title: string, x: number, y: number, width: number, height: number, items: Array<PanelItem>, };
+export type PanelSection = { id: string, title: string, x: number, y: number, width: number, height: number, 
+/**
+ * The section's outline, when it is not a rectangle: points in the section's own units,
+ * inside its box, holding every item (format 6). Drawn as the rectangle frame is.
+ */
+outline?: Array<[number, number]>, items: Array<PanelItem>, };
