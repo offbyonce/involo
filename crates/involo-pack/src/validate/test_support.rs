@@ -54,6 +54,7 @@ pub(super) fn manifest() -> PackManifest {
         aliases: None,
         flight: None,
         labels: None,
+        messages: None,
     }
 }
 

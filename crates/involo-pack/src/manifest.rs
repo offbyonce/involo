@@ -137,6 +137,9 @@ pub struct PackManifest {
     /// The pack's flight fields (`flight.yaml`): what steps fill and what a SimBrief plan fills.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flight: Option<String>,
+    /// The aircraft's alert messages (`messages.yaml`), when it has an alert display.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub messages: Option<String>,
     /// The words the interface shows for this pack (`labels.yaml`); without it, the app's own.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub labels: Option<String>,
@@ -158,6 +161,7 @@ impl PackManifest {
             &self.aliases,
             &self.flight,
             &self.labels,
+            &self.messages,
             &self.patches,
         ];
         self.checklists

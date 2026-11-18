@@ -410,6 +410,7 @@ mod tests {
                 extends: std::collections::BTreeMap::default(),
                 flight: None,
                 labels: None,
+                messages: None,
                 patches: None,
                 resolved: vec![],
                 content_hash: None,

@@ -192,6 +192,7 @@ fn merge(
         cdu: c.cdu.or(p.cdu),
         aliases: c.aliases.or(p.aliases),
         flight: c.flight.or(p.flight),
+        messages: c.messages.or(p.messages),
         labels,
     };
     let lists: Vec<_> = parent
@@ -234,6 +235,7 @@ fn doubled(m: &crate::PackManifest, p: &PackContent) -> Vec<&'static str> {
         ("cdu", m.cdu.is_some(), p.cdu.is_some()),
         ("aliases", m.aliases.is_some(), p.aliases.is_some()),
         ("flight", m.flight.is_some(), p.flight.is_some()),
+        ("messages", m.messages.is_some(), p.messages.is_some()),
     ]
     .into_iter()
     .filter_map(|(name, given, had)| (given && had).then_some(name))

@@ -62,6 +62,9 @@ pub struct PackContent {
     /// The pack's flight fields (decision 0029).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flight: Option<involo_checklist_core::FlightFile>,
+    /// The aircraft's alert messages (decision 0029).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub messages: Option<involo_checklist_core::MessagesFile>,
     /// The words the interface shows for this pack: its `labels.yaml` over the app's defaults,
     /// always complete (decision 0029).
     #[serde(default)]

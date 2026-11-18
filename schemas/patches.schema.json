@@ -17,7 +17,7 @@
   ],
   "$defs": {
     "Patch": {
-      "description": "One change to the parent. It names exactly one target, by id:\n- `stage`, `list`, `step`, `panel`, `flight_field`, `panel_state`: the entry's `id`;\n- `section`: `panel/section`; `item`: `panel/section/item`, the item's `id` (an item without an\n  id cannot be patched: add the id in the parent);\n- `glossary_term`: the entry's `term`;\n- `label`: a dotted path into the pack's labels, a list entry named by its `id`, e.g.\n  `list_kinds.checklist` or `roles.pf.title`.",
+      "description": "One change to the parent. It names exactly one target, by id:\n- `stage`, `list`, `step`, `panel`, `flight_field`, `panel_state`: the entry's `id`;\n- `section`: `panel/section`; `item`: `panel/section/item`, the item's `id` (an item without an\n  id cannot be patched: add the id in the parent);\n- `message`: the alert message's `id`;\n- `glossary_term`: the entry's `term`;\n- `label`: a dotted path into the pack's labels, a list entry named by its `id`, e.g.\n  `list_kinds.checklist` or `roles.pf.title`.",
       "type": "object",
       "properties": {
         "flight_field": {
@@ -45,6 +45,12 @@
           ]
         },
         "list": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "message": {
           "type": [
             "string",
             "null"

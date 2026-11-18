@@ -8,6 +8,7 @@ import type {
   Control,
   ExplainNote,
   FlatPack,
+  Message,
   Overview,
   OverviewArea,
   OverviewRegion,
@@ -71,6 +72,16 @@ export type PackIndex = {
   zoneDrawn(zone: string): boolean;
   /** Whether any drawn item carries the control. */
   controlDrawn(control: string): boolean;
+  /** The aircraft's alert messages, in the pack's order; none when it has no alert display. */
+  messages: Message[];
+  /** The messages that call for a step (that list it in their `steps`). */
+  messagesFor(stepId: string): Message[];
+  /** The messages that call for a list. */
+  messagesCalling(listId: string): Message[];
+  /** A list's title and its steps, by id. */
+  list(id: string): { title: string; steps: Step[] } | undefined;
+  /** The id of the list a step is in. */
+  listOf(stepId: string): string | undefined;
 };
 
 export type MapRegion = { region: OverviewRegion | null; areas: OverviewArea[] };
@@ -92,6 +103,7 @@ export function splitArea(area: string): [string, string | null] {
 }
 
 export function indexPack(pack: FlatPack): PackIndex {
+  const messages = pack.content.messages?.messages ?? [];
   const steps = new Map<string, Step>();
   for (const list of pack.lists) for (const step of list.steps) steps.set(step.id, step);
   const controls = new Map((pack.content.controls?.controls ?? []).map((c) => [c.id, c]));
@@ -197,6 +209,14 @@ export function indexPack(pack: FlatPack): PackIndex {
     panelOf: (id) => panels.get(id),
     zoneDrawn: (zone) => drawnZones.has(zone),
     controlDrawn: (control) => drawnControls.has(control),
+    messages,
+    messagesFor: (stepId) => messages.filter((m) => (m.steps ?? []).includes(stepId)),
+    messagesCalling: (listId) => messages.filter((m) => m.list === listId),
+    listOf: (stepId) => listOfStep.get(stepId),
+    list: (id) => {
+      const l = pack.lists.find((x) => x.id === id);
+      return l ? { title: l.title, steps: l.steps } : undefined;
+    },
     how: (id) => pack.content.notes?.how?.find((n) => n.id === id)?.steps,
     explain: (id) => pack.content.notes?.explain?.find((n) => n.id === id),
     region(zone) {

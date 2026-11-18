@@ -130,6 +130,13 @@
         "null"
       ]
     },
+    "messages": {
+      "description": "The aircraft's alert messages (`messages.yaml`), when it has an alert display.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "name": {
       "type": "string"
     },

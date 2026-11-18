@@ -12,6 +12,9 @@ and Name every panel.
 - Below 900 px (PhoneDeck): the area picker in the header, the map, the list, the selected panel.
 Around the flight deck, last, has no map region: its places are a list, each with its location
 line and, where the pack draws it, its drawing; nothing is lit in the side view.
+A pack with alert messages adds the Panels and lights | Alert messages control (MsgDesk, MsgPhone
+boards): in the header at 900 px and up, under it on a phone. Without messages the header is as
+before, with no control.
 -->
 <script lang="ts">
   import { safely } from "../lib/safely";
@@ -20,6 +23,8 @@ line and, where the pack draws it, its drawing; nothing is lit in the side view.
   import { tick } from "svelte";
   import { type DeckArea, areaOf, deckAreas, deckHref, zoneLights, zoneSections } from "../lib/deck";
   import Icon from "../lib/Icon.svelte";
+  import { messageHref } from "../lib/messages";
+  import MessagesView from "../lib/MessagesView.svelte";
   import Toggle from "../lib/Toggle.svelte";
   import { trapFocus } from "../lib/trap";
   import ViewDrawing from "../lib/ViewDrawing.svelte";
@@ -31,11 +36,16 @@ line and, where the pack draws it, its drawing; nothing is lit in the side view.
     zone: zoneId,
     backHref,
     onStep,
+    messages: messagesTab = false,
+    message = null,
   }: {
     index: PackIndex;
     /** The area and place in the address, if any. */
     area: string | null;
     zone: string | null;
+    /** The Alert messages tab (`#/messages`), and the message in the address. */
+    messages?: boolean;
+    message?: string | null;
     backHref: string;
     onStep: (id: string) => void;
   } = $props();
@@ -59,6 +69,13 @@ line and, where the pack draws it, its drawing; nothing is lit in the side view.
     };
   });
 
+  /** The pack has alert messages: the tab control shows. */
+  let hasMessages = $derived(index.messages.length > 0);
+  let onMessages = $derived(messagesTab && hasMessages);
+  // The Alert messages address of a pack without messages goes to the panels.
+  $effect(() => {
+    if (messagesTab && !hasMessages) location.replace("#/deck");
+  });
   let areas = $derived(deckAreas(index));
   let area = $derived(areas.find((a) => a.id === areaId) ?? areas[0] ?? null);
   let around = $derived(!!area && !area.region);
@@ -212,14 +229,25 @@ line and, where the pack draws it, its drawing; nothing is lit in the side view.
   {/if}
 {/snippet}
 
+{#snippet tabs()}
+  <div class="tabs" role="group" aria-label="Show">
+    <button type="button" aria-pressed={!onMessages} onclick={() => go(deckHref(area?.id))}>Panels and lights</button>
+    <button type="button" aria-pressed={onMessages} onclick={() => go(messageHref())}>Alert messages</button>
+  </div>
+{/snippet}
+
 <div class="deck" class:wide class:mid class:around data-app-ready="">
   {#if mid}
     <header class="top">
       <a class="back" href={backHref}><Icon name="chevron-left" />Checklist</a>
-      <div class="ttl"><h1>Flight deck</h1><span>Every area, panel and light</span></div>
+      <div class="ttl"><h1>Flight deck</h1><span>{hasMessages ? "Every area, panel, light and alert message" : "Every area, panel and light"}</span></div>
       <span class="fill"></span>
-      {#if area?.region}<Toggle on={names} text="Name every panel" onToggle={() => (names = !names)} />{/if}
+      {#if area?.region && !onMessages}<Toggle on={names} text="Name every panel" onToggle={() => (names = !names)} />{/if}
+      {#if hasMessages}{@render tabs()}{/if}
     </header>
+    {#if onMessages}
+      <MessagesView {index} selected={message} {onStep} />
+    {:else}
     <div class="cols">
       {@render areaList()}
       {#if area}
@@ -252,6 +280,13 @@ line and, where the pack draws it, its drawing; nothing is lit in the side view.
         <div class="so-body">{#key chosen.id}<DeckPanel {index} zone={chosen} heading={false} fullSize {onStep} />{/key}</div>
       </div>
     {/if}
+    {/if}
+  {:else if onMessages}
+    <header class="top phone">
+      <a class="icon" href={deckHref(area?.id)} aria-label="Back to flight deck"><Icon name="chevron-left" /></a>
+      <div class="ttl"><h1>Alert messages</h1><span>{index.messages.length} message{index.messages.length === 1 ? "" : "s"}</span></div>
+    </header>
+    <div class="msg-body"><MessagesView {index} selected={message} phone {onStep} /></div>
   {:else}
     <header class="top phone">
       <a class="icon" href={backHref} aria-label="Back to checklist"><Icon name="chevron-left" /></a>
@@ -261,6 +296,7 @@ line and, where the pack draws it, its drawing; nothing is lit in the side view.
         >{area?.name ?? "Areas"}<Icon name="chevron-down" /></button
       >
     </header>
+    {#if hasMessages}<div class="phone-tabs">{@render tabs()}</div>{/if}
     {#if picker}
       <ul class="menu" id="deck-areas-menu" aria-label="Flight deck areas">
         {#each areas as a (a.id)}
@@ -324,6 +360,43 @@ line and, where the pack draws it, its drawing; nothing is lit in the side view.
     font-size: var(--font-size-caption);
   }
   .fill {
+    flex: 1;
+  }
+  /* Panels and lights | Alert messages (MsgDesk): the app's segmented control, at the board's
+     size. */
+  .tabs {
+    display: flex;
+    gap: var(--border-thick);
+    padding: calc(var(--border-thin) + var(--border-thick));
+    border: var(--border-thin) solid var(--color-segment-border);
+    border-radius: var(--radius-segment);
+  }
+  .tabs button {
+    height: calc(var(--size-touch-min) - var(--space-1) - var(--border-thin));
+    padding: 0 calc(var(--space-3) + var(--border-thick));
+    border: 0;
+    border-radius: calc(var(--radius-control) - var(--border-thin));
+    background: transparent;
+    color: var(--color-text-secondary);
+    font: inherit;
+    font-size: calc(var(--font-size-secondary) + var(--border-thin));
+  }
+  .tabs button[aria-pressed="true"] {
+    border: var(--size-focus-ring) solid var(--color-accent);
+    background: var(--color-accent-soft);
+    color: var(--color-text-strong);
+    font-weight: var(--weight-semibold);
+  }
+  .tabs button:focus-visible {
+    outline: var(--border-thick) solid var(--color-accent);
+    outline-offset: var(--border-thick);
+  }
+  /* The phone's control, under its header, as wide as the page. */
+  .phone-tabs {
+    flex: none;
+    padding: var(--space-3) var(--space-4) 0;
+  }
+  .phone-tabs .tabs button {
     flex: 1;
   }
   .cols {
@@ -653,6 +726,11 @@ line and, where the pack draws it, its drawing; nothing is lit in the side view.
     gap: calc(var(--space-2) + var(--border-thick));
     min-height: 0;
     padding: var(--space-3) calc(var(--space-3) + var(--border-thick));
+    overflow-y: auto;
+  }
+  .msg-body {
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
   }
   .phone-body .map {

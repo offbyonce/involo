@@ -359,7 +359,7 @@ in Rust. The host saves progress and settings on the device.
   let current = $derived(view?.lists.find((l) => l.current)?.current ?? null);
   /** The step the context panel shows, its row, and the steps after it. */
   let pane = $derived.by(() => {
-    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck" || screen === "practice" || screen === "how" || screen === "log" || screen === "references") return null;
+    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck" || screen === "messages" || screen === "practice" || screen === "how" || screen === "log" || screen === "references") return null;
     const id = flow ? (cursor ?? current) : (selected ?? (screen === "reference" ? null : current));
     const rows = view.lists.flatMap((l) => l.steps);
     const at = rows.findIndex((r) => r.id === id);
@@ -1149,9 +1149,18 @@ in Rust. The host saves progress and settings on the device.
       onStep={goToStep}
     />
   </div>
-{:else if route.value.screen === "deck" && index}
+{:else if (route.value.screen === "deck" || route.value.screen === "messages") && index}
+  {@const r = route.value}
   <div class="flightwrap">
-    <FlightDeckPage {index} area={route.value.area} zone={route.value.zone} backHref={lastPhase ? phaseHref(lastPhase) : "#/"} onStep={goToStep} />
+    <FlightDeckPage
+      {index}
+      area={r.screen === "deck" ? r.area : null}
+      zone={r.screen === "deck" ? r.zone : null}
+      messages={r.screen === "messages"}
+      message={r.screen === "messages" ? r.id : null}
+      backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
+      onStep={goToStep}
+    />
   </div>
 {:else if route.value.screen === "flight" && settings && flight && index && rail}
   {@const r = route.value}
