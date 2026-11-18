@@ -75,7 +75,10 @@ the latest; a test's questions and answers last only for this visit.
   let room = $derived(sourcesIn(poolNow));
 
   const fmt = (n: number) => n.toLocaleString("en-US");
-  const memoryLists = $derived((pack.content.phases?.phases ?? []).find((p) => p.id === "memory")?.lists.length ?? 0);
+  // Memory items by the reference group, not a phase id (decision 0029).
+  const memoryLists = $derived(
+    (pack.content.phases?.phases ?? []).filter((p) => p.group === "memory").reduce((n, p) => n + p.lists.length, 0),
+  );
   const lightCount = $derived(pack.content.lights?.lights.length ?? 0);
   /** The ready-made tests (README). */
   let ready = $derived([

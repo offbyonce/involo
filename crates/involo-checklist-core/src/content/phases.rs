@@ -90,6 +90,9 @@ data_types! {
 
     /// A group of phases, e.g. "Preflight".
     pub struct Stage {
+        /// Unique in the pack, and never changes once published: the rail, Find and a pack
+        /// extending this one name the stage by it (decision 0029). The title is display text.
+        pub id: String,
         pub title: String,
         pub phases: Vec<StagePhase>,
     }
@@ -109,6 +112,11 @@ data_types! {
         /// Reference material, outside the normal flow of a flight.
         #[serde(default, skip_serializing_if = "std::ops::Not::not")]
         pub reference: bool,
+        /// Which reference group the phase is, required on a reference phase: `memory` (memory
+        /// items), `quick` (quick reference) or `procedures` (non-normal procedures). The app
+        /// reads reference phases by group, never by their order or title (decision 0029).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub group: Option<String>,
         /// Shown at the top of the phase.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub intro: Vec<IntroParagraph>,

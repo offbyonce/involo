@@ -109,13 +109,13 @@ Flight deck page at this panel. All from the pack, in the panel palette.
       <button class="close" type="button" aria-label="Close" onclick={close}><Icon name="x" /></button>
     </div>
     {#if region?.locate}<p class="locate">{region.locate}</p>{/if}
-    {#if overview.views?.side || overview.views?.seat}
+    {#if overview.views?.side || index.seatFrame}
       <div class="views">
         {#if overview.views?.side}
           <ViewDrawing frame={overview.views.side} region={region?.name ?? null} kind="side" title="From the side: how high, how far" />
         {/if}
-        {#if overview.views?.seat}
-          <ViewDrawing frame={overview.views.seat} region={region?.name ?? null} kind="seat" title="From the captain seat: which side" />
+        {#if index.seatFrame}
+          <ViewDrawing frame={index.seatFrame} region={region?.name ?? null} kind="seat" title="From the captain seat: which side" />
         {/if}
       </div>
     {/if}

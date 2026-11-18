@@ -15,7 +15,7 @@ const toggle = (label: string, x: number, controls: string[], guarded = false) =
   x,
   y: 50,
   controls,
-  positions: "OFF, ON",
+  positions: ["OFF", "ON"],
   description: "",
 });
 
@@ -75,7 +75,7 @@ const wiperPanel = {
           x: 48,
           y: 50,
           controls: ["wiper"],
-          positions: "PARK, INT, LOW, HIGH",
+          positions: ["PARK", "INT", "LOW", "HIGH"],
           description: "",
         },
       ],
@@ -292,7 +292,7 @@ describe("PanelSchematic", () => {
               x: 60,
               y: 50,
               controls: ["pbrake"],
-              positions: "RELEASED, SET",
+              positions: ["RELEASED", "SET"],
               description: "",
             },
           ],
@@ -353,7 +353,7 @@ describe("PanelSchematic", () => {
   it("draws every selector dial the same size, however many positions it has", () => {
     // The DC (8 positions) and AC (7) meters dials grew with their positions and looked oversized
     // and unequal; only their labels may move out.
-    const dial = (label: string, x: number, positions: string) =>
+    const dial = (label: string, x: number, positions: string[]) =>
       ({ kind: "selector", label, x, y: 60, controls: ["c"], positions, description: "" }) as unknown;
     const dials = {
       id: "oh",
@@ -369,9 +369,9 @@ describe("PanelSchematic", () => {
           width: 300,
           height: 140,
           items: [
-            dial("DC METERS", 60, "STBY PWR, BAT BUS, BAT, AUX BAT, TR1, TR2, TR3, TEST"),
-            dial("AC METERS", 160, "STBY PWR, GRD PWR, GEN1, APU GEN, GEN2, INV, TEST"),
-            dial("WIPER", 250, "PARK, INT, LOW, HIGH"),
+            dial("DC METERS", 60, ["STBY PWR", "BAT BUS", "BAT", "AUX BAT", "TR1", "TR2", "TR3", "TEST"]),
+            dial("AC METERS", 160, ["STBY PWR", "GRD PWR", "GEN1", "APU GEN", "GEN2", "INV", "TEST"]),
+            dial("WIPER", 250, ["PARK", "INT", "LOW", "HIGH"]),
           ],
         },
       ],
@@ -389,7 +389,7 @@ describe("PanelSchematic", () => {
     // A drawing is one piece (decision 0021): the meters display and the flight control lights
     // were cut off when tall sections were cropped to the step's rows.
     const item = (kind: string, label: string, x: number, y: number) =>
-      ({ kind, label, x, y, controls: ["c"], positions: "OFF, ON", description: "" }) as unknown;
+      ({ kind, label, x, y, controls: ["c"], positions: ["OFF", "ON"], description: "" }) as unknown;
     const tall = {
       id: "oh",
       title: "Overhead",
@@ -483,7 +483,7 @@ describe("PanelSchematic", () => {
   it("keeps position labels at 11 px above a dial in a tall section", () => {
     // The dials' top labels (AUX BAT, APU GEN) ran into the section title, so the whole section's
     // text shrank; position labels are now at the 11 px minimum (decision 0021).
-    const it = (kind: string, label: string, x: number, y: number, positions: string, extra = {}) =>
+    const it = (kind: string, label: string, x: number, y: number, positions: string[], extra = {}) =>
       ({ kind, label, x, y, controls: ["c"], positions, description: "", ...extra }) as unknown;
     const panel = {
       id: "oh",
@@ -499,16 +499,30 @@ describe("PanelSchematic", () => {
           width: 225,
           height: 318,
           items: [
-            it("display_unit", "METER DISPLAY", 112, 74, "", { width: 150, height: 60 }),
-            it("selector", "DC METERS", 60, 206, "STBY PWR, BAT BUS, BAT, AUX BAT, TR1, TR2, TR3, TEST", {
-              angles: [-135, -90, -45, 0, 45, 90, 135, 180],
-            }),
-            it("selector", "AC METERS", 168, 206, "STBY PWR, GRD PWR, GEN1, APU GEN, GEN2, INV, TEST", {
-              angles: [-135, -90, -45, 0, 45, 90, 135],
-            }),
-            it("toggle_switch", "BATTERY", 60, 276, "OFF, ON", { guarded: true }),
-            it("toggle_switch", "CAB/UTIL", 140, 276, "OFF, ON"),
-            it("toggle_switch", "IFE/PASS SEAT", 196, 276, "OFF, ON"),
+            it("display_unit", "METER DISPLAY", 112, 74, [], { width: 150, height: 60 }),
+            it(
+              "selector",
+              "DC METERS",
+              60,
+              206,
+              ["STBY PWR", "BAT BUS", "BAT", "AUX BAT", "TR1", "TR2", "TR3", "TEST"],
+              {
+                angles: [-135, -90, -45, 0, 45, 90, 135, 180],
+              },
+            ),
+            it(
+              "selector",
+              "AC METERS",
+              168,
+              206,
+              ["STBY PWR", "GRD PWR", "GEN1", "APU GEN", "GEN2", "INV", "TEST"],
+              {
+                angles: [-135, -90, -45, 0, 45, 90, 135],
+              },
+            ),
+            it("toggle_switch", "BATTERY", 60, 276, ["OFF", "ON"], { guarded: true }),
+            it("toggle_switch", "CAB/UTIL", 140, 276, ["OFF", "ON"]),
+            it("toggle_switch", "IFE/PASS SEAT", 196, 276, ["OFF", "ON"]),
           ],
         },
       ],
@@ -619,7 +633,7 @@ describe("PanelSchematic", () => {
               x: 60,
               y: 50,
               controls: ["c"],
-              positions: "OFF, ON",
+              positions: ["OFF", "ON"],
               rest: "OFF",
               description: "",
             },
@@ -816,7 +830,7 @@ describe("PanelSchematic", () => {
   it("opens the larger view on the step's controls, not the top of the panel", () => {
     // The fuel pumps sit at the foot of their panel; the larger view opened at its top.
     const item = (kind: string, label: string, x: number, y: number) =>
-      ({ kind, label, x, y, controls: ["c"], positions: "OFF, ON", description: "" }) as unknown;
+      ({ kind, label, x, y, controls: ["c"], positions: ["OFF", "ON"], description: "" }) as unknown;
     const tall = {
       id: "oh",
       title: "Overhead",

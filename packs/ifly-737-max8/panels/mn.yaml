@@ -40,7 +40,7 @@ sections:
         "y": 22
         controls:
           - ltest
-        positions: "1, 2"
+        positions: ["1", "2"]
         description: Tests the disengage lights.
       - kind: toggle_switch
         label: LIGHTS
@@ -48,7 +48,7 @@ sections:
         "y": 27
         controls:
           - ltest
-        positions: "TEST, BRT, DIM"
+        positions: [TEST, BRT, DIM]
         rest: "BRT"
         description: Tests the lights and sets brightness.
       - kind: light
@@ -193,7 +193,7 @@ sections:
         controls:
           - gearlever
           - gearup
-        positions: "UP, DN"
+        positions: [UP, DN]
         rest: "DN"
         description: Raises and lowers the gear.
       - kind: push_button
@@ -208,7 +208,7 @@ sections:
         "y": 272
         controls:
           - nws
-        positions: NORM
+        positions: [NORM]
         rest: "NORM"
         description: "Guarded at NORM, which steers with system A. ALT uses system B."
   - id: fl
@@ -230,7 +230,7 @@ sections:
         "y": 22
         controls:
           - ltest
-        positions: "1, 2"
+        positions: ["1", "2"]
         description: Tests the disengage lights.
       - kind: light
         label: CABIN ALTITUDE
@@ -306,7 +306,7 @@ sections:
         "y": 34
         controls:
           - panellts
-        positions: OFF to BRIGHT
+        positions: [OFF to BRIGHT]
         rest: "OFF to BRIGHT"
         description: Panel brightness.
       - kind: selector
@@ -315,7 +315,7 @@ sections:
         "y": 34
         controls:
           - dsel
-        positions: "OUTBD, NORM, INBD"
+        positions: [OUTBD, NORM, INBD]
         rest: "NORM"
         description: Moves the displays.
       - kind: selector
@@ -324,7 +324,7 @@ sections:
         "y": 61
         controls:
           - panellts
-        positions: OFF to BRIGHT
+        positions: [OFF to BRIGHT]
         rest: "OFF to BRIGHT"
         description: Background brightness.
       - kind: selector
@@ -333,7 +333,7 @@ sections:
         "y": 61
         controls:
           - panellts
-        positions: OFF to BRIGHT
+        positions: [OFF to BRIGHT]
         rest: "OFF to BRIGHT"
         description: Glareshield flood light.
       - kind: push_button
@@ -383,7 +383,7 @@ sections:
         guarded: true
         x: 91
         "y": 57
-        positions: NORM
+        positions: [NORM]
         rest: "NORM"
         description: "Guarded at NORM. INHIBIT silences the flap, gear, terrain or runway alerts."
       - kind: toggle_switch
@@ -391,7 +391,7 @@ sections:
         guarded: true
         x: 154
         "y": 57
-        positions: NORM
+        positions: [NORM]
         rest: "NORM"
         description: "Guarded at NORM. INHIBIT silences the flap, gear, terrain or runway alerts."
       - kind: toggle_switch
@@ -399,7 +399,7 @@ sections:
         guarded: true
         x: 216
         "y": 57
-        positions: NORM
+        positions: [NORM]
         rest: "NORM"
         description: "Guarded at NORM. INHIBIT silences the flap, gear, terrain or runway alerts."
       - kind: toggle_switch
@@ -407,7 +407,7 @@ sections:
         guarded: true
         x: 279
         "y": 57
-        positions: NORM
+        positions: [NORM]
         rest: "NORM"
         description: "Guarded at NORM. INHIBIT silences the flap, gear, terrain or runway alerts."
       - kind: selector
@@ -416,7 +416,7 @@ sections:
         "y": 38
         controls:
           - dsel
-        positions: "INBD, NORM, OUTBD"
+        positions: [INBD, NORM, OUTBD]
         rest: "NORM"
         description: Moves the displays.
       - kind: selector
@@ -425,7 +425,7 @@ sections:
         "y": 38
         controls:
           - panellts
-        positions: OFF to BRIGHT
+        positions: [OFF to BRIGHT]
         rest: "OFF to BRIGHT"
         description: Panel brightness.
       - kind: light

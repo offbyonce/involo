@@ -16,6 +16,7 @@ afterEach(() => {
 const rail: Rail = {
   stages: [
     {
+      id: "alpha",
       title: "Alpha",
       phases: [
         {

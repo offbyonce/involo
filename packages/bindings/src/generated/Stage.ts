@@ -4,4 +4,9 @@ import type { StagePhase } from "./StagePhase";
 /**
  * A group of phases, e.g. "Preflight".
  */
-export type Stage = { title: string, phases: Array<StagePhase>, };
+export type Stage = { 
+/**
+ * Unique in the pack, and never changes once published: the rail, Find and a pack
+ * extending this one name the stage by it (decision 0029). The title is display text.
+ */
+id: string, title: string, phases: Array<StagePhase>, };

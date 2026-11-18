@@ -18,7 +18,7 @@ const phase = (id: string, title: string): RailPhase => ({
   skipped: 0,
 });
 const rail: Rail = {
-  stages: [{ title: "Alpha", phases: [phase("p1", "First"), phase("p2", "Second")] }],
+  stages: [{ id: "alpha", title: "Alpha", phases: [phase("p1", "First"), phase("p2", "Second")] }],
   reference: [],
 };
 /** Invented: five matching steps, four controls, one term matched by its definition. */

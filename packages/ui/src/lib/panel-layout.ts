@@ -116,10 +116,7 @@ export function openingTop(
 const LINE = 1.15;
 
 export const positionsOf = (item: PanelItem): string[] =>
-  (item.positions ?? "")
-    .split(",")
-    .map((p) => p.trim())
-    .filter(Boolean);
+  (item.positions ?? []).map((p) => p.trim()).filter(Boolean);
 
 /**
  * A toggle switch near 3.0's proportions: a slim track `w` wide and `h` tall with round ends, a red

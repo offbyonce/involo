@@ -49,6 +49,7 @@ pub(super) fn manifest() -> PackManifest {
         panel_states: None,
         cdu: None,
         aliases: None,
+        labels: None,
     }
 }
 
@@ -70,6 +71,7 @@ pub(super) fn phases() -> PhasesFile {
             suggests: None,
         }],
         stages: vec![Stage {
+            id: "preflight".into(),
             title: "Preflight".into(),
             phases: vec![StagePhase {
                 phase: "preflight".into(),
@@ -80,6 +82,7 @@ pub(super) fn phases() -> PhasesFile {
             id: "preflight".into(),
             title: "Preflight".into(),
             reference: false,
+            group: None,
             intro: vec![],
             lists: vec!["preflight".into()],
         }],
@@ -97,12 +100,14 @@ pub(super) fn pack(steps: Vec<Step>, other_files: Vec<&str>) -> Pack {
             memory: false,
             when: None,
             why: None,
+            method: None,
             steps,
         }],
         content: PackContent {
             phases: Some(phases()),
             ..PackContent::default()
         },
+        labels_file: None,
         other_files: other_files.into_iter().map(PathBuf::from).collect(),
     }
 }

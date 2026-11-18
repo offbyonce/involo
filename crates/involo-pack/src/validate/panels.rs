@@ -57,17 +57,10 @@ pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec
         }
         check_short_captions(overview, issues);
         if let Some(views) = &overview.views {
-            let regions: BTreeSet<&str> =
-                overview.regions.iter().map(|r| r.name.as_str()).collect();
-            for (name, frame) in [("side", &views.side), ("seat", &views.seat)] {
-                if let Some(frame) = frame {
-                    check_view(name, frame, &regions, issues);
-                }
-            }
+            check_views(overview, views, &c.labels, issues);
         }
     }
     unique("panel", c.panels.iter().map(|p| p.id.as_str()), issues);
-    let mut labels: BTreeMap<(&str, &str, &str), usize> = BTreeMap::new();
     for panel in &c.panels {
         unique(
             &format!("panel `{}` section", panel.id),
@@ -75,10 +68,8 @@ pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec
             issues,
         );
         for section in &panel.sections {
+            check_item_ids(section, issues);
             for item in &section.items {
-                *labels
-                    .entry((&panel.id, &section.id, &item.label))
-                    .or_default() += 1;
                 for control in &item.controls {
                     idx.require_control(&section.id, control, issues);
                 }
@@ -97,7 +88,7 @@ pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec
         issues,
     );
     for light in &file.lights {
-        if !locator_resolves(&light.locator, &labels) {
+        if involo_checklist_core::locate(&c.panels, &light.locator).is_none() {
             issues.push(error(&light.locator, "does not match any panel item"));
         }
         check_confirmations(&light.locator, &light.confirmed_by, issues);
@@ -107,12 +98,19 @@ pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec
 fn check_panel_item(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
     let label = &item.label;
     // Drawings print positions as the panel's placards, which are in capitals.
-    if let Some(positions) = &item.positions
-        && positions.chars().any(|c| c.is_ascii_lowercase())
-    {
+    let lower: Vec<&str> = item
+        .positions
+        .iter()
+        .filter(|p| p.chars().any(|c| c.is_ascii_lowercase()))
+        .map(String::as_str)
+        .collect();
+    if !lower.is_empty() {
         issues.push(warning(
             at,
-            format!("`{label}`: positions `{positions}` are not in capitals; drawings print them as the placard"),
+            format!(
+                "`{label}`: positions `{}` are not in capitals; drawings print them as the placard",
+                lower.join("`, `")
+            ),
         ));
     }
     let is_light = item.kind == PanelItemKind::Light;
@@ -123,10 +121,7 @@ fn check_panel_item(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
         issues.push(error(at, format!("`{label}`: only a light has a `color`")));
     }
     if let Some(rest) = &item.rest {
-        let named = item
-            .positions
-            .as_deref()
-            .is_some_and(|p| p.split(',').any(|x| x.trim() == rest));
+        let named = item.positions.iter().any(|x| x.trim() == rest);
         if !named {
             issues.push(error(
                 at,
@@ -161,16 +156,31 @@ fn check_panel_item(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
     }
 }
 
+/// Item ids are lower-case, and unique in their section (decision 0029).
+fn check_item_ids(section: &involo_checklist_core::PanelSection, issues: &mut Vec<Issue>) {
+    let mut ids = BTreeSet::new();
+    for id in section.items.iter().filter_map(|i| i.id.as_deref()) {
+        if !super::ids::valid_segment(id) {
+            issues.push(error(
+                &section.id,
+                format!("item id `{id}` must be lower-case letters, digits and dashes"),
+            ));
+        }
+        if !ids.insert(id) {
+            issues.push(error(
+                id,
+                format!("item id is used twice in section `{}`", section.id),
+            ));
+        }
+    }
+}
+
 /// A selector names every position it has (a drawing labels each one), and its `angles`, when
 /// given, place each position on the dial, sweeping clockwise (decision 0017).
 fn check_selector(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
     let label = &item.label;
     let is_selector = item.kind == PanelItemKind::Selector;
-    let positions: Vec<&str> = item
-        .positions
-        .as_deref()
-        .map(|p| p.split(',').map(str::trim).collect())
-        .unwrap_or_default();
+    let positions: Vec<&str> = item.positions.iter().map(|p| p.trim()).collect();
     if is_selector && positions.len() > 1 && positions.iter().any(|p| p.is_empty()) {
         issues.push(error(
             at,
@@ -239,16 +249,18 @@ fn check_rest_against_cold_start(pack: &Pack, issues: &mut Vec<Issue>) {
         let Some(step) = steps.get(id) else { continue };
         for section in c.panels.iter().flat_map(|p| &p.sections) {
             for item in &section.items {
-                let (Some(rest), Some(positions)) = (&item.rest, &item.positions) else {
+                let Some(rest) = &item.rest else { continue };
+                let positions = &item.positions;
+                if positions.is_empty() {
                     continue;
-                };
+                }
                 if !item.controls.iter().any(|k| step.controls.contains(k)) {
                     continue;
                 }
                 let Some(target) = named_position(&step.expect, positions) else {
                     continue;
                 };
-                let target = positions.split(',').nth(target).unwrap_or_default().trim();
+                let target = positions.get(target).map_or("", |p| p.trim());
                 if target != rest {
                     issues.push(error(
                         &section.id,
@@ -284,9 +296,7 @@ fn check_lit_at(pack: &Pack, issues: &mut Vec<Issue>) {
         let named = items.iter().any(|(_, o)| {
             o.kind != PanelItemKind::Light
                 && o.controls.iter().any(|c| item.controls.contains(c))
-                && o.positions
-                    .as_deref()
-                    .is_some_and(|p| p.split(',').any(|x| x.trim() == lit_at))
+                && o.positions.iter().any(|x| x.trim() == lit_at)
         });
         if !named {
             issues.push(error(
@@ -298,25 +308,6 @@ fn check_lit_at(pack: &Pack, issues: &mut Vec<Issue>) {
             ));
         }
     }
-}
-
-/// `<panel>/<section>/<label>/<n>`. Labels can contain slashes, so split from both ends.
-fn locator_resolves(locator: &str, labels: &BTreeMap<(&str, &str, &str), usize>) -> bool {
-    let mut front = locator.splitn(3, '/');
-    let (Some(panel), Some(section), Some(rest)) = (front.next(), front.next(), front.next())
-    else {
-        return false;
-    };
-    let Some((label, n)) = rest.rsplit_once('/') else {
-        return false;
-    };
-    let Ok(n) = n.parse::<usize>() else {
-        return false;
-    };
-    n >= 1
-        && labels
-            .get(&(panel, section, label))
-            .is_some_and(|c| n <= *c)
 }
 
 /// The step map takes a region's short edge captions; a long caption without one warns, and the
@@ -337,6 +328,39 @@ fn check_short_captions(overview: &involo_checklist_core::Overview, issues: &mut
                 ));
             }
         }
+    }
+}
+
+/// The side view and the seat views: real regions inside their frames, each seat frame keyed by
+/// a seat the labels list.
+fn check_views(
+    overview: &involo_checklist_core::Overview,
+    views: &involo_checklist_core::OverviewViews,
+    labels: &involo_checklist_core::Labels,
+    issues: &mut Vec<Issue>,
+) {
+    let regions: BTreeSet<&str> = overview.regions.iter().map(|r| r.name.as_str()).collect();
+    if let Some(frame) = &views.side {
+        check_view("side", frame, &regions, issues);
+    }
+    match &views.seat {
+        Some(involo_checklist_core::SeatViews::One(frame)) => {
+            check_view("seat", frame, &regions, issues);
+        }
+        Some(involo_checklist_core::SeatViews::BySeat(frames)) => {
+            for (seat, frame) in frames {
+                if !labels.seats.iter().any(|s| &s.id == seat) {
+                    issues.push(error(
+                        "overview seat view",
+                        format!(
+                            "`{seat}` is not a seat the pack's labels list, so its frame is never shown"
+                        ),
+                    ));
+                }
+                check_view(&format!("seat ({seat})"), frame, &regions, issues);
+            }
+        }
+        None => {}
     }
 }
 
@@ -441,6 +465,7 @@ pub(super) mod tests {
                 width: 10.0,
                 height: 10.0,
                 items: vec![PanelItem {
+                    id: None,
                     kind: PanelItemKind::Light,
                     label: "A/B LOW".into(),
                     color: Some(LightColor::Amber),
@@ -448,7 +473,7 @@ pub(super) mod tests {
                     x: 1.5,
                     y: 2.0,
                     controls: vec!["bat".into()],
-                    positions: None,
+                    positions: vec![],
                     rest: None,
                     lit_at: None,
                     angles: None,
@@ -468,7 +493,7 @@ pub(super) mod tests {
         let item = &mut p.content.panels[0].sections[0].items[0];
         item.kind = PanelItemKind::ToggleSwitch;
         item.color = None;
-        item.positions = Some("OFF, ON".into());
+        item.positions = vec!["OFF".into(), "ON".into()];
         item.rest = Some(rest.into());
         let id = p.checklists[0].steps[0].id.clone();
         p.checklists[0].steps[0].controls = vec!["bat".into()];
@@ -492,14 +517,15 @@ pub(super) mod tests {
         let mut p = rest_pack("OFF");
         let item = &mut p.content.panels[0].sections[0].items[0];
         item.kind = PanelItemKind::Selector;
-        item.positions = Some("OFF, LOW, HIGH".into());
+        item.positions = vec!["OFF".into(), "LOW".into(), "HIGH".into()];
         item.angles = Some(vec![-135.0, 0.0, 135.0]);
         assert!(!messages(&p).contains("angles"));
         assert!(!messages(&p).contains("without a name"));
-        p.content.panels[0].sections[0].items[0].positions = Some("OFF, , HIGH".into());
+        p.content.panels[0].sections[0].items[0].positions =
+            vec!["OFF".into(), String::new(), "HIGH".into()];
         assert_flags(&p, "selector `A/B LOW` has a position without a name");
         let item = &mut p.content.panels[0].sections[0].items[0];
-        item.positions = Some("OFF, LOW, HIGH".into());
+        item.positions = vec!["OFF".into(), "LOW".into(), "HIGH".into()];
         item.angles = Some(vec![-135.0, 0.0]);
         assert_flags(&p, "2 angles for 3 positions");
         p.content.panels[0].sections[0].items[0].angles = Some(vec![-135.0, 0.0, 200.0]);
@@ -523,7 +549,7 @@ pub(super) mod tests {
         );
         let item = &mut p.content.panels[0].sections[0].items[0];
         item.kind = PanelItemKind::DisplayUnit;
-        item.positions = None;
+        item.positions = vec![];
         item.rest = None;
         assert!(!messages(&p).contains("standard size"), "{}", messages(&p));
     }
@@ -534,7 +560,7 @@ pub(super) mod tests {
         let mut light = p.content.panels[0].sections[0].items[0].clone();
         light.kind = PanelItemKind::Light;
         light.color = Some(LightColor::Amber);
-        light.positions = None;
+        light.positions = vec![];
         light.rest = None;
         light.label = "BAT LIGHT".into();
         light.lit_at = Some("ON".into());
@@ -570,6 +596,41 @@ pub(super) mod tests {
                 confirmed_by: vec![],
             }],
         }
+    }
+
+    #[test]
+    fn an_item_id_names_the_item_in_a_light_note() {
+        let mut p = panel_pack();
+        p.content.panels[0].sections[0].items[0].id = Some("ab-low".into());
+        p.content.lights = Some(light("oh/elec/#ab-low"));
+        assert_eq!(messages(&p), "");
+        p.content.lights = Some(light("oh/elec/#nope"));
+        assert_flags(&p, "does not match any panel item");
+    }
+
+    #[test]
+    fn item_ids_are_unique_in_their_section() {
+        let mut p = panel_pack();
+        let mut twin = p.content.panels[0].sections[0].items[0].clone();
+        twin.label = "C LOW".into();
+        p.content.panels[0].sections[0].items.push(twin);
+        for item in &mut p.content.panels[0].sections[0].items {
+            item.id = Some("low".into());
+        }
+        assert_flags(&p, "low: item id is used twice in section `elec`");
+        p.content.panels[0].sections[0].items[1].id = Some("Low Two".into());
+        assert_flags(&p, "item id `Low Two` must be lower-case");
+    }
+
+    #[test]
+    fn a_position_may_hold_a_comma_and_survives_the_build() {
+        let yaml =
+            "kind: selector\nlabel: X\nx: 1\ny: 1\ndescription: D\npositions: [\"1, 2\", OFF]\n";
+        let item: PanelItem = crate::parse_yaml(yaml, std::path::Path::new("p.yaml")).unwrap();
+        assert_eq!(item.positions, ["1, 2", "OFF"]);
+        let built = serde_json::to_string(&item).unwrap();
+        let back: PanelItem = serde_json::from_str(&built).unwrap();
+        assert_eq!(back, item);
     }
 
     #[test]
@@ -708,10 +769,10 @@ pub(super) mod tests {
                         vec![place("Overhead", 90.0), place("Galley", 0.0)],
                         vec![shape(ViewRole::Glass, vec![[0.0, 0.0], [120.0, 10.0]])],
                     )),
-                    seat: Some(frame(
+                    seat: Some(involo_checklist_core::SeatViews::One(frame(
                         vec![place("Overhead", 10.0)],
                         vec![shape(ViewRole::Structure, vec![[0.0, 0.0], [100.0, 60.0]])],
-                    )),
+                    ))),
                 }),
             });
         }
@@ -730,6 +791,36 @@ pub(super) mod tests {
         );
         assert!(joined.contains("needs exactly one `eye` point"), "{joined}");
         assert!(!joined.contains("overview seat view"), "{joined}");
+
+        // A frame per seat: each keyed by a seat the labels list.
+        let seat_frame = frame(
+            vec![place("Overhead", 10.0)],
+            vec![shape(ViewRole::Structure, vec![[0.0, 0.0], [100.0, 60.0]])],
+        );
+        p.content.labels.seats = vec![involo_checklist_core::SeatLabel {
+            id: "left".into(),
+            title: "Left seat".into(),
+        }];
+        if let Some(views) = p
+            .content
+            .controls
+            .as_mut()
+            .and_then(|c| c.overview.as_mut())
+            .and_then(|o| o.views.as_mut())
+        {
+            views.seat = Some(involo_checklist_core::SeatViews::BySeat(
+                std::collections::BTreeMap::from([
+                    ("left".to_owned(), seat_frame.clone()),
+                    ("captain".to_owned(), seat_frame),
+                ]),
+            ));
+        }
+        let joined = messages(&p);
+        assert!(
+            joined.contains("`captain` is not a seat the pack's labels list"),
+            "{joined}"
+        );
+        assert!(!joined.contains("`left` is not a seat"), "{joined}");
     }
 
     #[test]

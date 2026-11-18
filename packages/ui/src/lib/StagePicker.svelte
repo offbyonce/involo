@@ -92,7 +92,7 @@ come from the pack, in pack order. Picking a phase goes to it (its first open st
     <div class="cols">
       {#each columns as col, c (c)}
         <div class="col">
-          {#each col as s (s.title)}
+          {#each col as s (s.id)}
             {@const st = status(s)}
             <div class="stage" role="group" aria-label={s.title}>
               <div class="head">

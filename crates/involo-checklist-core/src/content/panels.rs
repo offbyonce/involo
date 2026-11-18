@@ -35,6 +35,10 @@ data_types! {
     /// One item on a panel drawing. Positions are our own layout.
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct PanelItem {
+        /// An id, unique in its section, so a step target or light note can name the item as
+        /// `panel/section/#id`, and a pack extending this one can change it (decision 0029).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub id: Option<String>,
         pub kind: PanelItemKind,
         pub label: String,
         /// Required on a light, and only valid on a light.
@@ -48,9 +52,10 @@ data_types! {
         /// Ids of the controls this item belongs to.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub controls: Vec<String>,
-        /// The positions it can be set to, as text.
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub positions: Option<String>,
+        /// The positions it can be set to, in order, e.g. `[OFF, AUTO, ON]`. A position may hold a
+        /// comma.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub positions: Vec<String>,
         /// Where it rests when the airplane is cold and dark: one of `positions`. Drawings show it,
         /// dimmed, on controls a step does not use (decision 0015).
         #[serde(default, skip_serializing_if = "Option::is_none")]

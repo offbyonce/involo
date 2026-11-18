@@ -92,6 +92,13 @@
           ],
           "format": "double"
         },
+        "id": {
+          "description": "An id, unique in its section, so a step target or light note can name the item as\n`panel/section/#id`, and a pack extending this one can change it (decision 0029).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "kind": {
           "$ref": "#/$defs/PanelItemKind"
         },
@@ -106,11 +113,11 @@
           ]
         },
         "positions": {
-          "description": "The positions it can be set to, as text.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "description": "The positions it can be set to, in order, e.g. `[OFF, AUTO, ON]`. A position may hold a\ncomma.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "rest": {
           "description": "Where it rests when the airplane is cold and dark: one of `positions`. Drawings show it,\ndimmed, on controls a step does not use (decision 0015).",

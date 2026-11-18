@@ -31,7 +31,7 @@ sections:
         "y": 44
         controls:
           - elt
-        positions: "ARM, ON"
+        positions: [ARM, "ON"]
         rest: "ARM"
         description: Emergency locator transmitter. Stays guarded.
   - id: le
@@ -71,14 +71,14 @@ sections:
         label: DSPL SEL
         x: 63
         "y": 94
-        positions: "TEST, TK/GS, PPOS, WIND, HDG/STS"
+        positions: [TEST, TK/GS, PPOS, WIND, HDG/STS]
         rest: "TEST"
         description: Chooses what the IRS display shows.
       - kind: selector
         label: SYS DSPL
         x: 63
         "y": 156
-        positions: "L, R"
+        positions: [L, R]
         rest: "L"
         description: Chooses the left or right IRS.
       - kind: display_unit
@@ -182,7 +182,7 @@ sections:
         "y": 323
         controls:
           - irs
-        positions: "OFF, ALIGN, NAV, ATT"
+        positions: ["OFF", ALIGN, NAV, ATT]
         rest: "OFF"
         description: Left IRS mode.
       - kind: selector
@@ -191,7 +191,7 @@ sections:
         "y": 323
         controls:
           - irs
-        positions: "OFF, ALIGN, NAV, ATT"
+        positions: ["OFF", ALIGN, NAV, ATT]
         rest: "OFF"
         description: Right IRS mode.
   - id: svc
@@ -205,7 +205,7 @@ sections:
         label: SERVICE INTERPHONE
         x: 48
         "y": 46
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Connects the service interphone.
   - id: aud3
@@ -283,7 +283,7 @@ sections:
         "y": 73
         controls:
           - eec
-        positions: "ON, ALTN"
+        positions: ["ON", ALTN]
         rest: "ON"
         description: Engine 1 control. ON is normal. ALTN shows alternate mode.
       - kind: push_button
@@ -292,7 +292,7 @@ sections:
         "y": 73
         controls:
           - eec
-        positions: "ON, ALTN"
+        positions: ["ON", ALTN]
         rest: "ON"
         description: Engine 2 control. ON is normal. ALTN shows alternate mode.
   - id: oxy
@@ -316,7 +316,7 @@ sections:
         "y": 46
         controls:
           - paxoxy
-        positions: "NORMAL, ON"
+        positions: [NORMAL, "ON"]
         rest: "NORMAL"
         description: Drops the cabin masks. Guarded.
       - kind: light
@@ -339,7 +339,7 @@ sections:
         label: BROADBAND
         x: 70
         "y": 34
-        positions: "OFF, ON, CREW ONLY"
+        positions: ["OFF", "ON", CREW ONLY]
         rest: "OFF"
         description: Cabin broadband power.
   - id: rec
@@ -356,7 +356,7 @@ sections:
         "y": 42
         controls:
           - fltrec
-        positions: "TEST, NORMAL"
+        positions: [TEST, NORMAL]
         rest: "NORMAL"
         description: Guarded. Runs automatically.
       - kind: light
@@ -424,7 +424,7 @@ sections:
         "y": 42
         controls:
           - elevjam
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Not simulated.
   - id: mnt
@@ -453,7 +453,7 @@ sections:
         label: DOME WHITE
         x: 44
         "y": 40
-        positions: "DIM, OFF, BRIGHT"
+        positions: [DIM, "OFF", BRIGHT]
         rest: "OFF"
         description: Flight deck dome light.
   - id: gear

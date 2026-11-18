@@ -221,6 +221,7 @@ mod tests {
             memory: false,
             when: None,
             why: None,
+            method: None,
             steps: vec![step("a"), step("b"), step("c"), unmodeled],
         }
     }

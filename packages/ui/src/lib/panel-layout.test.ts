@@ -34,7 +34,7 @@ const lever = (label: string, x: number) =>
     x,
     y: 40,
     controls: [],
-    positions: "IDLE, CUTOFF",
+    positions: ["IDLE", "CUTOFF"],
     description: "",
   }) as PanelItem;
 
@@ -153,7 +153,7 @@ describe("nameFit", () => {
           x: 48,
           y: 50,
           controls: [],
-          positions: "PARK, INT, LOW, HIGH",
+          positions: ["PARK", "INT", "LOW", "HIGH"],
           description: "",
         },
       ],
@@ -172,7 +172,7 @@ describe("text width", () => {
   });
 
   it("keeps a switch's position labels clear of its neighbor's, as with ARM beside DOWN", () => {
-    const toggle = (label: string, x: number, y: number, positions: string, guarded = false) =>
+    const toggle = (label: string, x: number, y: number, positions: string[], guarded = false) =>
       ({
         kind: "toggle_switch",
         label,
@@ -193,15 +193,15 @@ describe("text width", () => {
       width: 235,
       height: 322,
       items: [
-        toggle("ALT FLAPS MASTER", 150, 132, "OFF, ARM", true),
-        toggle("ALT FLAPS", 205, 134, "UP, OFF, DOWN"),
+        toggle("ALT FLAPS MASTER", 150, 132, ["OFF", "ARM"], true),
+        toggle("ALT FLAPS", 205, 134, ["UP", "OFF", "DOWN"]),
       ],
     } as unknown as PanelSection;
     for (const k of [1.6, 2, 2.4]) {
       const layout = layoutSection(flaps, [0, 1], () => ({ on: true, t: 0, rest: 0 }), k, 0);
       const boxes = [0, 1].flatMap((i) => {
         const it = flaps.items[i] as PanelItem;
-        const pos = (it.positions ?? "").split(", ");
+        const pos = it.positions ?? [];
         return (layout.items.get(i)?.positions ?? []).map((l) => {
           const w = (em(pos[l.n] ?? "") * 10.8 * layout.scale) / k;
           const x0 = it.x + (l.anchor === "start" ? l.x : l.anchor === "end" ? l.x - w : l.x - w / 2);
@@ -236,7 +236,7 @@ describe("selector angles", () => {
   it("labels every meter position at full text size, at the dial's real angles, none overlapping", () => {
     // The electrical meters section as the pack places it, with each dial's real geometry:
     // STBY PWR lower left, over the top, TEST at the bottom (DC) or lower right (AC).
-    const item = (kind: string, label: string, x: number, y: number, positions: string) =>
+    const item = (kind: string, label: string, x: number, y: number, positions: string[]) =>
       ({ kind, label, x, y, controls: [], positions, description: "" }) as unknown as PanelItem;
     const meters = {
       id: "elecu",
@@ -247,16 +247,33 @@ describe("selector angles", () => {
       height: 318,
       items: [
         {
-          ...item("selector", "DC METERS", 62, 206, "STBY PWR, BAT BUS, BAT, AUX BAT, TR1, TR2, TR3, TEST"),
+          ...item("selector", "DC METERS", 62, 206, [
+            "STBY PWR",
+            "BAT BUS",
+            "BAT",
+            "AUX BAT",
+            "TR1",
+            "TR2",
+            "TR3",
+            "TEST",
+          ]),
           angles: [-135, -90, -45, 0, 45, 90, 135, 180],
         },
         {
-          ...item("selector", "AC METERS", 184, 206, "STBY PWR, GRD PWR, GEN1, APU GEN, GEN2, INV, TEST"),
+          ...item("selector", "AC METERS", 184, 206, [
+            "STBY PWR",
+            "GRD PWR",
+            "GEN1",
+            "APU GEN",
+            "GEN2",
+            "INV",
+            "TEST",
+          ]),
           angles: [-135, -90, -45, 0, 45, 90, 135],
         },
-        { ...item("toggle_switch", "BATTERY", 62, 276, "OFF, ON"), guarded: true },
-        item("toggle_switch", "CAB/UTIL", 152, 276, "OFF, ON"),
-        item("toggle_switch", "IFE/PASS SEAT", 215, 276, "OFF, ON"),
+        { ...item("toggle_switch", "BATTERY", 62, 276, ["OFF", "ON"]), guarded: true },
+        item("toggle_switch", "CAB/UTIL", 152, 276, ["OFF", "ON"]),
+        item("toggle_switch", "IFE/PASS SEAT", 215, 276, ["OFF", "ON"]),
       ],
     } as unknown as PanelSection;
     const target = (i: number) => (i === 2 ? { on: true, t: 1, rest: 0 } : { on: false, t: null, rest: 0 });
@@ -282,7 +299,7 @@ describe("handle", () => {
       x: 0,
       y: 0,
       controls: [],
-      positions: "RELEASED, SET",
+      positions: ["RELEASED", "SET"],
       description: "",
     } as unknown as PanelItem;
     const gripBottom = leverY(1, 2) + 5;

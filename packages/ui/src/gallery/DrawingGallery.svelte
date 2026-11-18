@@ -11,6 +11,7 @@ each region. `?theme=dark|light` picks the theme.
   import type { FlatPack, ItemTarget, Panel, PanelItem } from "@involo/bindings";
   import PanelSchematic from "../lib/PanelSchematic.svelte";
   import { safely } from "../lib/safely";
+  import { seatFrame } from "../lib/seat-frame";
   import ViewDrawing from "../lib/ViewDrawing.svelte";
   import { applyPalette } from "../theme/tokens";
 
@@ -48,17 +49,17 @@ each region. `?theme=dark|light` picks the theme.
   const kinds: { title: string; item: Partial<PanelItem>; states: State[] }[] = [
     {
       title: "Toggle switch",
-      item: { kind: "toggle_switch", label: "PUMP", positions: "OFF, ON", rest: "OFF" },
+      item: { kind: "toggle_switch", label: "PUMP", positions: ["OFF", "ON"], rest: "OFF" },
       states: [RESTING, CHANGED(1), RESOLVED(0), CONDITIONAL],
     },
     {
       title: "Guarded switch",
-      item: { kind: "toggle_switch", label: "STBY PWR", positions: "BAT, OFF, AUTO", rest: "AUTO", guarded: true },
+      item: { kind: "toggle_switch", label: "STBY PWR", positions: ["BAT", "OFF", "AUTO"], rest: "AUTO", guarded: true },
       states: [RESTING, { name: "Changed, guard closed", target: set(2), guardClosed: true }, CHANGED(0)],
     },
     {
       title: "Selector",
-      item: { kind: "selector", label: "MODE", positions: "OFF, ALIGN, NAV, ATT", rest: "OFF" },
+      item: { kind: "selector", label: "MODE", positions: ["OFF", "ALIGN", "NAV", "ATT"], rest: "OFF" },
       states: [RESTING, CHANGED(2), RESOLVED(1), CONDITIONAL],
     },
     {
@@ -85,12 +86,12 @@ each region. `?theme=dark|light` picks the theme.
     },
     {
       title: "Lever",
-      item: { kind: "lever", label: "FLAP", positions: "UP, 1, 5, 15, 30", rest: "UP" },
+      item: { kind: "lever", label: "FLAP", positions: ["UP", "1", "5", "15", "30"], rest: "UP" },
       states: [RESTING, CHANGED(2), CONDITIONAL],
     },
     {
       title: "Handle",
-      item: { kind: "handle", label: "BRAKE", positions: "RELEASED, SET", rest: "RELEASED" },
+      item: { kind: "handle", label: "BRAKE", positions: ["RELEASED", "SET"], rest: "RELEASED" },
       states: [RESTING, CHANGED(1)],
     },
     {
@@ -121,6 +122,7 @@ each region. `?theme=dark|light` picks the theme.
 
   let regions = $derived(pack?.content.controls?.overview?.regions ?? []);
   let views = $derived(pack?.content.controls?.overview?.views ?? null);
+  let seat = $derived(seatFrame(views?.seat, pack?.content.labels));
 </script>
 
 <main class="gallery" data-gallery-ready={pack ? "" : undefined}>
@@ -151,10 +153,10 @@ each region. `?theme=dark|light` picks the theme.
     <section class="kind" data-kind="Where is this?">
       <h2>Where is this? side and seat views (from the pack)</h2>
       {#each regions as region (region.name)}
-        {#if views.side?.places?.some((p) => p.region === region.name) || views.seat?.places?.some((p) => p.region === region.name)}
+        {#if views.side?.places?.some((p) => p.region === region.name) || seat?.places?.some((p) => p.region === region.name)}
           <div class="row views" data-region={region.name}>
             {#if views.side}<ViewDrawing frame={views.side} region={region.name} kind="side" title="{region.name}: from the side" />{/if}
-            {#if views.seat}<ViewDrawing frame={views.seat} region={region.name} kind="seat" title="{region.name}: from the captain seat" />{/if}
+            {#if seat}<ViewDrawing frame={seat} region={region.name} kind="seat" title="{region.name}: from the captain seat" />{/if}
           </div>
         {/if}
       {/each}

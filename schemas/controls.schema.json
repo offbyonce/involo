@@ -303,7 +303,7 @@
         "seat": {
           "anyOf": [
             {
-              "$ref": "#/$defs/ViewFrame"
+              "$ref": "#/$defs/SeatViews"
             },
             {
               "type": "null"
@@ -322,6 +322,20 @@
         }
       },
       "additionalProperties": false
+    },
+    "SeatViews": {
+      "description": "The seat view: one frame, or one per seat, keyed by the seat ids the pack's labels list\n(decision 0029).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ViewFrame"
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/ViewFrame"
+          }
+        }
+      ]
     },
     "ViewFrame": {
       "description": "A side or seat view of the flight deck, in its own units (decision 0023).",

@@ -10,6 +10,7 @@ mod cdu;
 mod controls;
 mod faults;
 mod glossary;
+mod labels;
 mod lights;
 mod notes;
 mod panel_states;
@@ -24,10 +25,15 @@ pub use cdu::{
 };
 pub use controls::{
     Control, ControlsFile, LabelAnchor, Overview, OverviewArea, OverviewCaption, OverviewRegion,
-    OverviewViews, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, Zone,
+    OverviewViews, SeatViews, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, Zone,
 };
 pub use faults::{Fault, FaultsFile};
 pub use glossary::{GlossaryEntry, GlossaryFile};
+pub use labels::{
+    BasisTagLabel, GroupLabel, Labels, LabelsFile, ListKindLabels, ListKindLabelsFile,
+    MethodLabels, MethodLabelsFile, PanelStateLabels, PanelStateLabelsFile, ReferenceLabels,
+    ReferenceLabelsFile, RoleLabel, SeatLabel,
+};
 pub use lights::{LightNote, LightsFile};
 pub use notes::{ExplainNote, HowNote, NotesFile};
 pub use panel_states::{PanelState, PanelStatesFile};

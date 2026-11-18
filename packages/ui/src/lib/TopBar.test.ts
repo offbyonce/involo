@@ -18,8 +18,8 @@ const phase = (id: string, title: string): RailPhase => ({
 });
 const rail: Rail = {
   stages: [
-    { title: "Alpha", phases: [phase("a1", "First")] },
-    { title: "Bravo", phases: [phase("b1", "Second")] },
+    { id: "alpha", title: "Alpha", phases: [phase("a1", "First")] },
+    { id: "bravo", title: "Bravo", phases: [phase("b1", "Second")] },
   ],
   reference: [],
 };

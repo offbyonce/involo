@@ -30,7 +30,7 @@ pub fn names(text: &str, word: &str) -> bool {
 }
 
 /// Other words a step's wording uses for a position: "DOWN" for a lever's DN, "ARM" for ARMED.
-const POSITION_WORDS: &[(&str, &[&str])] = &[
+pub(crate) const POSITION_WORDS: &[(&str, &[&str])] = &[
     ("DN", &["DOWN"]),
     ("ARMED", &["ARM"]),
     ("RELEASED", &["RELEASE"]),
@@ -51,8 +51,8 @@ pub fn names_position(text: &str, position: &str) -> bool {
 /// The position a value names, when it names exactly one of them. "ON, GUARD CLOSED" names ON
 /// of "OFF, ON"; "ENG 1 AND 2 ON, ELEC 1 AND 2 OFF" names both, so neither is the target. A
 /// position named inside a longer one also named ("STEADY" in "STROBE & STEADY") gives way to it.
-pub fn named_position(expect: &str, positions: &str) -> Option<usize> {
-    let all: Vec<&str> = positions.split(',').map(str::trim).collect();
+pub fn named_position(expect: &str, positions: &[String]) -> Option<usize> {
+    let all: Vec<&str> = positions.iter().map(|p| p.trim()).collect();
     let named: Vec<usize> = (0..all.len())
         .filter(|&i| names_position(expect, all[i]))
         .collect();
@@ -133,8 +133,9 @@ pub fn switch_value<'a>(
     value
 }
 
-/// A panel item's locator, `panel/section/LABEL/n`: the n-th item (from 1) with that label in
-/// the section.
+/// A panel item's positional locator, `panel/section/LABEL/n`: the n-th item (from 1) with that
+/// label in the section. An item with an id can also be named `panel/section/#id` (see
+/// [`locate`]).
 pub fn locator(panel: &crate::Panel, section: &crate::PanelSection, item: usize) -> String {
     let label = section.items.get(item).map_or("", |i| i.label.as_str());
     let n = section.items[..item.min(section.items.len())]
@@ -145,21 +146,29 @@ pub fn locator(panel: &crate::Panel, section: &crate::PanelSection, item: usize)
     format!("{}/{}/{label}/{n}", panel.id, section.id)
 }
 
-/// The section and item index a locator names, if it names one.
+/// The section and item index a locator names, if it names one: `panel/section/#id` for an item
+/// with that id (decision 0029), or `panel/section/LABEL/n` for the n-th item with that label.
 pub fn locate<'a>(
     panels: &'a [crate::Panel],
     at: &str,
 ) -> Option<(&'a crate::PanelSection, usize)> {
     let mut front = at.splitn(3, '/');
     let (panel, section, rest) = (front.next()?, front.next()?, front.next()?);
-    let (label, n) = rest.rsplit_once('/')?;
-    let n: usize = n.parse().ok()?;
     let section = panels
         .iter()
         .find(|p| p.id == panel)?
         .sections
         .iter()
         .find(|s| s.id == section)?;
+    if let Some(id) = rest.strip_prefix('#') {
+        let item = section
+            .items
+            .iter()
+            .position(|i| i.id.as_deref() == Some(id))?;
+        return Some((section, item));
+    }
+    let (label, n) = rest.rsplit_once('/')?;
+    let n: usize = n.parse().ok()?;
     let item = section
         .items
         .iter()
@@ -189,11 +198,21 @@ mod reading_tests {
         );
     }
 
+    fn list(positions: &[&str]) -> Vec<String> {
+        positions.iter().map(ToString::to_string).collect()
+    }
+
     #[test]
     fn positions_are_read_by_other_words_and_the_longer_of_nested_names() {
-        assert_eq!(named_position("DOWN WHEN SPEED ALLOWS", "UP, DN"), Some(1));
         assert_eq!(
-            named_position("STROBE & STEADY", "STROBE & STEADY, OFF, STEADY"),
+            named_position("DOWN WHEN SPEED ALLOWS", &list(&["UP", "DN"])),
+            Some(1)
+        );
+        assert_eq!(
+            named_position(
+                "STROBE & STEADY",
+                &list(&["STROBE & STEADY", "OFF", "STEADY"])
+            ),
             Some(0)
         );
     }

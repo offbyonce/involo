@@ -12,12 +12,45 @@ use super::{BLANK, Issue, error, valid_step_id};
 const ROUTE_LEG_ONLY_IN_CDU: &str =
     "`route_leg` is only valid in CDU text, with `index` and `part`";
 
+/// A step's `role` and `respond` name roles the labels list; `respond` only answers a challenge,
+/// so it belongs to a challenge-and-response list (decision 0029).
+fn check_roles(list: &Checklist, idx: &Index, issues: &mut Vec<Issue>) {
+    for step in &list.steps {
+        let at = step.id.as_str();
+        for (field, role) in [("role", &step.role), ("respond", &step.respond)] {
+            if let Some(role) = role
+                && !idx.roles.contains(role.as_str())
+            {
+                issues.push(error(
+                    at,
+                    format!("`{field}` names `{role}`, which is not a role in the pack's labels"),
+                ));
+            }
+        }
+        if step.respond.is_some()
+            && list.method != Some(involo_checklist_core::ListMethod::ChallengeResponse)
+        {
+            issues.push(error(
+                at,
+                "`respond` belongs in a list with `method: challenge_response`",
+            ));
+        }
+    }
+}
+
 fn check_step(step: &Step, idx: &Index, issues: &mut Vec<Issue>) {
     let at = step.id.as_str();
-    if !valid_step_id(idx.pack_id, at) {
+    if !idx.step_prefixes.iter().any(|p| valid_step_id(p, at)) {
         issues.push(error(
             at,
-            format!("step id must be `{}.<phase>.<short-name>`", idx.pack_id),
+            format!(
+                "step id must be `<prefix>.<phase>.<short-name>`, where the prefix is {}",
+                idx.step_prefixes
+                    .iter()
+                    .map(|p| format!("`{p}`"))
+                    .collect::<Vec<_>>()
+                    .join(" or ")
+            ),
         ));
     }
     if step.text.trim().is_empty() || step.expect.trim().is_empty() {
@@ -84,6 +117,7 @@ pub(super) fn check_list(list: &Checklist, idx: &Index, issues: &mut Vec<Issue>)
     if list.steps.is_empty() {
         issues.push(error(&list.id, "checklist has no steps"));
     }
+    check_roles(list, idx, issues);
     if list.basis.is_empty() {
         issues.push(error(&list.id, "list has no `basis`"));
     }
@@ -158,6 +192,82 @@ mod tests {
     };
 
     use super::super::test_support::{assert_flags, messages, pack, step};
+
+    /// The demo pack with a captain and a first officer, and its one list using `method`.
+    fn crewed(method: Option<involo_checklist_core::ListMethod>) -> crate::Pack {
+        let mut p = pack(vec![step("demo-aircraft.preflight.a")], vec![]);
+        let role = |id: &str| involo_checklist_core::RoleLabel {
+            id: id.into(),
+            title: id.into(),
+            short: id.into(),
+            seat: None,
+        };
+        p.content.labels.roles = vec![role("capt"), role("fo")];
+        p.checklists[0].method = method;
+        p
+    }
+
+    #[test]
+    fn every_method_and_a_step_s_role_and_respond_pass() {
+        use involo_checklist_core::ListMethod;
+        for method in [
+            ListMethod::Do,
+            ListMethod::ReadAndDo,
+            ListMethod::ChallengeResponse,
+            ListMethod::FromMemory,
+        ] {
+            let mut p = crewed(Some(method));
+            p.checklists[0].steps[0].role = Some("capt".into());
+            if method == ListMethod::ChallengeResponse {
+                p.checklists[0].steps[0].respond = Some("fo".into());
+            }
+            assert!(
+                !messages(&p).contains("role"),
+                "{method:?}: {}",
+                messages(&p)
+            );
+        }
+    }
+
+    #[test]
+    fn a_role_the_labels_do_not_list_fails() {
+        let mut p = crewed(None);
+        p.checklists[0].steps[0].role = Some("purser".into());
+        assert_flags(
+            &p,
+            "`role` names `purser`, which is not a role in the pack's labels",
+        );
+    }
+
+    #[test]
+    fn respond_outside_a_challenge_and_response_list_fails() {
+        let mut p = crewed(Some(involo_checklist_core::ListMethod::ReadAndDo));
+        p.checklists[0].steps[0].respond = Some("fo".into());
+        assert_flags(
+            &p,
+            "`respond` belongs in a list with `method: challenge_response`",
+        );
+        let mut p = crewed(None);
+        p.checklists[0].steps[0].respond = Some("fo".into());
+        assert_flags(
+            &p,
+            "`respond` belongs in a list with `method: challenge_response`",
+        );
+    }
+
+    #[test]
+    fn a_step_id_may_start_with_the_pack_it_extends_and_nothing_else() {
+        let id = |s: &str| involo_checklist_core::Step::new(s, "Battery", "ON");
+        let mut p = pack(vec![id("lib.demo.preflight.a")], vec![]);
+        assert_flags(&p, "where the prefix is `demo-aircraft`");
+        p.manifest.extends.insert(
+            "lib.demo".into(),
+            semver::VersionReq::parse(">=1.0").unwrap(),
+        );
+        assert!(!messages(&p).contains("step id"), "{}", messages(&p));
+        p.checklists[0].steps = vec![id("other.preflight.a")];
+        assert_flags(&p, "where the prefix is `demo-aircraft` or `lib.demo`");
+    }
 
     #[test]
     fn a_list_why_does_not_repeat_the_training_notice() {

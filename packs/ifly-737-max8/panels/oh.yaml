@@ -23,7 +23,7 @@ sections:
         "y": 64
         controls:
           - fltctrl
-        positions: "STBY RUD, OFF, A ON"
+        positions: [STBY RUD, "OFF", A ON]
         rest: "STBY RUD"
         description: "Gives hydraulic system A to the ailerons, elevator and rudder."
       - kind: toggle_switch
@@ -33,7 +33,7 @@ sections:
         "y": 64
         controls:
           - fltctrl
-        positions: "STBY RUD, OFF, B ON"
+        positions: [STBY RUD, "OFF", B ON]
         rest: "STBY RUD"
         description: "Gives hydraulic system B to the ailerons, elevator and rudder."
       - kind: light
@@ -83,7 +83,7 @@ sections:
         "y": 140
         controls:
           - altflap
-        positions: "OFF, ARM"
+        positions: ["OFF", ARM]
         rest: "OFF"
         description: Arms alternate flap operation. Red guard.
       - kind: toggle_switch
@@ -92,7 +92,7 @@ sections:
         "y": 142
         controls:
           - altflap
-        positions: "UP, OFF, DOWN"
+        positions: [UP, "OFF", DOWN]
         rest: "OFF"
         description: Moves the flaps electrically when armed.
       - kind: toggle_switch
@@ -102,7 +102,7 @@ sections:
         "y": 203
         controls:
           - spoilsw
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Hydraulic system A to the flight spoilers.
       - kind: toggle_switch
@@ -112,7 +112,7 @@ sections:
         "y": 203
         controls:
           - spoilsw
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Hydraulic system B to the flight spoilers.
       - kind: light
@@ -169,7 +169,7 @@ sections:
         "y": 320
         controls:
           - yawd
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Damps Dutch roll.
   - id: nav
@@ -185,7 +185,7 @@ sections:
         "y": 48
         controls:
           - navsw
-        positions: "BOTH ON 1, NORMAL, BOTH ON 2"
+        positions: [BOTH ON 1, NORMAL, BOTH ON 2]
         rest: "NORMAL"
         description: Normally each side uses its own VHF NAV receiver.
       - kind: toggle_switch
@@ -194,7 +194,7 @@ sections:
         "y": 48
         controls:
           - navsw
-        positions: "BOTH ON L, NORMAL, BOTH ON R"
+        positions: [BOTH ON L, NORMAL, BOTH ON R]
         rest: "NORMAL"
         description: Normally each side uses its own IRS.
       - kind: toggle_switch
@@ -203,7 +203,7 @@ sections:
         "y": 104
         controls:
           - navsw
-        positions: "BOTH ON L, NORMAL, BOTH ON R"
+        positions: [BOTH ON L, NORMAL, BOTH ON R]
         rest: "NORMAL"
         description: Normally each side uses its own FMC.
   - id: disp
@@ -219,7 +219,7 @@ sections:
         "y": 62
         controls:
           - dispsw
-        positions: "ALL ON 1, AUTO, ALL ON 2"
+        positions: [ALL ON 1, AUTO, ALL ON 2]
         rest: "AUTO"
         description: Chooses which computer drives the displays.
       - kind: toggle_switch
@@ -228,7 +228,7 @@ sections:
         "y": 62
         controls:
           - dispsw
-        positions: "BOTH ON 1, NORMAL, BOTH ON 2"
+        positions: [BOTH ON 1, NORMAL, BOTH ON 2]
         rest: "NORMAL"
         description: Chooses which EFIS panel controls both sides.
   - id: fuel
@@ -305,7 +305,7 @@ sections:
         "y": 175
         controls:
           - xfeed
-        positions: "CLOSED, OPEN"
+        positions: [CLOSED, OPEN]
         rest: "CLOSED"
         description: Joins the left and right fuel manifolds.
       - kind: light
@@ -331,7 +331,7 @@ sections:
         controls:
           - ctrpumps
           - fuelpumps
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Center tank left pump.
       - kind: toggle_switch
@@ -341,7 +341,7 @@ sections:
         controls:
           - ctrpumps
           - fuelpumps
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Center tank right pump.
       - kind: light
@@ -382,7 +382,7 @@ sections:
         "y": 354
         controls:
           - fuelpumps
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: "Aft pump, tank 1."
       - kind: toggle_switch
@@ -391,7 +391,7 @@ sections:
         "y": 354
         controls:
           - fuelpumps
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: "Forward pump, tank 1."
       - kind: toggle_switch
@@ -400,7 +400,7 @@ sections:
         "y": 354
         controls:
           - fuelpumps
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: "Forward pump, tank 2."
       - kind: toggle_switch
@@ -409,7 +409,7 @@ sections:
         "y": 354
         controls:
           - fuelpumps
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: "Aft pump, tank 2."
   - id: elecu
@@ -465,7 +465,7 @@ sections:
         "y": 206
         controls:
           - eleclts
-        positions: "STBY PWR, BAT BUS, BAT, AUX BAT, TR1, TR2, TR3, TEST"
+        positions: [STBY PWR, BAT BUS, BAT, AUX BAT, TR1, TR2, TR3, TEST]
         angles: [-135, -90, -45, 0, 45, 90, 135, 180]
         rest: "AUX BAT"
         description: Chooses what the DC meters show.
@@ -475,7 +475,7 @@ sections:
         "y": 206
         controls:
           - eleclts
-        positions: "STBY PWR, GRD PWR, GEN1, APU GEN, GEN2, INV, TEST"
+        positions: [STBY PWR, GRD PWR, GEN1, APU GEN, GEN2, INV, TEST]
         angles: [-135, -90, -45, 0, 45, 90, 135]
         rest: "APU GEN"
         description: Chooses what the AC meters show.
@@ -486,7 +486,7 @@ sections:
         "y": 276
         controls:
           - bat
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Connects the battery. Guarded.
       - kind: toggle_switch
@@ -495,7 +495,7 @@ sections:
         "y": 276
         controls:
           - cabutil
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Power to the galleys and cabin utilities.
       - kind: toggle_switch
@@ -504,7 +504,7 @@ sections:
         "y": 276
         controls:
           - cabutil
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Power to seat equipment.
   - id: elecm
@@ -545,7 +545,7 @@ sections:
         "y": 100
         controls:
           - gendrive
-        positions: Guarded
+        positions: [Guarded]
         rest: "Guarded"
         description: Disconnects generator drive 1. Not reset in flight.
       - kind: toggle_switch
@@ -555,7 +555,7 @@ sections:
         "y": 84
         controls:
           - stby
-        positions: "BAT, OFF, AUTO"
+        positions: [BAT, "OFF", AUTO]
         rest: "AUTO"
         description: Normally AUTO. Guarded.
       - kind: toggle_switch
@@ -565,7 +565,7 @@ sections:
         "y": 100
         controls:
           - gendrive
-        positions: Guarded
+        positions: [Guarded]
         rest: "Guarded"
         description: Disconnects generator drive 2. Not reset in flight.
   - id: elecl
@@ -590,7 +590,7 @@ sections:
         controls:
           - grdpwr
           - grddisc
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Spring-loaded. Puts ground power on the buses.
       - kind: toggle_switch
@@ -600,7 +600,7 @@ sections:
         "y": 114
         controls:
           - bustrans
-        positions: "OFF, AUTO"
+        positions: ["OFF", AUTO]
         rest: "AUTO"
         description: Normally AUTO. Guarded.
       - kind: light
@@ -666,7 +666,7 @@ sections:
         controls:
           - engen
           - apub
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Spring-loaded. Puts generator 1 on the bus.
       - kind: toggle_switch
@@ -676,7 +676,7 @@ sections:
         controls:
           - apugen
           - apub
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Spring-loaded. Puts the APU on the left bus.
       - kind: toggle_switch
@@ -686,7 +686,7 @@ sections:
         controls:
           - apugen
           - apub
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Spring-loaded. Puts the APU on the right bus.
       - kind: toggle_switch
@@ -696,7 +696,7 @@ sections:
         controls:
           - engen
           - apub
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Spring-loaded. Puts generator 2 on the bus.
   - id: wipe
@@ -712,7 +712,7 @@ sections:
         "y": 50
         controls:
           - wiper
-        positions: "PARK, INT, LOW, HIGH"
+        positions: [PARK, INT, LOW, HIGH]
         rest: "PARK"
         description: Left windshield wiper.
   - id: col
@@ -726,14 +726,14 @@ sections:
         label: CIRCUIT BREAKER
         x: 65
         "y": 48
-        positions: OFF to BRIGHT
+        positions: [OFF to BRIGHT]
         rest: "OFF to BRIGHT"
         description: Circuit breaker panel lights.
       - kind: selector
         label: PANEL
         x: 65
         "y": 126
-        positions: OFF to BRIGHT
+        positions: [OFF to BRIGHT]
         rest: "OFF to BRIGHT"
         description: Overhead panel lights.
       - kind: light
@@ -766,7 +766,7 @@ sections:
         "y": 294
         controls:
           - equip
-        positions: "NORM, ALTN"
+        positions: [NORM, ALTN]
         rest: "NORM"
         description: Equipment cooling supply fan.
       - kind: toggle_switch
@@ -775,7 +775,7 @@ sections:
         "y": 294
         controls:
           - equip
-        positions: "NORM, ALTN"
+        positions: [NORM, ALTN]
         rest: "NORM"
         description: Equipment cooling exhaust fan.
       - kind: light
@@ -801,7 +801,7 @@ sections:
         "y": 465
         controls:
           - emerext
-        positions: "OFF, ARMED, ON"
+        positions: ["OFF", ARMED, "ON"]
         rest: "OFF"
         description: Normally ARMED. Guarded.
       - kind: toggle_switch
@@ -810,7 +810,7 @@ sections:
         "y": 546
         controls:
           - signs
-        positions: "OFF, AUTO, ON"
+        positions: ["OFF", AUTO, "ON"]
         rest: "OFF"
         description: Cabin no smoking sign.
       - kind: toggle_switch
@@ -820,7 +820,7 @@ sections:
         controls:
           - sblts
           - signs
-        positions: "OFF, AUTO, ON"
+        positions: ["OFF", AUTO, "ON"]
         rest: "OFF"
         description: Cabin seat belt sign.
       - kind: push_button
@@ -846,7 +846,7 @@ sections:
         "y": 50
         controls:
           - wiper
-        positions: "PARK, INT, LOW, HIGH"
+        positions: [PARK, INT, LOW, HIGH]
         rest: "PARK"
         description: Right windshield wiper.
   - id: heat
@@ -926,7 +926,7 @@ sections:
         "y": 112
         controls:
           - wheat
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Left side window heat.
       - kind: toggle_switch
@@ -935,14 +935,14 @@ sections:
         "y": 112
         controls:
           - wheat
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Left forward window heat.
       - kind: toggle_switch
         label: OVHT TEST
         x: 120
         "y": 160
-        positions: "OVHT, PWR TEST"
+        positions: [OVHT, PWR TEST]
         description: OVHT simulates an overheat. PWR TEST checks the heat circuits.
       - kind: toggle_switch
         label: R FWD
@@ -950,7 +950,7 @@ sections:
         "y": 112
         controls:
           - wheat
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Right forward window heat.
       - kind: toggle_switch
@@ -959,7 +959,7 @@ sections:
         "y": 112
         controls:
           - wheat
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Right side window heat.
       - kind: light
@@ -1032,7 +1032,7 @@ sections:
         "y": 212
         controls:
           - pheat
-        positions: "AUTO, ON"
+        positions: [AUTO, "ON"]
         rest: "AUTO"
         description: Probe heat system A.
       - kind: toggle_switch
@@ -1041,7 +1041,7 @@ sections:
         "y": 212
         controls:
           - pheat
-        positions: "AUTO, ON"
+        positions: [AUTO, "ON"]
         rest: "AUTO"
         description: Probe heat system B.
   - id: aice
@@ -1129,7 +1129,7 @@ sections:
         "y": 117
         controls:
           - aice
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Bleed air to the wing leading edge.
       - kind: toggle_switch
@@ -1138,7 +1138,7 @@ sections:
         "y": 117
         controls:
           - aice
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Bleed air to the engine 1 inlet.
       - kind: toggle_switch
@@ -1147,7 +1147,7 @@ sections:
         "y": 117
         controls:
           - aice
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Bleed air to the engine 2 inlet.
   - id: hyd
@@ -1211,7 +1211,7 @@ sections:
         "y": 104
         controls:
           - hydpumps
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "ON"
         description: "Engine 1 pump, system A."
       - kind: toggle_switch
@@ -1220,7 +1220,7 @@ sections:
         "y": 104
         controls:
           - elechyd
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: "Electric pump, system A."
       - kind: toggle_switch
@@ -1229,7 +1229,7 @@ sections:
         "y": 104
         controls:
           - elechyd
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: "Electric pump, system B."
       - kind: toggle_switch
@@ -1238,7 +1238,7 @@ sections:
         "y": 104
         controls:
           - hydpumps
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "ON"
         description: "Engine 2 pump, system B."
   - id: door
@@ -1411,7 +1411,7 @@ sections:
         "y": 30
         controls:
           - vrec
-        positions: "AUTO, ON"
+        positions: [AUTO, "ON"]
         rest: "AUTO"
         description: AUTO runs the recorder automatically.
   - id: air
@@ -1434,7 +1434,7 @@ sections:
         "y": 56
         controls:
           - tempsw
-        positions: "Supply duct, passenger cabin, pack"
+        positions: [Supply duct, passenger cabin, pack]
         rest: "Supply duct"
         description: Chooses what the gauge reads.
       - kind: toggle_switch
@@ -1443,7 +1443,7 @@ sections:
         "y": 128
         controls:
           - trimair
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Adds hot air to fine-tune each zone.
       - kind: light
@@ -1476,7 +1476,7 @@ sections:
         "y": 219
         controls:
           - tempsw
-        positions: "OFF, C, AUTO, W"
+        positions: ["OFF", C, AUTO, W]
         rest: "OFF"
         description: Control cabin temperature.
       - kind: selector
@@ -1485,7 +1485,7 @@ sections:
         "y": 219
         controls:
           - tempsw
-        positions: "OFF, C, AUTO, W"
+        positions: ["OFF", C, AUTO, W]
         rest: "OFF"
         description: Forward cabin temperature.
       - kind: selector
@@ -1494,7 +1494,7 @@ sections:
         "y": 219
         controls:
           - tempsw
-        positions: "OFF, C, AUTO, W"
+        positions: ["OFF", C, AUTO, W]
         rest: "OFF"
         description: Aft cabin temperature.
   - id: bleed
@@ -1518,7 +1518,7 @@ sections:
         "y": 72
         controls:
           - recirc
-        positions: "OFF, AUTO"
+        positions: ["OFF", AUTO]
         rest: "OFF"
         description: Left recirculation fan.
       - kind: toggle_switch
@@ -1527,7 +1527,7 @@ sections:
         "y": 72
         controls:
           - recirc
-        positions: "OFF, AUTO"
+        positions: ["OFF", AUTO]
         rest: "OFF"
         description: Right recirculation fan.
       - kind: gauge
@@ -1546,7 +1546,7 @@ sections:
         "y": 180
         controls:
           - packs
-        positions: "OFF, AUTO, HIGH"
+        positions: ["OFF", AUTO, HIGH]
         rest: "OFF"
         description: Left air conditioning pack.
       - kind: toggle_switch
@@ -1555,7 +1555,7 @@ sections:
         "y": 198
         controls:
           - iso
-        positions: "CLOSE, AUTO, OPEN"
+        positions: [CLOSE, AUTO, OPEN]
         rest: "OPEN"
         description: Joins or separates the bleed ducts.
       - kind: toggle_switch
@@ -1564,7 +1564,7 @@ sections:
         "y": 180
         controls:
           - packs
-        positions: "OFF, AUTO, HIGH"
+        positions: ["OFF", AUTO, HIGH]
         rest: "OFF"
         description: Right air conditioning pack.
       - kind: light
@@ -1626,7 +1626,7 @@ sections:
         "y": 357
         controls:
           - engbleed
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "ON"
         description: Engine 1 bleed air.
       - kind: toggle_switch
@@ -1635,7 +1635,7 @@ sections:
         "y": 357
         controls:
           - apubleed
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: APU bleed air.
       - kind: toggle_switch
@@ -1644,7 +1644,7 @@ sections:
         "y": 357
         controls:
           - engbleed
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "ON"
         description: Engine 2 bleed air.
   - id: press
@@ -1727,7 +1727,7 @@ sections:
         "y": 178
         controls:
           - outflow
-        positions: "CLOSE, OPEN"
+        positions: [CLOSE, OPEN]
         rest: "CLOSE"
         description: Spring-loaded. Used in MAN.
       - kind: selector
@@ -1736,7 +1736,7 @@ sections:
         "y": 273
         controls:
           - press
-        positions: "AUTO, ALTN, MAN"
+        positions: [AUTO, ALTN, MAN]
         rest: "AUTO"
         description: Pressurization mode.
   - id: ltl
@@ -1752,7 +1752,7 @@ sections:
         "y": 46
         controls:
           - landlt
-        positions: "OFF, FLASH, ON"
+        positions: ["OFF", FLASH, "ON"]
         rest: "OFF"
         description: Left landing light.
       - kind: toggle_switch
@@ -1761,7 +1761,7 @@ sections:
         "y": 46
         controls:
           - landlt
-        positions: "OFF, FLASH, ON"
+        positions: ["OFF", FLASH, "ON"]
         rest: "OFF"
         description: Right landing light.
       - kind: toggle_switch
@@ -1770,7 +1770,7 @@ sections:
         "y": 46
         controls:
           - turnoff
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Left runway turnoff light.
       - kind: toggle_switch
@@ -1779,7 +1779,7 @@ sections:
         "y": 46
         controls:
           - turnoff
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Right runway turnoff light.
       - kind: toggle_switch
@@ -1788,7 +1788,7 @@ sections:
         "y": 46
         controls:
           - lldg
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Taxi light.
   - id: apu
@@ -1804,7 +1804,7 @@ sections:
         "y": 46
         controls:
           - apusw
-        positions: "OFF, ON, START"
+        positions: ["OFF", "ON", START]
         rest: "OFF"
         description: START is spring-loaded back to ON.
   - id: start
@@ -1820,7 +1820,7 @@ sections:
         "y": 48
         controls:
           - starts
-        positions: "GRD, OFF, CONT, FLT"
+        positions: [GRD, "OFF", CONT, FLT]
         rest: "OFF"
         description: Engine 1 start and ignition.
       - kind: toggle_switch
@@ -1829,7 +1829,7 @@ sections:
         "y": 46
         controls:
           - starts
-        positions: "IGN L, BOTH, IGN R"
+        positions: [IGN L, BOTH, IGN R]
         rest: "IGN L"
         description: Chooses the igniters.
       - kind: selector
@@ -1838,7 +1838,7 @@ sections:
         "y": 48
         controls:
           - starts
-        positions: "GRD, OFF, CONT, FLT"
+        positions: [GRD, "OFF", CONT, FLT]
         rest: "OFF"
         description: Engine 2 start and ignition.
   - id: lte
@@ -1854,7 +1854,7 @@ sections:
         "y": 46
         controls:
           - logo
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Tail logo lights.
       - kind: toggle_switch
@@ -1863,7 +1863,7 @@ sections:
         "y": 46
         controls:
           - poslt
-        positions: "STROBE & STEADY, OFF, STEADY"
+        positions: [STROBE & STEADY, "OFF", STEADY]
         rest: "OFF"
         description: Position and strobe lights.
       - kind: toggle_switch
@@ -1872,7 +1872,7 @@ sections:
         "y": 46
         controls:
           - beacon
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Red beacon lights.
       - kind: toggle_switch
@@ -1882,7 +1882,7 @@ sections:
         controls:
           - winglt
           - wingww
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Wing lights.
       - kind: toggle_switch
@@ -1891,7 +1891,7 @@ sections:
         "y": 46
         controls:
           - wingww
-        positions: "OFF, ON"
+        positions: ["OFF", "ON"]
         rest: "OFF"
         description: Wheel well lights.
   - id: apul

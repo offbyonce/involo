@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 offbyonce and Involo contributors
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../schemas/labels.schema.json
+# Words the interface shows that are this pack's own. Everything else keeps the app's defaults.
+panel_states:
+  title: iFly panel state
+  description: >-
+    Loaded a panel state from the iFly EFB? Pick it to tick the steps it has already set and
+    start where the airplane is. Steps it can't set, like the FMC, MCP and radios, stay open.
+basis_tags:
+  - id: ifly-docs
+    label: Simulator documentation
+    about: >-
+      How the aircraft model in the simulator works: its panels, its switches and its own
+      procedures.

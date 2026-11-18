@@ -23,7 +23,7 @@ sections:
         controls:
           - mins
           - efispanel
-        positions: "RADIO, BARO"
+        positions: [RADIO, BARO]
         rest: "RADIO"
         description: Outer ring selects RADIO or BARO. Inner knob sets minimums. Center button is RST.
       - kind: selector
@@ -33,7 +33,7 @@ sections:
         controls:
           - baro
           - efispanel
-        positions: "IN, HPA, STD"
+        positions: [IN, HPA, STD]
         rest: "IN"
         description: Inner knob sets the altimeter. Outer ring selects IN or HPA. Center button is STD.
       - kind: push_button
@@ -52,7 +52,7 @@ sections:
         "y": 120
         controls:
           - efispanel
-        positions: "APP, VOR, MAP, PLN"
+        positions: [APP, VOR, MAP, PLN]
         rest: "APP"
         description: ND mode. CTR centers it.
       - kind: selector
@@ -61,7 +61,7 @@ sections:
         "y": 120
         controls:
           - efispanel
-        positions: ND RANGE
+        positions: [ND RANGE]
         rest: "ND RANGE"
         description: ND range. TFC shows traffic.
       - kind: push_button
@@ -190,7 +190,7 @@ sections:
         "y": 130
         controls:
           - fd
-        positions: "ON, OFF"
+        positions: ["ON", "OFF"]
         rest: "OFF"
         description: Left flight director.
       - kind: toggle_switch
@@ -199,7 +199,7 @@ sections:
         "y": 60
         controls:
           - mcpset
-        positions: "ARM, OFF"
+        positions: [ARM, "OFF"]
         rest: "OFF"
         description: Arms the autothrottle.
       - kind: push_button
@@ -240,7 +240,7 @@ sections:
         controls:
           - hdgsel
           - mcpset
-        positions: BANK 10 TO 30
+        positions: [BANK 10 TO 30]
         rest: "BANK 10 TO 30"
         description: Sets heading. The outer ring limits bank.
       - kind: push_button
@@ -322,7 +322,7 @@ sections:
         "y": 130
         controls:
           - fd
-        positions: "ON, OFF"
+        positions: ["ON", "OFF"]
         rest: "OFF"
         description: Right flight director.
       - kind: toggle_switch
@@ -332,7 +332,7 @@ sections:
         "y": 130
         controls:
           - apdis
-        positions: "UP, DOWN"
+        positions: [UP, DOWN]
         rest: "UP"
         description: Autopilot disengage bar.
       - kind: selector
@@ -415,7 +415,7 @@ sections:
         controls:
           - mins
           - efispanel
-        positions: "RADIO, BARO"
+        positions: [RADIO, BARO]
         rest: "RADIO"
         description: Outer ring selects RADIO or BARO. Inner knob sets minimums. Center button is RST.
       - kind: selector
@@ -425,7 +425,7 @@ sections:
         controls:
           - baro
           - efispanel
-        positions: "IN, HPA, STD"
+        positions: [IN, HPA, STD]
         rest: "IN"
         description: Inner knob sets the altimeter. Outer ring selects IN or HPA. Center button is STD.
       - kind: push_button
@@ -444,7 +444,7 @@ sections:
         "y": 120
         controls:
           - efispanel
-        positions: "APP, VOR, MAP, PLN"
+        positions: [APP, VOR, MAP, PLN]
         rest: "APP"
         description: ND mode. CTR centers it.
       - kind: selector
@@ -453,7 +453,7 @@ sections:
         "y": 120
         controls:
           - efispanel
-        positions: ND RANGE
+        positions: [ND RANGE]
         rest: "ND RANGE"
         description: ND range. TFC shows traffic.
       - kind: push_button

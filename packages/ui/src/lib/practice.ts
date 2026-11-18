@@ -300,7 +300,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
   const zones = new Map(index.zones.map((z) => [z.id, z]));
   const zoneOf = (s: Step) =>
     (s.controls ?? []).map((c) => index.control(c)?.zone).find((z) => !!z && zones.has(z));
-  const memory = new Set((phases?.phases ?? []).filter((p) => p.id === "memory").flatMap((p) => p.lists));
+  const memory = new Set((phases?.phases ?? []).filter((p) => p.group === "memory").flatMap((p) => p.lists));
   const stepLink = (s: Step): Link => {
     const phase = index.phaseOf(s.id);
     return {
@@ -620,9 +620,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
   for (const panel of index.panels)
     for (const section of panel.sections)
       for (const it of section.items)
-        if (it.positions)
-          for (const c of it.controls ?? [])
-            positions.set(c, [...(positions.get(c) ?? []), ...String(it.positions).split(/,\s*/)]);
+        if (it.positions?.length)
+          for (const c of it.controls ?? []) positions.set(c, [...(positions.get(c) ?? []), ...it.positions]);
 
   for (const list of pack.lists) {
     if (memory.has(list.id)) continue;

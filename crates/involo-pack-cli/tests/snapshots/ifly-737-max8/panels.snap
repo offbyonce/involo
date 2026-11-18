@@ -25,7 +25,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "fltctrl"
             ],
-            "positions": "STBY RUD, OFF, A ON",
+            "positions": [
+              "STBY RUD",
+              "OFF",
+              "A ON"
+            ],
             "rest": "STBY RUD",
             "description": "Gives hydraulic system A to the ailerons, elevator and rudder."
           },
@@ -38,7 +42,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "fltctrl"
             ],
-            "positions": "STBY RUD, OFF, B ON",
+            "positions": [
+              "STBY RUD",
+              "OFF",
+              "B ON"
+            ],
             "rest": "STBY RUD",
             "description": "Gives hydraulic system B to the ailerons, elevator and rudder."
           },
@@ -106,7 +114,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "altflap"
             ],
-            "positions": "OFF, ARM",
+            "positions": [
+              "OFF",
+              "ARM"
+            ],
             "rest": "OFF",
             "description": "Arms alternate flap operation. Red guard."
           },
@@ -118,7 +129,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "altflap"
             ],
-            "positions": "UP, OFF, DOWN",
+            "positions": [
+              "UP",
+              "OFF",
+              "DOWN"
+            ],
             "rest": "OFF",
             "description": "Moves the flaps electrically when armed."
           },
@@ -131,7 +146,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "spoilsw"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Hydraulic system A to the flight spoilers."
           },
@@ -144,7 +162,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "spoilsw"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Hydraulic system B to the flight spoilers."
           },
@@ -222,7 +243,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "yawd"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Damps Dutch roll."
           }
@@ -244,7 +268,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "navsw"
             ],
-            "positions": "BOTH ON 1, NORMAL, BOTH ON 2",
+            "positions": [
+              "BOTH ON 1",
+              "NORMAL",
+              "BOTH ON 2"
+            ],
             "rest": "NORMAL",
             "description": "Normally each side uses its own VHF NAV receiver."
           },
@@ -256,7 +284,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "navsw"
             ],
-            "positions": "BOTH ON L, NORMAL, BOTH ON R",
+            "positions": [
+              "BOTH ON L",
+              "NORMAL",
+              "BOTH ON R"
+            ],
             "rest": "NORMAL",
             "description": "Normally each side uses its own IRS."
           },
@@ -268,7 +300,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "navsw"
             ],
-            "positions": "BOTH ON L, NORMAL, BOTH ON R",
+            "positions": [
+              "BOTH ON L",
+              "NORMAL",
+              "BOTH ON R"
+            ],
             "rest": "NORMAL",
             "description": "Normally each side uses its own FMC."
           }
@@ -290,7 +326,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "dispsw"
             ],
-            "positions": "ALL ON 1, AUTO, ALL ON 2",
+            "positions": [
+              "ALL ON 1",
+              "AUTO",
+              "ALL ON 2"
+            ],
             "rest": "AUTO",
             "description": "Chooses which computer drives the displays."
           },
@@ -302,7 +342,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "dispsw"
             ],
-            "positions": "BOTH ON 1, NORMAL, BOTH ON 2",
+            "positions": [
+              "BOTH ON 1",
+              "NORMAL",
+              "BOTH ON 2"
+            ],
             "rest": "NORMAL",
             "description": "Chooses which EFIS panel controls both sides."
           }
@@ -408,7 +452,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "xfeed"
             ],
-            "positions": "CLOSED, OPEN",
+            "positions": [
+              "CLOSED",
+              "OPEN"
+            ],
             "rest": "CLOSED",
             "description": "Joins the left and right fuel manifolds."
           },
@@ -443,7 +490,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "ctrpumps",
               "fuelpumps"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Center tank left pump."
           },
@@ -456,7 +506,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "ctrpumps",
               "fuelpumps"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Center tank right pump."
           },
@@ -512,7 +565,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "fuelpumps"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Aft pump, tank 1."
           },
@@ -524,7 +580,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "fuelpumps"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Forward pump, tank 1."
           },
@@ -536,7 +595,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "fuelpumps"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Forward pump, tank 2."
           },
@@ -548,7 +610,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "fuelpumps"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Aft pump, tank 2."
           }
@@ -625,7 +690,16 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "eleclts"
             ],
-            "positions": "STBY PWR, BAT BUS, BAT, AUX BAT, TR1, TR2, TR3, TEST",
+            "positions": [
+              "STBY PWR",
+              "BAT BUS",
+              "BAT",
+              "AUX BAT",
+              "TR1",
+              "TR2",
+              "TR3",
+              "TEST"
+            ],
             "rest": "AUX BAT",
             "angles": [
               -135.0,
@@ -647,7 +721,15 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "eleclts"
             ],
-            "positions": "STBY PWR, GRD PWR, GEN1, APU GEN, GEN2, INV, TEST",
+            "positions": [
+              "STBY PWR",
+              "GRD PWR",
+              "GEN1",
+              "APU GEN",
+              "GEN2",
+              "INV",
+              "TEST"
+            ],
             "rest": "APU GEN",
             "angles": [
               -135.0,
@@ -669,7 +751,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "bat"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Connects the battery. Guarded."
           },
@@ -681,7 +766,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "cabutil"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Power to the galleys and cabin utilities."
           },
@@ -693,7 +781,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "cabutil"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Power to seat equipment."
           }
@@ -749,7 +840,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "gendrive"
             ],
-            "positions": "Guarded",
+            "positions": [
+              "Guarded"
+            ],
             "rest": "Guarded",
             "description": "Disconnects generator drive 1. Not reset in flight."
           },
@@ -762,7 +855,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "stby"
             ],
-            "positions": "BAT, OFF, AUTO",
+            "positions": [
+              "BAT",
+              "OFF",
+              "AUTO"
+            ],
             "rest": "AUTO",
             "description": "Normally AUTO. Guarded."
           },
@@ -775,7 +872,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "gendrive"
             ],
-            "positions": "Guarded",
+            "positions": [
+              "Guarded"
+            ],
             "rest": "Guarded",
             "description": "Disconnects generator drive 2. Not reset in flight."
           }
@@ -809,7 +908,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "grdpwr",
               "grddisc"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Spring-loaded. Puts ground power on the buses."
           },
@@ -822,7 +924,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "bustrans"
             ],
-            "positions": "OFF, AUTO",
+            "positions": [
+              "OFF",
+              "AUTO"
+            ],
             "rest": "AUTO",
             "description": "Normally AUTO. Guarded."
           },
@@ -912,7 +1017,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "engen",
               "apub"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Spring-loaded. Puts generator 1 on the bus."
           },
@@ -925,7 +1033,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "apugen",
               "apub"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Spring-loaded. Puts the APU on the left bus."
           },
@@ -938,7 +1049,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "apugen",
               "apub"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Spring-loaded. Puts the APU on the right bus."
           },
@@ -951,7 +1065,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "engen",
               "apub"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Spring-loaded. Puts generator 2 on the bus."
           }
@@ -973,7 +1090,12 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "wiper"
             ],
-            "positions": "PARK, INT, LOW, HIGH",
+            "positions": [
+              "PARK",
+              "INT",
+              "LOW",
+              "HIGH"
+            ],
             "rest": "PARK",
             "description": "Left windshield wiper."
           }
@@ -992,7 +1114,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "label": "CIRCUIT BREAKER",
             "x": 65.0,
             "y": 48.0,
-            "positions": "OFF to BRIGHT",
+            "positions": [
+              "OFF to BRIGHT"
+            ],
             "rest": "OFF to BRIGHT",
             "description": "Circuit breaker panel lights."
           },
@@ -1001,7 +1125,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "label": "PANEL",
             "x": 65.0,
             "y": 126.0,
-            "positions": "OFF to BRIGHT",
+            "positions": [
+              "OFF to BRIGHT"
+            ],
             "rest": "OFF to BRIGHT",
             "description": "Overhead panel lights."
           },
@@ -1046,7 +1172,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "equip"
             ],
-            "positions": "NORM, ALTN",
+            "positions": [
+              "NORM",
+              "ALTN"
+            ],
             "rest": "NORM",
             "description": "Equipment cooling supply fan."
           },
@@ -1058,7 +1187,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "equip"
             ],
-            "positions": "NORM, ALTN",
+            "positions": [
+              "NORM",
+              "ALTN"
+            ],
             "rest": "NORM",
             "description": "Equipment cooling exhaust fan."
           },
@@ -1093,7 +1225,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "emerext"
             ],
-            "positions": "OFF, ARMED, ON",
+            "positions": [
+              "OFF",
+              "ARMED",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Normally ARMED. Guarded."
           },
@@ -1105,7 +1241,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "signs"
             ],
-            "positions": "OFF, AUTO, ON",
+            "positions": [
+              "OFF",
+              "AUTO",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Cabin no smoking sign."
           },
@@ -1118,7 +1258,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "sblts",
               "signs"
             ],
-            "positions": "OFF, AUTO, ON",
+            "positions": [
+              "OFF",
+              "AUTO",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Cabin seat belt sign."
           },
@@ -1154,7 +1298,12 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "wiper"
             ],
-            "positions": "PARK, INT, LOW, HIGH",
+            "positions": [
+              "PARK",
+              "INT",
+              "LOW",
+              "HIGH"
+            ],
             "rest": "PARK",
             "description": "Right windshield wiper."
           }
@@ -1264,7 +1413,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "wheat"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Left side window heat."
           },
@@ -1276,7 +1428,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "wheat"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Left forward window heat."
           },
@@ -1285,7 +1440,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "label": "OVHT TEST",
             "x": 120.0,
             "y": 160.0,
-            "positions": "OVHT, PWR TEST",
+            "positions": [
+              "OVHT",
+              "PWR TEST"
+            ],
             "description": "OVHT simulates an overheat. PWR TEST checks the heat circuits."
           },
           {
@@ -1296,7 +1454,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "wheat"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Right forward window heat."
           },
@@ -1308,7 +1469,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "wheat"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Right side window heat."
           },
@@ -1408,7 +1572,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "pheat"
             ],
-            "positions": "AUTO, ON",
+            "positions": [
+              "AUTO",
+              "ON"
+            ],
             "rest": "AUTO",
             "description": "Probe heat system A."
           },
@@ -1420,7 +1587,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "pheat"
             ],
-            "positions": "AUTO, ON",
+            "positions": [
+              "AUTO",
+              "ON"
+            ],
             "rest": "AUTO",
             "description": "Probe heat system B."
           }
@@ -1541,7 +1711,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "aice"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Bleed air to the wing leading edge."
           },
@@ -1553,7 +1726,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "aice"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Bleed air to the engine 1 inlet."
           },
@@ -1565,7 +1741,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "aice"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Bleed air to the engine 2 inlet."
           }
@@ -1653,7 +1832,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "hydpumps"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "ON",
             "description": "Engine 1 pump, system A."
           },
@@ -1665,7 +1847,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "elechyd"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Electric pump, system A."
           },
@@ -1677,7 +1862,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "elechyd"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Electric pump, system B."
           },
@@ -1689,7 +1877,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "hydpumps"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "ON",
             "description": "Engine 2 pump, system B."
           }
@@ -1930,7 +2121,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "vrec"
             ],
-            "positions": "AUTO, ON",
+            "positions": [
+              "AUTO",
+              "ON"
+            ],
             "rest": "AUTO",
             "description": "AUTO runs the recorder automatically."
           }
@@ -1962,7 +2156,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "tempsw"
             ],
-            "positions": "Supply duct, passenger cabin, pack",
+            "positions": [
+              "Supply duct",
+              "passenger cabin",
+              "pack"
+            ],
             "rest": "Supply duct",
             "description": "Chooses what the gauge reads."
           },
@@ -1974,7 +2172,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "trimair"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Adds hot air to fine-tune each zone."
           },
@@ -2019,7 +2220,12 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "tempsw"
             ],
-            "positions": "OFF, C, AUTO, W",
+            "positions": [
+              "OFF",
+              "C",
+              "AUTO",
+              "W"
+            ],
             "rest": "OFF",
             "description": "Control cabin temperature."
           },
@@ -2031,7 +2237,12 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "tempsw"
             ],
-            "positions": "OFF, C, AUTO, W",
+            "positions": [
+              "OFF",
+              "C",
+              "AUTO",
+              "W"
+            ],
             "rest": "OFF",
             "description": "Forward cabin temperature."
           },
@@ -2043,7 +2254,12 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "tempsw"
             ],
-            "positions": "OFF, C, AUTO, W",
+            "positions": [
+              "OFF",
+              "C",
+              "AUTO",
+              "W"
+            ],
             "rest": "OFF",
             "description": "Aft cabin temperature."
           }
@@ -2076,7 +2292,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "recirc"
             ],
-            "positions": "OFF, AUTO",
+            "positions": [
+              "OFF",
+              "AUTO"
+            ],
             "rest": "OFF",
             "description": "Left recirculation fan."
           },
@@ -2088,7 +2307,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "recirc"
             ],
-            "positions": "OFF, AUTO",
+            "positions": [
+              "OFF",
+              "AUTO"
+            ],
             "rest": "OFF",
             "description": "Right recirculation fan."
           },
@@ -2114,7 +2336,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "packs"
             ],
-            "positions": "OFF, AUTO, HIGH",
+            "positions": [
+              "OFF",
+              "AUTO",
+              "HIGH"
+            ],
             "rest": "OFF",
             "description": "Left air conditioning pack."
           },
@@ -2126,7 +2352,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "iso"
             ],
-            "positions": "CLOSE, AUTO, OPEN",
+            "positions": [
+              "CLOSE",
+              "AUTO",
+              "OPEN"
+            ],
             "rest": "OPEN",
             "description": "Joins or separates the bleed ducts."
           },
@@ -2138,7 +2368,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "packs"
             ],
-            "positions": "OFF, AUTO, HIGH",
+            "positions": [
+              "OFF",
+              "AUTO",
+              "HIGH"
+            ],
             "rest": "OFF",
             "description": "Right air conditioning pack."
           },
@@ -2223,7 +2457,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "engbleed"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "ON",
             "description": "Engine 1 bleed air."
           },
@@ -2235,7 +2472,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "apubleed"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "APU bleed air."
           },
@@ -2247,7 +2487,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "engbleed"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "ON",
             "description": "Engine 2 bleed air."
           }
@@ -2363,7 +2606,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "outflow"
             ],
-            "positions": "CLOSE, OPEN",
+            "positions": [
+              "CLOSE",
+              "OPEN"
+            ],
             "rest": "CLOSE",
             "description": "Spring-loaded. Used in MAN."
           },
@@ -2375,7 +2621,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "press"
             ],
-            "positions": "AUTO, ALTN, MAN",
+            "positions": [
+              "AUTO",
+              "ALTN",
+              "MAN"
+            ],
             "rest": "AUTO",
             "description": "Pressurization mode."
           }
@@ -2397,7 +2647,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "landlt"
             ],
-            "positions": "OFF, FLASH, ON",
+            "positions": [
+              "OFF",
+              "FLASH",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Left landing light."
           },
@@ -2409,7 +2663,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "landlt"
             ],
-            "positions": "OFF, FLASH, ON",
+            "positions": [
+              "OFF",
+              "FLASH",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Right landing light."
           },
@@ -2421,7 +2679,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "turnoff"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Left runway turnoff light."
           },
@@ -2433,7 +2694,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "turnoff"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Right runway turnoff light."
           },
@@ -2445,7 +2709,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "lldg"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Taxi light."
           }
@@ -2467,7 +2734,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "apusw"
             ],
-            "positions": "OFF, ON, START",
+            "positions": [
+              "OFF",
+              "ON",
+              "START"
+            ],
             "rest": "OFF",
             "description": "START is spring-loaded back to ON."
           }
@@ -2489,7 +2760,12 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "starts"
             ],
-            "positions": "GRD, OFF, CONT, FLT",
+            "positions": [
+              "GRD",
+              "OFF",
+              "CONT",
+              "FLT"
+            ],
             "rest": "OFF",
             "description": "Engine 1 start and ignition."
           },
@@ -2501,7 +2777,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "starts"
             ],
-            "positions": "IGN L, BOTH, IGN R",
+            "positions": [
+              "IGN L",
+              "BOTH",
+              "IGN R"
+            ],
             "rest": "IGN L",
             "description": "Chooses the igniters."
           },
@@ -2513,7 +2793,12 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "starts"
             ],
-            "positions": "GRD, OFF, CONT, FLT",
+            "positions": [
+              "GRD",
+              "OFF",
+              "CONT",
+              "FLT"
+            ],
             "rest": "OFF",
             "description": "Engine 2 start and ignition."
           }
@@ -2535,7 +2820,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "logo"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Tail logo lights."
           },
@@ -2547,7 +2835,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "poslt"
             ],
-            "positions": "STROBE & STEADY, OFF, STEADY",
+            "positions": [
+              "STROBE & STEADY",
+              "OFF",
+              "STEADY"
+            ],
             "rest": "OFF",
             "description": "Position and strobe lights."
           },
@@ -2559,7 +2851,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "beacon"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Red beacon lights."
           },
@@ -2572,7 +2867,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "winglt",
               "wingww"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Wing lights."
           },
@@ -2584,7 +2882,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "wingww"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Wheel well lights."
           }
@@ -2668,7 +2969,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "elt"
             ],
-            "positions": "ARM, ON",
+            "positions": [
+              "ARM",
+              "ON"
+            ],
             "rest": "ARM",
             "description": "Emergency locator transmitter. Stays guarded."
           }
@@ -2722,7 +3026,13 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "label": "DSPL SEL",
             "x": 63.0,
             "y": 94.0,
-            "positions": "TEST, TK/GS, PPOS, WIND, HDG/STS",
+            "positions": [
+              "TEST",
+              "TK/GS",
+              "PPOS",
+              "WIND",
+              "HDG/STS"
+            ],
             "rest": "TEST",
             "description": "Chooses what the IRS display shows."
           },
@@ -2731,7 +3041,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "label": "SYS DSPL",
             "x": 63.0,
             "y": 156.0,
-            "positions": "L, R",
+            "positions": [
+              "L",
+              "R"
+            ],
             "rest": "L",
             "description": "Chooses the left or right IRS."
           },
@@ -2873,7 +3186,12 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "irs"
             ],
-            "positions": "OFF, ALIGN, NAV, ATT",
+            "positions": [
+              "OFF",
+              "ALIGN",
+              "NAV",
+              "ATT"
+            ],
             "rest": "OFF",
             "description": "Left IRS mode."
           },
@@ -2885,7 +3203,12 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "irs"
             ],
-            "positions": "OFF, ALIGN, NAV, ATT",
+            "positions": [
+              "OFF",
+              "ALIGN",
+              "NAV",
+              "ATT"
+            ],
             "rest": "OFF",
             "description": "Right IRS mode."
           }
@@ -2904,7 +3227,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "label": "SERVICE INTERPHONE",
             "x": 48.0,
             "y": 46.0,
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Connects the service interphone."
           }
@@ -3011,7 +3337,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "eec"
             ],
-            "positions": "ON, ALTN",
+            "positions": [
+              "ON",
+              "ALTN"
+            ],
             "rest": "ON",
             "description": "Engine 1 control. ON is normal. ALTN shows alternate mode."
           },
@@ -3023,7 +3352,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "eec"
             ],
-            "positions": "ON, ALTN",
+            "positions": [
+              "ON",
+              "ALTN"
+            ],
             "rest": "ON",
             "description": "Engine 2 control. ON is normal. ALTN shows alternate mode."
           }
@@ -3056,7 +3388,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "paxoxy"
             ],
-            "positions": "NORMAL, ON",
+            "positions": [
+              "NORMAL",
+              "ON"
+            ],
             "rest": "NORMAL",
             "description": "Drops the cabin masks. Guarded."
           },
@@ -3087,7 +3422,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "label": "BROADBAND",
             "x": 70.0,
             "y": 34.0,
-            "positions": "OFF, ON, CREW ONLY",
+            "positions": [
+              "OFF",
+              "ON",
+              "CREW ONLY"
+            ],
             "rest": "OFF",
             "description": "Cabin broadband power."
           }
@@ -3110,7 +3449,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "fltrec"
             ],
-            "positions": "TEST, NORMAL",
+            "positions": [
+              "TEST",
+              "NORMAL"
+            ],
             "rest": "NORMAL",
             "description": "Guarded. Runs automatically."
           },
@@ -3205,7 +3547,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "elevjam"
             ],
-            "positions": "OFF, ON",
+            "positions": [
+              "OFF",
+              "ON"
+            ],
             "rest": "OFF",
             "description": "Not simulated."
           }
@@ -3245,7 +3590,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "label": "DOME WHITE",
             "x": 44.0,
             "y": 40.0,
-            "positions": "DIM, OFF, BRIGHT",
+            "positions": [
+              "DIM",
+              "OFF",
+              "BRIGHT"
+            ],
             "rest": "OFF",
             "description": "Flight deck dome light."
           }
@@ -3319,7 +3668,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "mins",
               "efispanel"
             ],
-            "positions": "RADIO, BARO",
+            "positions": [
+              "RADIO",
+              "BARO"
+            ],
             "rest": "RADIO",
             "description": "Outer ring selects RADIO or BARO. Inner knob sets minimums. Center button is RST."
           },
@@ -3332,7 +3684,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "baro",
               "efispanel"
             ],
-            "positions": "IN, HPA, STD",
+            "positions": [
+              "IN",
+              "HPA",
+              "STD"
+            ],
             "rest": "IN",
             "description": "Inner knob sets the altimeter. Outer ring selects IN or HPA. Center button is STD."
           },
@@ -3358,7 +3714,12 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "efispanel"
             ],
-            "positions": "APP, VOR, MAP, PLN",
+            "positions": [
+              "APP",
+              "VOR",
+              "MAP",
+              "PLN"
+            ],
             "rest": "APP",
             "description": "ND mode. CTR centers it."
           },
@@ -3370,7 +3731,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "efispanel"
             ],
-            "positions": "ND RANGE",
+            "positions": [
+              "ND RANGE"
+            ],
             "rest": "ND RANGE",
             "description": "ND range. TFC shows traffic."
           },
@@ -3553,7 +3916,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "fd"
             ],
-            "positions": "ON, OFF",
+            "positions": [
+              "ON",
+              "OFF"
+            ],
             "rest": "OFF",
             "description": "Left flight director."
           },
@@ -3565,7 +3931,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "mcpset"
             ],
-            "positions": "ARM, OFF",
+            "positions": [
+              "ARM",
+              "OFF"
+            ],
             "rest": "OFF",
             "description": "Arms the autothrottle."
           },
@@ -3622,7 +3991,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "hdgsel",
               "mcpset"
             ],
-            "positions": "BANK 10 TO 30",
+            "positions": [
+              "BANK 10 TO 30"
+            ],
             "rest": "BANK 10 TO 30",
             "description": "Sets heading. The outer ring limits bank."
           },
@@ -3737,7 +4108,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "fd"
             ],
-            "positions": "ON, OFF",
+            "positions": [
+              "ON",
+              "OFF"
+            ],
             "rest": "OFF",
             "description": "Right flight director."
           },
@@ -3750,7 +4124,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "apdis"
             ],
-            "positions": "UP, DOWN",
+            "positions": [
+              "UP",
+              "DOWN"
+            ],
             "rest": "UP",
             "description": "Autopilot disengage bar."
           },
@@ -3867,7 +4244,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "mins",
               "efispanel"
             ],
-            "positions": "RADIO, BARO",
+            "positions": [
+              "RADIO",
+              "BARO"
+            ],
             "rest": "RADIO",
             "description": "Outer ring selects RADIO or BARO. Inner knob sets minimums. Center button is RST."
           },
@@ -3880,7 +4260,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "baro",
               "efispanel"
             ],
-            "positions": "IN, HPA, STD",
+            "positions": [
+              "IN",
+              "HPA",
+              "STD"
+            ],
             "rest": "IN",
             "description": "Inner knob sets the altimeter. Outer ring selects IN or HPA. Center button is STD."
           },
@@ -3906,7 +4290,12 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "efispanel"
             ],
-            "positions": "APP, VOR, MAP, PLN",
+            "positions": [
+              "APP",
+              "VOR",
+              "MAP",
+              "PLN"
+            ],
             "rest": "APP",
             "description": "ND mode. CTR centers it."
           },
@@ -3918,7 +4307,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "efispanel"
             ],
-            "positions": "ND RANGE",
+            "positions": [
+              "ND RANGE"
+            ],
             "rest": "ND RANGE",
             "description": "ND range. TFC shows traffic."
           },
@@ -4039,7 +4430,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "ltest"
             ],
-            "positions": "1, 2",
+            "positions": [
+              "1",
+              "2"
+            ],
             "description": "Tests the disengage lights."
           },
           {
@@ -4050,7 +4444,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "ltest"
             ],
-            "positions": "TEST, BRT, DIM",
+            "positions": [
+              "TEST",
+              "BRT",
+              "DIM"
+            ],
             "rest": "BRT",
             "description": "Tests the lights and sets brightness."
           },
@@ -4242,7 +4640,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
               "gearlever",
               "gearup"
             ],
-            "positions": "UP, DN",
+            "positions": [
+              "UP",
+              "DN"
+            ],
             "rest": "DN",
             "description": "Raises and lowers the gear."
           },
@@ -4262,7 +4663,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "nws"
             ],
-            "positions": "NORM",
+            "positions": [
+              "NORM"
+            ],
             "rest": "NORM",
             "description": "Guarded at NORM, which steers with system A. ALT uses system B."
           }
@@ -4292,7 +4695,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "ltest"
             ],
-            "positions": "1, 2",
+            "positions": [
+              "1",
+              "2"
+            ],
             "description": "Tests the disengage lights."
           },
           {
@@ -4395,7 +4801,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "panellts"
             ],
-            "positions": "OFF to BRIGHT",
+            "positions": [
+              "OFF to BRIGHT"
+            ],
             "rest": "OFF to BRIGHT",
             "description": "Panel brightness."
           },
@@ -4407,7 +4815,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "dsel"
             ],
-            "positions": "OUTBD, NORM, INBD",
+            "positions": [
+              "OUTBD",
+              "NORM",
+              "INBD"
+            ],
             "rest": "NORM",
             "description": "Moves the displays."
           },
@@ -4419,7 +4831,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "panellts"
             ],
-            "positions": "OFF to BRIGHT",
+            "positions": [
+              "OFF to BRIGHT"
+            ],
             "rest": "OFF to BRIGHT",
             "description": "Background brightness."
           },
@@ -4431,7 +4845,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "panellts"
             ],
-            "positions": "OFF to BRIGHT",
+            "positions": [
+              "OFF to BRIGHT"
+            ],
             "rest": "OFF to BRIGHT",
             "description": "Glareshield flood light."
           },
@@ -4500,7 +4916,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "guarded": true,
             "x": 91.0,
             "y": 57.0,
-            "positions": "NORM",
+            "positions": [
+              "NORM"
+            ],
             "rest": "NORM",
             "description": "Guarded at NORM. INHIBIT silences the flap, gear, terrain or runway alerts."
           },
@@ -4510,7 +4928,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "guarded": true,
             "x": 154.0,
             "y": 57.0,
-            "positions": "NORM",
+            "positions": [
+              "NORM"
+            ],
             "rest": "NORM",
             "description": "Guarded at NORM. INHIBIT silences the flap, gear, terrain or runway alerts."
           },
@@ -4520,7 +4940,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "guarded": true,
             "x": 216.0,
             "y": 57.0,
-            "positions": "NORM",
+            "positions": [
+              "NORM"
+            ],
             "rest": "NORM",
             "description": "Guarded at NORM. INHIBIT silences the flap, gear, terrain or runway alerts."
           },
@@ -4530,7 +4952,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "guarded": true,
             "x": 279.0,
             "y": 57.0,
-            "positions": "NORM",
+            "positions": [
+              "NORM"
+            ],
             "rest": "NORM",
             "description": "Guarded at NORM. INHIBIT silences the flap, gear, terrain or runway alerts."
           },
@@ -4542,7 +4966,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "dsel"
             ],
-            "positions": "INBD, NORM, OUTBD",
+            "positions": [
+              "INBD",
+              "NORM",
+              "OUTBD"
+            ],
             "rest": "NORM",
             "description": "Moves the displays."
           },
@@ -4554,7 +4982,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "panellts"
             ],
-            "positions": "OFF to BRIGHT",
+            "positions": [
+              "OFF to BRIGHT"
+            ],
             "rest": "OFF to BRIGHT",
             "description": "Panel brightness."
           },
@@ -4644,7 +5074,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "fuelflow"
             ],
-            "positions": "RESET, RATE, USED",
+            "positions": [
+              "RESET",
+              "RATE",
+              "USED"
+            ],
             "rest": "RATE",
             "description": "RATE shows flow, USED shows fuel used, RESET zeroes the count."
           },
@@ -4656,7 +5090,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "sel"
             ],
-            "positions": "L, C, R",
+            "positions": [
+              "L",
+              "C",
+              "R"
+            ],
             "rest": "L",
             "description": "Left display selector."
           },
@@ -4679,7 +5117,14 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "abrake"
             ],
-            "positions": "RTO, OFF, 1, 2, 3, MAX",
+            "positions": [
+              "RTO",
+              "OFF",
+              "1",
+              "2",
+              "3",
+              "MAX"
+            ],
             "rest": "RTO",
             "description": "Sets the autobrake."
           },
@@ -4729,7 +5174,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "sel"
             ],
-            "positions": "L, C, R",
+            "positions": [
+              "L",
+              "C",
+              "R"
+            ],
             "rest": "L",
             "description": "Right display selector."
           },
@@ -4819,7 +5268,12 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "speedbrake"
             ],
-            "positions": "DOWN, ARMED, FLIGHT, UP",
+            "positions": [
+              "DOWN",
+              "ARMED",
+              "FLIGHT",
+              "UP"
+            ],
             "rest": "DOWN",
             "description": "Raises the spoilers."
           },
@@ -4863,7 +5317,17 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "flaplever"
             ],
-            "positions": "UP, 1, 2, 5, 10, 15, 25, 30, 40",
+            "positions": [
+              "UP",
+              "1",
+              "2",
+              "5",
+              "10",
+              "15",
+              "25",
+              "30",
+              "40"
+            ],
             "rest": "UP",
             "description": "Sets the flaps."
           },
@@ -4898,7 +5362,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "pbrake"
             ],
-            "positions": "RELEASED, SET",
+            "positions": [
+              "RELEASED",
+              "SET"
+            ],
             "rest": "SET",
             "description": "Red handle."
           },
@@ -4922,7 +5389,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "slever"
             ],
-            "positions": "IDLE, CUTOFF",
+            "positions": [
+              "IDLE",
+              "CUTOFF"
+            ],
             "rest": "CUTOFF",
             "description": "Fuel to engine 1."
           },
@@ -4934,7 +5404,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "slever"
             ],
-            "positions": "IDLE, CUTOFF",
+            "positions": [
+              "IDLE",
+              "CUTOFF"
+            ],
             "rest": "CUTOFF",
             "description": "Fuel to engine 2."
           },
@@ -4953,7 +5426,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "stabcut"
             ],
-            "positions": "NORMAL, CUT OUT",
+            "positions": [
+              "NORMAL",
+              "CUT OUT"
+            ],
             "rest": "NORMAL",
             "description": "Either switch cuts all electric stabilizer trim."
           },
@@ -4965,7 +5441,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "stabcut"
             ],
-            "positions": "NORMAL, CUT OUT",
+            "positions": [
+              "NORMAL",
+              "CUT OUT"
+            ],
             "rest": "NORMAL",
             "description": "Either switch cuts all electric stabilizer trim."
           }
@@ -4987,7 +5466,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "ovhtdet"
             ],
-            "positions": "A, NORMAL, B",
+            "positions": [
+              "A",
+              "NORMAL",
+              "B"
+            ],
             "rest": "NORMAL",
             "description": "Selects loop A, B, or both (NORMAL) for engine 1."
           },
@@ -5007,7 +5490,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "firetest"
             ],
-            "positions": "FAULT/INOP, OVHT/FIRE",
+            "positions": [
+              "FAULT/INOP",
+              "OVHT/FIRE"
+            ],
             "description": "Tests the fire warnings."
           },
           {
@@ -5018,7 +5504,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "firesw"
             ],
-            "positions": "PULL, ROTATE L, R",
+            "positions": [
+              "PULL",
+              "ROTATE L",
+              "R"
+            ],
             "description": "Engine 1 fire switch."
           },
           {
@@ -5060,7 +5550,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "apufire"
             ],
-            "positions": "PULL, ROTATE",
+            "positions": [
+              "PULL",
+              "ROTATE"
+            ],
             "description": "APU fire switch."
           },
           {
@@ -5071,7 +5564,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "ovhtdet"
             ],
-            "positions": "A, NORMAL, B",
+            "positions": [
+              "A",
+              "NORMAL",
+              "B"
+            ],
             "rest": "NORMAL",
             "description": "Selects loop A, B, or both (NORMAL) for engine 2."
           },
@@ -5091,7 +5588,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "firesw"
             ],
-            "positions": "PULL, ROTATE L, R",
+            "positions": [
+              "PULL",
+              "ROTATE L",
+              "R"
+            ],
             "description": "Engine 2 fire switch."
           },
           {
@@ -5118,7 +5619,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "exttest"
             ],
-            "positions": "1, 2",
+            "positions": [
+              "1",
+              "2"
+            ],
             "description": "Tests the extinguisher bottle circuits."
           },
           {
@@ -5200,7 +5704,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "label": "DET FWD",
             "x": 154.0,
             "y": 42.0,
-            "positions": "A, NORM, B",
+            "positions": [
+              "A",
+              "NORM",
+              "B"
+            ],
             "rest": "NORM",
             "description": "Forward detector select."
           },
@@ -5209,7 +5717,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "label": "DET AFT",
             "x": 203.0,
             "y": 42.0,
-            "positions": "A, NORM, B",
+            "positions": [
+              "A",
+              "NORM",
+              "B"
+            ],
             "rest": "NORM",
             "description": "Aft detector select."
           },
@@ -5390,7 +5902,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "xpndr"
             ],
-            "positions": "1, 2",
+            "positions": [
+              "1",
+              "2"
+            ],
             "rest": "1",
             "description": "Chooses which air data source sends altitude to the transponder."
           },
@@ -5402,7 +5917,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "xpndr"
             ],
-            "positions": "STBY, AUTO",
+            "positions": [
+              "STBY",
+              "AUTO"
+            ],
             "rest": "STBY",
             "description": "Transponder."
           },
@@ -5426,7 +5944,12 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "xpndr"
             ],
-            "positions": "ALT OFF, XPNDR, TA ONLY, TA/RA",
+            "positions": [
+              "ALT OFF",
+              "XPNDR",
+              "TA ONLY",
+              "TA/RA"
+            ],
             "rest": "ALT OFF",
             "description": "TCAS and transponder mode."
           },
@@ -5438,7 +5961,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "xpndr"
             ],
-            "positions": "1, 2",
+            "positions": [
+              "1",
+              "2"
+            ],
             "rest": "1",
             "description": "Second altitude source selector."
           }
@@ -5542,7 +6068,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "adf"
             ],
-            "positions": "1, OFF, 2",
+            "positions": [
+              "1",
+              "OFF",
+              "2"
+            ],
             "rest": "OFF",
             "description": "ADF select knob: chooses which receiver you hear (OFF, 1 or 2)."
           },
@@ -5554,7 +6084,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "adf"
             ],
-            "positions": "ADF, ANT, OFF",
+            "positions": [
+              "ADF",
+              "ANT",
+              "OFF"
+            ],
             "rest": "ADF",
             "description": "ADF 1 mode. TEST button in the center."
           },
@@ -5566,7 +6100,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "adf"
             ],
-            "positions": "ADF, ANT, OFF",
+            "positions": [
+              "ADF",
+              "ANT",
+              "OFF"
+            ],
             "rest": "ADF",
             "description": "ADF 2 mode. TEST button in the center."
           }
@@ -5585,7 +6123,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "label": "FLOOD",
             "x": 60.0,
             "y": 66.0,
-            "positions": "OFF to BRIGHT",
+            "positions": [
+              "OFF to BRIGHT"
+            ],
             "rest": "OFF to BRIGHT",
             "description": "Flood lights."
           },
@@ -5594,7 +6134,9 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "label": "PANEL",
             "x": 160.0,
             "y": 66.0,
-            "positions": "OFF to BRIGHT",
+            "positions": [
+              "OFF to BRIGHT"
+            ],
             "rest": "OFF to BRIGHT",
             "description": "Panel lights."
           }
@@ -5628,7 +6170,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "trimp"
             ],
-            "positions": "LEFT, RIGHT WING DOWN",
+            "positions": [
+              "LEFT",
+              "RIGHT WING DOWN"
+            ],
             "description": "Aileron trim."
           },
           {
@@ -5639,7 +6184,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "trimp"
             ],
-            "positions": "NOSE LEFT, NOSE RIGHT",
+            "positions": [
+              "NOSE LEFT",
+              "NOSE RIGHT"
+            ],
             "description": "Rudder trim."
           }
         ]
@@ -5661,7 +6209,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "staboverride"
             ],
-            "positions": "NORM, OVRD",
+            "positions": [
+              "NORM",
+              "OVRD"
+            ],
             "rest": "NORM",
             "description": "OVRD restores electric trim when the column cutout has stopped it. Guarded at NORM."
           },
@@ -5673,7 +6224,11 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "fdd"
             ],
-            "positions": "UNLKD, AUTO, DENY",
+            "positions": [
+              "UNLKD",
+              "AUTO",
+              "DENY"
+            ],
             "rest": "AUTO",
             "description": "Flight deck door."
           }
@@ -5703,7 +6258,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "stabtrim"
             ],
-            "positions": "NOSE DOWN, NOSE UP",
+            "positions": [
+              "NOSE DOWN",
+              "NOSE UP"
+            ],
             "description": "Main electric stabilizer trim: two thumb switches on the outboard grip of the wheel, moved together. Spring-loaded to the center."
           },
           {
@@ -5766,7 +6324,10 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             "controls": [
               "mask"
             ],
-            "positions": "NORMAL, 100%",
+            "positions": [
+              "NORMAL",
+              "100%"
+            ],
             "rest": "NORMAL",
             "description": "The regulator: NORMAL mixes cabin air with oxygen; 100% gives pure oxygen."
           }

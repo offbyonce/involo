@@ -87,7 +87,7 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
   {/if}
   {#if rail}
     <nav class="stages" aria-label="Stages" data-tour="stages">
-      {#each rail.stages as s (s.title)}
+      {#each rail.stages as s (s.id)}
         {@const id = target(s.phases)}
         <!-- The dot marks other stages holding an open step; the current stage's own show on its
              phase tabs (Checklist board). -->

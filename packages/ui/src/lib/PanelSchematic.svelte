@@ -277,7 +277,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     targets
       .map((t) => {
         const item = panel.sections.find((s) => s.id === t.section)?.items[t.item];
-        const pos = t.position != null ? item?.positions?.split(",")[t.position]?.trim() : undefined;
+        const pos = t.position != null ? item?.positions?.[t.position]?.trim() : undefined;
         return item ? `${item.label}${pos ? ` set to ${pos}` : ""}` : null;
       })
       .filter(Boolean)

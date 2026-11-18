@@ -99,6 +99,13 @@
     "kind": {
       "$ref": "#/$defs/PackKind"
     },
+    "labels": {
+      "description": "The words the interface shows for this pack (`labels.yaml`); without it, the app's own.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "license": {
       "description": "SPDX license id for the pack content, e.g. `CC-BY-NC-SA-4.0`.",
       "type": "string"

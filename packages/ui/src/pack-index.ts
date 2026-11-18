@@ -16,8 +16,10 @@ import type {
   PanelState,
   Step,
   UserOption,
+  ViewFrame,
   Zone,
 } from "@involo/bindings";
+import { seatFrame } from "./lib/seat-frame";
 
 export type PackIndex = {
   name: string;
@@ -32,6 +34,8 @@ export type PackIndex = {
   /** A step's place in flight order (the phases' lists in turn), for sorting. */
   order(stepId: string): number;
   overview: Overview | null;
+  /** The seat view "Where is this?" draws (see `seatFrame`). */
+  seatFrame: ViewFrame | null;
   options: UserOption[];
   /** The iFly panel states (panel states) the pack offers. */
   panelStates: PanelState[];
@@ -186,6 +190,7 @@ export function indexPack(pack: FlatPack): PackIndex {
     controls: [...controls.values()],
     order: (stepId) => stepOrder.get(stepId) ?? Number.MAX_SAFE_INTEGER,
     overview: pack.content.controls?.overview ?? null,
+    seatFrame: seatFrame(pack.content.controls?.overview?.views?.seat, pack.content.labels),
     options: pack.content.phases?.options ?? [],
     panelStates: pack.content.panelStates?.states ?? [],
     section: (id) => sections.get(id),

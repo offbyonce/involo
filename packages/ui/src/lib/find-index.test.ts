@@ -22,13 +22,39 @@ const phase = (id: string) => ({
 /** The pack's stages as a flight with the default options shows them. */
 const rail: Rail = {
   stages: [
-    { title: "Preflight", phases: ["cold-dark", "gpu-power", "exterior", "preflight"].map(phase) },
-    { title: "Departure", phases: ["apu-power", "before-start", "pushback", "engine-start"].map(phase) },
+    {
+      id: "preflight",
+      title: "Preflight",
+      phases: ["cold-dark", "gpu-power", "exterior", "preflight"].map(phase),
+    },
+    {
+      id: "departure",
+      title: "Departure",
+      phases: ["apu-power", "before-start", "pushback", "engine-start"].map(phase),
+    },
   ],
   reference: [],
 };
 
 describe("find", () => {
+  it("keys stages by id: a new stage title changes only the stage text shown", () => {
+    const renamed = structuredClone(pack);
+    for (const stage of renamed.content.phases?.stages ?? []) stage.title = `${stage.title} (renamed)`;
+    const again = buildFind(renamed, indexPack(renamed));
+    const renamedRail: Rail = {
+      ...rail,
+      stages: rail.stages.map((s) => ({ ...s, title: `${s.title} (renamed)` })),
+    };
+    const key = (r: ReturnType<typeof findIn>) =>
+      r.steps.map((s) => [s.id, s.stageId, s.phase, s.phaseTitle]);
+    expect(key(findIn(again, "fuel", renamedRail))).toEqual(key(findIn(find, "fuel", rail)));
+    expect(findIn(again, "fuel", renamedRail).steps[0]?.stage).toMatch(/\(renamed\)$/);
+    expect(again.phases?.["before-start"]).toMatchObject({
+      stageId: "departure",
+      stage: "Departure (renamed)",
+    });
+  });
+
   it("finds steps by title or value, in the flight's order, with their stage and phase", () => {
     const { steps } = findIn(find, "fuel pump", rail);
     const pumps = steps.find((s) => s.id === "ifly-737-max8.before-start.fuel-pump-switches");
@@ -86,7 +112,9 @@ describe("Find opened on a set of steps (References' simulator model notes)", ()
     // ... and in Preflight on one without ground power.
     const noGpu: Rail = {
       ...rail,
-      stages: [{ title: "Preflight", phases: ["cold-dark", "apu-power", "preflight"].map(phase) }],
+      stages: [
+        { id: "preflight", title: "Preflight", phases: ["cold-dark", "apu-power", "preflight"].map(phase) },
+      ],
     };
     expect(where(noGpu, "apu-power")?.stage).toBe("Preflight");
     // A turnaround hides Power up: its steps are still listed, placed as the pack places them.

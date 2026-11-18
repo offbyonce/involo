@@ -56,6 +56,10 @@ pub struct PackContent {
     pub panel_states: Option<involo_checklist_core::PanelStatesFile>,
     pub cdu: Option<involo_checklist_core::CduFile>,
     pub aliases: Option<involo_checklist_core::AliasesFile>,
+    /// The words the interface shows for this pack: its `labels.yaml` over the app's defaults,
+    /// always complete (decision 0029).
+    #[serde(default)]
+    pub labels: involo_checklist_core::Labels,
 }
 
 /// A loaded pack: its manifest plus every checklist and other content it defines.
@@ -64,6 +68,9 @@ pub struct Pack {
     pub manifest: PackManifest,
     pub checklists: Vec<involo_checklist_core::Checklist>,
     pub content: PackContent,
+    /// `labels.yaml` as the pack wrote it, for `involo-pack check`; `content.labels` is the
+    /// complete set.
+    pub labels_file: Option<involo_checklist_core::LabelsFile>,
     /// Files in the pack folder that the manifest does not list (checked for images).
     pub other_files: Vec<std::path::PathBuf>,
 }
