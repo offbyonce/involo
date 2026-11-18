@@ -9,6 +9,7 @@
 import type {
   Action,
   AppInfo,
+  CatalogEntry,
   Decoded,
   FlatPack,
   Flight,
@@ -37,6 +38,24 @@ export interface Host {
   packs(): Promise<PackSummary[]>;
   /** Loads a pack; it stays loaded for the calls below. */
   loadPack(id: string): Promise<FlatPack>;
+  /**
+   * The packs the catalog on the app's own site offers (decision 0028). The request carries
+   * nothing about the pilot.
+   */
+  catalog(): Promise<CatalogEntry[]>;
+  /** The packs installed on this device. */
+  installedPacks(): Promise<InstalledPack[]>;
+  /**
+   * Checks a pack file the pilot chose with the same checks as `involo-pack check`, and installs
+   * it, replacing any version of that pack. A file over the size limit is refused unread.
+   */
+  installPackFile(file: Blob): Promise<PackInstall>;
+  /** Downloads a catalog pack, checks it and its SHA-256, and installs it in the same way. */
+  installCatalogPack(entry: CatalogEntry): Promise<PackInstall>;
+  /** Removes an installed pack. Resolves false when the device refused. */
+  removePack(id: string): Promise<boolean>;
+  /** Loads an installed pack from this device; it stays loaded for the calls below. */
+  loadInstalledPack(id: string): Promise<FlatPack>;
   newFlight(pack: string): Promise<Flight>;
   /** Applies an action and returns the changed flight. */
   apply(pack: string, flight: Flight, action: Action): Promise<Flight>;
@@ -118,6 +137,16 @@ export interface Host {
   themeChanged?(theme: Theme): void;
 }
 
+/** Where an installed pack came from: the Involo catalog, or a file the pilot chose, which is
+ * shown as "Not from the Involo catalog" wherever the pack is named (decision 0028). */
+export type PackSource = "catalog" | "file";
+export type InstalledPack = { summary: PackSummary; source: PackSource; installedAt: number };
+/** What installing a pack did: installed; passed every check but this device didn't keep it
+ * (no storage, or storage refused); or refused, with every reason, and nothing kept. */
+export type PackInstall =
+  | { state: "installed"; pack: InstalledPack }
+  | { state: "notKept"; pack: InstalledPack }
+  | { state: "refused"; reasons: string[] };
 export type SavedItem<T> = { loaded: Loaded<T>; text: string } | null;
 /** What is saved on this device that the app may have to keep as it is. */
 export type Kept = "flight" | "settings" | "plan";

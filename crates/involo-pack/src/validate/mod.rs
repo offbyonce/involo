@@ -38,7 +38,7 @@ use references::check_other_references;
 use steps::{check_list, check_notes_repeat_how};
 use targets::check_step_targets;
 
-use crate::Pack;
+use crate::{FlatPack, Pack};
 
 pub use ids::valid_step_id;
 pub use links::{ALLOWED_LINKS, BLOCKED_DOMAINS, BLOCKED_PATHS, find_links, is_blocked_link};
@@ -89,6 +89,21 @@ fn warning(at: impl Into<String>, message: impl Into<String>) -> Issue {
 /// Run every semantic check. An empty list, or warnings only, means the pack may ship.
 pub fn validate_pack(pack: &Pack) -> Vec<Issue> {
     validate_with_allow_list(pack, ALLOWED_LINKS)
+}
+
+/// Run every check a flattened pack can be given: the app runs this when it installs a pack,
+/// with the same rules as [`validate_pack`] and `involo-pack check` (decision 0028). A built pack
+/// is one file with no folder, so two kinds of rule are checked only when the pack is built: the
+/// files in the folder besides its data files (no images or PDFs), and the `labels.yaml` entries
+/// building leaves out (see `labels::as_written`).
+pub fn validate_flat(flat: &FlatPack) -> Vec<Issue> {
+    validate_pack(&Pack {
+        manifest: flat.manifest.clone(),
+        checklists: flat.lists.clone(),
+        content: flat.content.clone(),
+        labels_file: Some(labels::as_written(&flat.content.labels)),
+        other_files: Vec::new(),
+    })
 }
 
 fn validate_with_allow_list(pack: &Pack, allow: &[&str]) -> Vec<Issue> {

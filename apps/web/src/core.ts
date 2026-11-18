@@ -8,6 +8,7 @@
 import type {
   Action,
   AppInfo,
+  CatalogEntry,
   Checklist,
   Decoded,
   FlatPack,
@@ -18,6 +19,7 @@ import type {
   LogEdit,
   LoggedFlight,
   OpenStep,
+  PackCheck,
   PhaseModel,
   Plan,
   PlanSource,
@@ -58,6 +60,27 @@ export async function exampleChecklist(): Promise<Checklist> {
 export async function parsePack(json: string): Promise<FlatPack> {
   await load();
   return unwrap<FlatPack>(wasm.parse_pack(json));
+}
+
+/**
+ * Checks a pack file before it is installed (decision 0028): the summary, or every reason it is
+ * refused. `sha256` is the catalog's hash for a download; leave it out for a file the pilot chose.
+ */
+export async function checkPack(bytes: Uint8Array, sha256 = ""): Promise<PackCheck> {
+  await load();
+  return unwrap<PackCheck>(wasm.check_pack(bytes, sha256));
+}
+
+/** The largest pack file the app reads, in bytes. */
+export async function packFileLimit(): Promise<number> {
+  await load();
+  return wasm.pack_file_limit();
+}
+
+/** Reads the pack catalog, `packs/index.json`. */
+export async function parseCatalog(json: string): Promise<CatalogEntry[]> {
+  await load();
+  return unwrap<CatalogEntry[]>(wasm.parse_catalog(json));
 }
 
 export async function newFlight(pack: string): Promise<Flight> {

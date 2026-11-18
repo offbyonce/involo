@@ -11,6 +11,7 @@ import { applyBrandTheme } from "./brand-theme";
 import {
   appInfo,
   apply,
+  checkPack,
   decodeMetar,
   decodeTaf,
   defaultSettings,
@@ -20,6 +21,8 @@ import {
   newFlight,
   newLog,
   openSteps,
+  packFileLimit,
+  parseCatalog,
   parseLog,
   parsePack,
   parsePlan,
@@ -31,11 +34,28 @@ import {
   suggestion,
 } from "./core";
 import { readLog as readLogText, writeLog } from "./log-store.js";
+import { type InstallDeps, installFile, installFromCatalog, readCatalog } from "./pack-install.js";
+import { deletePack, readPacks, readPackText, writePack } from "./pack-store.js";
 import { readPlan, readSaved, save, savePlan, setAside } from "./saved";
 import { fetchPlanText } from "./simbrief-fetch.js";
 
-/** Whether the browser has been asked this visit to keep the log (decision 0026). */
+/** Whether the browser has been asked this visit to keep the site's data: the log (decision
+ * 0026) and the installed packs (decision 0028). */
 let keepAsked = false;
+
+function askToKeep(): void {
+  if (keepAsked) return;
+  keepAsked = true;
+  void navigator.storage?.persist?.().catch(() => false);
+}
+
+/** The browser's fetch, called on its own (it refuses to run as another object's method). */
+const fetchOwn: typeof fetch = (input, init) => fetch(input, init);
+
+/** What installing a pack needs: Rust's check, the pack store, the clock. */
+async function installDeps(): Promise<InstallDeps> {
+  return { limit: await packFileLimit(), check: checkPack, keep: writePack, now: Date.now, askToKeep };
+}
 
 /** The compact plan from a SimBrief reply or a saved file (decision 0019): the raw text is dropped. */
 async function compact(text: string): Promise<SavedPlan> {
@@ -62,6 +82,17 @@ export const webHost: Host = {
   appInfo,
   packs: async () => JSON.parse(await fetchText("../packs/index.json")) as PackSummary[],
   loadPack: async (id) => parsePack(await fetchText(`../packs/${encodeURIComponent(id)}.json`)),
+  catalog: () => readCatalog({ fetch: fetchOwn, parse: parseCatalog }),
+  installedPacks: () => readPacks(),
+  installPackFile: async (file) => installFile(file, await installDeps()),
+  installCatalogPack: async (entry) =>
+    installFromCatalog(entry, { ...(await installDeps()), fetch: fetchOwn }),
+  removePack: (id) => deletePack(id),
+  loadInstalledPack: async (id) => {
+    const text = await readPackText(id);
+    if (text === null) throw new Error(`The pack ${id} is not installed on this device.`);
+    return parsePack(text);
+  },
   newFlight,
   apply,
   rail,
@@ -98,10 +129,7 @@ export const webHost: Host = {
     const saved = await writeLog(JSON.stringify(log));
     // The first time a flight is logged, ask the browser not to clear the log on its own. If it
     // refuses, nothing changes: the log page's note says to export now and then.
-    if (keep && !keepAsked) {
-      keepAsked = true;
-      void navigator.storage?.persist?.().catch(() => false);
-    }
+    if (keep) askToKeep();
     return saved;
   },
   logEntry,

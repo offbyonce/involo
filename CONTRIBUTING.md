@@ -184,6 +184,17 @@ given. In `controls.yaml`, a control whose name is plural carries `plural: true`
 optional `short` name ("Overhead", shared by both overhead regions) names that area in the How
 page's flow figure.
 
+**Installing a pack.** The app checks every pack before it keeps it on the device (decision 0028),
+with the checks `involo-pack check` makes, run on the built file. The file must be at most 16 MB
+(a larger one is refused unread), JSON with a manifest, of a format the app reads, not a library,
+for a range of app versions (`engine`) that includes this one, and, when it comes from the
+catalog, match the catalog's SHA-256. A refused pack is reported with every reason and nothing is
+kept. A built pack is one file, so two kinds of rule run only when it is built: the folder's other
+files (no images or PDFs), and the `labels.yaml` entries building leaves out (labels for basis
+tags `pack.json` doesn't list, a second label for one tag or reference group). Installed packs are
+kept in the browser's IndexedDB, one version per pack id, with where each came from; one from a
+file is "Not from the Involo catalog".
+
 **Overlap check.** `just overlap` flags any run of 8 or more words matching plain-text reference
 files (see `INVOLO_OVERLAP_REFS` under "Optional local files" below). It also compares each list's
 steps joined in order. Standard phrases can be accepted in `crates/involo-pack-overlap/allow.txt`
