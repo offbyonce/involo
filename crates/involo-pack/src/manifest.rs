@@ -39,6 +39,17 @@ pub struct AircraftInfo {
     pub developer: String,
 }
 
+/// One pack a built pack was built from: its id and exact version (decision 0029).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(deny_unknown_fields)]
+pub struct ResolvedParent {
+    pub id: String,
+    #[schemars(with = "String")]
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
+    pub version: Version,
+}
+
 /// A pack's manifest, `pack.json`. Field names: the manifest is camelCase (`schemaVersion`); the
 /// pack's YAML files and their fields are snake_case (`expect_when`, `ask_in`), as authors write
 /// them; the app's own saved data is camelCase. The app hands pack content to its interface with
@@ -75,12 +86,26 @@ pub struct PackManifest {
     #[schemars(with = "BTreeMap<String, String>")]
     #[cfg_attr(feature = "ts", ts(type = "Record<string, string>"))]
     pub extends: BTreeMap<String, VersionReq>,
-    /// SPDX license id for the pack content, e.g. `CC-BY-NC-SA-4.0`.
+    /// A child's changes to its parent, by id (`patches.yaml`). Only with `extends`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub patches: Option<String>,
+    /// Written by `involo-pack build`, never by an author: each pack this one was built from,
+    /// the parent first, with its exact version.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub resolved: Vec<ResolvedParent>,
+    /// Written by `involo-pack build`, never by an author: the SHA-256 of the built pack's
+    /// content (its lists and content files, flattened), in hex.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_hash: Option<String>,
+    /// SPDX license id for the pack content, e.g. `CC-BY-NC-SA-4.0`. A child's license is the
+    /// built pack's.
     pub license: String,
-    /// Credit and terms notes.
+    /// Credit and terms notes. A built child carries its parents' notes first, then its own,
+    /// each once.
     #[serde(default)]
     pub attribution: Vec<String>,
-    /// The `basis` tags this pack's lists may use: kinds of material, never document names.
+    /// The `basis` tags this pack's lists may use: kinds of material, never document names. A
+    /// built child may use its parents' tags and its own: theirs first, then its own, each once.
     #[serde(default)]
     pub basis_tags: Vec<String>,
     /// Checklist files, in display order, relative to the pack folder.
@@ -133,6 +158,7 @@ impl PackManifest {
             &self.aliases,
             &self.flight,
             &self.labels,
+            &self.patches,
         ];
         self.checklists
             .iter()

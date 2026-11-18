@@ -112,6 +112,21 @@ shows lit when a step expects the button's light on) or a `keypad` (its keys as 
 Packs name light roles (amber, red, green, blue, white), never colors. See the example pack's
 `panels/autoflight.yaml`.
 
+**Extending a pack.** A pack may build on one parent (another pack or a `kind: library` pack):
+`extends` names it with the versions it accepts, and `patches` (`patches.yaml`) changes it by id.
+Each patch has an `op` (`set`, `replace`, `remove`, `insert_before`, `insert_after`) and names one
+target: a `stage`, `list`, `step`, `panel`, `section` (`panel/section`), `item`
+(`panel/section/item`; an item needs an `id` in the parent to be patched), `flight_field`,
+`panel_state`, `glossary_term` or `label` (a dotted path, list entries by id). `set` takes `to`
+(the fields to change; null removes one); `replace` and the inserts take `with` (one entry or a
+list). The child's own lists and panels follow the parent's, and its `labels.yaml` applies over
+the parent's words; any other content file the parent has is changed with patches. Attribution
+notes and basis tags are the parents' first, then the child's, each once. `involo-pack check` and
+`build` find the parent beside the child, or in a folder given with `--parents`; the built pack
+records each parent's exact version (`resolved`) and a `contentHash`. A library is checked but
+never written as an installable pack. A patch that matches nothing, two patches on one target, a
+cycle, or a parent of another format or outside the range fails the build.
+
 **Labels.** Words the interface shows that belong to the aircraft (list kind names, the reference
 area's title and groups, crew roles and seats, the panel-state picker, basis tag labels) can go in
 an optional `labels.yaml`, listed in `pack.json` as `labels`. Every key is optional, and a key left

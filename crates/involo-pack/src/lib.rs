@@ -8,13 +8,16 @@
 
 pub mod load;
 pub mod manifest;
+pub mod patch;
+pub mod resolve;
 pub mod schema;
 pub mod suggest;
 pub mod terms;
 pub mod validate;
 
 pub use load::{LoadError, load_pack_dir, parse_checklist_yaml, parse_yaml};
-pub use manifest::{AircraftInfo, PackKind, PackManifest};
+pub use manifest::{AircraftInfo, PackKind, PackManifest, ResolvedParent};
+pub use resolve::{ResolveError, Resolved, resolve};
 pub use validate::{Issue, Severity, validate_pack};
 
 /// The newest pack format this build of the app reads.
@@ -97,6 +100,15 @@ impl From<Pack> for FlatPack {
             lists: pack.checklists,
             content: pack.content,
         }
+    }
+}
+
+impl FlatPack {
+    /// The pack as `involo-pack build` writes it: flattened, with its content hash recorded.
+    pub fn built(pack: Pack) -> Self {
+        let mut flat = Self::from(pack);
+        flat.manifest.content_hash = Some(resolve::content_hash(&flat.lists, &flat.content));
+        flat
     }
 }
 

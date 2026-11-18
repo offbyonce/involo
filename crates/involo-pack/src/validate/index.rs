@@ -46,17 +46,23 @@ fn roles(pack: &Pack) -> BTreeSet<&str> {
     labels.roles.iter().map(|r| r.id.as_str()).collect()
 }
 
-/// What a step id may start with: the pack's own id, then the one it extends.
+/// What a step id may start with: the pack's own id, then the one it extends, then every pack
+/// further up the chain it was built from.
 fn step_prefixes(pack: &Pack) -> Vec<&str> {
-    std::iter::once(pack.manifest.id.as_str())
-        .chain(pack.manifest.extends.keys().map(String::as_str))
-        .collect()
+    let mut out: Vec<&str> = vec![pack.manifest.id.as_str()];
+    let m = &pack.manifest;
+    for id in m.extends.keys().chain(m.resolved.iter().map(|r| &r.id)) {
+        if !out.contains(&id.as_str()) {
+            out.push(id);
+        }
+    }
+    out
 }
 
 /// The ids content files can refer to.
 pub(super) struct Index<'a> {
-    /// What a step id may start with: the pack's own id, or the id of the pack it extends
-    /// (decision 0029). A grandparent's id joins when building on the parent arrives.
+    /// What a step id may start with: the pack's own id, or the id of any pack it is built from
+    /// (decision 0029).
     pub(super) step_prefixes: Vec<&'a str>,
     /// The crew roles the pack's labels list.
     pub(super) roles: BTreeSet<&'a str>,

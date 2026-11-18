@@ -33,7 +33,8 @@ pub(super) fn check_manifest(pack: &Pack, issues: &mut Vec<Issue>) {
     check_aircraft(pack, issues);
     check_extends(pack, issues);
     if m.kind == PackKind::Aircraft {
-        if m.checklists.is_empty() {
+        // A built child's lists may all come from its parent.
+        if pack.checklists.is_empty() {
             issues.push(error(
                 "pack.json",
                 "an aircraft pack must list at least one checklist",

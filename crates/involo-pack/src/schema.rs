@@ -27,6 +27,7 @@ pub fn all() -> Vec<(&'static str, String)> {
         ("notes.schema.json", render::<NotesFile>()),
         ("pack.schema.json", render::<PackManifest>()),
         ("panel.schema.json", render::<Panel>()),
+        ("patches.schema.json", render::<crate::patch::PatchesFile>()),
         ("phases.schema.json", render::<PhasesFile>()),
         ("panel-states.schema.json", render::<PanelStatesFile>()),
     ]

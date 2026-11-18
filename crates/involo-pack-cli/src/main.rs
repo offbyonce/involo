@@ -1,10 +1,13 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-//! `involo-pack check <dir>...`  validate one or more pack folders (or a folder of packs).
+//! `involo-pack check <dir>... [--parents <dir>]`  validate one or more pack folders (or a folder of
+//! packs). A pack that extends a parent is built over it first (decision 0029): parents are found
+//! among the packs beside it, or in the folders `--parents` names.
 //! `involo-pack schema <dir>`    write the JSON Schemas into `<dir>`.
-//! `involo-pack build <dir> <out-dir>`  check each pack, then write it as one flattened `<id>.json`,
-//!                        plus `index.json` listing the packs written.
+//! `involo-pack build <dir> <out-dir> [--parents <dir>]`  check each pack, then write it as one
+//!                        flattened `<id>.json`, plus `index.json` listing the packs written. A
+//!                        library is checked but not written: it is only ever a parent.
 //! `involo-pack overlap <dir> [--refs <folder>] [--allow <file>]`  compare pack text with private
 //! reference files. The folder can also come from `INVOLO_OVERLAP_REFS`.
 //! `involo-pack suggest-targets <pack-dir>`  draft each step's targets from its wording, as JSON, with
@@ -20,12 +23,14 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use anyhow::{Context, Result, bail};
-use involo_pack::{FlatPack, PackSummary, Severity, load_pack_dir, validate_pack};
+use involo_pack::{
+    FlatPack, PackKind, PackSummary, Severity, load_pack_dir, resolve, validate_pack,
+};
 use involo_pack_overlap::{
     AllowList, REFS_VARIABLE, check_refs_location, find_overlaps, load_references, repo_roots,
 };
 
-const USAGE: &str = "usage:\n  involo-pack check <pack-dir | packs-dir>...\n  involo-pack schema <out-dir>\n  involo-pack build <pack-dir | packs-dir> <out-dir>\n  involo-pack overlap <pack-dir | packs-dir> [--refs <folder>] [--allow <file>]\n  involo-pack suggest-targets <pack-dir>\n  involo-pack terms [--json] <pack-dir>";
+const USAGE: &str = "usage:\n  involo-pack check <pack-dir | packs-dir>... [--parents <dir>]\n  involo-pack schema <out-dir>\n  involo-pack build <pack-dir | packs-dir> <out-dir> [--parents <dir>]\n  involo-pack overlap <pack-dir | packs-dir> [--refs <folder>] [--allow <file>]\n  involo-pack suggest-targets <pack-dir>\n  involo-pack terms [--json] <pack-dir>";
 
 fn main() -> ExitCode {
     match run() {
@@ -39,11 +44,12 @@ fn main() -> ExitCode {
 }
 
 fn run() -> Result<bool> {
-    let args: Vec<String> = std::env::args().skip(1).collect();
+    let all: Vec<String> = std::env::args().skip(1).collect();
+    let (args, parents) = parents_arg(&all)?;
     match args.split_first() {
-        Some((cmd, rest)) if cmd == "check" && !rest.is_empty() => check(rest),
+        Some((cmd, rest)) if cmd == "check" && !rest.is_empty() => check(rest, &parents),
         Some((cmd, [out])) if cmd == "schema" => schema(Path::new(out)).map(|()| true),
-        Some((cmd, [packs, out])) if cmd == "build" => build(packs, Path::new(out)),
+        Some((cmd, [packs, out])) if cmd == "build" => build(packs, Path::new(out), &parents),
         Some((cmd, rest)) if cmd == "overlap" && !rest.is_empty() => overlap(rest),
         Some((cmd, [dir])) if cmd == "suggest-targets" => suggest_targets(Path::new(dir)),
         Some((cmd, [dir])) if cmd == "terms" => terms(Path::new(dir)),
@@ -105,6 +111,22 @@ fn terms_json(dir: &Path) -> Result<bool> {
     Ok(true)
 }
 
+/// Takes every `--parents <dir>` out of the arguments: folders of packs to find parents in.
+fn parents_arg(all: &[String]) -> Result<(Vec<String>, Vec<PathBuf>)> {
+    let mut args = Vec::new();
+    let mut parents = Vec::new();
+    let mut it = all.iter();
+    while let Some(a) = it.next() {
+        if a == "--parents" {
+            let dir = it.next().context("`--parents` needs a folder")?;
+            parents.push(PathBuf::from(dir));
+        } else {
+            args.push(a.clone());
+        }
+    }
+    Ok((args, parents))
+}
+
 /// A folder with `pack.json` is one pack; otherwise each child folder with one is a pack.
 fn pack_dirs(arg: &str) -> Result<Vec<PathBuf>> {
     let dir = PathBuf::from(arg);
@@ -124,19 +146,21 @@ fn pack_dirs(arg: &str) -> Result<Vec<PathBuf>> {
     Ok(found)
 }
 
-fn check(args: &[String]) -> Result<bool> {
+fn check(args: &[String], parents: &[PathBuf]) -> Result<bool> {
     let mut ok = true;
     let mut count = 0;
     for arg in args {
         for dir in pack_dirs(arg)? {
             count += 1;
-            match load_pack_dir(&dir) {
+            match resolve(&dir, parents) {
                 Err(e) => {
                     ok = false;
                     eprintln!("FAIL {}\n  {e}", dir.display());
                 }
-                Ok(pack) => {
-                    let issues = validate_pack(&pack);
+                Ok(built) => {
+                    let pack = built.pack;
+                    let issues =
+                        involo_pack::resolve::attribute(validate_pack(&pack), &built.touched);
                     let errors = issues
                         .iter()
                         .filter(|i| i.severity == Severity::Error)
@@ -264,8 +288,9 @@ fn schema(out: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Check every pack, then write each one as `<out>/<id>.json`. A pack with errors is not written.
-fn build(packs: &str, out: &Path) -> Result<bool> {
+/// Check every pack, then write each one as `<out>/<id>.json`, built over its parents. A pack
+/// with errors is not written; nor is a library, which is only ever a parent.
+fn build(packs: &str, out: &Path, parents: &[PathBuf]) -> Result<bool> {
     let dirs = pack_dirs(packs)?;
     if dirs.is_empty() {
         bail!("no packs found in {packs}");
@@ -274,8 +299,16 @@ fn build(packs: &str, out: &Path) -> Result<bool> {
     let mut ok = true;
     let mut index = Vec::new();
     for dir in dirs {
-        let pack = load_pack_dir(&dir).with_context(|| format!("cannot load {}", dir.display()))?;
-        let errors: Vec<_> = validate_pack(&pack)
+        let built = match resolve(&dir, parents) {
+            Ok(built) => built,
+            Err(e) => {
+                ok = false;
+                eprintln!("FAIL {}: not built\n  {e}", dir.display());
+                continue;
+            }
+        };
+        let pack = built.pack;
+        let errors: Vec<_> = involo_pack::resolve::attribute(validate_pack(&pack), &built.touched)
             .into_iter()
             .filter(|i| i.severity == Severity::Error)
             .collect();
@@ -290,9 +323,16 @@ fn build(packs: &str, out: &Path) -> Result<bool> {
             }
             continue;
         }
+        if pack.manifest.kind == PackKind::Library {
+            println!(
+                "library {}: checked, not written (packs extend it)",
+                pack.manifest.id
+            );
+            continue;
+        }
         let path = out.join(format!("{}.json", pack.manifest.id));
         index.push(PackSummary::from(&pack.manifest));
-        let json = serde_json::to_string(&FlatPack::from(pack))?;
+        let json = serde_json::to_string(&FlatPack::built(pack))?;
         std::fs::write(&path, &json).with_context(|| format!("cannot write {}", path.display()))?;
         println!("built {} ({} bytes)", path.display(), json.len());
     }
