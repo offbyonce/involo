@@ -4,6 +4,134 @@
 # yaml-language-server: $schema=../../schemas/flight.schema.json
 # The flight fields this pack's steps fill, with what a SimBrief plan fills (decision 0029).
 # Weights the CDU takes in thousands are stored that way (display); the rest as entered.
+pages:
+- id: route
+  title: Route
+  sub: Where you're going and the way there. Used by the route and CDU steps.
+  selected: route
+  groups:
+  - title: Airports
+    fields:
+    - origin
+    - destination
+    - alternate
+    - flight_number
+  - title: The route
+    fields:
+    - route
+    - planned_distance
+    - planned_time
+- id: fuel
+  title: Fuel and weights
+  sub: Numbers for the fuel and weight steps and the CDU's PERF INIT page.
+  selected: fuel
+  groups:
+  - title: Fuel
+    units:
+      field: weight_unit
+      label: Weights in
+    fields:
+    - fuel
+    - center_tank_fuel
+    - trip_fuel
+    - reserves
+    - taxi_fuel
+    - minimum_takeoff_fuel
+  - title: Weights
+    note: Same unit as fuel
+    fields:
+    - zfw
+    - cg
+    - passengers
+    - takeoff_weight
+- id: cruise
+  title: Cruise and levels
+  sub: Used by the climb, cruise and descent steps.
+  selected: cost_index
+  groups:
+  - title: Cruise
+    fields:
+    - cruise_level
+    - cost_index
+    - cruise_wind
+    - isa_deviation
+  - title: Levels
+    fields:
+    - transition_altitude
+    - transition_level
+- id: clearance
+  title: Clearance
+  sub: What ATC cleared you to fly. The same fields as the flight strip.
+  selected: sid
+  ofp:
+    from: sid
+  groups:
+  - title: Departure clearance
+    fields:
+    - runway
+    - sid
+    - transition
+    - initial_altitude
+    - squawk
+  - title: Frequencies
+    fields:
+    - ground_frequency
+    - tower_frequency
+    - departure_frequency
+  - title: Notes from ATC
+    notes:
+      label: Note
+      description: Anything else ATC told you.
+    fields: []
+- id: takeoff
+  title: Takeoff
+  sub: Numbers for the takeoff steps and the CDU's TAKEOFF REF page.
+  selected: v2
+  ofp: &id001
+    from: takeoff_weight
+    title: Takeoff speeds come from the FMC
+    body: The OFP plans the flight, not the takeoff. Speeds and trim come from the CDU's TAKEOFF REF page
+      once weights and flaps are set. Some SimBrief layouts add takeoff performance at the end.
+    note: The FMC uses the takeoff weight for these speeds.
+    not_in_plan: true
+  groups:
+  - title: Runway
+    fields:
+    - runway
+    - heading
+  - title: Settings and speeds
+    fields:
+    - takeoff_flaps
+    - thrust_rating
+    - assumed_temperature
+    - v1
+    - vr
+    - v2
+    - takeoff_trim
+- id: approach
+  title: Approach
+  sub: Used by the Descent and Approach steps and the approach briefing. Arrival values live only here.
+  selected: arrival_runway
+  ofp:
+    from: arrival_runway
+    body: Minimums come from the approach chart, and the landing speed and flaps from the CDU's APPROACH
+      REF page. The OFP doesn't print them.
+    note: The arrival in the plan is where these values apply.
+    not_in_plan: true
+    outline: false
+  groups:
+  - title: Arrival
+    fields:
+    - arrival_runway
+    - star
+    - transition_level
+  - title: Landing
+    fields:
+    - minimums
+    - vref
+    - landing_flaps
+    - autobrake
+    - landing_altitude
 fields:
 - id: origin
   label: Departure
@@ -16,6 +144,8 @@ fields:
   - strip
   simbrief:
   - origin
+  input:
+    max_length: 4
 - id: destination
   label: Destination
   description: Where you plan to land.
@@ -29,6 +159,8 @@ fields:
     join: ' → '
   simbrief:
   - destination
+  input:
+    max_length: 4
 - id: alternate
   label: Alternate
   description: Where you'd divert if you couldn't land at the destination.
@@ -38,6 +170,8 @@ fields:
   group: Airports
   simbrief:
   - alternate
+  input:
+    max_length: 4
 - id: flight_number
   label: Flight number
   description: Your flight's number, as filed.
@@ -47,6 +181,8 @@ fields:
   group: Airports
   simbrief:
   - flight_number
+  input:
+    max_length: 7
 - id: route
   label: Route
   description: The filed route from the SID to the arrival, as you enter it in the CDU.
@@ -56,6 +192,9 @@ fields:
   group: The route
   simbrief:
   - route
+  input:
+    max_length: 400
+    mode: text
 - id: runway
   label: Runway
   description: The runway you depart from.
@@ -69,6 +208,14 @@ fields:
     prefix: 'RWY '
   simbrief:
   - runway
+  input:
+    max_length: 4
+  also:
+  - page: takeoff
+    group: Runway
+    label: Takeoff runway
+    description: Set in Clearance.
+    ofp: *id001
 - id: sid
   label: SID
   description: The departure procedure.
@@ -80,6 +227,8 @@ fields:
   - strip
   simbrief:
   - sid
+  input:
+    max_length: 8
 - id: transition
   label: Transition
   description: Where the SID joins your route.
@@ -93,6 +242,8 @@ fields:
     join: .
   simbrief:
   - transition
+  input:
+    max_length: 8
 - id: initial_altitude
   label: Initial altitude
   description: The altitude you're cleared to climb to first.
@@ -100,6 +251,7 @@ fields:
   ranges:
   - min: 0
     max: 41000
+    message: Enter 0 to 41,000 ft
   location: Set on the MCP › ALTITUDE
   page: clearance
   group: Departure clearance
@@ -107,6 +259,9 @@ fields:
   - strip
   strip:
     suffix: ' FT'
+  input:
+    max_length: 5
+    mode: numeric
 - id: squawk
   label: Squawk
   description: Your transponder code.
@@ -118,6 +273,11 @@ fields:
   - strip
   strip:
     prefix: 'SQK '
+  input:
+    max_length: 4
+    mode: numeric
+  ofp:
+    title: Your squawk comes from ATC
 - id: ground_frequency
   label: Ground
   description: For pushback and taxi.
@@ -129,6 +289,11 @@ fields:
   - strip
   strip:
     prefix: 'GND '
+  input:
+    max_length: 7
+    mode: decimal
+  ofp:
+    title: Frequencies come from the chart and ATIS
 - id: tower_frequency
   label: Tower
   description: For takeoff.
@@ -136,6 +301,11 @@ fields:
   location: Set on the radio panel
   page: clearance
   group: Frequencies
+  input:
+    max_length: 7
+    mode: decimal
+  ofp:
+    title: Frequencies come from the chart and ATIS
 - id: departure_frequency
   label: Departure frequency
   description: The frequency to call after takeoff.
@@ -147,6 +317,12 @@ fields:
   - strip
   strip:
     prefix: 'DEP '
+  input:
+    max_length: 7
+    mode: decimal
+    placeholder: Enter
+  ofp:
+    title: Frequencies come from the chart and ATIS
 - id: qnh
   label: Altimeter setting (departure)
   kind: number
@@ -155,11 +331,14 @@ fields:
   - unit: inHg
     min: 28
     max: 31
+    message: Enter 28.00 to 31.00 inHg
   - unit: hPa
     min: 948
     max: 1050
+    message: Enter 948 to 1050 hPa
   simbrief:
   - origin_altimeter
+  spoken: QNH
 - id: destination_qnh
   label: Altimeter setting (destination)
   kind: number
@@ -168,11 +347,14 @@ fields:
   - unit: inHg
     min: 28
     max: 31
+    message: Enter 28.00 to 31.00 inHg
   - unit: hPa
     min: 948
     max: 1050
+    message: Enter 948 to 1050 hPa
   simbrief:
   - destination_altimeter
+  spoken: QNH
 - id: heading
   label: Runway heading
   description: The heading of your takeoff runway.
@@ -180,9 +362,16 @@ fields:
   ranges:
   - min: 1
     max: 360
+    message: Enter 001 to 360
   location: Set on the MCP › HEADING
   page: takeoff
   group: Runway
+  input:
+    max_length: 3
+    mode: numeric
+  show:
+    suffix: °
+  spoken: runway heading
 - id: takeoff_flaps
   label: Flaps
   description: Takeoff flaps for your weight and runway.
@@ -209,6 +398,8 @@ fields:
   group: Landing
   show_in:
   - arrival
+  ofp:
+    title: Landing flaps come from the FMC
 - id: v1
   label: V1
   description: Decision speed. Before it you can stop; after it you go.
@@ -216,9 +407,14 @@ fields:
   ranges:
   - min: 80
     max: 250
+    message: Enter 80 to 250 knots
   location: Enter on the CDU › TAKEOFF REF
   page: takeoff
   group: Settings and speeds
+  input:
+    max_length: 3
+    mode: numeric
+  spoken: V1
 - id: vr
   label: VR
   description: Rotation speed.
@@ -226,9 +422,14 @@ fields:
   ranges:
   - min: 80
     max: 250
+    message: Enter 80 to 250 knots
   location: Enter on the CDU › TAKEOFF REF
   page: takeoff
   group: Settings and speeds
+  input:
+    max_length: 3
+    mode: numeric
+  spoken: VR
 - id: v2
   label: V2
   description: Takeoff safety speed for your takeoff flaps.
@@ -236,9 +437,15 @@ fields:
   ranges:
   - min: 100
     max: 250
+    message: Enter 100 to 250 knots
   location: Enter on the CDU › TAKEOFF REF
   page: takeoff
   group: Settings and speeds
+  input:
+    max_length: 3
+    mode: numeric
+    placeholder: From the FMC
+  spoken: V2
 - id: vref
   label: Landing speed
   description: VREF for your landing flaps, plus any wind additive.
@@ -246,11 +453,19 @@ fields:
   ranges:
   - min: 100
     max: 250
+    message: Enter 100 to 250 knots
   location: Enter on the CDU › APPROACH REF
   page: approach
   group: Landing
   show_in:
   - arrival
+  input:
+    max_length: 3
+    mode: numeric
+    placeholder: From the FMC
+  spoken: VREF
+  ofp:
+    title: Landing speed comes from the FMC
 - id: cg
   label: ZFW CG
   description: Center of gravity without fuel, used for takeoff trim.
@@ -258,9 +473,18 @@ fields:
   ranges:
   - min: 0
     max: 50
+    message: Enter 0 to 50% MAC
   location: Enter on the CDU › TAKEOFF REF
   page: fuel
   group: Weights
+  input:
+    mode: decimal
+  show:
+    suffix: '%'
+  ofp:
+    from: zero_fuel_weight
+    title: The CG is in the weights section
+    note: Some layouts print the CG beside the zero fuel weight.
 - id: takeoff_trim
   label: Stabilizer trim
   description: Takeoff trim for your weight and balance.
@@ -268,9 +492,14 @@ fields:
   ranges:
   - min: 0
     max: 15
+    message: Enter 0.00 to 15.00 units
   location: Enter on the CDU › TAKEOFF REF
   page: takeoff
   group: Settings and speeds
+  input:
+    max_length: 5
+    mode: decimal
+    placeholder: From the FMC
 - id: autobrake
   label: Autobrake
   description: How hard the brakes apply on touchdown.
@@ -286,6 +515,8 @@ fields:
   group: Landing
   show_in:
   - arrival
+  ofp:
+    title: Autobrake is your choice for the runway
 - id: minimums
   label: Minimums
   description: The height where you must see the runway to continue, from the approach chart. BARO for
@@ -294,11 +525,19 @@ fields:
   ranges:
   - min: 0
     max: 14000
+    message: Enter 0 to 14,000 ft
   location: Set on the EFIS › MINS
   page: approach
   group: Landing
   show_in:
   - arrival
+  input:
+    max_length: 5
+    mode: numeric
+    placeholder: Enter
+  toggle: minimums_type
+  ofp:
+    title: Minimums come from the approach chart
 - id: landing_altitude
   label: Landing altitude
   description: The destination field elevation, from the plan.
@@ -306,6 +545,7 @@ fields:
   ranges:
   - min: -1000
     max: 14000
+    message: Enter −1,000 to 14,000 ft
   location: Set on the pressurization panel › LAND ALT
   page: approach
   group: Landing
@@ -313,6 +553,13 @@ fields:
   - arrival
   simbrief:
   - destination_elevation
+  input:
+    max_length: 5
+    mode: numeric
+  ofp:
+    body: 'The header''s route line ends with the arrival: the STAR, then the destination and its runway.
+      The destination''s elevation is in the header too. Minimums and landing speed come from the approach
+      chart and the FMC, not the OFP.'
 - id: arrival_runway
   label: Arrival runway
   description: The runway you expect to land on. Check it against the ATIS before you brief.
@@ -322,6 +569,12 @@ fields:
   group: Arrival
   simbrief:
   - arrival_runway
+  input:
+    max_length: 4
+  ofp:
+    body: 'The header''s route line ends with the arrival: the STAR, then the destination and its runway.
+      The destination''s elevation is in the header too. Minimums and landing speed come from the approach
+      chart and the FMC, not the OFP.'
 - id: star
   label: Arrival (STAR)
   description: The published route from the airway to the approach.
@@ -331,12 +584,26 @@ fields:
   group: Arrival
   simbrief:
   - star
+  input:
+    max_length: 8
+    placeholder: Enter
+  needed: true
+  ofp:
+    body: 'The header''s route line ends with the arrival: the STAR, then the destination and its runway.
+      The destination''s elevation is in the header too. Minimums and landing speed come from the approach
+      chart and the FMC, not the OFP.'
 - id: minimum_takeoff_fuel
   label: Minimum takeoff fuel
+  description: 'The least fuel to start the takeoff with: trip, contingency, alternate and final reserve.
+    Check you have at least this before takeoff.'
   kind: number
   unit: weight_unit
+  page: fuel
+  group: Fuel
   simbrief:
   - minimum_takeoff_fuel
+  read_only: true
+  phase: before-start
 - id: fuel
   label: Block fuel
   description: All the fuel on board before engine start.
@@ -347,6 +614,8 @@ fields:
   group: Fuel
   simbrief:
   - block_fuel
+  input:
+    mode: numeric
 - id: zfw
   label: Zero fuel weight
   description: The airplane's weight without fuel.
@@ -355,6 +624,7 @@ fields:
   ranges:
   - min: 0
     max: 400
+    message: Enter 0 to 400,000 {unit}
   location: Enter on the CDU › PERF INIT
   page: fuel
   group: Weights
@@ -364,6 +634,10 @@ fields:
     step: 0.1
   simbrief:
   - zero_fuel_weight
+  input:
+    mode: decimal
+  ofp:
+    note: Enter it in thousands, as the CDU takes it.
 - id: takeoff_weight
   label: Planned takeoff weight
   description: Zero fuel weight plus fuel at takeoff, from the plan.
@@ -372,6 +646,7 @@ fields:
   ranges:
   - min: 0
     max: 400
+    message: Enter 0 to 400,000 {unit}
   location: Enter on the CDU › PERF INIT
   page: fuel
   group: Weights
@@ -381,6 +656,10 @@ fields:
     step: 0.1
   simbrief:
   - takeoff_weight
+  input:
+    mode: decimal
+  ofp:
+    note: Cross-check it with the FMC's gross weight.
 - id: passengers
   label: Passengers and cargo
   description: Passengers and cargo, from the plan's load sheet.
@@ -388,10 +667,15 @@ fields:
   ranges:
   - min: 0
     max: 500
+    message: Enter 0 to 500
   page: fuel
   group: Weights
   simbrief:
   - passengers
+  input:
+    max_length: 3
+    mode: numeric
+  with: cargo
 - id: cargo
   label: Cargo
   kind: number
@@ -399,6 +683,7 @@ fields:
   ranges:
   - min: 0
     max: 100
+    message: Enter 0 to 100,000 {unit}
   page: fuel
   group: Weights
   display:
@@ -407,6 +692,9 @@ fields:
     step: 0.1
   simbrief:
   - cargo
+  input:
+    max_length: 7
+    mode: decimal
 - id: reserves
   label: Reserves
   description: 'Alternate plus final reserve: what must be left at landing.'
@@ -415,6 +703,7 @@ fields:
   ranges:
   - min: 0
     max: 100
+    message: Enter 0 to 100,000 {unit}
   location: Enter on the CDU › PERF INIT
   page: fuel
   group: Fuel
@@ -425,6 +714,8 @@ fields:
   simbrief:
   - reserve_fuel
   - alternate_fuel
+  input:
+    mode: decimal
 - id: cost_index
   label: Cost index
   description: Trades fuel against time. Lower saves fuel.
@@ -432,11 +723,15 @@ fields:
   ranges:
   - min: 0
     max: 9999
+    message: Enter 0 to 9999
   location: Enter on the CDU › PERF INIT
   page: cruise
   group: Cruise
   simbrief:
   - cost_index
+  input:
+    max_length: 4
+    mode: numeric
 - id: cruise_level
   label: Cruise level
   description: The level you plan to cruise at.
@@ -444,11 +739,17 @@ fields:
   ranges:
   - min: 100
     max: 410
+    message: Enter FL100 to FL410
   location: Enter on the CDU › PERF INIT
   page: cruise
   group: Cruise
   simbrief:
   - cruise_level
+  input:
+    max_length: 3
+    mode: numeric
+  show:
+    prefix: FL
 - id: cruise_wind
   label: Cruise wind
   description: Average wind at cruise level, from the plan.
@@ -458,6 +759,8 @@ fields:
   group: Cruise
   simbrief:
   - cruise_wind
+  input:
+    max_length: 7
 - id: thrust_rating
   label: Takeoff thrust
   description: The rating from your takeoff performance in the EFB. TO is full thrust; TO-1 and TO-2 are
@@ -478,6 +781,11 @@ fields:
   location: Enter on the CDU › N1 LIMIT
   page: takeoff
   group: Settings and speeds
+  input:
+    max_length: 3
+    mode: numeric
+  show:
+    suffix: ' °C'
 - id: thrust_reduction_altitude
   label: Thrust reduction altitude
   kind: number
@@ -491,11 +799,17 @@ fields:
   ranges:
   - min: -60
     max: 60
+    message: Enter −60 to +60
   location: Enter on the CDU › PERF INIT
   page: cruise
   group: Cruise
   simbrief:
   - isa_deviation
+  input:
+    max_length: 3
+    mode: numeric
+  show:
+    signed: true
 - id: transition_altitude
   label: Transition altitude
   description: Where you set standard pressure on the way up.
@@ -503,22 +817,39 @@ fields:
   ranges:
   - min: 1000
     max: 20000
+    message: Enter 1,000 to 20,000 ft
   location: Enter on the CDU › PERF INIT
   page: cruise
   group: Levels
   simbrief:
   - transition_altitude
+  input:
+    max_length: 5
+    mode: numeric
+  show:
+    grouped: true
 - id: transition_level
   label: Transition level
-  description: Where you switch back to the local setting on the way down. Also on Approach.
+  description: Where you set the altimeters to the local setting on the way down.
   kind: number
   ranges:
   - min: 10
     max: 600
-  page: cruise
-  group: Levels
+    message: Enter FL10 to FL600
+  location: Enter on the CDU › DESCENT
+  page: approach
+  group: Arrival
   simbrief:
   - transition_level
+  input:
+    max_length: 3
+    mode: numeric
+  show:
+    prefix: FL
+  also:
+  - page: cruise
+    group: Levels
+    description: Where you switch back to the local setting on the way down. Also on Approach.
 - id: weight_unit
   label: Weight unit
   kind: choice
@@ -573,3 +904,51 @@ fields:
 - id: utc_date
   label: UTC date
   kind: text
+- id: planned_distance
+  label: Distance
+  description: Planned air distance, which allows for the wind.
+  kind: number
+  page: route
+  group: The route
+  simbrief:
+  - air_distance
+  read_only: true
+- id: planned_time
+  label: Planned time
+  description: Planned time from takeoff to landing.
+  kind: text
+  page: route
+  group: The route
+  simbrief:
+  - enroute_time
+  read_only: true
+- id: center_tank_fuel
+  label: Center tank
+  description: What's left after both wing tanks fill. The Center tank fuel step suggests its answer from
+    this.
+  kind: text
+  page: fuel
+  group: Fuel
+  phase: before-start
+  suggested_by: center_tank
+  ofp:
+    from: block_fuel
+    note: The center tank takes what's left of the block fuel after both wing tanks fill.
+- id: trip_fuel
+  label: Trip fuel
+  description: Planned burn from takeoff to landing.
+  kind: number
+  page: fuel
+  group: Fuel
+  simbrief:
+  - trip_fuel
+  read_only: true
+- id: taxi_fuel
+  label: Taxi fuel
+  description: Planned burn before takeoff.
+  kind: number
+  page: fuel
+  group: Fuel
+  simbrief:
+  - taxi_fuel
+  read_only: true

@@ -100,7 +100,15 @@ and a panel item may have an `id` so a step target or light note can name it
 in `flight.yaml`, listed in `pack.json` as `flight`: each with its label, kind (number, text or
 choice), unit and ranges, where it goes in the aircraft, where else it shows (the flight strip, the
 Arrival data box), how a plan's number is stored (`display`) and the SimBrief values that fill it.
-SimBrief sources are the app's list (see `flight.schema.json`); a pack picks among them.
+SimBrief sources are the app's list (see `flight.schema.json`); a pack picks among them. The Flight pages are
+built from the same file: an optional `pages` list gives each page's title, sub-line and cards (with
+a card's row order, a unit toggle or the notes from ATC), and each field may add how its box takes
+input (`input`), how its value reads (`show`), a range's own words (`message`), a second box
+(`with`), a two-choice toggle (`toggle`), read-only copies on other pages (`also`), `read_only` with
+the `phase` that uses it, an option whose suggestion it shows (`suggested_by`), `needed`, and the
+side panel's words (`ofp`). Every one is optional: a field with only an id, label and kind still
+gets a row. The pack gives content and grouping only; the app decides how it looks. An option is
+asked on a Flight page with `ask_in: [flight:approach]`.
 
 **Panel controls.** Besides switches, selectors, buttons, lights, levers and handles, a panel item
 may be a `push_pull_knob` (two positions, pushed in first), a `rocker` (two positions, the top end

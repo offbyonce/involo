@@ -2,10 +2,14 @@
 // SPDX-License-Identifier: MIT
 
 import { cleanup, fireEvent, render } from "@testing-library/svelte";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { useFlightPack } from "../flight/sections";
+import { iflyPack } from "../test-pack";
 import FlightStrip from "./FlightStrip.svelte";
 
 afterEach(cleanup);
+// Range checks come from the pack in use: the iFly pack.
+beforeAll(() => useFlightPack(iflyPack()));
 
 describe("FlightStrip", () => {
   const props = (values: Record<string, string>, notes = "") => ({

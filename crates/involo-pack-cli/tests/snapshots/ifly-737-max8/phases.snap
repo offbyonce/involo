@@ -86,6 +86,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
       ],
       "ask_in": [
         "descent",
+        "flight:approach",
         "approach"
       ]
     },

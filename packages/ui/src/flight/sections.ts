@@ -1,11 +1,24 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// The Flight sections (FlightSection boards): each row's label, the flight field it
-// edits (or a read-only value, or a link to the section that holds it), its description,
-// destination chip and where the OFP prints it.
+// The Flight sections (FlightSection boards), built from the pack's flight fields and pages
+// (decision 0029): each row's label, the flight field it edits (or a read-only value, or a link
+// to the section that holds it), its description, destination line and where the OFP prints it.
+// The app keeps only how SimBrief's flight plan is laid out and the rendering; every word about
+// an aircraft comes from the pack.
 
-import type { FieldId, Flight, SavedPlan } from "@involo/bindings";
+import type {
+  FieldId,
+  FieldOfp,
+  FieldRange,
+  FieldShow,
+  FlatPack,
+  Flight,
+  FlightField,
+  FlightPage,
+  SavedPlan,
+  SimbriefSource,
+} from "@involo/bindings";
 import type { FlightSection } from "../route.svelte";
 
 /** What a row's OFP panel reads. */
@@ -15,9 +28,9 @@ export type Ctx = {
   notes: string;
   /** "lb" or "kg". */
   unit: string;
-  /** The center tank's share of the block fuel, as the Center tank fuel step's suggestion reads
-   * it ("1,262 kg"), or null without a plan (decision 0027). */
-  centerTank?: string | null;
+  /** Each option's suggestion, as its row shows it ("1,262 kg"), by option id; none without a
+   * plan (decision 0027). */
+  suggested?: Record<string, string | null>;
 };
 
 /** A stretch of a close-up, marked when it is the value. */
@@ -40,7 +53,7 @@ export type Ofp = {
   title: string;
   body: string;
   /** Not set from the OFP (Clearance, Takeoff, Approach's chart values). */
-  notin?: boolean;
+  notin?: boolean | undefined;
   cap: string;
   close: (c: Ctx) => Part[];
   note: string;
@@ -50,50 +63,60 @@ export type Row = {
   id: string;
   label: string;
   /** The field this row edits. */
-  field?: FieldId;
+  field?: FieldId | undefined;
   /** A read-only value (plain mono text, no box). */
-  read?: (c: Ctx) => string;
+  read?: ((c: Ctx) => string) | undefined;
   /** A row that belongs to another section: its value is read-only and the chip is a link. */
-  link?: FlightSection;
+  link?: FlightSection | undefined;
   /** A read-only row whose chip links to the phase that uses it ("Before start ›"). */
-  phase?: string;
+  phase?: string | undefined;
   /** A second field in the same row (Passengers and cargo). */
-  second?: {
-    field: FieldId;
-    placeholder: string;
-    /** Its own accessible name ("assumed temperature"). */
-    name: string;
-    max: number;
-    mode?: "numeric" | "decimal";
-    weight?: "thousands";
-  };
+  second?:
+    | {
+        field: FieldId;
+        placeholder: string;
+        /** Its own accessible name ("assumed temperature"). */
+        name: string;
+        max: number;
+        mode?: "numeric" | "decimal" | undefined;
+        weight?: "thousands" | undefined;
+      }
+    | undefined;
   /** The first box's own name when a row has two ("rating", "passengers"). */
-  firstName?: string;
+  firstName?: string | undefined;
   /** The flight's notes from ATC (Clearance), not a fill field. */
-  notes?: boolean;
+  notes?: boolean | undefined;
   /** How a value reads: "FL180", "163°". */
-  show?: (value: string) => string;
+  show?: ((value: string) => string) | undefined;
   /** Choice values: a field-styled button that opens a menu. */
-  choices?: string[];
+  choices?: string[] | undefined;
   /** The empty box's placeholder; amber while empty. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /** A weight in the flight's unit: shown in full with the unit ("12,400 lb"); `thousands`
-   * when the flight stores thousands, as the CDU takes them. */
-  weight?: "full" | "thousands";
-  max?: number;
-  mode?: "numeric" | "decimal" | "text";
+   * when the flight stores thousands (its `display` scale). */
+  weight?: "full" | "thousands" | undefined;
+  max?: number | undefined;
+  mode?: "numeric" | "decimal" | "text" | undefined;
   desc: string;
-  /** Where the value goes in the cockpit, a plain muted line under the description ("Enter on
-   * the CDU › PERF INIT"). */
-  loc?: string;
+  /** Where the value goes in the cockpit, a plain muted line under the description (the field's
+   * `location`). */
+  loc?: string | undefined;
   /** The link text of a row whose value belongs to a phase ("Before start ›"). */
-  chip?: string;
+  chip?: string | undefined;
   /** A two-way control under the description (Minimums: BARO / RADIO). */
-  seg?: { field: FieldId; values: [string, string]; label: string };
+  seg?: { field: FieldId; values: [string, string]; label: string } | undefined;
   ofp: Ofp;
 };
 
-export type Group = { title: string; note?: (c: Ctx) => string; units?: boolean; rows: Row[] };
+export type Group = {
+  title: string;
+  note?: ((c: Ctx) => string) | undefined;
+  units?: boolean | undefined;
+  /** The choice field the units toggle sets, and the words before it. */
+  unitField?: string | undefined;
+  unitLabel?: string | undefined;
+  rows: Row[];
+};
 export type Section = { id: FlightSection; title: string; sub: string; groups: Group[]; selected: string };
 
 const v = (c: Ctx, f: FieldId) => c.values[f] ?? "";
@@ -247,777 +270,406 @@ const clearanceOfp = (title = "Your clearance comes from ATC"): Ofp => ({
   close: (c) => routeLine(c, "sid"),
   note: "The filed SID is first in the route. Check it against your clearance.",
 });
-const takeoffOfp: Ofp = {
-  section: 2,
-  title: "Takeoff speeds come from the FMC",
-  body: "The OFP plans the flight, not the takeoff. Speeds and trim come from the CDU's TAKEOFF REF page once weights and flaps are set. Some SimBrief layouts add takeoff performance at the end.",
-  notin: true,
-  cap: "Close-up, the weights section",
-  close: (c) => weights(c, "tow"),
-  note: "The FMC uses the takeoff weight for these speeds.",
-};
 const approachRoute: Ofp = {
   section: 0,
   title: "The arrival runway and STAR end the route",
-  body: "The header's route line ends with the arrival: the STAR, then the destination and its runway. The destination's elevation is in the header too. Minimums and landing speed come from the approach chart and the FMC, not the OFP.",
+  body: "The header's route line ends with the arrival: the STAR, then the destination and its runway. The destination's elevation is in the header too.",
   cap: "Close-up, the end of the route",
   close: (c) => routeLine(c, "arrival"),
   note: "Check the planned runway against the ATIS before you brief; it often changes.",
 };
-const chartOfp = (title: string): Ofp => ({
-  section: null,
-  title,
-  body: "Minimums come from the approach chart, and the landing speed and flaps from the CDU's APPROACH REF page. The OFP doesn't print them.",
-  notin: true,
-  cap: "Close-up, the end of the route",
-  close: (c) => routeLine(c, "arrival"),
-  note: "The arrival in the plan is where these values apply.",
+const cruiseHeader = (hi: "level" | "ci"): Ofp => ({
+  ...fromHeader(
+    "Cost index and cruise level are in the header",
+    (c) => header(c, hi),
+    "The navigation log repeats the level and wind at each fix.",
+  ),
+  body: "The header gives the cruise level, the cost index, and the average wind and temperature for the flight.",
 });
 
-export const FLAPS = ["1", "5", "10", "15", "25"];
-export const LANDING_FLAPS = ["15", "30", "40"];
-/** The takeoff thrust ratings on the CDU's N1 LIMIT page (FSTakeoff board). */
-export const THRUST = ["TO", "TO-1", "TO-2"];
-export const AUTOBRAKE = ["OFF", "1", "2", "3", "MAX"];
+/**
+ * Where the OFP prints each SimBrief source the app reads, and what the panel says about it: the
+ * app's knowledge of SimBrief's flight plan, for any aircraft. A pack changes a row's panel with
+ * its field's `ofp`, or a page's.
+ */
+const SOURCE_OFP: Partial<Record<SimbriefSource, Ofp>> = {
+  origin: fromHeader(
+    "The airports are in the header",
+    (c) => header(c, "airports"),
+    "The header names both airports first, in ICAO codes.",
+  ),
+  destination: fromHeader(
+    "The airports are in the header",
+    (c) => header(c, "airports"),
+    "The header names both airports first, in ICAO codes.",
+  ),
+  alternate: {
+    section: 4,
+    title: "The alternate has its own section",
+    body: "The alternate section gives the alternate airport, the route there and the fuel to get there.",
+    cap: "Close-up, the alternate section",
+    close: (c) => header(c, "alt"),
+    note: "The header names the alternate too.",
+  },
+  flight_number: fromHeader(
+    "The flight number opens the header",
+    (c) => header(c, "fn"),
+    "It comes before the airports in most layouts.",
+  ),
+  route: {
+    ...fromHeader(
+      "The route is in the header",
+      (c) => routeLine(c, "route"),
+      "The route sits between the departure and the destination, each with its runway.",
+    ),
+    cap: "Close-up, the header's route line",
+  },
+  air_distance: fromHeader(
+    "The distance is in the header",
+    (c) => header(c, "dist"),
+    "Air distance allows for the winds along the route.",
+  ),
+  enroute_time: fromHeader(
+    "The planned time is in the header",
+    (c) => header(c, "time"),
+    "Estimated time en route, from takeoff to landing.",
+  ),
+  block_fuel: fromFuel(
+    "Block fuel is in the fuel plan",
+    "block",
+    "Block is the total: everything on board before engine start.",
+  ),
+  trip_fuel: fromFuel("Trip fuel is in the fuel plan", "trip", "Trip is the burn from takeoff to landing."),
+  reserve_fuel: fromFuel(
+    "Reserves are in the fuel plan",
+    "reserve",
+    "Reserve is the final reserve; the alternate fuel is listed beside it.",
+  ),
+  alternate_fuel: fromFuel(
+    "Reserves are in the fuel plan",
+    "reserve",
+    "Reserve is the final reserve; the alternate fuel is listed beside it.",
+  ),
+  taxi_fuel: fromFuel("Taxi fuel is in the fuel plan", "taxi", "Taxi is the planned burn before takeoff."),
+  minimum_takeoff_fuel: fromFuel(
+    "Minimum takeoff fuel is in the fuel plan",
+    "min",
+    "The least fuel to start the takeoff with.",
+  ),
+  zero_fuel_weight: fromWeights(
+    "Zero fuel weight is in the weights section",
+    "zfw",
+    "The weights section gives it in full.",
+  ),
+  passengers: fromWeights("The payload is in the weights section", "pax", "Passengers, then cargo."),
+  cargo: fromWeights("The payload is in the weights section", "pax", "Passengers, then cargo."),
+  takeoff_weight: fromWeights(
+    "The takeoff weight is in the weights section",
+    "tow",
+    "Zero fuel weight plus the fuel at takeoff.",
+  ),
+  cruise_level: cruiseHeader("level"),
+  cost_index: cruiseHeader("ci"),
+  cruise_wind: fromHeader(
+    "The average wind is in the header",
+    (c) => header(c, "wind"),
+    "Each fix's own wind is in the navigation log.",
+  ),
+  isa_deviation: fromHeader(
+    "The ISA deviation is in the header",
+    (c) => header(c, "isa"),
+    "Plus is warmer than standard.",
+  ),
+  transition_altitude: fromHeader(
+    "The transition altitude is in the header",
+    (c) => header(c, "ta"),
+    "The departure airport's transition altitude.",
+  ),
+  transition_level: fromHeader(
+    "The transition level is in the header",
+    (c) => header(c, "tl"),
+    "The destination's transition level.",
+  ),
+  runway: clearanceOfp(),
+  sid: clearanceOfp(),
+  transition: clearanceOfp(),
+  arrival_runway: approachRoute,
+  star: approachRoute,
+  destination_elevation: {
+    ...approachRoute,
+    title: "The destination elevation is in the header",
+    note: "The header gives each airport's elevation.",
+  },
+};
 
-/** Fields the steps' blanks use, and the STAR: what "N to enter" and Still to enter count. */
-export const NEEDED: FieldId[] = [
-  "runway",
-  "initial_altitude",
-  "heading",
-  "takeoff_flaps",
-  "v2",
-  "takeoff_trim",
-  "fuel",
-  "minimum_takeoff_fuel",
-  "qnh",
-  "destination_qnh",
-  "star",
-  "minimums",
-  "vref",
-  "landing_flaps",
-  "autobrake",
-  "landing_altitude",
-];
+/** The panel of a value the plan doesn't give. */
+const NOT_IN_PLAN: Ofp = {
+  section: null,
+  title: "Not in the flight plan",
+  body: "The OFP doesn't give this value. Enter it from the source your procedures name.",
+  notin: true,
+  cap: "Close-up, the header",
+  close: (c) => header(c, "airports"),
+  note: "",
+};
 
-export const SECTIONS: Section[] = [
-  {
-    id: "route",
-    title: "Route",
-    sub: "Where you're going and the way there. Used by the route and CDU steps.",
-    selected: "route",
-    groups: [
+/** A panel changed by a pack's parts. */
+function withParts(base: Ofp, parts: FieldOfp | null | undefined): Ofp {
+  if (!parts) return base;
+  const from = parts.from ? SOURCE_OFP[parts.from] : undefined;
+  const b = from ?? base;
+  return {
+    ...b,
+    title: parts.title ?? b.title,
+    body: parts.body ?? b.body,
+    note: parts.note ?? b.note,
+    notin: parts.notInPlan ?? b.notin,
+    section: parts.outline === false ? null : b.section,
+  };
+}
+
+/** The Flight pages that hold fields, and their names when a pack gives no `pages`. */
+const PAGE_NAMES: Record<string, string> = {
+  route: "Route",
+  fuel: "Fuel and weights",
+  cruise: "Cruise and levels",
+  clearance: "Clearance",
+  takeoff: "Takeoff",
+  approach: "Approach",
+};
+/** The card that holds a pack's fields with no page, when it gives no `pages`. */
+const DEFAULT_GROUP = "Flight values";
+
+/** What the Flight pages are built from: the pack's fields, pages and phases. */
+type Model = {
+  sections: Section[];
+  fields: Map<string, FlightField>;
+  needed: FieldId[];
+  /** The choice field that holds the flight's unit (a units toggle names it). */
+  unitField: FlightField | null;
+};
+
+let model: Model = buildModel(null);
+
+/** Builds the Flight pages from a pack (`App` does when the pack loads); none without one. */
+export function useFlightPack(pack: FlatPack | null): void {
+  model = buildModel(pack);
+}
+
+/** The Flight pages of the pack in use. */
+export function sections(): Section[] {
+  return model.sections;
+}
+
+/** A flight field of the pack in use. */
+export function fieldOf(id: string): FlightField | undefined {
+  return model.fields.get(id);
+}
+
+/** Fields the steps' blanks use, and any the pack marks `needed`: what "N to enter" counts. */
+export function needed(): FieldId[] {
+  return model.needed;
+}
+
+function buildModel(pack: FlatPack | null): Model {
+  const file = pack?.content.flight;
+  const all = file?.fields ?? [];
+  const fields = new Map(all.map((f) => [f.id, f]));
+  const phases = new Map((pack?.content.phases?.phases ?? []).map((p) => [p.id, p.title]));
+  const filled = new Set((pack?.lists ?? []).flatMap((l) => l.steps.flatMap((s) => s.fill ?? [])));
+  const needed = all.filter((f) => f.needed || filled.has(f.id)).map((f) => f.id);
+  // Fields shown inside another's row: a second box, or a toggle.
+  const inside = new Set(all.flatMap((f) => [f.with, f.toggle].filter((x): x is string => !!x)));
+  const pages: FlightPage[] = file?.pages?.length
+    ? file.pages
+    : Object.keys(PAGE_NAMES).map((id) => ({
+        id,
+        title: PAGE_NAMES[id] ?? id,
+        groups: [
+          ...new Set(
+            all
+              .filter((f) => !inside.has(f.id) && (f.page ?? "route") === id)
+              .map((f) => (f.page ? (f.group ?? DEFAULT_GROUP) : DEFAULT_GROUP)),
+          ),
+        ].map((title) => ({ title })),
+      }));
+  const placed = (f: FlightField, page: string) =>
+    file?.pages?.length ? f.page === page : (f.page ?? "route") === page;
+  const groupOf = (f: FlightField) =>
+    file?.pages?.length ? f.group : f.page ? (f.group ?? DEFAULT_GROUP) : DEFAULT_GROUP;
+  const titleOf = (page: string) => pages.find((p) => p.id === page)?.title ?? PAGE_NAMES[page] ?? page;
+  const unitField =
+    pages
+      .flatMap((p) => p.groups)
+      .map((g) => (g.units ? fields.get(g.units.field) : undefined))
+      .find(Boolean) ?? null;
+
+  const rowOf = (f: FlightField, page: FlightPage): Row => {
+    const w = f.with ? fields.get(f.with) : undefined;
+    const t = f.toggle ? fields.get(f.toggle) : undefined;
+    const base = f.simbrief?.[0] ? SOURCE_OFP[f.simbrief[0]] : undefined;
+    const ofp = withParts(base ?? withParts(NOT_IN_PLAN, page.ofp), f.ofp);
+    const read = readOf(f);
+    return {
+      id: f.id,
+      label: f.label,
+      field: read ? undefined : (f.id as FieldId),
+      read,
+      phase: f.phase ?? undefined,
+      chip: f.phase ? `${phases.get(f.phase) ?? f.phase} ›` : undefined,
+      show: f.show ? showOf(f.show) : undefined,
+      choices: f.kind === "choice" ? f.choices?.map((c) => c.value) : undefined,
+      placeholder: f.input?.placeholder ?? undefined,
+      weight: read ? undefined : weightOf(f),
+      max: f.input?.maxLength ?? undefined,
+      mode: f.input?.mode ?? undefined,
+      desc: f.description ?? "",
+      loc: f.location ?? undefined,
+      firstName: w ? spokenOf(f) : undefined,
+      second: w
+        ? {
+            field: w.id as FieldId,
+            placeholder: w.input?.placeholder ?? w.label,
+            name: spokenOf(w),
+            max: w.input?.maxLength ?? 0,
+            mode: w.input?.mode === "text" ? undefined : (w.input?.mode ?? undefined),
+            weight: weightOf(w) === "thousands" ? "thousands" : undefined,
+          }
+        : undefined,
+      seg: t
+        ? {
+            field: t.id as FieldId,
+            values: [t.choices?.[0]?.value ?? "", t.choices?.[1]?.value ?? ""],
+            label: t.label,
+          }
+        : undefined,
+      ofp,
+    };
+  };
+
+  const sections: Section[] = pages.flatMap((page) => {
+    const groups: Group[] = page.groups.map((g) => {
+      const rows: Row[] = [];
+      // The group's own order first, then the rest in the file's order.
+      const listed = g.fields ?? [];
+      const ordered = [
+        ...listed.map((id) => fields.get(id)).filter((f): f is FlightField => !!f),
+        ...all.filter((f) => !listed.includes(f.id)),
+      ];
+      for (const f of ordered) {
+        if (inside.has(f.id)) continue;
+        if (placed(f, page.id) && groupOf(f) === g.title) rows.push(rowOf(f, page));
+        for (const also of f.also ?? [])
+          if (also.page === page.id && also.group === g.title && f.page) {
+            const home = rowOf(f, page);
+            rows.push({
+              ...home,
+              id: `${f.id}@${page.id}`,
+              label: also.label ?? f.label,
+              field: f.id as FieldId,
+              read: undefined,
+              link: f.page as FlightSection,
+              chip: `${titleOf(f.page)} ›`,
+              placeholder: undefined,
+              weight: undefined,
+              max: undefined,
+              mode: undefined,
+              loc: undefined,
+              choices: undefined,
+              desc: also.description ?? f.description ?? "",
+              ofp: also.ofp ? withParts(home.ofp, also.ofp) : home.ofp,
+            });
+          }
+      }
+      if (g.notes)
+        rows.push({
+          id: "notes",
+          label: g.notes.label,
+          notes: true,
+          desc: g.notes.description ?? "",
+          ofp: withParts(NOT_IN_PLAN, page.ofp),
+        });
+      const note = g.notes
+        ? (c: Ctx) => {
+            const n = c.notes.split("\n").filter((l) => l.trim()).length;
+            return n ? `${n} ${n === 1 ? "note" : "notes"}` : "";
+          }
+        : g.note
+          ? () => g.note ?? ""
+          : undefined;
+      return {
+        title: g.title,
+        note,
+        units: g.units ? true : undefined,
+        unitField: g.units?.field,
+        unitLabel: g.units?.label ?? undefined,
+        rows,
+      };
+    });
+    const rows = groups.flatMap((g) => g.rows);
+    if (!rows.length) return [];
+    return [
       {
-        title: "Airports",
-        rows: [
-          {
-            id: "origin",
-            label: "Departure",
-            field: "origin",
-            max: 4,
-            desc: "The airport you depart from. Its weather is on the Weather page.",
-            loc: "Enter on the CDU › RTE",
-            ofp: fromHeader(
-              "The airports are in the header",
-              (c) => header(c, "airports"),
-              "The header names both airports first, in ICAO codes.",
-            ),
-          },
-          {
-            id: "destination",
-            label: "Destination",
-            field: "destination",
-            max: 4,
-            desc: "Where you plan to land.",
-            loc: "Enter on the CDU › RTE",
-            ofp: fromHeader(
-              "The airports are in the header",
-              (c) => header(c, "airports"),
-              "The header names both airports first, in ICAO codes.",
-            ),
-          },
-          {
-            id: "alternate",
-            label: "Alternate",
-            field: "alternate",
-            max: 4,
-            desc: "Where you'd divert if you couldn't land at the destination.",
-            loc: "Enter on the CDU › RTE 2",
-            ofp: {
-              section: 4,
-              title: "The alternate has its own section",
-              body: "The alternate section gives the alternate airport, the route there and the fuel to get there.",
-              cap: "Close-up, the alternate section",
-              close: (c) => header(c, "alt"),
-              note: "The header names the alternate too.",
-            },
-          },
-          {
-            id: "flight_number",
-            label: "Flight number",
-            field: "flight_number",
-            max: 7,
-            desc: "Your flight's number, as filed.",
-            loc: "Enter on the CDU › RTE",
-            ofp: fromHeader(
-              "The flight number opens the header",
-              (c) => header(c, "fn"),
-              "It comes before the airports in most layouts.",
-            ),
-          },
-        ],
+        id: page.id as FlightSection,
+        title: page.title,
+        sub: page.sub ?? "",
+        groups: groups.filter((g) => g.rows.length),
+        selected: page.selected ?? rows[0]?.id ?? "",
       },
-      {
-        title: "The route",
-        rows: [
-          {
-            id: "route",
-            label: "Route",
-            field: "route",
-            max: 400,
-            mode: "text",
-            desc: "The filed route from the SID to the arrival, as you enter it in the CDU.",
-            loc: "Enter on the CDU › RTE",
-            ofp: {
-              ...fromHeader(
-                "The route is in the header",
-                (c) => routeLine(c, "route"),
-                "The route sits between the departure and the destination, each with its runway.",
-              ),
-              cap: "Close-up, the header's route line",
-            },
-          },
-          {
-            id: "distance",
-            label: "Distance",
-            read: (c) =>
-              c.plan?.plan.general.airDistanceNm != null ? `${c.plan.plan.general.airDistanceNm} nm` : "—",
-            desc: "Planned air distance, which allows for the wind.",
-            ofp: fromHeader(
-              "The distance is in the header",
-              (c) => header(c, "dist"),
-              "Air distance allows for the winds along the route.",
-            ),
-          },
-          {
-            id: "time",
-            label: "Planned time",
-            read: (c) => minutes(c.plan?.plan.times.enrouteS),
-            desc: "Planned time from takeoff to landing.",
-            ofp: fromHeader(
-              "The planned time is in the header",
-              (c) => header(c, "time"),
-              "Estimated time en route, from takeoff to landing.",
-            ),
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "fuel",
-    title: "Fuel and weights",
-    sub: "Numbers for the fuel and weight steps and the CDU's PERF INIT page.",
-    selected: "fuel",
-    groups: [
-      {
-        title: "Fuel",
-        units: true,
-        rows: [
-          {
-            id: "fuel",
-            label: "Block fuel",
-            field: "fuel",
-            weight: "full",
-            mode: "numeric",
-            desc: "All the fuel on board before engine start.",
-            loc: "Check on the fuel gauges",
-            ofp: fromFuel(
-              "Block fuel is in the fuel plan",
-              "block",
-              "Block is the total: everything on board before engine start.",
-            ),
-          },
-          {
-            // Block fuel less what both wing tanks hold, exact (FSFuel board).
-            id: "center_tank",
-            label: "Center tank",
-            read: (c) => c.centerTank ?? "—",
-            phase: "before-start",
-            desc: "What's left after both wing tanks fill. The Center tank fuel step suggests its answer from this.",
-            chip: "Before start ›",
-            ofp: fromFuel(
-              "Block fuel is in the fuel plan",
-              "block",
-              "The center tank takes what's left of the block fuel after both wing tanks fill.",
-            ),
-          },
-          {
-            id: "trip",
-            label: "Trip fuel",
-            read: (c) => planWeight(c, c.plan?.plan.fuel.trip),
-            desc: "Planned burn from takeoff to landing.",
-            ofp: fromFuel(
-              "Trip fuel is in the fuel plan",
-              "trip",
-              "Trip is the burn from takeoff to landing.",
-            ),
-          },
-          {
-            id: "reserves",
-            label: "Reserves",
-            field: "reserves",
-            weight: "thousands",
-            mode: "decimal",
-            desc: "Alternate plus final reserve: what must be left at landing.",
-            loc: "Enter on the CDU › PERF INIT",
-            ofp: fromFuel(
-              "Reserves are in the fuel plan",
-              "reserve",
-              "Reserve is the final reserve; the alternate fuel is listed beside it.",
-            ),
-          },
-          {
-            id: "taxi",
-            label: "Taxi fuel",
-            read: (c) => planWeight(c, c.plan?.plan.fuel.taxi),
-            desc: "Planned burn before takeoff.",
-            ofp: fromFuel(
-              "Taxi fuel is in the fuel plan",
-              "taxi",
-              "Taxi is the planned burn before takeoff.",
-            ),
-          },
-          {
-            id: "min_fuel",
-            label: "Minimum takeoff fuel",
-            read: (c) =>
-              v(c, "minimum_takeoff_fuel")
-                ? `${grouped(Number(v(c, "minimum_takeoff_fuel")))} ${c.unit}`
-                : "—",
-            phase: "before-start",
-            desc: "The least fuel to start the takeoff with: trip, contingency, alternate and final reserve. Check you have at least this before takeoff.",
-            chip: "Before start ›",
-            ofp: fromFuel(
-              "Minimum takeoff fuel is in the fuel plan",
-              "min",
-              "The least fuel to start the takeoff with.",
-            ),
-          },
-        ],
-      },
-      {
-        title: "Weights",
-        note: () => "Same unit as fuel",
-        rows: [
-          {
-            id: "zfw",
-            label: "Zero fuel weight",
-            field: "zfw",
-            weight: "thousands",
-            mode: "decimal",
-            desc: "The airplane's weight without fuel.",
-            loc: "Enter on the CDU › PERF INIT",
-            ofp: fromWeights(
-              "Zero fuel weight is in the weights section",
-              "zfw",
-              "Enter it in thousands, as the CDU takes it.",
-            ),
-          },
-          {
-            id: "cg",
-            label: "ZFW CG",
-            field: "cg",
-            show: (x) => `${x}%`,
-            mode: "decimal",
-            desc: "Center of gravity without fuel, used for takeoff trim.",
-            loc: "Enter on the CDU › TAKEOFF REF",
-            ofp: fromWeights(
-              "The CG is in the weights section",
-              "zfw",
-              "Some layouts print the CG beside the zero fuel weight.",
-            ),
-          },
-          {
-            id: "payload",
-            label: "Passengers and cargo",
-            field: "passengers",
-            max: 3,
-            mode: "numeric",
-            firstName: "passengers",
-            second: {
-              field: "cargo",
-              placeholder: "Cargo",
-              name: "cargo",
-              max: 7,
-              mode: "decimal",
-              weight: "thousands",
-            },
-            desc: "Passengers and cargo, from the plan's load sheet.",
-            ofp: fromWeights("The payload is in the weights section", "pax", "Passengers, then cargo."),
-          },
-          {
-            id: "tow",
-            label: "Planned takeoff weight",
-            field: "takeoff_weight",
-            weight: "thousands",
-            mode: "decimal",
-            desc: "Zero fuel weight plus fuel at takeoff, from the plan.",
-            loc: "Enter on the CDU › PERF INIT",
-            ofp: fromWeights(
-              "The takeoff weight is in the weights section",
-              "tow",
-              "Cross-check it with the FMC's gross weight.",
-            ),
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "cruise",
-    title: "Cruise and levels",
-    sub: "Used by the climb, cruise and descent steps.",
-    selected: "cost_index",
-    groups: [
-      {
-        title: "Cruise",
-        rows: [
-          {
-            id: "cruise_level",
-            label: "Cruise level",
-            field: "cruise_level",
-            show: (x) => `FL${x}`,
-            max: 3,
-            mode: "numeric",
-            desc: "The level you plan to cruise at.",
-            loc: "Enter on the CDU › PERF INIT",
-            // FSCruise and FSInvalid: the same heading, body and note as Cost index.
-            ofp: {
-              ...fromHeader(
-                "Cost index and cruise level are in the header",
-                (c) => header(c, "level"),
-                "The navigation log repeats the level and wind at each fix.",
-              ),
-              body: "The header gives the cruise level, the cost index, and the average wind and temperature for the flight.",
-            },
-          },
-          {
-            id: "cost_index",
-            label: "Cost index",
-            field: "cost_index",
-            max: 4,
-            mode: "numeric",
-            desc: "Trades fuel against time. Lower saves fuel.",
-            loc: "Enter on the CDU › PERF INIT",
-            ofp: {
-              ...fromHeader(
-                "Cost index and cruise level are in the header",
-                (c) => header(c, "ci"),
-                "The navigation log repeats the level and wind at each fix.",
-              ),
-              body: "The header gives the cruise level, the cost index, and the average wind and temperature for the flight.",
-            },
-          },
-          {
-            id: "cruise_wind",
-            label: "Cruise wind",
-            field: "cruise_wind",
-            max: 7,
-            desc: "Average wind at cruise level, from the plan.",
-            loc: "Enter on the CDU › PERF INIT",
-            ofp: fromHeader(
-              "The average wind is in the header",
-              (c) => header(c, "wind"),
-              "Each fix's own wind is in the navigation log.",
-            ),
-          },
-          {
-            id: "isa_deviation",
-            label: "ISA deviation",
-            field: "isa_deviation",
-            show: signed,
-            max: 3,
-            mode: "numeric",
-            desc: "How much warmer (plus) or colder (minus) than standard the air is at cruise.",
-            loc: "Enter on the CDU › PERF INIT",
-            ofp: fromHeader(
-              "The ISA deviation is in the header",
-              (c) => header(c, "isa"),
-              "Plus is warmer than standard.",
-            ),
-          },
-        ],
-      },
-      {
-        title: "Levels",
-        rows: [
-          {
-            id: "transition_altitude",
-            label: "Transition altitude",
-            field: "transition_altitude",
-            show: (x) => (Number.isFinite(Number(x)) ? grouped(Number(x)) : x),
-            max: 5,
-            mode: "numeric",
-            desc: "Where you set standard pressure on the way up.",
-            loc: "Enter on the CDU › PERF INIT",
-            ofp: fromHeader(
-              "The transition altitude is in the header",
-              (c) => header(c, "ta"),
-              "The departure airport's transition altitude.",
-            ),
-          },
-          {
-            id: "transition_level_link",
-            label: "Transition level",
-            field: "transition_level",
-            link: "approach",
-            show: (x) => `FL${x}`,
-            desc: "Where you switch back to the local setting on the way down. Also on Approach.",
-            chip: "Approach ›",
-            ofp: fromHeader(
-              "The transition level is in the header",
-              (c) => header(c, "tl"),
-              "The destination's transition level.",
-            ),
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "clearance",
-    title: "Clearance",
-    sub: "What ATC cleared you to fly. The same fields as the flight strip.",
-    selected: "sid",
-    groups: [
-      {
-        title: "Departure clearance",
-        rows: [
-          {
-            id: "runway",
-            label: "Runway",
-            field: "runway",
-            max: 4,
-            desc: "The runway you depart from.",
-            loc: "Enter on the CDU › DEP/ARR",
-            ofp: clearanceOfp(),
-          },
-          {
-            id: "sid",
-            label: "SID",
-            field: "sid",
-            max: 8,
-            desc: "The departure procedure.",
-            loc: "Enter on the CDU › DEP/ARR",
-            ofp: clearanceOfp(),
-          },
-          {
-            id: "transition",
-            label: "Transition",
-            field: "transition",
-            max: 8,
-            desc: "Where the SID joins your route.",
-            loc: "Enter on the CDU › DEP/ARR",
-            ofp: clearanceOfp(),
-          },
-          {
-            id: "initial_altitude",
-            label: "Initial altitude",
-            field: "initial_altitude",
-            max: 5,
-            mode: "numeric",
-            desc: "The altitude you're cleared to climb to first.",
-            loc: "Set on the MCP › ALTITUDE",
-            ofp: clearanceOfp(),
-          },
-          {
-            id: "squawk",
-            label: "Squawk",
-            field: "squawk",
-            max: 4,
-            mode: "numeric",
-            desc: "Your transponder code.",
-            loc: "Set on the transponder",
-            ofp: clearanceOfp("Your squawk comes from ATC"),
-          },
-        ],
-      },
-      {
-        title: "Frequencies",
-        rows: [
-          {
-            id: "ground",
-            label: "Ground",
-            field: "ground_frequency",
-            max: 7,
-            mode: "decimal",
-            desc: "For pushback and taxi.",
-            loc: "Set on the radio panel",
-            ofp: clearanceOfp("Frequencies come from the chart and ATIS"),
-          },
-          {
-            id: "tower",
-            label: "Tower",
-            field: "tower_frequency",
-            max: 7,
-            mode: "decimal",
-            desc: "For takeoff.",
-            loc: "Set on the radio panel",
-            ofp: clearanceOfp("Frequencies come from the chart and ATIS"),
-          },
-          {
-            id: "departure",
-            label: "Departure frequency",
-            field: "departure_frequency",
-            max: 7,
-            mode: "decimal",
-            placeholder: "Enter",
-            desc: "The frequency to call after takeoff.",
-            loc: "Set on the radio panel",
-            ofp: clearanceOfp("Frequencies come from the chart and ATIS"),
-          },
-        ],
-      },
-      {
-        title: "Notes from ATC",
-        note: (c) => {
-          const n = c.notes.split("\n").filter((l) => l.trim()).length;
-          return n ? `${n} ${n === 1 ? "note" : "notes"}` : "";
-        },
-        rows: [
-          {
-            id: "notes",
-            label: "Note",
-            notes: true,
-            desc: "Anything else ATC told you.",
-            ofp: clearanceOfp(),
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "takeoff",
-    title: "Takeoff",
-    sub: "Numbers for the takeoff steps and the CDU's TAKEOFF REF page.",
-    selected: "v2",
-    groups: [
-      {
-        title: "Runway",
-        rows: [
-          {
-            id: "takeoff_runway",
-            label: "Takeoff runway",
-            field: "runway",
-            link: "clearance",
-            desc: "Set in Clearance.",
-            chip: "Clearance ›",
-            ofp: takeoffOfp,
-          },
-          {
-            id: "heading",
-            label: "Runway heading",
-            field: "heading",
-            max: 3,
-            mode: "numeric",
-            show: (x) => `${x}°`,
-            desc: "The heading of your takeoff runway.",
-            loc: "Set on the MCP › HEADING",
-            ofp: takeoffOfp,
-          },
-        ],
-      },
-      {
-        title: "Settings and speeds",
-        rows: [
-          {
-            id: "takeoff_flaps",
-            label: "Flaps",
-            field: "takeoff_flaps",
-            choices: FLAPS,
-            desc: "Takeoff flaps for your weight and runway.",
-            loc: "Enter on the CDU › TAKEOFF REF",
-            ofp: takeoffOfp,
-          },
-          {
-            id: "thrust_rating",
-            label: "Takeoff thrust",
-            field: "thrust_rating",
-            choices: THRUST,
-            desc: "The rating from your takeoff performance in the EFB. TO is full thrust; TO-1 and TO-2 are fixed derates that give less.",
-            loc: "Enter on the CDU › N1 LIMIT",
-            ofp: takeoffOfp,
-          },
-          {
-            id: "assumed_temperature",
-            label: "Assumed temperature (SEL)",
-            field: "assumed_temperature",
-            max: 3,
-            mode: "numeric",
-            show: (x) => `${x} °C`,
-            desc: "From your takeoff performance in the EFB. A temperature hotter than the real one, so the FMC sets less thrust and saves the engines.",
-            loc: "Enter on the CDU › N1 LIMIT",
-            ofp: takeoffOfp,
-          },
-          {
-            id: "v1",
-            label: "V1",
-            field: "v1",
-            max: 3,
-            mode: "numeric",
-            desc: "Decision speed. Before it you can stop; after it you go.",
-            loc: "Enter on the CDU › TAKEOFF REF",
-            ofp: takeoffOfp,
-          },
-          {
-            id: "vr",
-            label: "VR",
-            field: "vr",
-            max: 3,
-            mode: "numeric",
-            desc: "Rotation speed.",
-            loc: "Enter on the CDU › TAKEOFF REF",
-            ofp: takeoffOfp,
-          },
-          {
-            id: "v2",
-            label: "V2",
-            field: "v2",
-            max: 3,
-            mode: "numeric",
-            placeholder: "From the FMC",
-            desc: "Takeoff safety speed for your takeoff flaps.",
-            loc: "Enter on the CDU › TAKEOFF REF",
-            ofp: takeoffOfp,
-          },
-          {
-            id: "takeoff_trim",
-            label: "Stabilizer trim",
-            field: "takeoff_trim",
-            max: 5,
-            mode: "decimal",
-            placeholder: "From the FMC",
-            desc: "Takeoff trim for your weight and balance.",
-            loc: "Enter on the CDU › TAKEOFF REF",
-            ofp: takeoffOfp,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "approach",
-    title: "Approach",
-    sub: "Used by the Descent and Approach steps and the approach briefing. Arrival values live only here.",
-    selected: "arrival_runway",
-    groups: [
-      {
-        title: "Arrival",
-        rows: [
-          {
-            id: "arrival_runway",
-            label: "Arrival runway",
-            field: "arrival_runway",
-            max: 4,
-            desc: "The runway you expect to land on. Check it against the ATIS before you brief.",
-            loc: "Enter on the CDU › DEP/ARR",
-            ofp: approachRoute,
-          },
-          {
-            id: "star",
-            label: "Arrival (STAR)",
-            field: "star",
-            max: 8,
-            placeholder: "Enter",
-            desc: "The published route from the airway to the approach.",
-            loc: "Enter on the CDU › DEP/ARR",
-            ofp: approachRoute,
-          },
-          {
-            id: "transition_level",
-            label: "Transition level",
-            field: "transition_level",
-            max: 3,
-            mode: "numeric",
-            show: (x) => `FL${x}`,
-            desc: "Where you set the altimeters to the local setting on the way down.",
-            loc: "Enter on the CDU › DESCENT",
-            ofp: fromHeader(
-              "The transition level is in the header",
-              (c) => header(c, "tl"),
-              "The destination's transition level.",
-            ),
-          },
-        ],
-      },
-      {
-        title: "Landing",
-        rows: [
-          {
-            id: "minimums",
-            label: "Minimums",
-            field: "minimums",
-            max: 5,
-            mode: "numeric",
-            placeholder: "Enter",
-            desc: "The height where you must see the runway to continue, from the approach chart. BARO for most approaches; RADIO when the chart gives a radio altimeter height.",
-            loc: "Set on the EFIS › MINS",
-            seg: { field: "minimums_type", values: ["BARO", "RADIO"], label: "Minimums type" },
-            ofp: chartOfp("Minimums come from the approach chart"),
-          },
-          {
-            id: "vref",
-            label: "Landing speed",
-            field: "vref",
-            max: 3,
-            mode: "numeric",
-            placeholder: "From the FMC",
-            desc: "VREF for your landing flaps, plus any wind additive.",
-            loc: "Enter on the CDU › APPROACH REF",
-            ofp: chartOfp("Landing speed comes from the FMC"),
-          },
-          {
-            id: "landing_flaps",
-            label: "Landing flaps",
-            field: "landing_flaps",
-            choices: LANDING_FLAPS,
-            desc: "The flaps you land with. Landing speed is VREF for this setting.",
-            loc: "Enter on the CDU › APPROACH REF",
-            ofp: chartOfp("Landing flaps come from the FMC"),
-          },
-          {
-            id: "autobrake",
-            label: "Autobrake",
-            field: "autobrake",
-            choices: AUTOBRAKE,
-            desc: "How hard the brakes apply on touchdown.",
-            loc: "Set on the autobrake selector",
-            ofp: chartOfp("Autobrake is your choice for the runway"),
-          },
-          {
-            id: "landing_altitude",
-            label: "Landing altitude",
-            field: "landing_altitude",
-            max: 5,
-            mode: "numeric",
-            desc: "The destination field elevation, from the plan.",
-            loc: "Set on the pressurization panel › LAND ALT",
-            ofp: {
-              ...approachRoute,
-              title: "The destination elevation is in the header",
-              note: "The header gives each airport's elevation.",
-            },
-          },
-        ],
-      },
-    ],
-  },
-];
+    ];
+  });
+  return { sections, fields, needed: needed as FieldId[], unitField };
+}
+
+/** How a field's value reads, from its `show`. */
+function showOf(s: FieldShow): (value: string) => string {
+  return (x) => {
+    const body = s.grouped && Number.isFinite(Number(x)) ? grouped(Number(x)) : s.signed ? signed(x) : x;
+    return `${s.prefix ?? ""}${body}${s.suffix ?? ""}`;
+  };
+}
+
+/** A weight in the flight's unit: in full, or in thousands as the field stores it. */
+function weightOf(f: FlightField): Row["weight"] {
+  if (!f.unit) return undefined;
+  return f.display && f.display.scale === 1000 ? "thousands" : "full";
+}
+
+/** What a link or a second box calls a field. */
+const spokenOf = (f: FlightField) => f.spoken ?? f.id.replace(/_/g, " ");
+
+/** The value of a row shown, not typed: an option's suggestion, a plan figure the plan alone
+ * gives, or a stored value. */
+function readOf(f: FlightField): Row["read"] {
+  if (f.suggestedBy) {
+    const option = f.suggestedBy;
+    return (c) => c.suggested?.[option] ?? "—";
+  }
+  if (!f.readOnly) return undefined;
+  switch (f.simbrief?.[0]) {
+    case "air_distance":
+      return (c) =>
+        c.plan?.plan.general.airDistanceNm != null ? `${c.plan.plan.general.airDistanceNm} nm` : "—";
+    case "enroute_time":
+      return (c) => minutes(c.plan?.plan.times.enrouteS);
+    case "trip_fuel":
+      return (c) => planWeight(c, c.plan?.plan.fuel.trip);
+    case "taxi_fuel":
+      return (c) => planWeight(c, c.plan?.plan.fuel.taxi);
+    default: {
+      const show = f.show ? showOf(f.show) : (x: string) => x;
+      return (c) => {
+        const x = v(c, f.id as FieldId);
+        if (!x) return "—";
+        return f.unit ? `${grouped(Number(x))} ${c.unit}` : show(x);
+      };
+    }
+  }
+}
 
 /** The section that holds a field, and its row, for "— enter …" links and Still to enter. */
 export function home(field: FieldId): { section: FlightSection; row: Row } | null {
-  for (const s of SECTIONS)
+  for (const s of model.sections)
     for (const g of s.groups)
       for (const r of g.rows) if (r.field === field && !r.link) return { section: s.id, row: r };
   return null;
@@ -1025,26 +677,18 @@ export function home(field: FieldId): { section: FlightSection; row: Row } | nul
 
 /** Empty fields the steps need, per section ("2 to enter"). */
 export function toEnter(values: Partial<Record<FieldId, string>>, section?: FlightSection): Row[] {
-  return SECTIONS.filter((s) => !section || s.id === section)
+  return model.sections
+    .filter((s) => !section || s.id === section)
     .flatMap((s) => s.groups.flatMap((g) => g.rows))
-    .filter((r) => r.field && !r.link && NEEDED.includes(r.field) && !values[r.field]);
+    .filter((r) => r.field && !r.link && model.needed.includes(r.field) && !values[r.field]);
 }
 
-/** The flight's weight unit, lower case, for labels. */
+/** The flight's unit, lower case, for labels: the value of the field a units toggle sets. */
 export function unitOf(flight: Flight): string {
-  return (flight.values?.weight_unit ?? "LB").toLowerCase();
+  const f = model.unitField;
+  if (!f) return "";
+  return (flight.values?.[f.id] ?? f.choices?.[0]?.value ?? "").toLowerCase();
 }
-
-/** What a step's "— enter …" link names: "takeoff trim", "V2", "QNH". */
-const SPOKEN: Partial<Record<FieldId, string>> = {
-  v1: "V1",
-  vr: "VR",
-  v2: "V2",
-  vref: "VREF",
-  qnh: "QNH",
-  destination_qnh: "QNH",
-  heading: "runway heading",
-};
 
 /**
  * For each of a step's blanks, the Flight field it links to (Checklist board: "— enter takeoff
@@ -1054,7 +698,8 @@ const SPOKEN: Partial<Record<FieldId, string>> = {
 export function blankLinks(fill: FieldId[]): ({ href: string; name: string } | null)[] {
   return fill.map((field) => {
     if (field === "manual") return null;
-    const name = SPOKEN[field] ?? field.replace(/_/g, " ");
+    const def = model.fields.get(field);
+    const name = def ? spokenOf(def) : field.replace(/_/g, " ");
     if (field === "qnh" || field === "destination_qnh") return { href: `#/flight/weather/${field}`, name };
     const at = home(field);
     return at ? { href: `#/flight/${at.section}/${field}`, name } : null;
@@ -1062,49 +707,34 @@ export function blankLinks(fill: FieldId[]): ({ href: string; name: string } | n
 }
 
 /** A number from a field's text, or NaN. */
-const number = (v: string) => (v.trim() === "" ? Number.NaN : Number(v));
-const within = (lo: number, hi: number, message: string) => (v: string) => {
-  const n = number(v);
-  return Number.isFinite(n) && n >= lo && n <= hi ? null : message;
-};
-const QNH = (v: string, c: Ctx) =>
-  c.values.qnh_unit === "hPa"
-    ? within(948, 1050, "Enter 948 to 1050 hPa")(v)
-    : within(28, 31, "Enter 28.00 to 31.00 inHg")(v);
+const number = (x: string) => (x.trim() === "" ? Number.NaN : Number(x));
 
-/**
- * The ranges 3.0's Flight setup gave its number fields (21 of them), as checks (FSInvalid board): a value
- * outside one shows "Enter X to Y" under its box while it stays out of range. Fields 3.0 gave no
- * range have no check.
- */
-export const RANGES: Partial<Record<FieldId, (value: string, c: Ctx) => string | null>> = {
-  cruise_level: within(100, 410, "Enter FL100 to FL410"),
-  initial_altitude: within(0, 41000, "Enter 0 to 41,000 ft"),
-  heading: within(1, 360, "Enter 001 to 360"),
-  qnh: QNH,
-  destination_qnh: QNH,
-  v1: within(80, 250, "Enter 80 to 250 knots"),
-  vr: within(80, 250, "Enter 80 to 250 knots"),
-  v2: within(100, 250, "Enter 100 to 250 knots"),
-  vref: within(100, 250, "Enter 100 to 250 knots"),
-  cg: within(0, 50, "Enter 0 to 50% MAC"),
-  takeoff_trim: within(0, 15, "Enter 0.00 to 15.00 units"),
-  passengers: within(0, 500, "Enter 0 to 500"),
-  // Weights are stored in thousands, as 3.0's ranges were; the box shows them in full.
-  zfw: (v, c) => within(0, 400, `Enter 0 to 400,000 ${c.unit}`)(v),
-  takeoff_weight: (v, c) => within(0, 400, `Enter 0 to 400,000 ${c.unit}`)(v),
-  reserves: (v, c) => within(0, 100, `Enter 0 to 100,000 ${c.unit}`)(v),
-  cargo: (v, c) => within(0, 100, `Enter 0 to 100,000 ${c.unit}`)(v),
-  cost_index: within(0, 9999, "Enter 0 to 9999"),
-  isa_deviation: within(-60, 60, "Enter −60 to +60"),
-  transition_altitude: within(1000, 20000, "Enter 1,000 to 20,000 ft"),
-  transition_level: within(10, 600, "Enter FL10 to FL600"),
-  landing_altitude: within(-1000, 14000, "Enter −1,000 to 14,000 ft"),
-  minimums: within(0, 14000, "Enter 0 to 14,000 ft"),
-};
+/** The range that applies to a field's value: the one for the flight's unit, or for every unit. */
+function rangeFor(f: FlightField, c: Ctx): FieldRange | undefined {
+  const ranges = f.ranges ?? [];
+  if (!ranges.length) return undefined;
+  if (f.unit) {
+    const unitField = model.fields.get(f.unit);
+    const unit = c.values[f.unit as FieldId] ?? unitField?.choices?.[0]?.value;
+    return ranges.find((r) => r.unit === unit) ?? ranges.find((r) => !r.unit) ?? ranges[0];
+  }
+  return ranges.find((r) => !r.unit) ?? ranges[0];
+}
+
+/** "Enter {min} to {max}", in the values as the page shows them, or the pack's own words. */
+function messageOf(f: FlightField, r: FieldRange, c: Ctx): string {
+  if (r.message) return r.message.replace(/\{unit\}/g, c.unit);
+  const scale = f.display?.scale ?? 1;
+  const shown = (n: number) => grouped(n * scale);
+  return `Enter ${shown(r.min)} to ${shown(r.max)}${f.unit ? ` ${c.unit}` : ""}`;
+}
 
 /** The message for a field's value, or null when it's in range or empty. */
 export function rangeMessage(field: FieldId, c: Ctx): string | null {
   const value = c.values[field] ?? "";
-  return value ? (RANGES[field]?.(value, c) ?? null) : null;
+  const f = model.fields.get(field);
+  const r = f ? rangeFor(f, c) : undefined;
+  if (!value || !f || !r) return null;
+  const n = number(value);
+  return Number.isFinite(n) && n >= r.min && n <= r.max ? null : messageOf(f, r, c);
 }

@@ -2,6 +2,13 @@
 
 /**
  * The range a number may take, in one unit (a value of the field's `unit` field), or in
- * every unit when `unit` is left out.
+ * every unit when `unit` is left out. Stored values are checked, so a weight stored in
+ * thousands has its range in thousands.
  */
-export type FieldRange = { unit?: string | null, min: number, max: number, };
+export type FieldRange = { unit?: string | null, min: number, max: number, 
+/**
+ * What the Flight pages say under a value outside the range, e.g. "Enter FL100 to
+ * FL410"; `{unit}` is the flight's unit in lower case. Without it, "Enter {min} to
+ * {max}", in the values as the page shows them.
+ */
+message?: string | null, };

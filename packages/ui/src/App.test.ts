@@ -17,7 +17,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App.svelte";
 import { type Host, hostContext } from "./host";
-import { appLabels } from "./test-pack";
+import { appLabels, iflyPack } from "./test-pack";
 
 function phase(id: string, title: string, done: number, skipped: number, total: number): RailPhase {
   const progress = { done, skipped, toDo: total - done - skipped, total };
@@ -35,6 +35,15 @@ const rail: Rail = {
   ],
   reference: [phase("memory", "Memory items", 0, 0, 12)],
 };
+
+/** The iFly pack's flight file, each field its steps fill marked `needed`. */
+function neededAsInIfly() {
+  const ifly = iflyPack();
+  const filled = new Set(ifly.lists.flatMap((l) => l.steps.flatMap((st) => st.fill ?? [])));
+  const file = structuredClone(ifly.content.flight);
+  for (const f of file?.fields ?? []) if (filled.has(f.id)) f.needed = true;
+  return file;
+}
 
 const pack = {
   manifest: { name: "Demo aircraft" },
@@ -61,6 +70,9 @@ const pack = {
   ],
   content: {
     labels: appLabels(),
+    // The iFly pack's flight fields and pages, for the Flight pages; the fields its steps fill
+    // count as needed, as they do there (these invented steps fill none).
+    flight: neededAsInIfly(),
     // An invented term, for the Glossary.
     glossary: { terms: [{ term: "WGT", meaning: "Widget gate timer. Times the widget gate." }] },
     phases: {

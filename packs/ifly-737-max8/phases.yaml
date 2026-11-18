@@ -61,6 +61,7 @@ options:
         label: Visual
     ask_in:
       - descent
+      - flight:approach
       - approach
   - id: exterior
     title: Exterior inspection

@@ -8,6 +8,7 @@ from the host (decision 0012): a flight, settings, the rail and the phase on scr
 in Rust. The host saves progress and settings on the device.
 -->
 <script lang="ts">
+  import { useFlightPack } from "./flight/sections";
   import { referenceTabs } from "./lib/reference-tabs";
   import {
     type Action,
@@ -224,6 +225,7 @@ in Rust. The host saves progress and settings on the device.
       packId = aircraft.id;
       index = indexPack(pack);
       findIndex = buildFind(pack, index);
+      useFlightPack(pack);
       flatPack = pack;
       lists = new Map(pack.lists.map((l) => [l.id, l]));
       intros = new Map((pack.content.phases?.phases ?? []).map((p) => [p.id, p.intro ?? []]));
@@ -1175,7 +1177,7 @@ in Rust. The host saves progress and settings on the device.
       {flight}
       settings={s}
       {plan}
-      centerTank={suggestions.center_tank ? `${suggestions.center_tank.amount.toLocaleString("en-US")} ${suggestions.center_tank.unit}` : null}
+      suggested={Object.fromEntries(Object.entries(suggestions).map(([id, s]) => [id, s ? `${s.amount.toLocaleString("en-US")} ${s.unit}` : null]))}
       options={index.options}
       states={index.panelStates}
       panelStateLabels={index.labels.panelStates}
