@@ -73,32 +73,8 @@ const host = { decodeMetar: async () => METAR, decodeTaf: async () => METAR } as
 
 function page(props: Record<string, unknown>, withHost: Host = host) {
   const sets: [string, string][] = [];
-  const options: UserOption[] = [
-    {
-      id: "power",
-      title: "Power source",
-      values: ["gpu", "apu"],
-      default: "gpu",
-      choices: [
-        { value: "gpu", label: "Ground power at the gate" },
-        { value: "apu", label: "No ground power" },
-      ],
-    },
-    { id: "exterior", title: "Exterior inspection", values: ["on", "off"], default: "on" },
-    {
-      id: "approach",
-      title: "Approach type",
-      values: ["ils", "rnav", "vis"],
-      default: "ils",
-      choices: [
-        { value: "ils", label: "ILS" },
-        { value: "rnav", label: "RNAV" },
-        { value: "vis", label: "Visual" },
-      ],
-      // Asked on the Approach page, as the iFly pack asks it.
-      askIn: ["flight:approach"],
-    },
-  ];
+  // The iFly pack's own options, as the app passes them (decision 0029).
+  const options: UserOption[] = iflyPack().content.phases?.options ?? [];
   const states = [
     { id: "cd", title: "Cold & Dark", description: "", phase: "cold-dark", done: [] },
   ] as unknown as PanelState[];
@@ -112,6 +88,7 @@ function page(props: Record<string, unknown>, withHost: Host = host) {
       settings,
       plan: null,
       options,
+      startPage: iflyPack().content.phases?.startPage ?? [],
       states,
       panelStateLabels: appLabels().panelStates,
       backHref: "#/phase/before-start",

@@ -29,7 +29,11 @@ pub fn names(text: &str, word: &str) -> bool {
     })
 }
 
-/// Other words a step's wording uses for a position: "DOWN" for a lever's DN, "ARM" for ARMED.
+/// Other words for a position, by position: the pack's `position_words` merged over the defaults.
+pub type PositionWords = std::collections::BTreeMap<String, Vec<String>>;
+
+/// The default other words a step's wording uses for a position: "DOWN" for a lever's DN, "ARM"
+/// for ARMED. A pack's labels add to them or replace one position's words.
 pub(crate) const POSITION_WORDS: &[(&str, &[&str])] = &[
     ("DN", &["DOWN"]),
     ("ARMED", &["ARM"]),
@@ -39,22 +43,20 @@ pub(crate) const POSITION_WORDS: &[(&str, &[&str])] = &[
 ];
 
 /// Whether a value names a position, by its name or another word for it.
-pub fn names_position(text: &str, position: &str) -> bool {
+pub fn names_position(text: &str, position: &str, words: &PositionWords) -> bool {
     names(text, position)
-        || POSITION_WORDS
-            .iter()
-            .filter(|(p, _)| *p == position)
-            .flat_map(|(_, words)| words.iter())
-            .any(|w| names(text, w))
+        || words
+            .get(position)
+            .is_some_and(|other| other.iter().any(|w| names(text, w)))
 }
 
 /// The position a value names, when it names exactly one of them. "ON, GUARD CLOSED" names ON
 /// of "OFF, ON"; "ENG 1 AND 2 ON, ELEC 1 AND 2 OFF" names both, so neither is the target. A
 /// position named inside a longer one also named ("STEADY" in "STROBE & STEADY") gives way to it.
-pub fn named_position(expect: &str, positions: &[String]) -> Option<usize> {
+pub fn named_position(expect: &str, positions: &[String], words: &PositionWords) -> Option<usize> {
     let all: Vec<&str> = positions.iter().map(|p| p.trim()).collect();
     let named: Vec<usize> = (0..all.len())
-        .filter(|&i| names_position(expect, all[i]))
+        .filter(|&i| names_position(expect, all[i], words))
         .collect();
     let longest: Vec<usize> = named
         .iter()
@@ -118,14 +120,15 @@ pub fn switch_value<'a>(
     expect: &str,
     light_labels: impl IntoIterator<Item = &'a str>,
     switch_positions: &[&str],
+    words: &PositionWords,
 ) -> String {
     let mut value = expect.to_owned();
     // A light named like a position (window heat ON) is not taken out: the word is the switch's.
     let position_word = |l: &str| {
         switch_positions.contains(&l)
-            || POSITION_WORDS
-                .iter()
-                .any(|(p, words)| switch_positions.contains(p) && words.contains(&l))
+            || words.iter().any(|(p, other)| {
+                switch_positions.contains(&p.as_str()) && other.iter().any(|w| w == l)
+            })
     };
     for label in light_labels.into_iter().filter(|l| !position_word(l)) {
         value = value.replace(label, " ");
@@ -202,16 +205,38 @@ mod reading_tests {
         positions.iter().map(ToString::to_string).collect()
     }
 
+    /// The default words, as a pack without `position_words` has them.
+    fn words() -> super::PositionWords {
+        crate::Labels::default().position_words
+    }
+
+    #[test]
+    fn a_pack_s_own_words_for_a_position_are_read_too() {
+        let mut own = words();
+        own.insert("UP".into(), vec!["RETRACT".into()]);
+        assert_eq!(
+            named_position("RETRACT", &list(&["UP", "DN"]), &words()),
+            None
+        );
+        assert_eq!(
+            named_position("RETRACT", &list(&["UP", "DN"]), &own),
+            Some(0)
+        );
+        // The defaults stay: DOWN still names DN.
+        assert_eq!(named_position("DOWN", &list(&["UP", "DN"]), &own), Some(1));
+    }
+
     #[test]
     fn positions_are_read_by_other_words_and_the_longer_of_nested_names() {
         assert_eq!(
-            named_position("DOWN WHEN SPEED ALLOWS", &list(&["UP", "DN"])),
+            named_position("DOWN WHEN SPEED ALLOWS", &list(&["UP", "DN"]), &words()),
             Some(1)
         );
         assert_eq!(
             named_position(
                 "STROBE & STEADY",
-                &list(&["STROBE & STEADY", "OFF", "STEADY"])
+                &list(&["STROBE & STEADY", "OFF", "STEADY"]),
+                &words()
             ),
             Some(0)
         );
@@ -220,13 +245,21 @@ mod reading_tests {
     #[test]
     fn a_light_named_like_a_position_does_not_hide_the_switch_position() {
         // The window heat lights are named ON; the MANUAL light is a word for MAN.
-        assert!(names(&switch_value("ON", ["ON"], &["OFF", "ON"]), "ON"));
         assert!(names(
-            &switch_value("STAY IN MANUAL", ["MANUAL"], &["AUTO", "MAN"]),
+            &switch_value("ON", ["ON"], &["OFF", "ON"], &words()),
+            "ON"
+        ));
+        assert!(names(
+            &switch_value("STAY IN MANUAL", ["MANUAL"], &["AUTO", "MAN"], &words()),
             "MANUAL"
         ));
         assert!(!names(
-            &switch_value("PASS OXY ON LIGHT OUT", ["PASS OXY ON"], &["NORMAL", "ON"]),
+            &switch_value(
+                "PASS OXY ON LIGHT OUT",
+                ["PASS OXY ON"],
+                &["NORMAL", "ON"],
+                &words()
+            ),
             "ON"
         ));
     }

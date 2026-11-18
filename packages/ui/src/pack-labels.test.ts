@@ -6,7 +6,6 @@
 // the app's defaults) against the strings in the interface's source.
 
 import { describe, expect, it } from "vitest";
-import { NO_EXPANSION } from "./lib/glossary";
 import { iflyPack } from "./test-pack";
 
 const source = Object.fromEntries(
@@ -21,8 +20,8 @@ describe("pack labels", () => {
   it("match the words the interface shows today", () => {
     expect(source["Slideout.svelte"]).toContain(`title="${labels.seatViewTitle}"`);
     expect(source["Locator.svelte"]).toContain(`title="${labels.seatViewTitle}"`);
-    for (const example of labels.findExamples) expect(source["Find.svelte"]).toContain(`"${example}"`);
-    expect(labels.glossaryExceptions).toEqual(NO_EXPANSION);
+    // The examples Find showed before it read them from the labels.
+    expect(labels.findExamples).toEqual(["Fuel panel", "Parking brake", "MCP", "Transponder"]);
   });
 
   it("name the basis tags as the References page does", () => {

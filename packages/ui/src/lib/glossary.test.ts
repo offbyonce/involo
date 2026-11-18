@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
 import { iflyPack } from "../test-pack";
 import { buildFind } from "./find-index";
-import { buildGlossary, filterTerms, letterOf, NO_EXPANSION, split } from "./glossary";
+import { buildGlossary, filterTerms, letterOf, split } from "./glossary";
 
 const pack = iflyPack();
 
@@ -78,12 +78,32 @@ describe("the Glossary", () => {
 });
 
 describe("the reviewed exceptions", () => {
-  it("gives no expansion to the terms whose first sentence reads as a description, each still in the pack", () => {
+  it("gives no expansion to the terms the pack's labels list, each still in the pack", () => {
     const terms = pack.content.glossary?.terms ?? [];
-    for (const name of NO_EXPANSION) {
+    const exceptions = pack.content.labels.glossaryExceptions;
+    // The four the glossary named before it read them from the labels.
+    expect(exceptions).toEqual(["IGN L", "IGN R", "PERF INIT", "MA"]);
+    for (const name of exceptions) {
       const t = terms.find((x) => x.term === name);
       expect(t, name).toBeTruthy();
-      expect(split(name, t?.meaning ?? "")).toEqual({ expansion: null, definition: t?.meaning });
+      expect(split(name, t?.meaning ?? "", exceptions)).toEqual({ expansion: null, definition: t?.meaning });
+    }
+  });
+
+  it("follows a test pack's own exceptions", () => {
+    expect(split("FCU", "Flight control unit.").expansion).toBe("Flight control unit");
+    expect(split("FCU", "Flight control unit.", ["FCU"]).expansion).toBeNull();
+  });
+});
+
+describe("aircraft words", () => {
+  it("are not in Find or the glossary code: the examples and exceptions come from the pack", async () => {
+    const { readFileSync } = await import("node:fs");
+    const labels = pack.content.labels;
+    for (const file of ["Find.svelte", "glossary.ts"]) {
+      const text = readFileSync(`${import.meta.dirname}/${file}`, "utf8");
+      for (const word of [...labels.findExamples, ...labels.glossaryExceptions, "Fuel", "MCP"])
+        expect(text, `${file}: ${word}`).not.toMatch(new RegExp(`\\b${word}\\b`));
     }
   });
 });

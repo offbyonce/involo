@@ -1,15 +1,15 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// Every panel name in the pack against the naming rule: a name ending in a thing
-// is used as it is, any other takes "panel". The lists below are the names as reviewed; a new name
-// in the pack fails here until it is added to the right list, so a word the rule does not know
-// ("quadrant", say) is caught before it reads wrong.
+// Every panel name in the packs as reviewed, when the interface added "panel" by an English word
+// list: a name ending in a thing was used as it was, any other took "panel". Names now come from
+// the pack (a section's `name`, else its title), so each section reads as reviewed here, and a new
+// name fails until it is added to the right list.
 
 import type { FlatPack } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import { packAsReceived } from "../test-pack";
-import { panelName } from "./panel-name";
+import { sectionName } from "./panel-name";
 
 /** The flattened packs, by file, as the interface receives them; the pack index file is not a pack. */
 const packs: Record<string, FlatPack> = Object.fromEntries(
@@ -167,22 +167,21 @@ const TAKES_PANEL = [
   "Wiper selectors",
 ];
 
-describe("every panel name in the pack follows the naming rule", () => {
-  const titles = new Set<string>();
-  for (const [file, pack] of Object.entries(packs)) {
-    if (file.endsWith("index.json")) continue;
-    for (const p of pack.content.panels ?? []) for (const s of p.sections) titles.add(s.title);
-    for (const z of pack.content.controls?.zones ?? []) titles.add(z.title);
-  }
+describe("every panel name in the packs reads as reviewed", () => {
+  const sections = Object.values(packs).flatMap((pack) =>
+    (pack.content.panels ?? []).flatMap((p) => p.sections),
+  );
+  const zones = Object.values(packs).flatMap((pack) => pack.content.controls?.zones ?? []);
 
   it("knows every name (a new one is reviewed and added to a list here)", () => {
     const known = new Set([...AS_IS, ...SAYS_PANEL, ...TAKES_PANEL]);
+    const titles = new Set([...sections.map((s) => s.title), ...zones.map((z) => z.title)]);
     expect([...titles].filter((t) => !known.has(t))).toEqual([]);
   });
 
-  it("names each as reviewed", () => {
-    const sentence = (t: string) => `${t.charAt(0).toUpperCase()}${t.slice(1)}`;
-    for (const t of [...AS_IS, ...SAYS_PANEL]) expect(panelName(t)).toBe(sentence(t));
-    for (const t of TAKES_PANEL) expect(panelName(t)).toBe(`${sentence(t)} panel`);
+  it("names each section as reviewed, from its name or title", () => {
+    const takes = new Set(TAKES_PANEL);
+    for (const s of sections)
+      expect(sectionName(s), s.id).toBe(takes.has(s.title) ? `${s.title} panel` : s.title);
   });
 });

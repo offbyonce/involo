@@ -1,29 +1,32 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// The Flight deck page's areas (Deck and PhoneDeck boards): the board's seven, from the pack's
-// overview map, the center console split into its three panels by the pack's own area names, and
-// "Around the flight deck" last, for the places with no map region of their own.
+// The Flight deck page's areas (Deck and PhoneDeck boards), from the pack's overview map: one per
+// region, in the pack's order. A region the side view draws as several outlines is split into that
+// many areas, by its places' own area names, front to back as the map lists them top to bottom.
+// With a side view, a region it does not draw holds the places with no map region of their own:
+// shown last, without a map box.
 
 import type { OverviewArea, OverviewRegion, Panel, PanelSection, Zone } from "@involo/bindings";
 import { type PackIndex, splitArea } from "../pack-index";
 
 export type DeckArea = {
-  /** The address key ("forward-overhead"). */
+  /** The address key, from its name. */
   id: string;
-  /** "Forward overhead", "Forward electronic", "Around the flight deck". */
+  /** The region's name, or for one of a split region's areas its own name. */
   name: string;
-  /** "P5", "P1–P3", "P9"; none for the control stand. */
+  /** The region's or area's code; none when the pack gives none. */
   code: string | null;
-  /** The pack's sentence on where to look ("Above the windshield, in front of your head."). */
+  /** The pack's sentence on where to look. */
   locate: string | null;
-  /** The region it is drawn from, for the edge captions; none for Around the flight deck. */
+  /** The region it is drawn from, for the edge captions; none for a region the side view does
+   * not draw. */
   region: OverviewRegion | null;
   /** The map's boxes (the pack's overview areas), and the places (zones) they are. */
   boxes: OverviewArea[];
   zones: Zone[];
-  /** The side view's place to highlight, by region name, and which of its outlines (the console's
-   * three panels are one place of three outlines, front to back). */
+  /** The side view's place to highlight, by region name, and which of its outlines for a split
+   * region (front to back). */
   side: { region: string; shape: number | null } | null;
 };
 
@@ -32,11 +35,8 @@ const key = (name: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
-const AROUND = "Around the flight deck";
-/** The console's panels front to back, as the side view draws its three outlines. */
-const CONSOLE = ["Forward electronic panel (P9)", "Control stand", "Aft electronic panel (P8)"];
 
-/** The page's areas, in the board's order, Around the flight deck last. */
+/** The page's areas, in the pack's order, the regions the side view does not draw last. */
 export function deckAreas(index: PackIndex): DeckArea[] {
   const overview = index.overview;
   if (!overview) return [];
@@ -57,27 +57,35 @@ export function deckAreas(index: PackIndex): DeckArea[] {
       return [z];
     });
   };
-  const sideHas = (name: string) => !!overview.views?.side?.places?.some((p) => p.region === name);
+  const side = overview.views?.side;
+  const placeOf = (name: string) => side?.places?.find((p) => p.region === name) ?? null;
   const out: DeckArea[] = [];
-  let around: DeckArea | null = null;
+  const around: DeckArea[] = [];
   for (const region of regions) {
     const boxes = overview.areas.filter((a) => regionOf(a) === region);
-    if (region.name === AROUND) {
-      around = {
-        id: key(AROUND),
-        name: AROUND,
-        code: null,
+    const place = placeOf(region.name);
+    if (side && !place) {
+      around.push({
+        id: key(region.name),
+        name: region.name,
+        code: region.code ?? null,
         locate: region.locate ?? null,
         region: null,
         boxes: [],
         zones: zonesOf(boxes),
         side: null,
-      };
+      });
       continue;
     }
-    const split = CONSOLE.filter((name) => boxes.some((b) => byId.get(b.zone)?.area === name));
-    if (split.length > 1) {
-      split.forEach((full) => {
+    // The region's own area names, top to bottom on the map: one per outline of a split region.
+    const top = (area: string) =>
+      Math.min(...boxes.filter((b) => byId.get(b.zone)?.area === area).map((b) => b.y));
+    const split = [...new Set(boxes.map((b) => byId.get(b.zone)?.area).filter((a): a is string => !!a))].sort(
+      (a, b) => top(a) - top(b),
+    );
+    const outlines = place?.shapes.length ?? 0;
+    if (outlines > 1 && split.length === outlines) {
+      split.forEach((full, shape) => {
         const [name, code] = splitArea(full);
         const mine = boxes.filter((b) => byId.get(b.zone)?.area === full);
         const short = name.replace(/\s+panel$/i, "");
@@ -89,7 +97,7 @@ export function deckAreas(index: PackIndex): DeckArea[] {
           region,
           boxes: mine,
           zones: zonesOf(mine),
-          side: sideHas(region.name) ? { region: region.name, shape: CONSOLE.indexOf(full) } : null,
+          side: { region: region.name, shape },
         });
       });
       continue;
@@ -102,11 +110,10 @@ export function deckAreas(index: PackIndex): DeckArea[] {
       region,
       boxes,
       zones: zonesOf(boxes),
-      side: sideHas(region.name) ? { region: region.name, shape: null } : null,
+      side: place ? { region: region.name, shape: null } : null,
     });
   }
-  if (around) out.push(around);
-  return out;
+  return [...out, ...around];
 }
 
 /** The sections that draw a place: its own section, or those holding one of its controls. */

@@ -269,6 +269,13 @@
             "$ref": "#/$defs/PanelItem"
           }
         },
+        "name": {
+          "description": "What card titles, captions and \"Also\" lines call the panel (\"Fuel panel\"), when it is\nnot the title as written.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "outline": {
           "description": "The section's outline, when it is not a rectangle: points in the section's own units,\ninside its box, holding every item (format 6). Drawn as the rectangle frame is.",
           "type": "array",
@@ -283,6 +290,7 @@
           }
         },
         "title": {
+          "description": "The title drawn on the panel, as the pack writes it.",
           "type": "string"
         },
         "width": {

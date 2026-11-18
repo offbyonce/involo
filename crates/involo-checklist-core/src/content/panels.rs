@@ -114,7 +114,12 @@ data_types! {
     /// A labeled section of a panel.
     pub struct PanelSection {
         pub id: String,
+        /// The title drawn on the panel, as the pack writes it.
         pub title: String,
+        /// What card titles, captions and "Also" lines call the panel ("Fuel panel"), when it is
+        /// not the title as written.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub name: Option<String>,
         pub x: f64,
         pub y: f64,
         pub width: f64,

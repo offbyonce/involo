@@ -94,6 +94,10 @@ mod tests {
     use crate::test_support::ifly_pack;
     use involo_checklist_core::{PanelItemKind, named_position, names, says_on};
 
+    fn words() -> involo_checklist_core::PositionWords {
+        involo_checklist_core::Labels::default().position_words
+    }
+
     /// Positions written as the panel lists them, "OFF, ON".
     fn list(positions: &str) -> Vec<String> {
         positions.split(',').map(|p| p.trim().to_owned()).collect()
@@ -102,26 +106,33 @@ mod tests {
     #[test]
     fn a_value_names_one_position_as_a_whole_word() {
         assert_eq!(
-            named_position("ON, GUARD CLOSED", &list("OFF, ON")),
+            named_position("ON, GUARD CLOSED", &list("OFF, ON"), &words()),
             Some(1)
         );
         assert_eq!(
-            named_position("AUTO, GUARD CLOSED", &list("BAT, OFF, AUTO")),
+            named_position("AUTO, GUARD CLOSED", &list("BAT, OFF, AUTO"), &words()),
             Some(2)
         );
-        assert_eq!(named_position("on", &list("OFF, ON")), Some(1));
+        assert_eq!(named_position("on", &list("OFF, ON"), &words()), Some(1));
         // "ON" inside another word does not count.
-        assert_eq!(named_position("ONCE STABLE", &list("OFF, ON")), None);
+        assert_eq!(
+            named_position("ONCE STABLE", &list("OFF, ON"), &words()),
+            None
+        );
     }
 
     #[test]
     fn a_value_naming_several_positions_or_none_has_no_target() {
         assert_eq!(
-            named_position("ENG 1 AND 2 ON, ELEC 1 AND 2 OFF", &list("OFF, ON")),
+            named_position(
+                "ENG 1 AND 2 ON, ELEC 1 AND 2 OFF",
+                &list("OFF, ON"),
+                &words()
+            ),
             None
         );
-        assert_eq!(named_position("CHECK", &list("OFF, ON")), None);
-        assert_eq!(named_position("ON", &list("")), None);
+        assert_eq!(named_position("CHECK", &list("OFF, ON"), &words()), None);
+        assert_eq!(named_position("ON", &list(""), &words()), None);
     }
 
     #[test]

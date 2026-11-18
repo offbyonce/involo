@@ -45,7 +45,7 @@ pub use model::{
     StepId, StepTarget, TargetWhen, Timer, WalkaroundPoint,
 };
 pub use positions::{
-    clauses, locate, locator, named_position, names, names_position, says_light_on, says_on,
-    switch_value,
+    PositionWords, clauses, locate, locator, named_position, names, names_position, says_light_on,
+    says_on, switch_value,
 };
 pub use session::{Millis, Progress, Session, SessionError, StepState, counts};

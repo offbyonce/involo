@@ -32,6 +32,34 @@ describe("the Flight deck's areas (Deck board)", () => {
     expect(areas.slice(4, 7).map((a) => a.side?.shape)).toEqual([0, 1, 2]);
   });
 
+  it("split a region only as the side view draws it, and keep every region without one", () => {
+    // The side view draws the console as one outline: one area for it.
+    const one = structuredClone(pack);
+    const side = one.content.controls?.overview?.views?.side;
+    const console = side?.places?.find((p) => p.shapes.length > 1);
+    if (!console) throw new Error("no split place");
+    console.shapes = console.shapes.slice(0, 1);
+    const names = deckAreas(indexPack(one)).map((a) => a.name);
+    expect(names).toContain(console.region);
+    expect(names).not.toContain("Control stand");
+    // No side view: every region is an area of its own, in the pack's order, each with its map.
+    const none = structuredClone(pack);
+    if (none.content.controls?.overview?.views) none.content.controls.overview.views.side = null;
+    const plain = deckAreas(indexPack(none));
+    const regions = pack.content.controls?.overview?.regions ?? [];
+    expect(plain.map((a) => a.name)).toEqual(regions.map((r) => r.name));
+    expect(plain.every((a) => a.region !== null && a.side === null)).toBe(true);
+  });
+
+  it("hold no area names in the code", async () => {
+    const { readFileSync } = await import("node:fs");
+    const text = readFileSync(`${import.meta.dirname}/deck.ts`, "utf8");
+    const names = (pack.content.controls?.overview?.regions ?? []).map((r) => r.name);
+    const areas = [...new Set(index.zones.map((z) => z.area).filter(Boolean))] as string[];
+    for (const n of [...names, ...areas, "Forward electronic", "Aft electronic"])
+      expect(text, n).not.toContain(n);
+  });
+
   it("give every place one area; Around the flight deck has no map and lights nothing", () => {
     const placed = areas.flatMap((a) => a.zones.map((z) => z.id));
     expect(new Set(placed).size).toBe(placed.length);

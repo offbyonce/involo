@@ -22,6 +22,13 @@
         "$ref": "#/$defs/Stage"
       }
     },
+    "start_page": {
+      "description": "The Start page's order: the ids of options asked there, and `panel_state` for the\npanel-state picker. Without it, the options in this file's order, then the picker.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "turnaround": {
       "description": "Which option choices make a turnaround, for steps in Essentials only on a turnaround\n(`quick: turnaround`). Required when any step uses it.",
       "anyOf": [
@@ -280,6 +287,13 @@
             }
           ]
         },
+        "on": {
+          "description": "With `style: toggle`: the value the switch sets when on; off sets the other.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "style": {
           "$ref": "#/$defs/StartStyle"
         },
@@ -314,10 +328,19 @@
     },
     "StartStyle": {
       "description": "How the Start page draws an option: one card per choice, or a segmented row.",
-      "type": "string",
-      "enum": [
-        "cards",
-        "row"
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "cards",
+            "row"
+          ]
+        },
+        {
+          "description": "An on/off switch, for an option of two values: `on` names the value it sets when on.",
+          "type": "string",
+          "const": "toggle"
+        }
       ]
     },
     "SuggestLine": {

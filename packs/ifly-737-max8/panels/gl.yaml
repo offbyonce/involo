@@ -11,6 +11,7 @@ height: 240
 sections:
   - id: efisl
     title: Captain EFIS
+    name: Captain EFIS panel
     x: 10
     "y": 6
     width: 220
@@ -403,6 +404,7 @@ sections:
         description: "Master caution. Push to reset; the six-pack shows which system."
   - id: efisr
     title: First officer EFIS
+    name: First officer EFIS panel
     x: 1271
     "y": 6
     width: 220

@@ -29,6 +29,7 @@ it. Every field of the old Flight setup lives in one section.
     options,
     states,
     panelStateLabels,
+    startPage = [],
     backHref,
     onSet,
     onNotes,
@@ -52,6 +53,8 @@ it. Every field of the old Flight setup lives in one section.
     states: PanelState[];
     /** The panel state row's words, from the pack's labels. */
     panelStateLabels: PanelStateLabels;
+    /** The Start page's order, from the pack. */
+    startPage?: string[];
     backHref: string;
     onSet: (field: FieldId, value: string) => void;
     onNotes: (notes: string) => void;
@@ -169,7 +172,7 @@ it. Every field of the old Flight setup lives in one section.
       {:else if section === "weather"}
         <WeatherView {flight} {plan} descriptions={settings.descriptions} tab={focus} {onSet} bind:panel={wxPanel} />
       {:else if section === "start"}
-        <StartView {flight} {options} {states} labels={panelStateLabels} {onOption} {onPanelState} />
+        <StartView {flight} {options} {states} labels={panelStateLabels} order={startPage} {onOption} {onPanelState} />
       {:else if section === "simbrief"}
         <SimBriefView user={settings.simbriefUser ?? null} {plan} {onImport} {onFile} {onClear} />
       {:else if def}

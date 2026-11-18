@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import type { Rail, RailPhase } from "@involo/bindings";
+import type { Message, Rail, RailPhase } from "@involo/bindings";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import Find from "./Find.svelte";
@@ -57,7 +57,16 @@ const base = {
   onStep: () => {},
   onControl: () => {},
   onClose: () => {},
+  examples: ["Widget panel", "Gizmo", "MCP"],
 };
+/** Invented alert messages: four match "widget" (two by their meaning), one does not. */
+const messages = [
+  { id: "m1", text: "WIDGET FAIL", level: "warning", meaning: "The widget has failed." },
+  { id: "m2", text: "PUMP LOW", level: "caution", meaning: "The widget pump pressure is low." },
+  { id: "m3", text: "WIDGET HOT", level: "advisory", meaning: "Too warm." },
+  { id: "m4", text: "GIZMO", level: "memo", meaning: "The widget gizmo is on." },
+  { id: "m5", text: "DOOR", level: "status", meaning: "A door is open." },
+] as Message[];
 
 describe("Find", () => {
   it("marks the match in a step's value and a term's definition too", async () => {
@@ -74,6 +83,8 @@ describe("Find", () => {
     const field = screen.getByRole("combobox", { name: "Find a step, control or term" });
     expect(document.activeElement).toBe(field);
     expect(screen.getByText(/^Search every step, control and term/)).toBeTruthy();
+    // The chips are the pack's examples.
+    expect([...document.querySelectorAll(".chips button")].map((b) => b.textContent)).toEqual(base.examples);
     await fireEvent.click(screen.getByRole("button", { name: "MCP" }));
     expect((field as HTMLInputElement).value).toBe("MCP");
   });
@@ -128,6 +139,10 @@ describe("Find", () => {
     const field = screen.getByRole("combobox");
     await fireEvent.input(field, { target: { value: "trimm" } });
     expect(screen.getByRole("status").textContent).toContain("Nothing matches “trimm”");
+    // The hint names the pack's first two examples.
+    expect(document.querySelector(".none .help")?.textContent?.replace(/\s+/g, " ").trim()).toBe(
+      "Find looks through every step, control and term for this aircraft. Check the spelling, or try a panel or control name, like Widget panel or Gizmo.",
+    );
     await fireEvent.keyDown(field, { key: "Escape" });
     await fireEvent.click(document.querySelector(".scrim") as HTMLElement);
     await fireEvent.click(screen.getByRole("button", { name: "Close Find" }));
@@ -162,5 +177,65 @@ describe("Find", () => {
     // Every result id is a valid id (terms have spaces).
     for (const o of screen.getAllByRole("option")) expect(o.id).toMatch(/^find-r-\d+$/);
     expect(screen.getByRole("status").textContent).toBe("5 steps, 4 controls, 1 term");
+  });
+
+  it("shows the pack's alert messages after Steps: marked, with their levels, in the arrow keys, opening the message (FindMsgDesk)", async () => {
+    const calls: string[] = [];
+    render(Find, { ...base, messages, onMessage: (id: string) => calls.push(`message ${id}`) });
+    const field = screen.getByRole("combobox");
+    await fireEvent.input(field, { target: { value: "widget" } });
+    expect([...document.querySelectorAll(".head")].map((h) => h.textContent)).toEqual([
+      "Steps5",
+      "Alert messages4",
+      "Controls4",
+      "Terms1",
+    ]);
+    const group = screen.getByRole("listbox", { name: /Alert messages/ });
+    const rows = within(group).getAllByRole("option");
+    expect(rows).toHaveLength(3);
+    // The message as on the alert display, its level badge, its meaning; the match marked in both.
+    expect(rows[0]?.querySelector(".msg.warning mark")?.textContent).toBe("WIDGET");
+    expect(rows[0]?.querySelector(".badge.warning")?.textContent).toBe("Warning");
+    expect(rows[1]?.querySelector(".sub mark")?.textContent).toBe("widget");
+    expect(rows[1]?.querySelector(".msg")?.textContent).toBe("PUMP LOW");
+    await fireEvent.click(screen.getByRole("button", { name: "Show all 4 alert messages" }));
+    expect(within(group).getAllByRole("option")).toHaveLength(4);
+    expect(screen.getByRole("status").textContent).toBe("5 steps, 4 alert messages, 4 controls, 1 term");
+    // ↓ past the three steps reaches the first message; Enter opens it.
+    for (let i = 0; i < 3; i++) await fireEvent.keyDown(field, { key: "ArrowDown" });
+    expect(field.getAttribute("aria-activedescendant")).toBe(rows[0]?.id);
+    await fireEvent.keyDown(field, { key: "Enter" });
+    await fireEvent.click(rows[2] as HTMLElement);
+    expect(calls).toEqual(["message m1", "message m3"]);
+  });
+
+  it("shows no Alert messages section when nothing matches or the pack has none", async () => {
+    render(Find, { ...base, messages });
+    await fireEvent.input(screen.getByRole("combobox"), { target: { value: "lamp" } });
+    expect(screen.queryByRole("listbox", { name: /Alert messages/ })).toBeNull();
+    cleanup();
+    render(Find, base);
+    await fireEvent.input(screen.getByRole("combobox"), { target: { value: "widget" } });
+    expect([...document.querySelectorAll(".head")].map((h) => h.textContent)).toEqual([
+      "Steps5",
+      "Controls4",
+      "Terms1",
+    ]);
+  });
+});
+
+describe("Find's message rows", () => {
+  it("keep the spaces around a marked match, in the message and its meaning", async () => {
+    const one = [
+      { id: "m", text: "ENGINE FIRE L", level: "warning", meaning: "Fire is detected." },
+    ] as Message[];
+    render(Find, { ...base, messages: one });
+    await fireEvent.input(screen.getByRole("combobox"), { target: { value: "fire" } });
+    const row = screen.getByRole("listbox", { name: /Alert messages/ });
+    // The text and its mark sit in one span, so the box's flex layout cannot drop the spaces.
+    expect(row.querySelector(".msg > span > mark")?.textContent).toBe("FIRE");
+    expect(row.querySelector(".msg > mark")).toBeNull();
+    expect(row.querySelector(".msg")?.textContent).toBe("ENGINE FIRE L");
+    expect(row.querySelector(".meaning")?.textContent).toBe("Fire is detected.");
   });
 });

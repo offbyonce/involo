@@ -3,16 +3,16 @@ SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
 An alert message's level in a badge (Alert messages boards): its name always written, so it never
-relies on color alone, in the level's existing tokens.
+relies on color alone, in the level's existing tokens. `compact` is a Find result's (FindMessages).
 -->
 <script lang="ts">
   import type { MessageLevel } from "@involo/bindings";
   import { levelName } from "./messages";
 
-  let { level }: { level: MessageLevel } = $props();
+  let { level, compact = false }: { level: MessageLevel; compact?: boolean } = $props();
 </script>
 
-<span class="badge {level}">{levelName(level)}</span>
+<span class="badge {level}" class:compact>{levelName(level)}</span>
 
 <style>
   .badge {
@@ -26,6 +26,9 @@ relies on color alone, in the level's existing tokens.
     font-size: var(--font-size-caption);
     font-weight: var(--weight-semibold);
     white-space: nowrap;
+  }
+  .compact {
+    min-height: calc(var(--space-6) - var(--border-thick));
   }
   .warning {
     border-color: var(--color-danger);

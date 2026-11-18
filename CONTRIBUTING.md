@@ -110,6 +110,13 @@ side panel's words (`ofp`). Every one is optional: a field with only an id, labe
 gets a row. The pack gives content and grouping only; the app decides how it looks. An option is
 asked on a Flight page with `ask_in: [flight:approach]`.
 
+**The Start page.** An option `ask_in` names `start` shows on the Start page with its `start`
+block: a `style` (`row`, `cards`, or `toggle` with `on`, the value its on position sets, for an
+option of two values), and optionally its own `title`, `description` and a `link` to a phase. The
+page's order is `phases.yaml`'s `start_page`: option ids and `panel_state` for the panel-state
+picker, whose words are the labels' `panel_states`; without it, the options in file order, then
+the picker.
+
 **Panel controls.** Besides switches, selectors, buttons, lights, levers and handles, a panel item
 may be a `push_pull_knob` (two positions, pushed in first), a `rocker` (two positions, the top end
 first), a `legend_pushbutton` (its `positions`, and one or two `legends`, each with its `text`, its
@@ -147,7 +154,17 @@ area's title and groups, crew roles and seats, the panel-state picker, basis tag
 an optional `labels.yaml`, listed in `pack.json` as `labels`. Every key is optional, and a key left
 out keeps the app's own word. Write only what differs. Reference tabs follow the order of
 `reference.groups`; `side_words` are the words that tell one of a pair from the other (left and
-right, captain and first officer), which Practice uses. The phase that starts the engines carries
+right, captain and first officer), which Practice uses, and which, with the seated roles' names,
+name two panels as a pair ("L and R wiper panels"), in the order the words are listed.
+`find_examples` are Find's Try chips, and its first two are the no-match hint's examples.
+`glossary_exceptions` are terms whose first sentence is not shown as their expansion.
+`position_words` (`DN: [DOWN]`) are other words for a position, merged over the defaults; `check`
+and `suggest-targets` read a step's wording with them. A panel section's optional `name` is what
+card titles, captions and "Also" lines call it ("Fuel panel") when that is not its drawn `title`;
+the interface adds nothing to a name. On the Flight deck page, a region the side view draws as
+several outlines is split into that many areas by its places' `area` names, top to bottom on the
+map; with a side view, a region it does not draw lists the places with no region of their own,
+last. The phase that starts the engines carries
 `engine_start: true` in `phases.yaml`, for Practice's "Before engine start". An overview region's
 optional `short` name ("Overhead", shared by both overhead regions) names that area in the How
 page's flow figure.

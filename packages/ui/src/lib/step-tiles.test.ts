@@ -48,7 +48,7 @@ describe("stepTiles", () => {
   it("gives each panel its own tile and names a left and right pair as one", () => {
     const t = tiles("cold-dark.wiper-selectors");
     expect(t.map((x) => x.id)).toEqual(["wipe", "rwip"]);
-    expect(tilesTitle(t)).toEqual({ title: "L and R wiper panels", also: null });
+    expect(tilesTitle(t, index.sideWords)).toEqual({ title: "L and R wiper panels", also: null });
   });
 
   it("keeps a panel the pack does not draw, as a tile listing the step's controls on it", () => {

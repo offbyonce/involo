@@ -4,15 +4,29 @@ SPDX-License-Identifier: MIT
 
 An alert message's text as the pack writes it, as the alert display shows it (Alert messages
 boards): Geist Mono, semibold, in its level's text color, in a box. `large` is the selected
-message's.
+message's; `compact` is a Find result's (FindMessages), whose text may mark the match.
 -->
 <script lang="ts">
   import type { MessageLevel } from "@involo/bindings";
+  import type { Snippet } from "svelte";
 
-  let { text, level, large = false }: { text: string; level: MessageLevel; large?: boolean } = $props();
+  let {
+    text,
+    level,
+    large = false,
+    compact = false,
+    children,
+  }: {
+    text: string;
+    level: MessageLevel;
+    large?: boolean;
+    compact?: boolean;
+    /** The text with its match marked, in place of `text`. */
+    children?: Snippet | undefined;
+  } = $props();
 </script>
 
-<span class="msg {level}" class:large>{text}</span>
+<span class="msg {level}" class:large class:compact>{#if children}<span>{@render children()}</span>{:else}{text}{/if}</span>
 
 <style>
   .msg {
@@ -31,6 +45,11 @@ message's.
   .large {
     padding: calc(var(--space-3) + var(--border-thick)) var(--space-4);
     font-size: calc(var(--font-size-panel-title) + var(--border-thick));
+  }
+  .compact {
+    min-height: calc(var(--space-6) + var(--space-1));
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-small);
   }
   .warning {
     color: var(--color-danger-text);

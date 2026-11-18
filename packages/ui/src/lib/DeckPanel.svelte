@@ -19,6 +19,7 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
   import { phaseHref } from "../route.svelte";
   import { stepTitle } from "./sentence";
   import type { Tile } from "./step-tiles";
+  import { sectionName } from "./panel-name";
 
   let {
     index,
@@ -43,7 +44,7 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
   } = $props();
 
   let tiles = $derived<Tile[]>(
-    zoneSections(index, zone).map(({ panel, section }) => ({ kind: "drawn", id: section.id, panel, section, title: section.title })),
+    zoneSections(index, zone).map(({ panel, section }) => ({ kind: "drawn", id: section.id, panel, section, title: sectionName(section) })),
   );
   /** Each light once: the pack repeats a meaning for each of a row of lights (LOW PRESSURE). */
   let lights = $derived.by(() => {

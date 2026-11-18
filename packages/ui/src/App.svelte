@@ -59,6 +59,7 @@ in Rust. The host saves progress and settings on the device.
   import SettingsPage from "./pages/SettingsPage.svelte";
   import FlightPage from "./flight/FlightPage.svelte";
   import { buildGlossary, glossaryHref } from "./lib/glossary";
+  import { messageHref } from "./lib/messages";
   import GlossaryPage from "./pages/GlossaryPage.svelte";
   import FlightDeckPage from "./pages/FlightDeckPage.svelte";
   import HowPage from "./pages/HowPage.svelte";
@@ -1090,6 +1091,12 @@ in Rust. The host saves progress and settings on the device.
       closeFind(false);
       location.hash = glossaryHref(term);
     }}
+    examples={index?.labels.findExamples ?? []}
+    messages={index?.messages ?? []}
+    onMessage={(id) => {
+      closeFind(false);
+      location.hash = messageHref(id);
+    }}
     onClose={() => closeFind()}
   />
 {/if}
@@ -1181,6 +1188,7 @@ in Rust. The host saves progress and settings on the device.
       options={index.options}
       states={index.panelStates}
       panelStateLabels={index.labels.panelStates}
+      startPage={index.startPage}
       backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
       onSet={(field, value) => act({ type: "setValue", field, value })}
       onNotes={(notes) => act({ type: "setNotes", notes })}

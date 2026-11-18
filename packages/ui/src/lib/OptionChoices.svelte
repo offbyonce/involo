@@ -12,13 +12,20 @@ applies the option in Rust, which decides what shows.
   let {
     option,
     value,
+    cards: asCards = false,
     onChoose,
-  }: { option: UserOption; value: string; onChoose: (value: string) => void } = $props();
+  }: {
+    option: UserOption;
+    value: string;
+    /** Cards whether or not its choices have descriptions (the Start page's `cards` style). */
+    cards?: boolean;
+    onChoose: (value: string) => void;
+  } = $props();
 
   let choices = $derived(
     option.values.map((v) => option.choices?.find((c) => c.value === v) ?? { value: v, label: v, description: null }),
   );
-  let cards = $derived(choices.some((c) => c.description));
+  let cards = $derived(asCards || choices.some((c) => c.description));
 </script>
 
 {#if cards}

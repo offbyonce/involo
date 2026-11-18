@@ -5,12 +5,14 @@ import type { FlatPack, Step } from "@involo/bindings";
 import { cleanup, render, screen } from "@testing-library/svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
+import { appLabels } from "../test-pack";
 import StepDetail from "./StepDetail.svelte";
 
 const pack = {
   manifest: { name: "Demo" },
   lists: [],
   content: {
+    labels: appLabels(),
     phases: null,
     controls: null,
     panels: [],

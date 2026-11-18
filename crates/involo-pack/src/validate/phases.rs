@@ -11,6 +11,26 @@ use super::index::Index;
 use super::{Issue, error};
 use crate::Pack;
 
+/// The Start page's order names options asked there and the panel-state picker, each once.
+fn check_start_page(file: &involo_checklist_core::PhasesFile, issues: &mut Vec<Issue>) {
+    let mut seen = std::collections::BTreeSet::new();
+    for entry in &file.start_page {
+        if !seen.insert(entry.as_str()) {
+            issues.push(error("start_page", format!("`{entry}` is listed twice")));
+        }
+        let asked = file
+            .options
+            .iter()
+            .any(|o| &o.id == entry && o.ask_in.iter().any(|p| p == START));
+        if entry != "panel_state" && !asked {
+            issues.push(error(
+                "start_page",
+                format!("`{entry}` is not an option asked on the Start page, nor `panel_state`"),
+            ));
+        }
+    }
+}
+
 /// At most one phase starts the engines, and it is a flight phase.
 fn check_engine_start(file: &involo_checklist_core::PhasesFile, issues: &mut Vec<Issue>) {
     let marked: Vec<_> = file.phases.iter().filter(|p| p.engine_start).collect();
@@ -49,6 +69,16 @@ fn check_start(option: &UserOption, idx: &Index, issues: &mut Vec<Issue>) {
         (Some(control), true) => {
             if let Some(link) = &control.link {
                 idx.require_phase(&option.id, &link.phase, issues);
+            }
+            let toggle = control.style == involo_checklist_core::StartStyle::Toggle;
+            match (&control.on, toggle) {
+                (Some(on), true) if option.values.len() == 2 && option.values.contains(on) => {}
+                (_, true) => issues.push(error(
+                    &option.id,
+                    "a toggle is for an option of two values, with `on` naming the one it sets when on",
+                )),
+                (Some(_), false) => issues.push(error(&option.id, "`on` is for `style: toggle`")),
+                (None, false) => {}
             }
         }
         (None, false) => {}
@@ -96,6 +126,7 @@ pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
         idx.check_show_if("turnaround", turnaround, issues);
     }
     check_engine_start(file, issues);
+    check_start_page(file, issues);
     let uses_turnaround = pack
         .checklists
         .iter()
@@ -287,7 +318,41 @@ mod tests {
                 phase: phase.into(),
                 text: "Preview".into(),
             }),
+            on: None,
         }
+    }
+
+    #[test]
+    fn a_toggle_names_the_value_it_sets_and_the_start_page_order_names_real_entries() {
+        use involo_checklist_core::StartStyle;
+        // The test option has two values; a toggle on the first passes.
+        let mut on = control(StartStyle::Toggle, None);
+        let values = pack(vec![step("a")], vec![])
+            .content
+            .phases
+            .unwrap()
+            .options[0]
+            .values
+            .clone();
+        on.on = Some(values[0].clone());
+        assert_eq!(messages(&on_start(Some(on.clone()))), "");
+        assert_flags(
+            &on_start(Some(control(StartStyle::Toggle, None))),
+            "with `on` naming the one it sets",
+        );
+        let mut wrong = on.clone();
+        wrong.on = Some("nope".into());
+        assert_flags(&on_start(Some(wrong)), "with `on` naming the one it sets");
+        let mut row = control(StartStyle::Row, None);
+        row.on = Some(values[0].clone());
+        assert_flags(&on_start(Some(row)), "`on` is for `style: toggle`");
+        let mut p = on_start(Some(on));
+        let id = p.content.phases.as_ref().unwrap().options[0].id.clone();
+        p.content.phases.as_mut().unwrap().start_page = vec!["panel_state".into(), id.clone()];
+        assert_eq!(messages(&p), "");
+        p.content.phases.as_mut().unwrap().start_page = vec![id.clone(), id, "weather".into()];
+        assert_flags(&p, "is listed twice");
+        assert_flags(&p, "`weather` is not an option asked on the Start page");
     }
 
     #[test]

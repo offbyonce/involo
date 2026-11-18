@@ -65,6 +65,7 @@ pub(super) fn step(short: &str) -> Step {
 pub(super) fn phases() -> PhasesFile {
     PhasesFile {
         turnaround: None,
+        start_page: vec![],
         options: vec![UserOption {
             id: "power".into(),
             title: "Power".into(),

@@ -16,7 +16,7 @@ pack (its `at` locators read here, for review only). `?view=gate&theme=dark|ligh
   import PanelSchematic from "../lib/PanelSchematic.svelte";
   import Slideout from "../lib/Slideout.svelte";
   import { indexPack } from "../pack-index";
-  import { panelCaption } from "../lib/panel-name";
+  import { panelCaption, sectionName } from "../lib/panel-name";
   import { applyPalette } from "../theme/tokens";
 
   /** The pack as the interface receives it, from the host (decision 0029, Names). */
@@ -114,14 +114,14 @@ pack (its `at` locators read here, for review only). `?view=gate&theme=dark|ligh
   {#each rows as r (r.section?.id)}
     {#if r.section}
       <section class="row" data-gate={r.section.id}>
-        <h2>{panelCaption([r.section.title])} ({r.why}) · {r.step?.text}: {r.step?.expect}</h2>
+        <h2>{panelCaption([sectionName(r.section)])} ({r.why}) · {r.step?.text}: {r.step?.expect}</h2>
         <div class="line">
           {#each SIZES as size (size.name)}
             <figure class="size">
               <figcaption>{size.name}, {size.width} px</figcaption>
               <div class="card" style:width="{size.width + 26}px">
-                <PanelPreview panel={r.panel} focus={[r.section.id]} targets={r.targets} label="The whole {panelCaption([r.section.title])}" />
-                <span class="cap">{panelCaption([r.section.title])} · blue: set by this step</span>
+                <PanelPreview panel={r.panel} focus={[r.section.id]} targets={r.targets} label="The whole {panelCaption([sectionName(r.section)])}" />
+                <span class="cap">{panelCaption([sectionName(r.section)])} · blue: set by this step</span>
               </div>
             </figure>
           {/each}

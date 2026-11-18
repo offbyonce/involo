@@ -919,7 +919,8 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       about: tell(o.map((x) => [x.meaning, `That’s what ${x.term} means.`])),
       tiers: [{ items: o.map((x) => x.meaning), shuffle: true }],
     });
-    const definition = split(t.term, t.meaning).definition || t.meaning;
+    const definition =
+      split(t.term, t.meaning, pack.content.labels.glossaryExceptions).definition || t.meaning;
     if (!spellsOut(t.term, definition))
       out.push({
         ...base,

@@ -12,4 +12,9 @@ export type PhasesFile = { options?: Array<UserOption>,
  * Which option choices make a turnaround, for steps in Essentials only on a turnaround
  * (`quick: turnaround`). Required when any step uses it.
  */
-turnaround?: ShowIf | null, stages: Array<Stage>, phases: Array<Phase>, };
+turnaround?: ShowIf | null, stages: Array<Stage>, phases: Array<Phase>, 
+/**
+ * The Start page's order: the ids of options asked there, and `panel_state` for the
+ * panel-state picker. Without it, the options in this file's order, then the picker.
+ */
+startPage?: Array<string>, };

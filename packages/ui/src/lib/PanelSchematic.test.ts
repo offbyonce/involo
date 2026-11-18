@@ -4,6 +4,7 @@
 import type { Panel } from "@involo/bindings";
 import { cleanup, render, screen } from "@testing-library/svelte";
 import { afterEach, describe, expect, it } from "vitest";
+import { appLabels } from "../test-pack";
 import PanelSchematic from "./PanelSchematic.svelte";
 import PanelTiles from "./PanelTiles.svelte";
 import { MIN_SCALE } from "./panel-layout";
@@ -28,6 +29,7 @@ const panel = {
     {
       id: "elec",
       title: "Electrical",
+      name: "Electrical panel",
       x: 0,
       y: 0,
       width: 200,
@@ -37,6 +39,7 @@ const panel = {
     {
       id: "lwip",
       title: "L wiper",
+      name: "L wiper panel",
       x: 210,
       y: 0,
       width: 90,
@@ -46,6 +49,7 @@ const panel = {
     {
       id: "rwip",
       title: "R wiper",
+      name: "R wiper panel",
       x: 310,
       y: 0,
       width: 90,
@@ -64,6 +68,7 @@ const wiperPanel = {
     {
       id: "lwip",
       title: "L wiper",
+      name: "L wiper panel",
       x: 0,
       y: 0,
       width: 97,
@@ -160,7 +165,7 @@ describe("PanelSchematic", () => {
       { section: "lwip", item: 0, position: 1, lit: false, open: false, resolved: false },
       { section: "rwip", item: 0, position: 1, lit: false, open: false, resolved: false },
     ];
-    render(PanelSchematic, { panel, focus: ["lwip", "rwip"], targets });
+    render(PanelSchematic, { panel, focus: ["lwip", "rwip"], targets, sides: appLabels().sideWords });
 
     const svg = screen.getByRole("img");
     expect(svg.getAttribute("aria-label")).toBe(
@@ -333,6 +338,7 @@ describe("PanelSchematic", () => {
         {
           id: "elec",
           title: "Electrical",
+          name: "Electrical panel",
           x: 0,
           y: 0,
           width: 300,
@@ -622,6 +628,7 @@ describe("PanelSchematic", () => {
         {
           id: "fuel",
           title: "Fuel",
+          name: "Fuel panel",
           x: 0,
           y: 0,
           width: 180,
@@ -840,6 +847,7 @@ describe("PanelSchematic", () => {
         {
           id: "fuel",
           title: "Fuel",
+          name: "Fuel panel",
           x: 0,
           y: 0,
           width: 240,

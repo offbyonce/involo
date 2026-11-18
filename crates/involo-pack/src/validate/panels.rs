@@ -70,6 +70,16 @@ pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec
         super::panel_kinds::check_outlines(panel, issues);
         for section in &panel.sections {
             check_item_ids(section, issues);
+            if section
+                .name
+                .as_ref()
+                .is_some_and(|n| n.trim().is_empty() || n.trim() == section.title.trim())
+            {
+                issues.push(error(
+                    &section.id,
+                    "a section's `name` is for a name other than its title; leave it out to use the title",
+                ));
+            }
             for item in &section.items {
                 for control in &item.controls {
                     idx.require_control(&section.id, control, issues);
@@ -259,7 +269,9 @@ fn check_rest_against_cold_start(pack: &Pack, issues: &mut Vec<Issue>) {
                 if !item.controls.iter().any(|k| step.controls.contains(k)) {
                     continue;
                 }
-                let Some(target) = named_position(&step.expect, positions) else {
+                let Some(target) =
+                    named_position(&step.expect, positions, &c.labels.position_words)
+                else {
                     continue;
                 };
                 let target = positions.get(target).map_or("", |p| p.trim());
@@ -463,6 +475,7 @@ pub(super) mod tests {
             sections: vec![PanelSection {
                 id: "elec".into(),
                 title: "Electrical".into(),
+                name: None,
                 x: 0.0,
                 y: 0.0,
                 width: 10.0,
@@ -558,6 +571,17 @@ pub(super) mod tests {
         item.positions = vec![];
         item.rest = None;
         assert!(!messages(&p).contains("standard size"), "{}", messages(&p));
+    }
+
+    #[test]
+    fn a_section_name_differs_from_its_title() {
+        let mut p = panel_pack();
+        p.content.panels[0].sections[0].name = Some("Electrical panel".into());
+        assert!(!messages(&p).contains("`name`"), "{}", messages(&p));
+        p.content.panels[0].sections[0].name = Some("Electrical".into());
+        assert_flags(&p, "a section's `name` is for a name other than its title");
+        p.content.panels[0].sections[0].name = Some(" ".into());
+        assert_flags(&p, "a section's `name` is for a name other than its title");
     }
 
     #[test]

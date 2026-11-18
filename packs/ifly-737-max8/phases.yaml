@@ -40,7 +40,8 @@ options:
     ask_in:
       - start
     start:
-      style: row
+      style: toggle
+      on: turn
       title: Turnaround
       description: >-
         Next leg in the same airplane. Starts from the turnaround steps instead of cold and dark.
@@ -78,7 +79,8 @@ options:
     ask_in:
       - start
     start:
-      style: row
+      style: toggle
+      on: "on"
       description: >-
         The walk around the airplane before you board: 18 numbered stops on a diagram. Off skips
         the stage; anything you ticked is kept.
@@ -115,6 +117,8 @@ options:
 turnaround:
   option: start
   equals: turn
+# The Start page: exterior, power, the panel-state picker, then the start type.
+start_page: [exterior, power, panel_state, start]
 stages:
   - id: preflight
     title: Preflight
