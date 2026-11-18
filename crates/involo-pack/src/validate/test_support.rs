@@ -156,6 +156,7 @@ pub(super) fn flight() -> involo_checklist_core::FlightFile {
             field("sid", FieldKind::Text),
             choice("takeoff_flaps", &["1", "5"]),
         ],
+        overview: vec![],
     }
 }
 

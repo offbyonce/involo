@@ -302,6 +302,28 @@ data_types! {
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub pages: Vec<FlightPage>,
         pub fields: Vec<FlightField>,
+        /// The Overview page's "This flight" rows. Without them, one row per Flight page that
+        /// has fields: its title, its first two values and its sub-line.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub overview: Vec<FlightOverviewRow>,
+    }
+
+    /// A "This flight" row on the Overview page, linking to a Flight page by its title. `value`
+    /// and `description` are parts written with `{field}` for a field's value as typed,
+    /// `{field:grouped}` for a number with its thousands grouped, and `{unit}` for the flight's
+    /// unit. A part shows when any field it names has a value, its other fields reading "—";
+    /// value parts join with " · ", description parts with a space.
+    pub struct FlightOverviewRow {
+        pub label: String,
+        /// The Flight page the row links to.
+        pub page: String,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub value: Vec<String>,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub description: Vec<String>,
+        /// The description when no description part shows.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub empty: Option<String>,
     }
 
     /// A value the app reads from a SimBrief plan. The list is the app's: it describes SimBrief,

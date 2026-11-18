@@ -35,6 +35,7 @@ export type { Flight } from "./generated/Flight";
 export type { FlightField } from "./generated/FlightField";
 export type { FlightFile } from "./generated/FlightFile";
 export type { FlightGroup } from "./generated/FlightGroup";
+export type { FlightOverviewRow } from "./generated/FlightOverviewRow";
 export type { FlightPage } from "./generated/FlightPage";
 export type { GroupUnits } from "./generated/GroupUnits";
 export type { InputMode } from "./generated/InputMode";

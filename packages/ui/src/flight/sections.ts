@@ -15,6 +15,7 @@ import type {
   FlatPack,
   Flight,
   FlightField,
+  FlightOverviewRow,
   FlightPage,
   SavedPlan,
   SimbriefSource,
@@ -447,6 +448,8 @@ type Model = {
   needed: FieldId[];
   /** The choice field that holds the flight's unit (a units toggle names it). */
   unitField: FlightField | null;
+  /** The pack's Overview rows. */
+  overview: FlightOverviewRow[];
 };
 
 let model: Model = buildModel(null);
@@ -618,7 +621,7 @@ function buildModel(pack: FlatPack | null): Model {
       },
     ];
   });
-  return { sections, fields, needed: needed as FieldId[], unitField };
+  return { sections, fields, needed: needed as FieldId[], unitField, overview: file?.overview ?? [] };
 }
 
 /** How a field's value reads, from its `show`. */
@@ -667,6 +670,89 @@ function readOf(f: FlightField): Row["read"] {
   }
 }
 
+/** The altimeter settings the Weather page edits, found by their SimBrief source: the departure's
+ * and the destination's fields, and the choice field their unit names (inHg or hPa). */
+export function altimeters(): {
+  departure: FieldId | null;
+  destination: FieldId | null;
+  unit: FieldId | null;
+} {
+  const by = (source: SimbriefSource) =>
+    [...model.fields.values()].find((f) => (f.simbrief ?? []).includes(source)) ?? null;
+  const departure = by("origin_altimeter");
+  const destination = by("destination_altimeter");
+  const unit = departure?.unit ?? destination?.unit ?? null;
+  return {
+    departure: (departure?.id as FieldId) ?? null,
+    destination: (destination?.id as FieldId) ?? null,
+    unit: (unit as FieldId) ?? null,
+  };
+}
+
+/** One "This flight" row on the Overview: its label, value, description and the page it links to. */
+export type OverviewRow = { label: string; value: string; desc: string; page: FlightSection; title: string };
+
+/** A field's value as the pages show it: typed, or read from the plan or a suggestion; "" when
+ * there is none. */
+function shownValue(id: string, c: Ctx): string {
+  const f = model.fields.get(id);
+  const read = f ? readOf(f) : undefined;
+  const x = read ? read(c) : v(c, id as FieldId);
+  return x === "—" ? "" : (x ?? "");
+}
+
+/** A template part with its placeholders filled, or "" when none of its fields has a value. */
+function fillPart(part: string, c: Ctx): string {
+  let any = false;
+  const text = part.replace(/\{([a-z0-9_]+)(?::(grouped))?\}/g, (_, id: string, how?: string) => {
+    if (id === "unit" && !how) return c.unit;
+    const x = shownValue(id, c);
+    if (!x) return "—";
+    any = true;
+    return how === "grouped" ? grouped(Number(x)) : x;
+  });
+  return any ? text : "";
+}
+
+/** The Overview's "This flight" rows: the pack's own, or one per page with fields (its title,
+ * its first two values and its sub-line). */
+export function overviewRows(c: Ctx): OverviewRow[] {
+  const title = (page: string) => model.sections.find((s) => s.id === page)?.title ?? page;
+  if (model.overview.length)
+    return model.overview.map((row) => {
+      const desc = (row.description ?? [])
+        .map((p) => fillPart(p, c))
+        .filter(Boolean)
+        .join(" ");
+      return {
+        label: row.label,
+        value:
+          (row.value ?? [])
+            .map((p) => fillPart(p, c))
+            .filter(Boolean)
+            .join(" · ") || "—",
+        desc: desc || row.empty || "",
+        page: row.page as FlightSection,
+        title: title(row.page),
+      };
+    });
+  return model.sections
+    .map((s) => ({ s, fields: s.groups.flatMap((g) => g.rows).filter((r) => r.field && !r.link) }))
+    .filter(({ fields }) => fields.length)
+    .map(({ s, fields }) => ({
+      label: s.title,
+      value:
+        fields
+          .slice(0, 2)
+          .map((r) => shownValue(r.field ?? "", c))
+          .filter(Boolean)
+          .join(" · ") || "—",
+      desc: s.sub,
+      page: s.id,
+      title: s.title,
+    }));
+}
+
 /** The section that holds a field, and its row, for "— enter …" links and Still to enter. */
 export function home(field: FieldId): { section: FlightSection; row: Row } | null {
   for (const s of model.sections)
@@ -700,7 +786,9 @@ export function blankLinks(fill: FieldId[]): ({ href: string; name: string } | n
     if (field === "manual") return null;
     const def = model.fields.get(field);
     const name = def ? spokenOf(def) : field.replace(/_/g, " ");
-    if (field === "qnh" || field === "destination_qnh") return { href: `#/flight/weather/${field}`, name };
+    const alt = altimeters();
+    if (field === alt.departure || field === alt.destination)
+      return { href: `#/flight/weather/${field}`, name };
     const at = home(field);
     return at ? { href: `#/flight/${at.section}/${field}`, name } : null;
   });

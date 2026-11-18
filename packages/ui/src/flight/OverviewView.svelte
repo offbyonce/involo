@@ -3,56 +3,21 @@ SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
 Overview (FSOverview): "Still to enter" lists every value the steps still need, each linking to
-its field; "This flight" holds the key values, each linking to its section.
+its field; "This flight" holds the key values the pack's overview rows name (or one row per page),
+each linking to its section.
 -->
 <script lang="ts">
   import { flightHref } from "../route.svelte";
-  import { sections, toEnter, type Ctx } from "./sections";
+  import { overviewRows, sections, toEnter, type Ctx } from "./sections";
 
   let { ctx, descriptions }: { ctx: Ctx; descriptions: boolean } = $props();
 
   const sectionOf = (id: string) => sections().find((s) => s.groups.some((g) => g.rows.some((r) => r.id === id)));
   const first = (text: string) => text.split(/(?<=\.)\s/)[0] ?? text;
-  const v = (k: keyof Ctx["values"]) => ctx.values[k] ?? "";
-  const grouped = (n: number) => Math.round(n).toLocaleString("en-US");
 
   let missing = $derived(toEnter(ctx.values));
-  let planned = $derived.by(() => {
-    const t = ctx.plan?.plan.times.enrouteS;
-    return t != null ? `${Math.floor(t / 3600)} h ${Math.round((t % 3600) / 60)} min planned.` : "";
-  });
-  let flightRows = $derived([
-    {
-      label: "Route",
-      value: v("origin") || v("destination") ? `${v("origin") || "—"} → ${v("destination") || "—"}` : "—",
-      desc: [v("alternate") ? `Alternate ${v("alternate")}.` : "", planned].filter(Boolean).join(" ") || "Where you're going.",
-      to: "route" as const,
-      title: "Route",
-    },
-    {
-      label: "Block fuel",
-      value: v("fuel") ? `${grouped(Number(v("fuel")))} ${ctx.unit}` : "—",
-      desc: "All the fuel on board before engine start.",
-      to: "fuel" as const,
-      title: "Fuel and weights",
-    },
-    {
-      label: "Cruise level",
-      value: v("cruise_level") ? `FL${v("cruise_level")}` : "—",
-      desc: v("cost_index") ? `Cost index ${v("cost_index")}.` : "The level you plan to cruise at.",
-      to: "cruise" as const,
-      title: "Cruise and levels",
-    },
-    {
-      label: "Departure",
-      value: [v("runway"), v("sid")].filter(Boolean).join(" · ") || "—",
-      desc:
-        [v("initial_altitude") ? `Initial altitude ${v("initial_altitude")}.` : "", v("squawk") ? `Squawk ${v("squawk")}.` : ""].filter(Boolean).join(" ") ||
-        "The runway and SID ATC cleared.",
-      to: "clearance" as const,
-      title: "Clearance",
-    },
-  ]);
+  /** "This flight": the pack's rows, or one per page. */
+  let flightRows = $derived(overviewRows(ctx));
   const time = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 </script>
 
@@ -88,7 +53,7 @@ its field; "This flight" holds the key values, each linking to its section.
       <span class="ro">{row.value}</span>
       <span class="about">
         {#if descriptions}<span class="desc">{row.desc}</span>{/if}
-        <a class="go" href={flightHref(row.to)}>{row.title} ›</a>
+        <a class="go" href={flightHref(row.page)}>{row.title} ›</a>
       </span>
     </div>
   {/each}

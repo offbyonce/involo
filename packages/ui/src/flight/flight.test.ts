@@ -282,6 +282,41 @@ describe("FlightPage", () => {
     expect(screen.getByText("Wind is in the weather section")).toBeTruthy();
   });
 
+  it("finds a test pack's altimeter fields by their SimBrief source, whatever their ids", async () => {
+    // Invented ids for the iFly pack's three altimeter fields.
+    const pack = structuredClone(iflyPack());
+    const rename: Record<string, string> = {
+      qnh: "alt_dep",
+      destination_qnh: "alt_arr",
+      qnh_unit: "alt_units",
+    };
+    for (const field of pack.content.flight?.fields ?? []) {
+      field.id = rename[field.id] ?? field.id;
+      if (field.unit) field.unit = rename[field.unit] ?? field.unit;
+    }
+    useFlightPack(pack);
+    try {
+      expect(blankLinks(["alt_dep", "alt_arr"] as FieldId[])).toEqual([
+        { href: "#/flight/weather/alt_dep", name: "QNH" },
+        { href: "#/flight/weather/alt_arr", name: "QNH" },
+      ]);
+      const { sets } = page({
+        section: "weather",
+        plan,
+        flight: flight({ origin: "KSEA", destination: "KSFO", alt_dep: "30.12", alt_units: "inHg" }),
+      });
+      const alt = (await screen.findByLabelText("Altimeter")) as HTMLInputElement;
+      expect(alt.value).toBe("30.12");
+      await fireEvent.change(alt, { target: { value: "30.10" } });
+      expect(sets.at(-1)).toEqual(["alt_dep", "30.10"]);
+      await fireEvent.click(screen.getByRole("button", { name: "hPa" }));
+      expect(sets).toContainEqual(["alt_units", "hPa"]);
+      expect(sets).toContainEqual(["alt_dep", "1020"]);
+    } finally {
+      useFlightPack(iflyPack());
+    }
+  });
+
   it("Weather shows a METAR the decoder couldn't read as printed, with nothing decoded", async () => {
     const refusing = {
       decodeMetar: async () => {
