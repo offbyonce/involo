@@ -1,0 +1,310 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LabelsFile",
+  "description": "`labels.yaml`. Every key is optional; a key left out keeps the app's default. Lists\n(`seats`, `roles`, `find_examples`, `glossary_exceptions`) replace the default list;\n`position_words`, reference `groups` and `basis_tags` are merged with the defaults by key.",
+  "type": "object",
+  "properties": {
+    "basis_tags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BasisTagLabel"
+      }
+    },
+    "find_examples": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "string"
+      }
+    },
+    "glossary_exceptions": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "string"
+      }
+    },
+    "list_kinds": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ListKindLabelsFile"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "methods": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MethodLabelsFile"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "panel_states": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PanelStateLabelsFile"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "position_words": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "reference": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ReferenceLabelsFile"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "roles": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "#/$defs/RoleLabel"
+      }
+    },
+    "seat_view_title": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "seats": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "#/$defs/SeatLabel"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "BasisTagLabel": {
+      "description": "What a basis tag reads: its label, what kind of material it is, and whether it is a status\n(a list still being checked) rather than a source.",
+      "type": "object",
+      "properties": {
+        "about": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "pending": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label"
+      ]
+    },
+    "GroupLabel": {
+      "description": "A reference group, e.g. `memory`, and how its tab is titled.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title"
+      ]
+    },
+    "ListKindLabelsFile": {
+      "description": "`list_kinds` as a pack writes it: any of the names.",
+      "type": "object",
+      "properties": {
+        "checklist": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "flow": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "memory": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "non_normal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quick": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "MethodLabelsFile": {
+      "description": "`methods` as a pack writes it: any of the names.",
+      "type": "object",
+      "properties": {
+        "challenge_response": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "do": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "from_memory": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "read_and_do": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "PanelStateLabelsFile": {
+      "description": "`panel_states` as a pack writes it.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "placeholder": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ReferenceLabelsFile": {
+      "description": "`reference` as a pack writes it. Groups are merged with the built-in ones by id.",
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GroupLabel"
+          }
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "RoleLabel": {
+      "description": "A crew role, e.g. `capt`. `seat` names the seat it sits in; a duty role such as `pf` or\n`pm` names none.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "seat": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "short": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "short"
+      ]
+    },
+    "SeatLabel": {
+      "description": "A seat in the flight deck, e.g. `left`. Seat frames in the overview are keyed by its id.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title"
+      ]
+    }
+  }
+}

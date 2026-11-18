@@ -111,6 +111,31 @@ export const PACK: FlatPack = {
     panelStates: null,
     cdu: null,
     aliases: null,
+    // The app's own words (decision 0029); the gallery shows none of them.
+    labels: {
+      listKinds: {
+        flow: "Procedure",
+        checklist: "Checklist",
+        nonNormal: "Non-normal procedure",
+        memory: "Memory items",
+        quick: "Quick reference",
+      },
+      methods: {
+        do: "Do",
+        readAndDo: "Read and do",
+        challengeResponse: "Challenge and response",
+        fromMemory: "From memory",
+      },
+      seats: [],
+      roles: [],
+      reference: { title: "Emergency", groups: [] },
+      seatViewTitle: "From the captain seat: which side",
+      panelStates: { title: "Panel state", description: "", placeholder: "Choose a panel state" },
+      positionWords: {},
+      findExamples: [],
+      glossaryExceptions: [],
+      basisTags: [],
+    },
   },
 };
 

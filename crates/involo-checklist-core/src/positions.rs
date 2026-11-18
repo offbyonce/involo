@@ -30,7 +30,7 @@ pub fn names(text: &str, word: &str) -> bool {
 }
 
 /// Other words a step's wording uses for a position: "DOWN" for a lever's DN, "ARM" for ARMED.
-const POSITION_WORDS: &[(&str, &[&str])] = &[
+pub(crate) const POSITION_WORDS: &[(&str, &[&str])] = &[
     ("DN", &["DOWN"]),
     ("ARMED", &["ARM"]),
     ("RELEASED", &["RELEASE"]),

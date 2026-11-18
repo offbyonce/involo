@@ -97,31 +97,37 @@ pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
             }
         }
     }
+    let groups: Vec<&str> = pack
+        .content
+        .labels
+        .reference
+        .groups
+        .iter()
+        .map(|g| g.id.as_str())
+        .collect();
     for phase in &file.phases {
-        check_group(phase, issues);
+        check_group(phase, &groups, issues);
     }
 }
 
-/// The reference groups every pack can use.
-pub(super) const REFERENCE_GROUPS: &[&str] = &["memory", "quick", "procedures"];
-
-/// A reference phase names its group; a phase in the flight has none.
-fn check_group(phase: &involo_checklist_core::Phase, issues: &mut Vec<Issue>) {
+/// A reference phase names its group (the built-in ones, or one the pack's labels add); a phase
+/// in the flight has none.
+fn check_group(phase: &involo_checklist_core::Phase, groups: &[&str], issues: &mut Vec<Issue>) {
     match (&phase.group, phase.reference) {
         (None, true) => issues.push(error(
             &phase.id,
             format!(
                 "a reference phase needs a `group`: one of {}",
-                REFERENCE_GROUPS.join(", ")
+                groups.join(", ")
             ),
         )),
         (Some(_), false) => issues.push(error(&phase.id, "only a reference phase has a `group`")),
-        (Some(group), true) if !REFERENCE_GROUPS.contains(&group.as_str()) => {
+        (Some(group), true) if !groups.contains(&group.as_str()) => {
             issues.push(error(
                 &phase.id,
                 format!(
                     "unknown reference group `{group}`: one of {}",
-                    REFERENCE_GROUPS.join(", ")
+                    groups.join(", ")
                 ),
             ));
         }

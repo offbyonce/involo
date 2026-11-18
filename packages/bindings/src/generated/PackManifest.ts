@@ -60,4 +60,8 @@ phases?: string | null, controls?: string | null, notes?: string | null,
 /**
  * Panel files, in display order.
  */
-panels?: Array<string>, lights?: string | null, faults?: string | null, glossary?: string | null, briefings?: string | null, panelStates?: string | null, cdu?: string | null, aliases?: string | null, };
+panels?: Array<string>, lights?: string | null, faults?: string | null, glossary?: string | null, briefings?: string | null, panelStates?: string | null, cdu?: string | null, aliases?: string | null, 
+/**
+ * The words the interface shows for this pack (`labels.yaml`); without it, the app's own.
+ */
+labels?: string | null, };

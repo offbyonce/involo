@@ -96,6 +96,11 @@ reused. Stages have an `id` too, reference phases a `group` (`memory`, `quick` o
 and a panel item may have an `id` so a step target or light note can name it
 `panel/section/#id` (decision 0029).
 
+**Labels.** Words the interface shows that belong to the aircraft (list kind names, the reference
+area's title and groups, crew roles and seats, the panel-state picker, basis tag labels) can go in
+an optional `labels.yaml`, listed in `pack.json` as `labels`. Every key is optional, and a key left
+out keeps the app's own word. Write only what differs.
+
 **Overlap check.** `just overlap` flags any run of 8 or more words matching plain-text reference
 files (see `INVOLO_OVERLAP_REFS` under "Optional local files" below). It also compares each list's
 steps joined in order. Standard phrases can be accepted in `crates/involo-pack-overlap/allow.txt`

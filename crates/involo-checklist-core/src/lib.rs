@@ -26,14 +26,15 @@ pub mod positions;
 mod session;
 
 pub use content::{
-    Alias, AliasKind, AliasesFile, BriefItem, Briefing, BriefingsFile, CduField, CduFile,
-    CduInline, CduPage, CduPart, CduRouteCount, CduRow, CduScreen, CduStyle, CduStyled, CduText,
-    CduWalkthrough, CduWhen, Control, ControlsFile, ExplainNote, Fault, FaultsFile, GlossaryEntry,
-    GlossaryFile, HowNote, IntroParagraph, LabelAnchor, LightColor, LightNote, LightsFile,
-    NotesFile, OptionChoice, Overview, OverviewArea, OverviewCaption, OverviewRegion,
-    OverviewViews, Panel, PanelItem, PanelItemKind, PanelSection, PanelState, PanelStatesFile,
-    Phase, PhasesFile, RouteLegCount, RouteLegPart, Stage, StagePhase, SuggestLine, SuggestRule,
-    Suggests, UserOption, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, WeightUnit, Zone,
+    Alias, AliasKind, AliasesFile, BasisTagLabel, BriefItem, Briefing, BriefingsFile, CduField,
+    CduFile, CduInline, CduPage, CduPart, CduRouteCount, CduRow, CduScreen, CduStyle, CduStyled,
+    CduText, CduWalkthrough, CduWhen, Control, ControlsFile, ExplainNote, Fault, FaultsFile,
+    GlossaryEntry, GlossaryFile, GroupLabel, HowNote, IntroParagraph, LabelAnchor, Labels,
+    LabelsFile, LightColor, LightNote, LightsFile, NotesFile, OptionChoice, Overview, OverviewArea,
+    OverviewCaption, OverviewRegion, OverviewViews, Panel, PanelItem, PanelItemKind, PanelSection,
+    PanelState, PanelStatesFile, Phase, PhasesFile, RoleLabel, RouteLegCount, RouteLegPart,
+    SeatLabel, Stage, StagePhase, SuggestLine, SuggestRule, Suggests, UserOption, ViewFrame,
+    ViewLabel, ViewPlace, ViewRole, ViewShape, WeightUnit, Zone,
 };
 pub use model::{
     AutoStart, AutoStartPick, Checklist, Confirmation, ConfirmationKind, ExpectWhen, FillField,

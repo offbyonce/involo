@@ -49,6 +49,7 @@ pub(super) fn manifest() -> PackManifest {
         panel_states: None,
         cdu: None,
         aliases: None,
+        labels: None,
     }
 }
 
@@ -105,6 +106,7 @@ pub(super) fn pack(steps: Vec<Step>, other_files: Vec<&str>) -> Pack {
             phases: Some(phases()),
             ..PackContent::default()
         },
+        labels_file: None,
         other_files: other_files.into_iter().map(PathBuf::from).collect(),
     }
 }

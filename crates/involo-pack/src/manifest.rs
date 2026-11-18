@@ -109,6 +109,9 @@ pub struct PackManifest {
     pub cdu: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub aliases: Option<String>,
+    /// The words the interface shows for this pack (`labels.yaml`); without it, the app's own.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub labels: Option<String>,
 }
 
 impl PackManifest {
@@ -125,6 +128,7 @@ impl PackManifest {
             &self.panel_states,
             &self.cdu,
             &self.aliases,
+            &self.labels,
         ];
         self.checklists
             .iter()

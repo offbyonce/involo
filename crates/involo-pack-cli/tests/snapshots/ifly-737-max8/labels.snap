@@ -1,0 +1,89 @@
+---
+source: crates/involo-pack-cli/tests/snapshot.rs
+---
+{
+  "list_kinds": {
+    "flow": "Procedure",
+    "checklist": "Checklist",
+    "non_normal": "Non-normal procedure",
+    "memory": "Memory items",
+    "quick": "Quick reference"
+  },
+  "methods": {
+    "do": "Do",
+    "read_and_do": "Read and do",
+    "challenge_response": "Challenge and response",
+    "from_memory": "From memory"
+  },
+  "seats": [],
+  "roles": [],
+  "reference": {
+    "title": "Emergency",
+    "groups": [
+      {
+        "id": "memory",
+        "title": "Memory items"
+      },
+      {
+        "id": "quick",
+        "title": "Quick reference"
+      },
+      {
+        "id": "procedures",
+        "title": "Non-normal procedures"
+      }
+    ]
+  },
+  "seat_view_title": "From the captain seat: which side",
+  "panel_states": {
+    "title": "iFly panel state",
+    "description": "Loaded a panel state from the iFly EFB? Pick it to tick the steps it has already set and start where the airplane is. Steps it can't set, like the FMC, MCP and radios, stay open.",
+    "placeholder": "Choose a panel state"
+  },
+  "position_words": {
+    "ARMED": [
+      "ARM"
+    ],
+    "CUT OUT": [
+      "CUTOUT"
+    ],
+    "DN": [
+      "DOWN"
+    ],
+    "MAN": [
+      "MANUAL"
+    ],
+    "RELEASED": [
+      "RELEASE"
+    ]
+  },
+  "find_examples": [
+    "Fuel panel",
+    "Parking brake",
+    "MCP",
+    "Transponder"
+  ],
+  "glossary_exceptions": [
+    "IGN L",
+    "IGN R",
+    "PERF INIT",
+    "MA"
+  ],
+  "basis_tags": [
+    {
+      "id": "prior-release",
+      "label": "Source being confirmed",
+      "pending": true
+    },
+    {
+      "id": "ifly-docs",
+      "label": "Simulator documentation",
+      "about": "How the aircraft model in the simulator works: its panels, its switches and its own procedures."
+    },
+    {
+      "id": "regulator-docs",
+      "label": "Regulator guidance",
+      "about": "General practice published by aviation authorities, such as how checklists are used."
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import type { CduFile } from "./CduFile";
 import type { ControlsFile } from "./ControlsFile";
 import type { FaultsFile } from "./FaultsFile";
 import type { GlossaryFile } from "./GlossaryFile";
+import type { Labels } from "./Labels";
 import type { LightsFile } from "./LightsFile";
 import type { NotesFile } from "./NotesFile";
 import type { Panel } from "./Panel";
@@ -14,4 +15,9 @@ import type { PhasesFile } from "./PhasesFile";
 /**
  * Everything a pack holds besides its manifest and lists. Each part is optional.
  */
-export type PackContent = { phases: PhasesFile | null, controls: ControlsFile | null, notes: NotesFile | null, panels: Array<Panel>, lights: LightsFile | null, faults: FaultsFile | null, glossary: GlossaryFile | null, briefings: BriefingsFile | null, panelStates: PanelStatesFile | null, cdu: CduFile | null, aliases: AliasesFile | null, };
+export type PackContent = { phases: PhasesFile | null, controls: ControlsFile | null, notes: NotesFile | null, panels: Array<Panel>, lights: LightsFile | null, faults: FaultsFile | null, glossary: GlossaryFile | null, briefings: BriefingsFile | null, panelStates: PanelStatesFile | null, cdu: CduFile | null, aliases: AliasesFile | null, 
+/**
+ * The words the interface shows for this pack: its `labels.yaml` over the app's defaults,
+ * always complete (decision 0029).
+ */
+labels: Labels, };

@@ -113,5 +113,6 @@ source: crates/involo-pack-cli/tests/snapshot.rs
   "briefings": "briefings.yaml",
   "panelStates": "panel-states.yaml",
   "cdu": "cdu.yaml",
-  "aliases": "aliases.yaml"
+  "aliases": "aliases.yaml",
+  "labels": "labels.yaml"
 }

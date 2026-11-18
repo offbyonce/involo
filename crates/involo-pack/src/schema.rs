@@ -6,7 +6,7 @@
 
 use involo_checklist_core::{
     AliasesFile, BriefingsFile, CduFile, Checklist, ControlsFile, FaultsFile, GlossaryFile,
-    LightsFile, NotesFile, Panel, PanelStatesFile, PhasesFile,
+    LabelsFile, LightsFile, NotesFile, Panel, PanelStatesFile, PhasesFile,
 };
 
 use crate::manifest::PackManifest;
@@ -21,6 +21,7 @@ pub fn all() -> Vec<(&'static str, String)> {
         ("controls.schema.json", render::<ControlsFile>()),
         ("faults.schema.json", render::<FaultsFile>()),
         ("glossary.schema.json", render::<GlossaryFile>()),
+        ("labels.schema.json", render::<LabelsFile>()),
         ("lights.schema.json", render::<LightsFile>()),
         ("notes.schema.json", render::<NotesFile>()),
         ("pack.schema.json", render::<PackManifest>()),
