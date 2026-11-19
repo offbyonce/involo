@@ -104,9 +104,10 @@ practice-diff base="main":
 
 # The end-to-end tests (apps/web/e2e): the built site in Chromium and WebKit, served locally with
 # the catalog and the network blocked, through the main flows, with the layout and accessibility
-# checks on every screen they visit. Needs the browsers once:
+# checks on every screen they visit. It builds what the flows read: the site, and the test packs
+# (the example pack added from a file). Needs the browsers once:
 # `pnpm --filter @involo/web exec playwright install --with-deps chromium webkit`.
-e2e *args: site
+e2e *args: site test-packs
     pnpm --filter @involo/web e2e {{args}}
 
 # Review shots of the named screens (phone, both tablets, 1440 and 2560 unless a screen names its

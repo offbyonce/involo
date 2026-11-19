@@ -279,6 +279,8 @@ export const savedAs = (what) => [
 /** The example pack's built file (`just test-packs`), added from a file on the Packs page. */
 export const examplePack = (() => {
   const dir = path.resolve(web, "../../target/test-packs");
+  if (!fs.existsSync(path.join(dir, "index.json")))
+    throw new Error("the example pack's file isn't built: run `just test-packs` (`just e2e` does)");
   const index = JSON.parse(fs.readFileSync(path.join(dir, "index.json"), "utf8"));
   const e = index.find((x) => x.id === "example-trainer");
   return fs.readFileSync(path.join(dir, `${e.id}-${e.version}.involo-pack`), "utf8");
