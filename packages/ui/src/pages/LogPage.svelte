@@ -61,7 +61,7 @@ bottom bar, and "···" opens the export and import actions as a sheet.
     /** The flight in the address: an earlier flight's id, "current" for This flight, or none. */
     entry: string | null;
     /** A step's name as the app shows it. */
-    name: (text: string, step: string) => string;
+    name: (name: string, step: string) => string;
     /** Whether a logged step is in this flight's pack, so its link can open it. */
     canGo: (step: string) => boolean;
     backHref: string;
@@ -107,8 +107,8 @@ bottom bar, and "···" opens the export and import actions as a sheet.
     if (!current) return [];
     const ticks = [...current.ticks].reverse();
     return [
-      ...(allTicks ? ticks : ticks.slice(0, 3)).map((t) => ({ key: t.step, time: clock(t.at), open: false, name: name(t.text, t.step), value: t.value })),
-      ...current.skipped.map((s) => ({ key: s.step, time: "open", open: true, name: name(s.text, s.step), value: s.value })),
+      ...(allTicks ? ticks : ticks.slice(0, 3)).map((t) => ({ key: t.step, time: clock(t.at), open: false, name: name(t.name, t.step), value: t.value })),
+      ...current.skipped.map((s) => ({ key: s.step, time: "open", open: true, name: name(s.name, s.step), value: s.value })),
     ];
   });
   let currentLine = $derived(current ? `${current.done} of ${current.total} steps${current.offBlocks === null ? "" : ` · started ${clock(current.offBlocks)}`}` : "");
@@ -222,14 +222,14 @@ bottom bar, and "···" opens the export and import actions as a sheet.
       <div class="skips">
         <span class="lbl">Skipped · {f.skipped.length}</span>
         {#each f.skipped as s, i (i)}
-          {@render stepLink(s.step, name(s.text, s.step), `${s.stage} › ${s.phaseTitle}`)}
+          {@render stepLink(s.step, name(s.name, s.step), `${s.stage} › ${s.phaseTitle}`)}
         {/each}
       </div>
     {/if}
     {#if ticksOf === f.id}
       <div class="ticks every" role="list" aria-label="Every tick">
         {#each f.ticks as k, i (i)}
-          <div class="tick" role="listitem"><span class="t mono">{clock(k.at)}</span><span>{name(k.text, k.step)}</span><span class="mono v">{k.value}</span></div>
+          <div class="tick" role="listitem"><span class="t mono">{clock(k.at)}</span><span>{name(k.name, k.step)}</span><span class="mono v">{k.value}</span></div>
         {/each}
       </div>
     {/if}

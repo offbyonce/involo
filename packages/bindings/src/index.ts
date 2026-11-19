@@ -67,6 +67,7 @@ export type { OverviewRegion } from "./generated/OverviewRegion";
 export type { OverviewViews } from "./generated/OverviewViews";
 export type { PackChanges } from "./generated/PackChanges";
 export type { PackCheck } from "./generated/PackCheck";
+export type { PackNames } from "./generated/PackNames";
 export type { PackSummary } from "./generated/PackSummary";
 export type { Panel } from "./generated/Panel";
 export type { PanelItem } from "./generated/PanelItem";

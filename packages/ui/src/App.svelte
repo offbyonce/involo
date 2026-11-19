@@ -44,7 +44,7 @@ in Rust. The host saves progress and settings on the device.
   import Toast from "./lib/Toast.svelte";
   import { answered } from "./lib/answers.svelte";
   import { changedText, dependsOn, labelOf, lowerFirst, shortLabel, type DecisionSource, type Decisions } from "./lib/decision";
-  import { stepTitle } from "./lib/sentence";
+  import { stepTitle } from "./lib/names";
   import StepPane from "./lib/StepPane.svelte";
   import Drawer from "./lib/Drawer.svelte";
   import SaveFailedNotice from "./lib/SaveFailedNotice.svelte";
@@ -74,7 +74,6 @@ in Rust. The host saves progress and settings on the device.
   import ReferencesPage from "./pages/ReferencesPage.svelte";
   import { buildReferences } from "./lib/references";
   import { download, fileDate, htmlCopy } from "./lib/flight-log";
-  import { sentence } from "./lib/sentence";
   import Tour from "./lib/Tour.svelte";
   import { tour } from "./lib/tour-state.svelte";
   import { flowAreas, howCountsOf } from "./lib/how-content";
@@ -911,10 +910,11 @@ in Rust. The host saves progress and settings on the device.
     if (flight && Object.keys(flight.session.done).length === 0) offered = false;
     if (!finished) offer = false;
   });
-  /** A step's name as the app shows it; a step no longer in the pack, from its own text. */
-  const logName = (text: string, id: string) => {
+  /** A logged step's name as the app shows it: as the pack names it now, or, for a step no
+   * longer in the pack, the name saved when it was logged. */
+  const logName = (name: string, id: string) => {
     const st = index?.step(id);
-    return index ? (st ? stepTitle(index, st) : sentence(index, text)) : text;
+    return index && st ? stepTitle(index, st) : name;
   };
   const stamp = () => fileDate(Date.now());
   function saveLogCopy(): void {

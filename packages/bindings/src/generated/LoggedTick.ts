@@ -3,6 +3,10 @@ import type { StepId } from "./StepId";
 
 export type LoggedTick = { at: number, step: StepId, text: string, 
 /**
+ * The step's name as the app showed it when it was logged (format 2).
+ */
+name: string, 
+/**
  * The expected response, with the flight's values in its blanks.
  */
 value: string, };

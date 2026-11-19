@@ -139,6 +139,21 @@ export const PACK: FlatPack = {
       basisTags: [],
     },
   },
+  // The names Rust gives the steps and controls when the app reads a pack (decision-names.test.ts
+  // checks them against Rust).
+  names: {
+    steps: {
+      [`${ID}.landing-gear-pins`]: "Landing gear pins",
+      [`${ID}.n1-bugs`]: "N1 bugs",
+      [`${ID}.mcp`]: "Mcp",
+      [`${ID}.door-lights`]: "Door lights",
+      [`${ID}.terr`]: "TERR",
+      [`${ID}.center-tank-fuel`]: "Center tank fuel",
+      [`${ID}.fuel-pump-switches`]: "Fuel pump switches",
+      [`${ID}.electric-hydraulic-pump-switches`]: "Electric hydraulic pump switches",
+    },
+    controls: { fuelqty: "Fuel quantity", fuelpumps: "Fuel pump switches" },
+  },
 };
 
 /** The procedure card's list for an answer (null: unanswered): five done, then the decision. */

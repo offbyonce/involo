@@ -322,7 +322,10 @@ mod tests {
             "InvalidAction"
         );
         assert_eq!(json(&default_settings())["ok"]["theme"], "system");
-        assert_eq!(json(&new_log())["ok"]["format"], 1);
+        assert_eq!(
+            json(&new_log())["ok"]["format"],
+            involo_app_core::LOG_FORMAT
+        );
         assert_eq!(json(&parse_log(r#"{"format":99}"#))["ok"]["state"], "newer");
         assert_eq!(
             json(&edit_log(

@@ -30,7 +30,7 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
   import PanelTiles from "./PanelTiles.svelte";
   import { stepTiles, tilesTitle } from "./step-tiles";
   import { panelCaption, sectionName } from "./panel-name";
-  import { stepTitle } from "./sentence";
+  import { stepTitle } from "./names";
   import ViewDrawing from "./ViewDrawing.svelte";
   import { areaOf, deckAreas, deckHref } from "./deck";
 

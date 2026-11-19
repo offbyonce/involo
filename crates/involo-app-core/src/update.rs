@@ -145,84 +145,6 @@ fn places(pack: &FlatPack) -> BTreeMap<&str, String> {
     out
 }
 
-/// A step's name as its checklist row shows it (the interface's `stepTitle`, in
-/// packages/ui/src/lib/sentence.ts, which a test holds this to on every step of the iFly pack): a
-/// name in capitals as a sentence, keeping its controls' labels, glossary terms and codes (a word
-/// with a digit or a slash) in capitals; a name in mixed case as it is.
-fn step_name(pack: &FlatPack, step: &Step) -> String {
-    let labels: Vec<String> = step
-        .targets
-        .iter()
-        .filter_map(|t| {
-            let (section, item) = involo_checklist_core::locate(&pack.content.panels, &t.at)?;
-            Some(section.items.get(item)?.label.clone())
-        })
-        .filter(|l| !l.is_empty())
-        .collect();
-    let glossary: BTreeSet<&str> = pack
-        .content
-        .glossary
-        .iter()
-        .flat_map(|g| &g.terms)
-        .map(|t| t.term.as_str())
-        .collect();
-    sentence(&step.text, &labels, &glossary)
-}
-
-fn sentence(text: &str, keep: &[String], glossary: &BTreeSet<&str>) -> String {
-    if text != text.to_uppercase() {
-        return text.to_owned();
-    }
-    let chars: Vec<char> = text.chars().collect();
-    let mut kept = vec![false; chars.len()];
-    let boundary = |c: Option<&char>| {
-        c.is_none_or(|c| !(c.is_ascii_uppercase() || c.is_ascii_digit() || *c == '/'))
-    };
-    let mut labels: Vec<&String> = keep.iter().collect();
-    labels.sort_by_key(|l| std::cmp::Reverse(l.chars().count()));
-    for label in labels {
-        let label: Vec<char> = label.chars().collect();
-        if label.is_empty() || label.len() > chars.len() {
-            continue;
-        }
-        for at in 0..=chars.len() - label.len() {
-            let end = at + label.len();
-            if chars[at..end] == label[..]
-                && boundary(at.checked_sub(1).and_then(|i| chars.get(i)))
-                && boundary(chars.get(end))
-            {
-                kept[at..end].iter_mut().for_each(|k| *k = true);
-            }
-        }
-    }
-    // Words and the separators between them (runs of space, and each of `(`, `)` and `,`).
-    let mut out = String::new();
-    let mut i = 0;
-    while i < chars.len() {
-        let separator = |c: char| c.is_whitespace() || matches!(c, '(' | ')' | ',');
-        let start = i;
-        if chars[i].is_whitespace() {
-            while i < chars.len() && chars[i].is_whitespace() {
-                i += 1;
-            }
-        } else if separator(chars[i]) {
-            i += 1;
-        } else {
-            while i < chars.len() && !separator(chars[i]) {
-                i += 1;
-            }
-        }
-        let word: String = chars[start..i].iter().collect();
-        let keep_word = (!word.trim().is_empty() && kept[start..i].iter().all(|k| *k))
-            || glossary.contains(word.as_str())
-            || word.chars().any(|c| c.is_ascii_digit() || c == '/');
-        out.push_str(&if keep_word { word } else { word.to_lowercase() });
-    }
-    let mut c = out.chars();
-    c.next()
-        .map_or_else(String::new, |first| first.to_uppercase().chain(c).collect())
-}
-
 fn steps(pack: &FlatPack) -> impl Iterator<Item = &Step> {
     pack.lists.iter().flat_map(|l| &l.steps)
 }
@@ -231,7 +153,7 @@ fn steps(pack: &FlatPack) -> impl Iterator<Item = &Step> {
 /// as its checklist row shows it.
 fn wording(pack: &FlatPack, step: &Step) -> [(&'static str, String); 4] {
     [
-        ("Name", step_name(pack, step)),
+        ("Name", crate::names::step_name(pack, step)),
         ("Value", step.expect.clone()),
         ("Check", step.check.clone().unwrap_or_default()),
         ("If not", step.if_not.clone().unwrap_or_default()),
@@ -259,7 +181,7 @@ pub fn pack_changes(old: &FlatPack, new: &FlatPack) -> PackChanges {
         match old_steps.get(&step.id) {
             None => added.push(ChangedStep {
                 step: step.id.clone(),
-                title: step_name(new, step),
+                title: crate::names::step_name(new, step),
                 place: place(&new_places, &step.id),
                 was_ticked: false,
             }),
@@ -277,7 +199,7 @@ pub fn pack_changes(old: &FlatPack, new: &FlatPack) -> PackChanges {
                 if !fields.is_empty() {
                     reworded.push(RewordedStep {
                         step: step.id.clone(),
-                        title: step_name(new, step),
+                        title: crate::names::step_name(new, step),
                         place: place(&new_places, &step.id),
                         fields,
                     });
@@ -289,7 +211,7 @@ pub fn pack_changes(old: &FlatPack, new: &FlatPack) -> PackChanges {
         .filter(|s| !new_ids.contains(&now(&s.id)))
         .map(|s| ChangedStep {
             step: s.id.clone(),
-            title: step_name(old, s),
+            title: crate::names::step_name(old, s),
             place: place(&old_places, &s.id),
             was_ticked: false,
         })
@@ -659,32 +581,5 @@ mod tests {
             panic!("did not load")
         };
         assert!(value.update.is_some());
-    }
-
-    #[test]
-    fn a_name_in_capitals_reads_as_the_checklist_shows_it() {
-        let glossary: BTreeSet<&str> = ["APU", "IRS"].into_iter().collect();
-        let name = |text: &str, keep: &[&str]| {
-            sentence(
-                text,
-                &keep.iter().map(|k| (*k).to_owned()).collect::<Vec<_>>(),
-                &glossary,
-            )
-        };
-        assert_eq!(
-            name("ALTERNATE FLAPS MASTER SWITCH", &[]),
-            "Alternate flaps master switch"
-        );
-        // The control's own label stays as it is on the panel.
-        assert_eq!(
-            name("STANDBY POWER SWITCH", &["STANDBY POWER"]),
-            "STANDBY POWER switch"
-        );
-        // Glossary terms and codes stay in capitals; a name in mixed case stays as written.
-        assert_eq!(name("APU BLEED AIR (IRS 2)", &[]), "APU bleed air (IRS 2)");
-        assert_eq!(name("FMC/CDU PREFLIGHT", &[]), "FMC/CDU preflight");
-        assert_eq!(name("Seat belt sign", &[]), "Seat belt sign");
-        // A label inside a longer word is not the label.
-        assert_eq!(name("APUS ON", &["APU"]), "Apus on");
     }
 }

@@ -16,7 +16,7 @@ folded to one line with its count until the phase's procedure is done.
   import LevelBadge from "./LevelBadge.svelte";
   import MessageText from "./MessageText.svelte";
   import { messageHref } from "./messages";
-  import { stepTitle } from "./sentence";
+  import { stepTitle } from "./names";
   import StepItem from "./StepItem.svelte";
   import type { Decisions } from "./decision";
 

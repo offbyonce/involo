@@ -21,13 +21,38 @@ use crate::settings::Settings;
 use crate::values::blank_values;
 
 /// The saved format of a [`Log`]. Raise it, with a migration and tests, when the shape changes.
-pub const LOG_FORMAT: u32 = 1;
+pub const LOG_FORMAT: u32 = 2;
 
 /// How many flights, and how many practice results, the log keeps.
 pub const LOG_LIMIT: usize = 500;
 
-/// Migrations for [`Log`]: entry `i` turns format `i + 1` into format `i + 2`. None yet.
-const LOG_MIGRATIONS: &[Migration] = &[];
+/// Migrations for [`Log`]: entry `i` turns format `i + 1` into format `i + 2`.
+const LOG_MIGRATIONS: &[Migration] = &[log_1_to_2];
+
+/// Format 2 saves each logged step's name as the app showed it. An entry logged before that has
+/// only the pack's text, which becomes its name.
+fn log_1_to_2(mut value: serde_json::Value) -> Result<serde_json::Value, String> {
+    let flights = value
+        .get_mut("flights")
+        .and_then(serde_json::Value::as_array_mut)
+        .ok_or("the log has no flights")?;
+    for flight in flights {
+        for key in ["ticks", "skipped"] {
+            for step in flight
+                .get_mut(key)
+                .and_then(serde_json::Value::as_array_mut)
+                .into_iter()
+                .flatten()
+            {
+                let text = step.get("text").cloned().unwrap_or_default();
+                if let Some(o) = step.as_object_mut() {
+                    o.insert("name".into(), text);
+                }
+            }
+        }
+    }
+    Ok(value)
+}
 
 // What a merged log file's entries can hold. A log file is outside data: these keep an
 // impossible entry out of the log, where it would stay until deleted.
@@ -120,6 +145,8 @@ pub struct StageTime {
 pub struct LoggedStep {
     pub step: StepId,
     pub text: String,
+    /// The step's name as the app showed it when it was logged (format 2).
+    pub name: String,
     /// The expected response, with the flight's values in its blanks.
     pub value: String,
     pub stage: String,
@@ -135,6 +162,8 @@ pub struct LoggedTick {
     pub at: Millis,
     pub step: StepId,
     pub text: String,
+    /// The step's name as the app showed it when it was logged (format 2).
+    pub name: String,
     /// The expected response, with the flight's values in its blanks.
     pub value: String,
 }
@@ -244,12 +273,14 @@ fn marks(pack: &FlatPack, flight: &Flight, r: &crate::rail::Rail) -> Marks {
                         at: t,
                         step: step.id.clone(),
                         text: step.text.clone(),
+                        name: shown_name(pack, step),
                         value: filled_value(flight, step),
                     });
                 } else if flight.session.is_skipped(&step.id) {
                     out.skipped.push(LoggedStep {
                         step: step.id.clone(),
                         text: step.text.clone(),
+                        name: shown_name(pack, step),
                         value: filled_value(flight, step),
                         stage: stage.title.clone(),
                         phase: phase.id.clone(),
@@ -297,6 +328,15 @@ fn stage_times(
 }
 
 /// The flight as a log entry, logged at `at`.
+/// A step's name as the app shows it: the pack's names when it was read, else worked out here.
+fn shown_name(pack: &FlatPack, step: &involo_checklist_core::Step) -> String {
+    pack.names
+        .steps
+        .get(&step.id)
+        .cloned()
+        .unwrap_or_else(|| crate::names::step_name(pack, step))
+}
+
 pub fn log_entry(
     pack: &FlatPack,
     flight: &Flight,
@@ -464,6 +504,7 @@ fn checked_flight(mut f: LoggedFlight) -> Option<LoggedFlight> {
     for t in &mut f.ticks {
         cut(&mut t.step.0);
         cut(&mut t.text);
+        cut(&mut t.name);
         cut(&mut t.value);
     }
     f.skipped.truncate(MAX_STEPS);
@@ -471,6 +512,7 @@ fn checked_flight(mut f: LoggedFlight) -> Option<LoggedFlight> {
         for t in [
             &mut s.step.0,
             &mut s.text,
+            &mut s.name,
             &mut s.value,
             &mut s.stage,
             &mut s.phase,
@@ -1099,12 +1141,14 @@ mod tests {
                 at: 1_000 * MIN,
                 step: StepId::new("s1"),
                 text: "ONE".into(),
+                name: "ONE".into(),
                 value: "ON".into(),
             },
             LoggedTick {
                 at: Millis::MAX,
                 step: StepId::new("s2"),
                 text: "TWO".into(),
+                name: "TWO".into(),
                 value: "ON".into(),
             },
         ];
@@ -1142,6 +1186,7 @@ mod tests {
             at: 100,
             step: StepId::new("s"),
             text: "T".repeat(MAX_TEXT + 1),
+            name: "T".repeat(MAX_TEXT + 1),
             value: "V".into(),
         }];
         f.stages = vec![StageTime {
@@ -1168,12 +1213,14 @@ mod tests {
             at: 100,
             step: StepId::new("s"),
             text: "T".into(),
+            name: "T".into(),
             value: "V".into(),
         };
         f.ticks = vec![tick; MAX_STEPS + 10];
         let skip = LoggedStep {
             step: StepId::new("s"),
             text: "T".into(),
+            name: "T".into(),
             value: "V".into(),
             stage: "S".into(),
             phase: "p".into(),
@@ -1276,7 +1323,11 @@ mod tests {
                 migrated_from: None
             }
         );
-        assert_eq!(load_log(r#"{"format": 2}"#), Loaded::Newer { format: 2 });
+        let newer = LOG_FORMAT + 1;
+        assert_eq!(
+            load_log(&format!(r#"{{"format": {newer}}}"#)),
+            Loaded::Newer { format: newer }
+        );
         assert!(matches!(
             load_log(r#"{"format": 1}"#),
             Loaded::Unreadable { .. }
@@ -1305,6 +1356,11 @@ mod tests {
         );
         assert_eq!(f.ticks.len(), 3);
         assert_eq!(f.skipped[0].phase_title, "Before start");
+        // Format 2's names: an entry logged before them keeps its saved text as its name.
+        for t in &f.ticks {
+            assert_eq!(t.name, t.text);
+        }
+        assert_eq!(f.skipped[0].name, f.skipped[0].text);
         assert_eq!(value.practice[0].score, 9);
         let raw: serde_json::Value = serde_json::from_str(text).unwrap();
         assert_eq!(raw["format"], json!(1));

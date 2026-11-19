@@ -94,6 +94,28 @@ pub struct FlatPack {
     pub manifest: PackManifest,
     pub lists: Vec<involo_checklist_core::Checklist>,
     pub content: PackContent,
+    /// The names the app shows for the pack's steps and controls, worked out by the app when it
+    /// reads the pack (in Rust, so every screen names a step one way). A built pack file never
+    /// carries them, and any given in one are replaced.
+    #[serde(default, skip_serializing_if = "PackNames::is_empty")]
+    pub names: PackNames,
+}
+
+/// The names the app shows: each step's, as its checklist row shows it, and each control's, by id.
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(deny_unknown_fields)]
+pub struct PackNames {
+    #[cfg_attr(feature = "ts", ts(type = "Record<string, string>"))]
+    pub steps: std::collections::BTreeMap<involo_checklist_core::StepId, String>,
+    #[cfg_attr(feature = "ts", ts(type = "Record<string, string>"))]
+    pub controls: std::collections::BTreeMap<String, String>,
+}
+
+impl PackNames {
+    pub fn is_empty(&self) -> bool {
+        self.steps.is_empty() && self.controls.is_empty()
+    }
 }
 
 impl From<Pack> for FlatPack {
@@ -102,6 +124,7 @@ impl From<Pack> for FlatPack {
             manifest: pack.manifest,
             lists: pack.checklists,
             content: pack.content,
+            names: PackNames::default(),
         }
     }
 }

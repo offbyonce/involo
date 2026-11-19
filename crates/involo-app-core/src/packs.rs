@@ -35,13 +35,16 @@ pub enum PackCheck {
     Refused { reasons: Vec<String> },
 }
 
-/// Read a flattened pack. A format this version doesn't read (older than 6, or newer than the
-/// app) is refused with the reason before the rest is read, and so is a library pack, which is
-/// only built into the packs that extend it.
+/// Read a flattened pack, with the names the app shows for its steps and controls. A format this
+/// version doesn't read (older than 6, or newer than the app) is refused with the reason before
+/// the rest is read, and so is a library pack, which is only built into the packs that extend it.
 pub fn load_pack(json: &str) -> Result<FlatPack, AppError> {
-    read_flat(json)
+    let mut flat = read_flat(json)
         .map(with_positional_locators)
-        .map_err(AppError::PackInvalid)
+        .map_err(AppError::PackInvalid)?;
+    // Named here, once, for every screen (crate::names).
+    flat.names = crate::names::pack_names(&flat);
+    Ok(flat)
 }
 
 /// The pack in `json`, or why it can't be opened: its format, then the whole file, then its kind.

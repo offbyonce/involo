@@ -111,6 +111,11 @@ const pack = {
     },
     panels: [],
   },
+  // As the app receives a pack: with the names Rust gives its steps and controls when it reads it.
+  names: {
+    steps: { battery: "Battery", standby: "Standby power" },
+    controls: { stby: "Standby power switch" },
+  },
 } as unknown as FlatPack;
 
 function view(states: [StepState, StepState]): PhaseModel {
@@ -235,7 +240,13 @@ function fakeLog(): Pick<Host, "newLog" | "readLog" | "saveLog" | "logEntry" | "
       skipped: [],
       plan,
       finished: false,
-      ticks: Object.entries(flight.session.done).map(([step, at]) => ({ at, step, text: step, value: "ON" })),
+      ticks: Object.entries(flight.session.done).map(([step, at]) => ({
+        at,
+        step,
+        text: step,
+        name: step,
+        value: "ON",
+      })),
     }),
     editLog: async (log, edit) => {
       const next = { ...log, flights: [...log.flights], practice: [...log.practice] };

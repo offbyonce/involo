@@ -37,8 +37,8 @@ function flight(id: string, off: number, minutes: number[], over: Partial<Logged
     plan: "simbrief",
     finished: true,
     ticks: [
-      { at: off, step: "demo.a", text: "BATTERY SWITCH", value: "ON" },
-      { at: on, step: "demo.b", text: "DOOR LIGHTS", value: "ALL OUT" },
+      { at: off, step: "demo.a", text: "BATTERY SWITCH", name: "BATTERY SWITCH", value: "ON" },
+      { at: on, step: "demo.b", text: "DOOR LIGHTS", name: "DOOR LIGHTS", value: "ALL OUT" },
     ],
     ...over,
   };
@@ -46,6 +46,7 @@ function flight(id: string, off: number, minutes: number[], over: Partial<Logged
 const terr = {
   step: "demo.terr",
   text: "TERR (EFIS CONTROL PANEL)",
+  name: "TERR (EFIS CONTROL PANEL)",
   value: "ON",
   stage: "Departure",
   phase: "before-start",
@@ -62,6 +63,7 @@ const log: Log = {
           ...terr,
           step: "demo.oxy",
           text: "CREW OXYGEN",
+          name: "CREW OXYGEN",
           stage: "Preflight",
           phase: "preflight",
           phaseTitle: "Preflight",
@@ -85,12 +87,18 @@ const log: Log = {
 const current = flight("now", at(16, 9, 48), [26], {
   done: 41,
   finished: false,
-  skipped: [{ ...terr, step: "demo.oxy", text: "CREW OXYGEN" }],
+  skipped: [{ ...terr, step: "demo.oxy", text: "CREW OXYGEN", name: "CREW OXYGEN" }],
   ticks: [
-    { at: at(16, 9, 48), step: "demo.a", text: "BATTERY SWITCH", value: "ON" },
-    { at: at(16, 10, 10), step: "demo.m", text: "MCP", value: "SET" },
-    { at: at(16, 10, 11), step: "demo.b", text: "DOOR LIGHTS", value: "ALL OUT" },
-    { at: at(16, 10, 14), step: "demo.c", text: "CENTER TANK FUEL", value: "CHECK QUANTITY" },
+    { at: at(16, 9, 48), step: "demo.a", text: "BATTERY SWITCH", name: "BATTERY SWITCH", value: "ON" },
+    { at: at(16, 10, 10), step: "demo.m", text: "MCP", name: "MCP", value: "SET" },
+    { at: at(16, 10, 11), step: "demo.b", text: "DOOR LIGHTS", name: "DOOR LIGHTS", value: "ALL OUT" },
+    {
+      at: at(16, 10, 14),
+      step: "demo.c",
+      text: "CENTER TANK FUEL",
+      name: "CENTER TANK FUEL",
+      value: "CHECK QUANTITY",
+    },
   ],
 });
 const name = (text: string) => text.charAt(0) + text.slice(1).toLowerCase();

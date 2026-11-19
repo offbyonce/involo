@@ -29,7 +29,7 @@ import type { PackIndex } from "../pack-index";
 import { phaseHref } from "../route.svelte";
 import { areaOf, deckAreas, deckHref, zoneSections } from "./deck";
 import { glossaryHref, split } from "./glossary";
-import { stepTitle as titleOfStep } from "./sentence";
+import { stepTitle as titleOfStep } from "./names";
 
 /** A showIf condition, as the pack declares it. */
 type ShowIf = NonNullable<Step["showIf"]>;

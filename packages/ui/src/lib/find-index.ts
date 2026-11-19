@@ -5,7 +5,7 @@
 
 import type { ExpectWhen, FlatPack, Rail } from "@involo/bindings";
 import type { PackIndex } from "../pack-index";
-import { stepTitle } from "./sentence";
+import { stepTitle } from "./names";
 
 /** A step, with the title of the first list that holds it (to tell apart rows that read the same). */
 export type FindStep = {

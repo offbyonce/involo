@@ -23,7 +23,7 @@ row in place. A step that depends on the answer links back to it.
   import type { PackIndex } from "../pack-index";
   import BlankFields from "./BlankFields.svelte";
   import Icon from "./Icon.svelte";
-  import { stepTitle } from "./sentence";
+  import { stepTitle } from "./names";
   import { fillParts } from "./value-parts";
   import { SOURCE_WORDS, choices, labelOf, lowerFirst, shortLabel, type Decisions } from "./decision";
 

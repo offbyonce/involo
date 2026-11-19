@@ -61,6 +61,10 @@ export type PackIndex = {
   lightMeaning(panel: string, section: string, item: number): string | undefined;
   /** The phase a step's list is in, by id. */
   phaseOf(stepId: string): string | undefined;
+  /** A step's name as the app shows it, by id: Rust works it out when it reads the pack. */
+  stepName(stepId: string): string | undefined;
+  /** A control's name as the app shows it, by id, worked out the same way. */
+  controlName(controlId: string): string | undefined;
   /** The step that asks an option (decision 0022), if any. */
   decider(option: string): Step | undefined;
   /** The steps whose targets depend on an option's answer, in pack order. */
@@ -191,6 +195,8 @@ export function indexPack(pack: FlatPack): PackIndex {
     },
     control: (id) => controls.get(id),
     glossary: (term) => glossary.get(term),
+    stepName: (id) => pack.names?.steps[id],
+    controlName: (id) => pack.names?.controls[id],
     lightMeaning(panel, section, item) {
       // The n-th item with that label in the section, counted from 1, as light notes name them.
       const at = locator(panel, section, item);

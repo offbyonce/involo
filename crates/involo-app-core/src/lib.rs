@@ -10,6 +10,7 @@ mod boundary;
 mod error;
 mod flight;
 mod log;
+mod names;
 mod open_steps;
 mod packs;
 mod phase_model;
@@ -35,6 +36,7 @@ pub use log::{
     LOG_FORMAT, LOG_LIMIT, Log, LogChange, LogEdit, LoggedFlight, LoggedStep, LoggedTick,
     PlanSource, PracticeResult, StageTime, edit_log, load_log, log_csv, log_entry, new_log,
 };
+pub use names::pack_names;
 pub use open_steps::{OpenStep, open_steps};
 pub use packs::{MAX_PACK_FILE_BYTES, PackCheck, check_pack, load_pack, parse_catalog};
 pub use phase_model::{PhaseLink, PhaseList, PhaseModel, StepRow, phase_model};
