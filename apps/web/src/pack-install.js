@@ -31,15 +31,20 @@ export async function readCatalog({ fetch, parse }) {
   return parse(await response.text());
 }
 
-/** Checks the pack's bytes and keeps it when it passes. */
-async function install(bytes, source, sha256, { check, keep, now, askToKeep }) {
+/**
+ * Checks the pack's bytes and keeps it when it passes. When it replaces another version of an
+ * installed pack, what changed is worked out first, while both versions are here (decision 0028),
+ * and comes back with the result as `changes`, from a file as from the catalog.
+ */
+async function install(bytes, source, sha256, { check, keep, now, askToKeep, changes }) {
   const checked = await check(bytes, sha256);
   if (checked.state === "refused") return checked;
   const pack = { summary: checked.summary, source, installedAt: now() };
   const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  const changed = changes ? await changes(checked.summary, text) : null;
   if (!(await keep({ ...pack, text }))) return { state: "notKept", pack };
   askToKeep();
-  return { state: "installed", pack };
+  return changed ? { state: "installed", pack, changes: changed } : { state: "installed", pack };
 }
 
 /** Installs a pack file the pilot chose. One over `limit` bytes is refused unread. */
@@ -52,10 +57,11 @@ export async function installFile(file, deps) {
 }
 
 /**
- * Downloads a catalog pack and installs it once its SHA-256 matches the catalog's. One the
- * catalog or the server says is over `limit` bytes is refused before it is downloaded.
+ * Downloads a catalog pack and checks it, its SHA-256 against the catalog's: its bytes, or why it
+ * is refused. One the catalog or the server says is over `limit` bytes is refused before it is
+ * downloaded. Nothing is kept.
  */
-export async function installFromCatalog(entry, deps) {
+export async function downloadPack(entry, deps) {
   const tooLarge = refused(`The pack is too large (over ${deps.limit / MB} MB), so it wasn’t downloaded.`);
   if (entry.size > deps.limit) return tooLarge;
   const file = catalogFile(entry);
@@ -70,5 +76,14 @@ export async function installFromCatalog(entry, deps) {
     await response.body?.cancel();
     return tooLarge;
   }
-  return install(new Uint8Array(await response.arrayBuffer()), "catalog", entry.sha256, deps);
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const checked = await deps.check(bytes, entry.sha256);
+  return checked.state === "refused" ? checked : { state: "ready", bytes };
+}
+
+/** Downloads a catalog pack and installs it once its SHA-256 matches the catalog's. */
+export async function installFromCatalog(entry, deps) {
+  const got = await downloadPack(entry, deps);
+  if (got.state === "refused") return got;
+  return install(got.bytes, "catalog", entry.sha256, deps);
 }

@@ -11,7 +11,7 @@ and a caution note under If not. A step with no control shows the steps coming u
 -->
 <script lang="ts">
   import { stepValue } from "./answers.svelte";
-  import { sentence as toSentence, stepTitle } from "./sentence";
+  import { controlName, stepTitle } from "./names";
   import type { ItemTarget, Step, StepState } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import LevelBadge from "./LevelBadge.svelte";
@@ -55,7 +55,6 @@ and a caution note under If not. A step with no control shows the steps coming u
     inline?: boolean;
   } = $props();
 
-  const sentence = (text: string) => toSentence(index, text);
 
   let place = $derived(index.place(step));
   /** The alert messages that call for this step (MsgPane); none in a pack without messages. */
@@ -150,7 +149,7 @@ and a caution note under If not. A step with no control shows the steps coming u
         {#if how?.length}<ol>{#each how as line, n (n)}<li>{line}</li>{/each}</ol>{/if}
         {#if explain}<p><b>What it is</b> {explain.what}</p>{/if}
         {#if background}<p><b>Note</b> {background}</p>{/if}
-        {#if own && place?.control}<button class="lk" type="button" onclick={openOwn}>What the {sentence(place.control.name).toLowerCase()} does</button>{/if}
+        {#if own && place?.control}<button class="lk" type="button" onclick={openOwn}>What the {controlName(index, place.control).toLowerCase()} does</button>{/if}
       </div>
     {/if}
     {#if termsOpen}

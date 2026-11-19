@@ -17,7 +17,7 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
   import PanelSheet from "./PanelSheet.svelte";
   import PanelTiles from "./PanelTiles.svelte";
   import { phaseHref } from "../route.svelte";
-  import { stepTitle } from "./sentence";
+  import { stepTitle } from "./names";
   import type { Tile } from "./step-tiles";
   import { sectionName } from "./panel-name";
 

@@ -10,6 +10,7 @@ mod boundary;
 mod error;
 mod flight;
 mod log;
+mod names;
 mod open_steps;
 mod packs;
 mod phase_model;
@@ -21,6 +22,7 @@ mod suggest;
 mod targets;
 #[cfg(test)]
 mod test_support;
+mod update;
 mod values;
 mod visibility;
 mod weather;
@@ -32,8 +34,10 @@ pub use error::AppError;
 pub use flight::{AnswerSource, FLIGHT_FORMAT, Flight, new_flight};
 pub use log::{
     LOG_FORMAT, LOG_LIMIT, Log, LogChange, LogEdit, LoggedFlight, LoggedStep, LoggedTick,
-    PlanSource, PracticeResult, StageTime, edit_log, load_log, log_csv, log_entry, new_log,
+    PlanSource, PracticeResult, StageTime, edit_log, load_log, log_csv, log_entry, log_packs,
+    new_log,
 };
+pub use names::{Glossaries, pack_glossaries, pack_names};
 pub use open_steps::{OpenStep, open_steps};
 pub use packs::{MAX_PACK_FILE_BYTES, PackCheck, check_pack, load_pack, parse_catalog};
 pub use phase_model::{PhaseLink, PhaseList, PhaseModel, StepRow, phase_model};
@@ -45,5 +49,8 @@ pub use settings::{
 };
 pub use suggest::{Suggestion, suggestion};
 pub use targets::{ItemTarget, step_targets};
+pub use update::{
+    ChangedStep, PackChanges, RewordedStep, Rewording, UpdateNote, pack_changes, reconcile,
+};
 pub use visibility::{Shown, in_essentials, passes, shown_steps, step_shows, visible_steps};
 pub use weather::{Altimeter, Decoded, DecodedRow, Element, altimeter, decode_metar, decode_taf};

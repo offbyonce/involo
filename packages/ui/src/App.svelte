@@ -15,6 +15,7 @@ in Rust. The host saves progress and settings on the device.
     type AppInfo,
     type CatalogEntry,
     type Checklist,
+    type PackChanges,
     type FieldId,
     type FlatPack,
     type Flight,
@@ -33,6 +34,7 @@ in Rust. The host saves progress and settings on the device.
   } from "@involo/bindings";
   import { getHost, type InstalledPack, type Kept, type PackInstall, type SavedItem } from "./host";
   import PacksPage, { type PackRow, type PacksNotice } from "./pages/PacksPage.svelte";
+  import UpdateNote from "./lib/UpdateNote.svelte";
   import { morePacks, savedLine, updateFor } from "./lib/packs";
   import type { SwitchPack } from "./lib/Drawer.svelte";
   import { fetchProblem, fileProblem } from "./lib/problems";
@@ -42,7 +44,7 @@ in Rust. The host saves progress and settings on the device.
   import Toast from "./lib/Toast.svelte";
   import { answered } from "./lib/answers.svelte";
   import { changedText, dependsOn, labelOf, lowerFirst, shortLabel, type DecisionSource, type Decisions } from "./lib/decision";
-  import { stepTitle } from "./lib/sentence";
+  import { stepTitle } from "./lib/names";
   import StepPane from "./lib/StepPane.svelte";
   import Drawer from "./lib/Drawer.svelte";
   import SaveFailedNotice from "./lib/SaveFailedNotice.svelte";
@@ -72,7 +74,6 @@ in Rust. The host saves progress and settings on the device.
   import ReferencesPage from "./pages/ReferencesPage.svelte";
   import { buildReferences } from "./lib/references";
   import { download, fileDate, htmlCopy } from "./lib/flight-log";
-  import { sentence } from "./lib/sentence";
   import Tour from "./lib/Tour.svelte";
   import { tour } from "./lib/tour-state.svelte";
   import { flowAreas, howCountsOf } from "./lib/how-content";
@@ -241,6 +242,11 @@ in Rust. The host saves progress and settings on the device.
     return ids[0] ?? "";
   }
 
+  /** Settles once start() has opened the pack and its flight (or failed): a change to the open
+   * pack's saved flight waits for it, so the flight being loaded can't be saved over the change. */
+  let started: () => void = () => {};
+  const booted = new Promise<void>((done) => (started = done));
+
   async function start(): Promise<void> {
     try {
       info = await host.appInfo();
@@ -275,16 +281,23 @@ in Rust. The host saves progress and settings on the device.
       // here before. Saved settings say for themselves.
       hadFlight = !!saved.flight && !savedSettings;
       const savedFlight = usable("flight", saved.flight);
-      flight = savedFlight && savedFlight.pack === id ? savedFlight : await host.newFlight(id);
+      // A flight saved with another version of the pack is brought in line with this one, its
+      // ticks kept through the pack's aliases (decision 0028), and saved so.
+      const opened = savedFlight && savedFlight.pack === id ? await host.reconcile(id, savedFlight) : null;
+      const reconciled = !!opened && !!savedFlight && opened.packVersion !== savedFlight.packVersion;
+      flight = opened ?? (await host.newFlight(id));
       plan = usable("plan", await host.readPlan(id));
       // Noted, not saved: settings are saved once the pilot changes something (installing or
       // switching a pack saves it), so the next save carries it.
       if (settings.currentPack !== id) settings = { ...settings, currentPack: id };
       await openLog();
       await refresh();
+      if (reconciled) void persist("flight");
       void loadPacks();
     } catch (e) {
       fail(e);
+    } finally {
+      started();
     }
   }
 
@@ -375,6 +388,9 @@ in Rust. The host saves progress and settings on the device.
     try {
       const result = await run();
       if (accepted(name, result) && result.state === "installed") {
+        // Another version of an installed pack (a pack file, say): what changed becomes its
+        // flight's update note, as after Update.
+        if (result.changes) await noteUpdate(result.pack.summary.id, result.changes);
         if (open(result.pack.summary.id)) {
           await switchPack(result.pack.summary.id);
           return;
@@ -388,14 +404,71 @@ in Rust. The host saves progress and settings on the device.
     }
   }
 
+  /** What's new in an update (decision 0028): its changes, while the Packs page shows them. */
+  let whatsNew = $state<{ entry: CatalogEntry; changes: PackChanges } | null>(null);
+
+  async function showWhatsNew(entry: CatalogEntry): Promise<void> {
+    packsBusy = entry.id;
+    packsNotice = null;
+    try {
+      whatsNew = { entry, changes: await host.packChanges(entry) };
+    } catch (e) {
+      packsNotice = { title: `What’s new in ${entry.name} couldn’t be shown.`, lines: [e instanceof Error ? e.message : String(e)] };
+    } finally {
+      packsBusy = null;
+    }
+  }
+
+  /** Keeps what changed as the note in the pack's saved flight, for after the update. */
+  async function noteUpdate(id: string, changes: PackChanges): Promise<void> {
+    const action: Action = { type: "noteUpdate", changes };
+    await booted;
+    if (id === packId && flight) {
+      flight = await host.apply(packId, flight, action);
+      await persist("flight");
+      return;
+    }
+    const saved = (await host.readSaved(id)).flight;
+    if (saved?.loaded.state !== "ready") return;
+    await host.loadPack(id);
+    await host.save(id, "flight", await host.apply(id, saved.loaded.value, action));
+  }
+
+  /** Updates a pack from the catalog. What changed is worked out first, while both versions are
+   * here, and kept with its saved flight; the open pack then opens again on the new version. */
+  async function updatePack(entry: CatalogEntry): Promise<void> {
+    packsBusy = entry.id;
+    packsNotice = null;
+    try {
+      const changes =
+        whatsNew?.entry.id === entry.id && whatsNew.entry.version === entry.version
+          ? whatsNew.changes
+          : await host.packChanges(entry).catch(() => null);
+      const result = await host.installCatalogPack(entry);
+      if (!accepted(entry.name, result) || result.state !== "installed") return;
+      whatsNew = null;
+      const kept = result.changes ?? changes;
+      if (kept) await noteUpdate(entry.id, kept);
+      if (entry.id === packId) {
+        await switchPack(entry.id);
+        return;
+      }
+      await loadPacks();
+    } catch (e) {
+      packsNotice = { title: `${entry.name} couldn’t be updated.`, lines: [e instanceof Error ? e.message : String(e)] };
+    } finally {
+      packsBusy = null;
+    }
+  }
+
   const packsHandlers = {
     onUse: (id: string) => void switchPack(id),
     // Installing a pack opens it (decision 0028).
     onDownload: (entry: CatalogEntry) =>
       void installing(entry.id, entry.name, () => host.installCatalogPack(entry), () => true),
-    // An update opens again only when it is the open pack's.
-    onUpdate: (entry: CatalogEntry) =>
-      void installing(entry.id, entry.name, () => host.installCatalogPack(entry), (id) => id === packId),
+    onUpdate: (entry: CatalogEntry) => void updatePack(entry),
+    onWhatsNew: (entry: CatalogEntry) => void showWhatsNew(entry),
+    onCloseWhatsNew: () => (whatsNew = null),
     onFile: (file: File) => void installing("file", "That file", () => host.installPackFile(file), () => true),
     onRemove: (id: string, alsoFlight: boolean) => void removePack(id, alsoFlight),
     onRetry: () => void loadPacks(),
@@ -837,10 +910,11 @@ in Rust. The host saves progress and settings on the device.
     if (flight && Object.keys(flight.session.done).length === 0) offered = false;
     if (!finished) offer = false;
   });
-  /** A step's name as the app shows it; a step no longer in the pack, from its own text. */
-  const logName = (text: string, id: string) => {
+  /** A logged step's name as the app shows it: as the pack names it now, or, for a step no
+   * longer in the pack, the name saved when it was logged. */
+  const logName = (name: string, id: string) => {
     const st = index?.step(id);
-    return index ? (st ? stepTitle(index, st) : sentence(index, text)) : text;
+    return index && st ? stepTitle(index, st) : name;
   };
   const stamp = () => fileDate(Date.now());
   function saveLogCopy(): void {
@@ -1283,6 +1357,7 @@ in Rust. The host saves progress and settings on the device.
       {catalogProblem}
       notice={packsNotice}
       busy={packsBusy}
+      {whatsNew}
       backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
       {...packsHandlers}
     />
@@ -1393,6 +1468,20 @@ in Rust. The host saves progress and settings on the device.
     {/if}
   </div>
 {:else}
+{#snippet updateNote()}
+  {#if flight?.update}
+    <UpdateNote
+      note={flight.update}
+      onStep={goToStep}
+      stepHref={(id) => {
+        const phase = index?.phaseOf(id);
+        return phase ? phaseHref(phase) : null;
+      }}
+      onSeen={() => void act({ type: "seeUpdateNote" })}
+      onDismiss={() => void act({ type: "dismissUpdateNote" })}
+    />
+  {/if}
+{/snippet}
 {#snippet inlinePane()}
   {#if pane && index}
     {#key pane.step.id}
@@ -1538,6 +1627,7 @@ in Rust. The host saves progress and settings on the device.
                 {decisions}
                 inline={narrow && pane ? inlinePane : undefined}
                 inlineStep={narrow ? (pane?.step.id ?? null) : null}
+                notice={flight.update ? updateNote : undefined}
               />
             {/if}
           {:else}

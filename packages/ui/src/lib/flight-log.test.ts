@@ -28,11 +28,19 @@ const f: LoggedFlight = {
   done: 359,
   total: 366,
   skipped: [
-    { step: "s", text: "TERR", value: "ON", stage: "Departure", phase: "p", phaseTitle: "Before start" },
+    {
+      step: "s",
+      text: "TERR",
+      name: "TERR",
+      value: "ON",
+      stage: "Departure",
+      phase: "p",
+      phaseTitle: "Before start",
+    },
   ],
   plan: "manual",
   finished: false,
-  ticks: [{ at: off, step: "t", text: "DOOR LIGHTS", value: "ALL OUT" }],
+  ticks: [{ at: off, step: "t", text: "DOOR LIGHTS", name: "DOOR LIGHTS", value: "ALL OUT" }],
 };
 
 describe("the Flight log's words", () => {

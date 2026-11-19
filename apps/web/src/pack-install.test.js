@@ -11,7 +11,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { testPackText } from "../test-packs.js";
 import { fakeIndexedDB } from "./fake-indexeddb.js";
-import { catalogFile, installFile, installFromCatalog, readCatalog } from "./pack-install.js";
+import { catalogFile, downloadPack, installFile, installFromCatalog, readCatalog } from "./pack-install.js";
 import { readPacks, readPackText, writePack } from "./pack-store.js";
 import * as wasm from "./wasm/involo_web_host.js";
 
@@ -156,4 +156,48 @@ test("the catalog is read from the app's own site with nothing about the pilot",
     ["../packs/index.json", { credentials: "omit", referrerPolicy: "no-referrer", cache: "no-cache" }],
   ]);
   assert.equal(catalogFile(entry), "ifly-737-max8-0.1.0.involo-pack");
+});
+
+test("an update is downloaded and checked for What's new without installing it", async () => {
+  const d = device();
+  const got = await downloadPack(entry, { ...d.deps, fetch: served(bytes) });
+  assert.equal(got.state, "ready");
+  assert.equal(got.bytes.length, bytes.length);
+  assert.deepEqual(await readPacks(d.idb), [], "nothing is installed");
+  const tampered = new TextEncoder().encode(text.replace("iFly 737 MAX 8", "iFly 737 MAX 9"));
+  const refused = await downloadPack(entry, { ...d.deps, fetch: served(tampered) });
+  assert.equal(refused.state, "refused");
+  assert.match(refused.reasons[0], /SHA-256 differs/);
+});
+
+test("a pack file with another version of an installed pack comes with what changed, from a file as from the catalog", async () => {
+  const d = device();
+  // The web host's comparison: the installed version's text against this one, in Rust.
+  const changes = async (summary, next) => {
+    const installed = (await readPacks(d.idb)).find((p) => p.summary.id === summary.id);
+    if (!installed || installed.summary.version === summary.version) return null;
+    return JSON.parse(wasm.compare_packs(await readPackText(summary.id, d.idb), next)).ok;
+  };
+  const deps = { ...d.deps, changes };
+  const first = await installFile(file(bytes), deps);
+  assert.equal(first.state, "installed");
+  assert.equal(first.changes, undefined, "nothing installed before: nothing to compare");
+  // The next version: a new number, the first list's second step's Check reworded.
+  const pack = JSON.parse(text);
+  const step = pack.lists[0].steps[1];
+  const before = step.check ?? "";
+  step.check = "A light comes on";
+  pack.manifest.version = "0.2.0";
+  const next = await installFile(file(new TextEncoder().encode(JSON.stringify(pack))), deps);
+  assert.equal(next.state, "installed");
+  assert.equal(next.changes.fromVersion, "0.1.0");
+  assert.equal(next.changes.toVersion, "0.2.0");
+  assert.deepEqual(
+    next.changes.reworded.map((r) => [r.step, r.title, r.fields]),
+    // Named as its checklist row shows it.
+    [[step.id, "STANDBY POWER switch", [{ field: "Check", before, after: "A light comes on" }]]],
+  );
+  // The same version again: nothing changed.
+  const again = await installFile(file(new TextEncoder().encode(JSON.stringify(pack))), deps);
+  assert.equal(again.changes, undefined);
 });

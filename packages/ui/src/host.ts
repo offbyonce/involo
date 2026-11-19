@@ -19,6 +19,7 @@ import type {
   LogEdit,
   LoggedFlight,
   OpenStep,
+  PackChanges,
   PackSummary,
   PhaseModel,
   PlanSource,
@@ -50,6 +51,14 @@ export interface Host {
   installPackFile(file: Blob): Promise<PackInstall>;
   /** Downloads a catalog pack, checks it and its SHA-256, and installs it in the same way. */
   installCatalogPack(entry: CatalogEntry): Promise<PackInstall>;
+  /**
+   * What changed between the installed version of a pack and the catalog's update (decision
+   * 0028): the update is downloaded and checked, not installed. Rejects when it is refused.
+   */
+  packChanges(entry: CatalogEntry): Promise<PackChanges>;
+  /** A saved flight brought in line with the loaded pack's version, through its aliases; the
+   * same flight when the versions match. */
+  reconcile(pack: string, flight: Flight): Promise<Flight>;
   /** Removes an installed pack. Resolves false when the device refused. Its saved flight and
    * plan stay unless removeSaved is called too. */
   removePack(id: string): Promise<boolean>;
@@ -143,10 +152,12 @@ export interface Host {
  * shown as "Not from the Involo catalog" wherever the pack is named (decision 0028). */
 export type PackSource = "catalog" | "file";
 export type InstalledPack = { summary: PackSummary; source: PackSource; installedAt: number };
-/** What installing a pack did: installed; passed every check but this device didn't keep it
+/** What installing a pack did: installed (with what changed, when it replaced another version);
+ * passed every check but this device didn't keep it
  * (no storage, or storage refused); or refused, with every reason, and nothing kept. */
 export type PackInstall =
-  | { state: "installed"; pack: InstalledPack }
+  /** `changes`: what changed, when it replaced another installed version of the pack. */
+  | { state: "installed"; pack: InstalledPack; changes?: PackChanges }
   | { state: "notKept"; pack: InstalledPack }
   | { state: "refused"; reasons: string[] };
 export type SavedItem<T> = { loaded: Loaded<T>; text: string } | null;

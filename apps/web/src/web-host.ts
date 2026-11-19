@@ -5,19 +5,21 @@
 // APIs (decisions 0010 and 0012). Packs and their index are files beside the app, written by
 // `involo-pack build`; this page is app/index.html, so they are one folder up.
 
-import { isAppError, type SavedPlan } from "@involo/bindings";
+import { isAppError, type PackChanges, type PackSummary, type SavedPlan } from "@involo/bindings";
 import type { Host } from "@involo/ui";
 import { applyBrandTheme } from "./brand-theme";
 import {
   appInfo,
   apply,
   checkPack,
+  comparePacks,
   decodeMetar,
   decodeTaf,
   defaultSettings,
   editLog,
   logCsv,
   logEntry,
+  logPacks,
   newFlight,
   newLog,
   openSteps,
@@ -31,10 +33,17 @@ import {
   planUrl,
   planValues,
   rail,
+  reconcile,
   suggestion,
 } from "./core";
 import { readLog as readLogText, writeLog } from "./log-store.js";
-import { type InstallDeps, installFile, installFromCatalog, readCatalog } from "./pack-install.js";
+import {
+  downloadPack,
+  type InstallDeps,
+  installFile,
+  installFromCatalog,
+  readCatalog,
+} from "./pack-install.js";
 import { deletePack, readPacks, readPackText, writePack } from "./pack-store.js";
 import { readPlan, readSaved, readSettings, removeSaved, save, savePlan, setAside } from "./saved";
 import { fetchPlanText } from "./simbrief-fetch.js";
@@ -52,9 +61,49 @@ function askToKeep(): void {
 /** The browser's fetch, called on its own (it refuses to run as another object's method). */
 const fetchOwn: typeof fetch = (input, init) => fetch(input, init);
 
-/** What installing a pack needs: Rust's check, the pack store, the clock. */
+/** The last pack file downloaded, by address: What's new downloads an update to compare it, and
+ * Update then installs the same bytes without downloading them again. Each pack version has its
+ * own address, so the bytes never go stale. */
+let lastDownload: { url: string; bytes: ArrayBuffer } | null = null;
+const fetchPack: typeof fetch = async (input, init) => {
+  const url = String(input);
+  if (lastDownload?.url === url) return new Response(lastDownload.bytes.slice(0));
+  const response = await fetch(input, init);
+  if (!response.ok) return response;
+  const bytes = await response.arrayBuffer();
+  lastDownload = { url, bytes };
+  return new Response(bytes.slice(0), { status: response.status, headers: response.headers });
+};
+
+/** The texts of the installed packs a log text needs to be read (`logPacks`: only a format 1 log
+ * needs any). A pack that isn't installed, or can't be read, is left out: its entries are named
+ * without its glossary. */
+async function logPackTexts(text: string): Promise<string[]> {
+  const ids = await logPacks(text);
+  const texts = await Promise.all(ids.map((id) => readPackText(id).catch(() => null)));
+  return texts.filter((t): t is string => t !== null);
+}
+
+/** What changed from the installed version of a pack to `text`, another version of it. */
+async function changesFrom(summary: PackSummary, text: string): Promise<PackChanges | null> {
+  const installed = await readPacks().catch(() => []);
+  const here = installed.find((p) => p.summary.id === summary.id);
+  if (!here || here.summary.version === summary.version) return null;
+  const old = await readPackText(summary.id);
+  return old === null ? null : comparePacks(old, text);
+}
+
+/** What installing a pack needs: Rust's check, the pack store, the clock, and the comparison
+ * with the version it replaces. */
 async function installDeps(): Promise<InstallDeps> {
-  return { limit: await packFileLimit(), check: checkPack, keep: writePack, now: Date.now, askToKeep };
+  return {
+    limit: await packFileLimit(),
+    check: checkPack,
+    keep: writePack,
+    now: Date.now,
+    askToKeep,
+    changes: changesFrom,
+  };
 }
 
 /** The compact plan from a SimBrief reply or a saved file (decision 0019): the raw text is dropped. */
@@ -78,7 +127,15 @@ export const webHost: Host = {
   installedPacks: () => readPacks(),
   installPackFile: async (file) => installFile(file, await installDeps()),
   installCatalogPack: async (entry) =>
-    installFromCatalog(entry, { ...(await installDeps()), fetch: fetchOwn }),
+    installFromCatalog(entry, { ...(await installDeps()), fetch: fetchPack }),
+  packChanges: async (entry) => {
+    const installed = await readPackText(entry.id);
+    if (installed === null) throw new Error(`The pack ${entry.id} is not installed on this device.`);
+    const got = await downloadPack(entry, { ...(await installDeps()), fetch: fetchPack });
+    if (got.state === "refused") throw new Error(got.reasons.join(" "));
+    return comparePacks(installed, new TextDecoder().decode(got.bytes));
+  },
+  reconcile,
   removePack: (id) => deletePack(id),
   removeSaved,
   loadPack: async (id) => {
@@ -117,7 +174,7 @@ export const webHost: Host = {
         text: "",
       };
     }
-    return text === null ? null : { loaded: await parseLog(text), text };
+    return text === null ? null : { loaded: await parseLog(text, await logPackTexts(text)), text };
   },
   saveLog: async (log, keep) => {
     const saved = await writeLog(JSON.stringify(log));
@@ -127,6 +184,7 @@ export const webHost: Host = {
     return saved;
   },
   logEntry,
-  editLog,
+  editLog: async (log, edit) =>
+    editLog(log, edit, edit.type === "merge" ? await logPackTexts(edit.text) : []),
   logCsv,
 };

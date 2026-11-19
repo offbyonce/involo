@@ -2,10 +2,17 @@
 import type { Checklist } from "./Checklist";
 import type { PackContent } from "./PackContent";
 import type { PackManifest } from "./PackManifest";
+import type { PackNames } from "./PackNames";
 
 /**
  * A pack as the app receives it: everything in one JSON file, written by `involo-pack build` once the
  * pack has passed `involo-pack check`. Library packs and overrides will be resolved into it when they
  * exist, so the app never reads YAML or follows references between packs.
  */
-export type FlatPack = { manifest: PackManifest, lists: Array<Checklist>, content: PackContent, };
+export type FlatPack = { manifest: PackManifest, lists: Array<Checklist>, content: PackContent, 
+/**
+ * The names the app shows for the pack's steps and controls, worked out by the app when it
+ * reads the pack (in Rust, so every screen names a step one way). A built pack file never
+ * carries them, and any given in one are replaced.
+ */
+names?: PackNames, };

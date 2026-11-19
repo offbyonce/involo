@@ -184,6 +184,25 @@ impl Session {
         p
     }
 
+    /// Each marked step under the id `map` gives it, for a newer version of the pack; a step
+    /// `map` gives no id is unmarked. Returns those steps, each once, in id order.
+    pub fn remap(&mut self, map: impl Fn(&StepId) -> Option<StepId>) -> Vec<StepId> {
+        let mut dropped = std::collections::BTreeSet::new();
+        for marks in [&mut self.done, &mut self.skipped] {
+            for (id, at) in std::mem::take(marks) {
+                match map(&id) {
+                    Some(to) => {
+                        marks.insert(to, at);
+                    }
+                    None => {
+                        dropped.insert(id);
+                    }
+                }
+            }
+        }
+        dropped.into_iter().collect()
+    }
+
     /// Clear everything for a new flight.
     pub fn clear(&mut self) {
         self.done.clear();

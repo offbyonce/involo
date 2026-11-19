@@ -107,7 +107,7 @@ const html = (s: string) =>
  * Save copy: the log as one HTML file that opens anywhere, with no app and no network. Plain
  * tables, so it prints and reads well; step names come as the page shows them (`name`).
  */
-export function htmlCopy(log: Log, savedAt: number, name: (text: string, step: string) => string): string {
+export function htmlCopy(log: Log, savedAt: number, name: (name: string, step: string) => string): string {
   const e = html;
   const flights = log.flights
     .map((f) => {
@@ -115,11 +115,11 @@ export function htmlCopy(log: Log, savedAt: number, name: (text: string, step: s
       const times = stageTimes(f.stages);
       const stages = f.stages.map((s, i) => `${e(s.title)} ${times[i]}`).join(" · ");
       const skipped = f.skipped
-        .map((s) => `<li>${e(name(s.text, s.step))} (${e(s.stage)} › ${e(s.phaseTitle)})</li>`)
+        .map((s) => `<li>${e(name(s.name, s.step))} (${e(s.stage)} › ${e(s.phaseTitle)})</li>`)
         .join("");
       const ticks = f.ticks
         .map(
-          (k) => `<tr><td>${clock(k.at)}</td><td>${e(name(k.text, k.step))}</td><td>${e(k.value)}</td></tr>`,
+          (k) => `<tr><td>${clock(k.at)}</td><td>${e(name(k.name, k.step))}</td><td>${e(k.value)}</td></tr>`,
         )
         .join("");
       return `<section>

@@ -14,7 +14,7 @@ open. Pop-over tokens; it closes on its X, Esc or a press outside. On phone it i
   import Icon from "./Icon.svelte";
   import { trapFocus } from "./trap";
   import { openSteps } from "./open-steps.svelte";
-  import { stepTitle } from "./sentence";
+  import { stepTitle } from "./names";
 
   let { index, open, onGo }: { index: PackIndex; open: OpenStep[]; onGo: (step: string) => void } = $props();
 

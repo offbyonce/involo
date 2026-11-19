@@ -40,7 +40,15 @@ pub enum Loaded<T> {
 pub(crate) type Migration = fn(Value) -> Result<Value, String>;
 
 /// Migrations for [`Flight`]: entry `i` turns format `i + 1` into format `i + 2`.
-const FLIGHT_MIGRATIONS: &[Migration] = &[flight_1_to_2, flight_2_to_3, flight_3_to_4];
+const FLIGHT_MIGRATIONS: &[Migration] =
+    &[flight_1_to_2, flight_2_to_3, flight_3_to_4, flight_4_to_5];
+
+/// Format 5 adds the note a pack update leaves (decision 0028); an older flight has none, so
+/// nothing changes.
+fn flight_4_to_5(value: Value) -> Result<Value, String> {
+    value.as_object().ok_or("the flight is not an object")?;
+    Ok(value)
+}
 
 /// Format 4 calls the panel state the flight started from what the screen calls it: the saved
 /// key `startState` becomes `panelState`, with the same value (decision 0029, Names).
@@ -135,10 +143,10 @@ fn settings_1_to_2(mut value: Value) -> Result<Value, String> {
     Ok(value)
 }
 
-pub(crate) fn load_with<T: DeserializeOwned>(
+pub(crate) fn load_with<T: DeserializeOwned, M: Fn(Value) -> Result<Value, String>>(
     json: &str,
     current: u32,
-    migrations: &[Migration],
+    migrations: &[M],
 ) -> Loaded<T> {
     let mut value: Value = match serde_json::from_str(json) {
         Ok(value) => value,
@@ -198,7 +206,7 @@ pub fn load_flight(json: &str) -> Loaded<Flight> {
 
 /// Read the saved SimBrief plan (decision 0019).
 pub fn load_plan(json: &str) -> Loaded<crate::SavedPlan> {
-    load_with(json, crate::PLAN_FORMAT, &[])
+    load_with(json, crate::PLAN_FORMAT, &[] as &[Migration])
 }
 
 /// Read saved settings.
@@ -255,7 +263,9 @@ mod tests {
         else {
             panic!("the format 4 flight did not load");
         };
-        assert_eq!(migrated_from, None);
+        // Format 5 only adds the update note, which a format 4 flight never has.
+        assert_eq!(migrated_from, Some(4));
+        assert_eq!(value.update, None);
         let values: BTreeMap<String, String> = value
             .values
             .iter()
@@ -564,7 +574,7 @@ mod tests {
     #[test]
     fn older_formats_migrate_forward_step_by_step() {
         let chain: &[Migration] = &[rename_title, add_lights];
-        let from_one = load_with::<Demo>(r#"{"format": 1, "title": "A"}"#, 3, chain);
+        let from_one = load_with::<Demo, _>(r#"{"format": 1, "title": "A"}"#, 3, chain);
         let expected = Demo {
             format: 3,
             name: "A".into(),
@@ -577,7 +587,7 @@ mod tests {
                 migrated_from: Some(1)
             }
         );
-        let from_two = load_with::<Demo>(r#"{"format": 2, "name": "B"}"#, 3, chain);
+        let from_two = load_with::<Demo, _>(r#"{"format": 2, "name": "B"}"#, 3, chain);
         assert!(matches!(
             from_two,
             Loaded::Ready {
@@ -585,7 +595,7 @@ mod tests {
                 ..
             }
         ));
-        let broken = load_with::<Demo>(
+        let broken = load_with::<Demo, _>(
             r#"{"format": 1, "title": "A", "name": "x"}"#,
             3,
             &[|_| Err("bad".into()), add_lights],

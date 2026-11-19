@@ -203,6 +203,15 @@ tags `pack.json` doesn't list, a second label for one tag or reference group). I
 kept in the browser's IndexedDB, one version per pack id, with where each came from; one from a
 file is "Not from the Involo catalog".
 
+**Updating a pack.** An update keeps a pilot's flight (decision 0028): when the app loads a
+flight saved with an older version, ticks, skips, blanks and timers follow `aliases.yaml` to the
+steps' new ids, option values follow their `option_value` aliases (a value the pack no longer
+offers goes back to unanswered), and a panel state follows its alias or is cleared. A step that
+is gone loses its marks. So when you rename or move a step id, add a `step` alias from the old id;
+a retired id with no alias drops the pilot's tick. The pilot sees what changed (steps added,
+reworded in their name, value, Check or If not, and removed) in What's new before updating and in
+a note after it, whether the new version comes from the catalog or from a pack file.
+
 **Overlap check.** `just overlap` flags any run of 8 or more words matching plain-text reference
 files (see `INVOLO_OVERLAP_REFS` under "Optional local files" below). It also compares each list's
 steps joined in order. Standard phrases can be accepted in `crates/involo-pack-overlap/allow.txt`

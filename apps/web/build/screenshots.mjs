@@ -373,6 +373,34 @@ const noPacks = [
   `new Promise((done) => { let n = 0; const t = setInterval(() => { if (document.querySelector(".packs.first [data-app-ready], .packs.first") || ++n > 150) { clearInterval(t); setTimeout(() => done(true), 600); } }, 100); })`,
 ];
 
+/**
+ * Makes the installed iFly pack an older version that differs from the catalog's (PacksUpdate):
+ * the first list has an extra step, "Window heat test", its second step's value reads "SET", and
+ * its third step is missing. The catalog's version then adds one step, rewords one and removes one.
+ */
+const olderIflyWithChanges = [
+  `new Promise((done) => { const r = indexedDB.open("involo"); r.onsuccess = () => { const db = r.result; const tx = db.transaction("packs", "readwrite"); const store = tx.objectStore("packs"); const g = store.get("ifly-737-max8"); g.onsuccess = () => { const rec = g.result; const p = JSON.parse(rec.text); const steps = p.lists[0].steps; const extra = { ...steps[0], id: "ifly-737-max8.preflight.window-heat-test", text: "Window heat test", expect: "PASSED" }; delete extra.targets; delete extra.controls; steps[1].expect = "SET"; steps.splice(2, 1); steps.splice(1, 0, extra); p.manifest.version = "0.0.9"; rec.text = JSON.stringify(p); rec.summary.version = "0.0.9"; store.put(rec, "ifly-737-max8"); }; tx.oncomplete = () => { db.close(); location.hash = ""; location.reload(); done(true); }; }; })`,
+  restarted,
+  stepNamed("WINDOW HEAT TEST", ".tick"),
+  go("#/packs"),
+  `new Promise((d) => setTimeout(d, 600, true))`,
+];
+/** Opens What's new for the waiting update. */
+const openWhatsNew = [click('button[aria-label^="What’s new in"]'), `new Promise((d) => { let n = 0; const t = setInterval(() => { if (document.querySelector('[aria-labelledby="new-title"]') || ++n > 100) { clearInterval(t); setTimeout(d, 300, true); } }, 100); })`];
+/** Updates from What's new: the app opens again on the new version, with its note. */
+const updateFromWhatsNew = [
+  `[...document.querySelectorAll('[aria-labelledby="new-title"] button')].find((b) => b.textContent.trim() === "Update").click(); true`,
+  restarted,
+  `new Promise((d) => { let n = 0; const t = setInterval(() => { if (document.querySelector('[aria-label="Pack updated"]') || ++n > 100) { clearInterval(t); setTimeout(d, 300, true); } }, 100); })`,
+];
+/** Adds the catalog's iFly pack as a pack file (the newer version, from a file): the app opens
+ * again on it, with its note. */
+const addCatalogIflyAsFile = [
+  `(async () => { const index = await (await fetch("../packs/index.json")).json(); const e = index.find((x) => x.id === "ifly-737-max8"); const text = await (await fetch(\`../packs/\${e.id}-\${e.version}.involo-pack\`)).text(); const input = document.querySelector('input[type="file"]'); const dt = new DataTransfer(); dt.items.add(new File([text], \`\${e.id}-\${e.version}.involo-pack\`, { type: "application/json" })); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true })); return true; })()`,
+  restarted,
+  `new Promise((d) => { let n = 0; const t = setInterval(() => { if (document.querySelector('[aria-label="Pack updated"]') || ++n > 100) { clearInterval(t); setTimeout(d, 300, true); } }, 100); })`,
+];
+
 const SHOTS = [
   { name: "phase", app: { hash: "" }, base: { hash: "#cold-dark" } },
   {
@@ -745,6 +773,24 @@ const SHOTS = [
   },
   { name: "board-packs-remove", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go("#/packs"), click('button[aria-label^="Remove "]')] } },
   { name: "board-packs-first", full: true, fresh: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: noPacks } },
+  // A pack update during a flight (PacksUpdate): What's new on the Packs page, then the note
+  // after Update, at the top of the checklist.
+  { name: "board-update-whatsnew", fresh: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...olderIflyWithChanges, ...openWhatsNew] } },
+  {
+    name: "board-update-note",
+    full: true,
+    fresh: true,
+    only: ["desktop", "tablet", "phone"],
+    app: { hash: "#/phase/before-start", before: [...olderIflyWithChanges, ...openWhatsNew, ...updateFromWhatsNew] },
+  },
+  // The same newer version added from a file: the same list of changes and the same note.
+  {
+    name: "board-update-file-note",
+    full: true,
+    fresh: true,
+    only: ["desktop", "phone"],
+    app: { hash: "#/phase/before-start", before: [...olderIflyWithChanges, ...addCatalogIflyAsFile] },
+  },
   ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ name: `how-part-${n}`, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go(`#/how/${n}`)] } })),
   // The phone list with its fold opened: each later list starts with its label row.
   { name: "board-phone-fold", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("button.after"), click("button.card.folded"), `(() => { [...document.querySelectorAll("section.card > p.label")].find((p) => p.offsetParent)?.scrollIntoView({ block: "center" }); return true; })()`] } },

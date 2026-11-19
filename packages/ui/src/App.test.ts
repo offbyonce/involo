@@ -6,6 +6,7 @@ import type {
   FlatPack,
   Flight,
   Loaded,
+  PackChanges,
   PhaseModel,
   Rail,
   RailPhase,
@@ -110,6 +111,11 @@ const pack = {
     },
     panels: [],
   },
+  // As the app receives a pack: with the names Rust gives its steps and controls when it reads it.
+  names: {
+    steps: { battery: "Battery", standby: "Standby power" },
+    controls: { stby: "Standby power switch" },
+  },
 } as unknown as FlatPack;
 
 function view(states: [StepState, StepState]): PhaseModel {
@@ -172,6 +178,10 @@ function host(overrides: Partial<Host> = {}): Host {
     installCatalogPack: async () => ({ state: "refused", reasons: ["no packs in tests"] }),
     removePack: async () => false,
     removeSaved: async () => true,
+    packChanges: async () => {
+      throw new Error("no updates in tests");
+    },
+    reconcile: async (_p, f) => f,
     newFlight: async () =>
       ({
         pack: "demo",
@@ -230,7 +240,13 @@ function fakeLog(): Pick<Host, "newLog" | "readLog" | "saveLog" | "logEntry" | "
       skipped: [],
       plan,
       finished: false,
-      ticks: Object.entries(flight.session.done).map(([step, at]) => ({ at, step, text: step, value: "ON" })),
+      ticks: Object.entries(flight.session.done).map(([step, at]) => ({
+        at,
+        step,
+        text: step,
+        name: step,
+        value: "ON",
+      })),
     }),
     editLog: async (log, edit) => {
       const next = { ...log, flights: [...log.flights], practice: [...log.practice] };
@@ -2375,5 +2391,279 @@ describe("one flight per pack (decision 0028)", () => {
     expect(plansRead).toEqual(["other"]);
     await fireEvent.click(screen.getByRole("button", { name: "Start fresh" }));
     await waitFor(() => expect(asides).toEqual(["other:plan"]));
+  });
+});
+
+describe("a pack update during a flight (decision 0028; PacksUpdate)", () => {
+  const changes = {
+    packName: "Demo",
+    fromVersion: "0.1.0",
+    toVersion: "0.2.0",
+    added: [{ step: "battery", title: "Cabin pressure check", place: "Departure › Before start" }],
+    reworded: [
+      {
+        step: "standby",
+        title: "Standby power",
+        place: "Preflight › Power up",
+        fields: [{ field: "Value", before: "AUTO", after: "AUTO, CHECK" }],
+      },
+    ],
+    removed: [
+      { step: "old-step", title: "Window heat test", place: "Departure › Before start", wasTicked: true },
+    ],
+  } as unknown as PackChanges;
+  const flightV = (version: string, update: unknown = undefined) =>
+    ({
+      pack: "demo",
+      packVersion: version,
+      options: { power: "gpu" },
+      session: { done: {}, skipped: {} },
+      values: {},
+      notes: "",
+      ...(update ? { update } : {}),
+    }) as unknown as Flight;
+  const readyFlight = (f: Flight) => ({
+    flight: { loaded: { state: "ready", value: f, migratedFrom: null } as Loaded<Flight>, text: "" },
+    settings: null,
+  });
+  /** The note's actions, as Rust applies them. */
+  const noting: Host["apply"] = async (_p, f, action) => {
+    if (action.type === "noteUpdate")
+      return { ...f, update: { changes: action.changes, seen: false } } as Flight;
+    if (action.type === "seeUpdateNote")
+      return { ...f, update: f.update ? { ...f.update, seen: true } : null } as Flight;
+    if (action.type === "dismissUpdateNote") {
+      const { update: _gone, ...rest } = f as Flight & { update?: unknown };
+      return rest as Flight;
+    }
+    return f;
+  };
+
+  it("brings a flight saved with another version in line, and saves it so; the same version is left alone", async () => {
+    const saved: Flight[] = [];
+    const reconciled: string[] = [];
+    const h = host({
+      readSaved: async () => readyFlight(flightV("0.0.9")),
+      reconcile: async (_p, f) => {
+        reconciled.push(f.packVersion);
+        return { ...f, packVersion: "0.1.0" };
+      },
+      save: async (_p, what, value) => {
+        if (what === "flight") saved.push(value as Flight);
+        return 1;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await waitFor(() => expect(saved.at(-1)?.packVersion).toBe("0.1.0"));
+    expect(reconciled).toEqual(["0.0.9"]);
+    cleanup();
+
+    const again: Flight[] = [];
+    const same = host({
+      readSaved: async () => readyFlight(flightV("0.1.0")),
+      save: async (_p, what, value) => {
+        if (what === "flight") again.push(value as Flight);
+        return 1;
+      },
+    });
+    render(App, { context: hostContext(same) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await new Promise((r) => setTimeout(r, 30));
+    expect(again).toEqual([]);
+    expect(screen.queryByRole("region", { name: "Pack updated" })).toBeNull();
+  });
+
+  it("shows the note at the top of the checklist, open the first time, until it is dismissed", async () => {
+    const applied: string[] = [];
+    window.location.hash = "#/phase/power-up";
+    const h = host({
+      readSaved: async () => readyFlight(flightV("0.2.0", { changes, seen: false })),
+      apply: async (p, f, action) => {
+        applied.push(action.type);
+        return noting(p, f, action);
+      },
+    });
+    render(App, { context: hostContext(h) });
+    const note = await screen.findByRole("region", { name: "Pack updated" });
+    expect(within(note).getByRole("heading", { name: "Demo updated to version 0.2.0" })).toBeTruthy();
+    expect(within(note).getByText("+1 added")).toBeTruthy();
+    expect(within(note).getByText("1 reworded")).toBeTruthy();
+    expect(within(note).getByText("−1 removed")).toBeTruthy();
+    // Open by itself the first time; marked as shown.
+    expect(
+      within(note).getByRole("button", { name: "Hide what changed" }).getAttribute("aria-expanded"),
+    ).toBe("true");
+    await waitFor(() => expect(applied).toContain("seeUpdateNote"));
+    expect(within(note).getByText("You had ticked this step; the tick is gone with it.")).toBeTruthy();
+    expect(within(note).getByText("AUTO, CHECK")).toBeTruthy();
+    // A removed step is named, not linked; a step still there is a link.
+    expect(within(note).queryByRole("button", { name: "Window heat test" })).toBeNull();
+    await fireEvent.click(within(note).getByRole("button", { name: "Go to the first new step" }));
+    await waitFor(() => expect(location.hash).toBe("#/phase/power-up"));
+    await fireEvent.click(within(note).getAllByRole("button", { name: "Dismiss" })[0] as HTMLElement);
+    await waitFor(() => expect(screen.queryByRole("region", { name: "Pack updated" })).toBeNull());
+    expect(applied).toContain("dismissUpdateNote");
+  });
+
+  it("keeps a seen note's list folded until opened", async () => {
+    window.location.hash = "#/phase/power-up";
+    render(App, {
+      context: hostContext(
+        host({
+          readSaved: async () => readyFlight(flightV("0.2.0", { changes, seen: true })),
+          apply: noting,
+        }),
+      ),
+    });
+    const note = await screen.findByRole("region", { name: "Pack updated" });
+    const fold = within(note).getByRole("button", { name: "What changed" });
+    expect(fold.getAttribute("aria-expanded")).toBe("false");
+    expect(within(note).queryByText("Window heat test")).toBeNull();
+    await fireEvent.click(fold);
+    expect(within(note).getByText("Window heat test")).toBeTruthy();
+  });
+
+  it("shows What's new from the Packs page, and Update keeps those changes as the open flight's note", async () => {
+    window.location.hash = "#/packs";
+    const restart = vi.fn();
+    const saved: Flight[] = [];
+    const packChanges = vi.fn(async () => changes);
+    const installCatalogPack = vi.fn(async () => ({ state: "installed" as const, pack: DEMO }));
+    const entry = {
+      id: "demo",
+      name: "Demo",
+      version: "0.2.0",
+      aircraft: { family: "", name: "", icaoTypes: [], simulator: "", developer: "" },
+      engine: ">=0.1.0",
+      size: 1,
+      sha256: "",
+    };
+    const h = host({
+      catalog: async () => [entry],
+      packChanges,
+      installCatalogPack,
+      apply: noting,
+      save: async (_p, what, value) => {
+        if (what === "flight") saved.push(value as Flight);
+        return 1;
+      },
+    });
+    render(App, { props: { onRestart: restart }, context: hostContext(h) });
+    await fireEvent.click(await screen.findByRole("button", { name: "What’s new in Demo 0.2.0" }));
+    const dialog = await screen.findByRole("dialog", { name: "What’s new in Demo 0.2.0" });
+    expect(within(dialog).getByText("Cabin pressure check")).toBeTruthy();
+    expect(within(dialog).getByText("+1 added")).toBeTruthy();
+    // Nothing is installed until Update.
+    expect(installCatalogPack).not.toHaveBeenCalled();
+    await fireEvent.click(within(dialog).getByRole("button", { name: "Update" }));
+    await waitFor(() => expect(restart).toHaveBeenCalled());
+    expect(packChanges).toHaveBeenCalledTimes(1);
+    expect((saved.at(-1) as Flight & { update?: { changes: PackChanges } }).update?.changes).toEqual(changes);
+  });
+
+  it("updating another pack keeps the note with that pack's saved flight", async () => {
+    window.location.hash = "#/packs";
+    const OTHER: InstalledPack = {
+      summary: { id: "other", name: "Other jet", version: "0.1.0", kind: "aircraft" },
+      source: "catalog",
+      installedAt: 2,
+    };
+    const entry = {
+      id: "other",
+      name: "Other jet",
+      version: "0.2.0",
+      aircraft: { family: "", name: "", icaoTypes: [], simulator: "", developer: "" },
+      engine: ">=0.1.0",
+      size: 1,
+      sha256: "",
+    };
+    const saves: [string, Flight][] = [];
+    const restart = vi.fn();
+    const h = host({
+      installedPacks: async () => [DEMO, OTHER],
+      // The first pack is open.
+      readSettings: async () => ({
+        loaded: {
+          state: "ready",
+          value: {
+            theme: "dark",
+            dimming: 0,
+            detail: "expanded",
+            listView: "checklist",
+            tourSeen: true,
+            currentPack: "demo",
+            seat: null,
+          },
+          migratedFrom: null,
+        } as unknown as Loaded<Settings>,
+        text: "",
+      }),
+      catalog: async () => [entry],
+      packChanges: async () => ({ ...changes, packName: "Other jet" }),
+      installCatalogPack: async () => ({ state: "installed", pack: OTHER }),
+      readSaved: async (id) =>
+        id === "other"
+          ? readyFlight({ ...flightV("0.1.0"), pack: "other" } as Flight)
+          : { flight: null, settings: null },
+      apply: noting,
+      save: async (id, what, value) => {
+        if (what === "flight") saves.push([id, value as Flight]);
+        return 1;
+      },
+    });
+    render(App, { props: { onRestart: restart }, context: hostContext(h) });
+    const other = await screen.findByRole("article", { name: "Other jet" });
+    await fireEvent.click(
+      await within(other).findByRole("button", { name: "Update Other jet to version 0.2.0" }),
+    );
+    await waitFor(() => expect(saves.some(([id]) => id === "other")).toBe(true));
+    const [, kept] = saves.find(([id]) => id === "other") as [
+      string,
+      Flight & { update?: { changes: PackChanges } },
+    ];
+    expect(kept.update?.changes.packName).toBe("Other jet");
+    expect(restart).not.toHaveBeenCalled();
+  });
+
+  it("a pack file with a newer version keeps what changed as the note, as an update from the catalog does", async () => {
+    window.location.hash = "#/packs";
+    const restart = vi.fn();
+    const saved: Flight[] = [];
+    const h = host({
+      readSaved: async () => readyFlight(flightV("0.1.0")),
+      installPackFile: async () => ({ state: "installed", pack: { ...DEMO, source: "file" }, changes }),
+      apply: noting,
+      save: async (_p, what, value) => {
+        if (what === "flight") saved.push(value as Flight);
+        return 1;
+      },
+    });
+    render(App, { props: { onRestart: restart }, context: hostContext(h) });
+    await screen.findByRole("article", { name: "Demo" });
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+    if (!input) throw new Error("no file input");
+    Object.defineProperty(input, "files", { value: [new File(["x"], "demo-0.2.0.involo-pack")] });
+    await fireEvent.change(input);
+    await waitFor(() => expect(restart).toHaveBeenCalled());
+    expect((saved.at(-1) as Flight & { update?: { changes: PackChanges } }).update?.changes).toEqual(changes);
+  });
+
+  it("counts ticks it couldn't keep when there was no list of changes, and never shows a step id", async () => {
+    window.location.hash = "#/phase/power-up";
+    const lost = { ...changes, added: [], reworded: [], removed: [], lostTicks: 2 } as unknown as PackChanges;
+    render(App, {
+      context: hostContext(
+        host({
+          readSaved: async () => readyFlight(flightV("0.2.0", { changes: lost, seen: false })),
+          apply: noting,
+        }),
+      ),
+    });
+    const note = await screen.findByRole("region", { name: "Pack updated" });
+    expect(
+      within(note).getByText("2 ticks couldn’t be kept: their steps are no longer in the pack."),
+    ).toBeTruthy();
+    expect(note.textContent).not.toMatch(/old-step|\.[a-z-]+\.[a-z-]+/);
   });
 });

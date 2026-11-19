@@ -9,7 +9,7 @@ and the catalog, its first Download the primary button. Remove asks first. Every
 the packs, the catalog and the saved flights.
 -->
 <script lang="ts" module>
-  import type { CatalogEntry } from "@involo/bindings";
+  import type { CatalogEntry, PackChanges } from "@involo/bindings";
   import type { InstalledPack } from "../host";
   import type { SavedLine } from "../lib/packs";
 
@@ -21,6 +21,7 @@ the packs, the catalog and the saved flights.
 
 <script lang="ts">
   import headerMark from "../icons/brand/header-mark.svg?raw";
+  import ChangeList from "../lib/ChangeList.svelte";
   import Icon from "../lib/Icon.svelte";
   import { aircraftLine, sizeLabel } from "../lib/packs";
   import { trapFocus } from "../lib/trap";
@@ -32,6 +33,7 @@ the packs, the catalog and the saved flights.
     catalogProblem = null,
     notice = null,
     busy = null,
+    whatsNew = null,
     backHref,
     onUse,
     onDownload,
@@ -39,6 +41,8 @@ the packs, the catalog and the saved flights.
     onFile,
     onRemove,
     onRetry,
+    onWhatsNew = () => {},
+    onCloseWhatsNew = () => {},
   }: {
     /** The packs on this device, the open one first. Empty: the first launch. */
     rows: PackRow[];
@@ -51,6 +55,8 @@ the packs, the catalog and the saved flights.
     notice?: PacksNotice | null;
     /** The pack being installed or removed (or "file"), while it is: its buttons wait. */
     busy?: string | null;
+    /** An update's changes, shown in the What's new dialog while set. */
+    whatsNew?: { entry: CatalogEntry; changes: PackChanges } | null;
     backHref: string;
     onUse: (id: string) => void;
     onDownload: (entry: CatalogEntry) => void;
@@ -58,6 +64,8 @@ the packs, the catalog and the saved flights.
     onFile: (file: File) => void;
     onRemove: (id: string, alsoFlight: boolean) => void;
     onRetry: () => void;
+    onWhatsNew?: (entry: CatalogEntry) => void;
+    onCloseWhatsNew?: () => void;
   } = $props();
 
   const wideQuery = "(min-width: 600px)";
@@ -77,6 +85,10 @@ the packs, the catalog and the saved flights.
   let alsoFlight = $state(false);
   let removeBack: HTMLElement | null = null;
   let cancelButton = $state<HTMLButtonElement | null>(null);
+  let closeNew = $state<HTMLButtonElement | null>(null);
+  $effect(() => {
+    if (whatsNew) closeNew?.focus();
+  });
 
   function askRemove(row: PackRow, e: MouseEvent): void {
     removeBack = e.currentTarget as HTMLElement;
@@ -105,6 +117,7 @@ the packs, the catalog and the saved flights.
 <svelte:window
   onkeydown={(e) => {
     if (removing && e.key === "Escape") closeRemove();
+    else if (whatsNew && e.key === "Escape") onCloseWhatsNew();
   }}
 />
 
@@ -181,6 +194,9 @@ the packs, the catalog and the saved flights.
       <div class="update">
         <span class="ic"><Icon name="download" /></span>
         <span class="txt"><b>{`Version ${row.update.version} is available.`}</b> Your ticks are kept when you update.</span>
+        <button class="link" type="button" disabled={busy !== null} aria-label={`What’s new in ${name} ${row.update.version}`} onclick={() => row.update && onWhatsNew(row.update)}
+          >What’s new</button
+        >
         <button class="btn primary short" type="button" disabled={busy !== null} aria-label={`Update ${name} to version ${row.update.version}`} onclick={() => row.update && onUpdate(row.update)}
           >{busy === row.pack.summary.id ? "Updating…" : "Update"}</button
         >
@@ -293,6 +309,27 @@ the packs, the catalog and the saved flights.
             if (id) onRemove(id, flightToo);
           }}>Remove</button
         >
+      </div>
+    </div>
+  </div>
+{/if}
+
+{#if whatsNew}
+  {@const w = whatsNew}
+  <div class="scrim" aria-hidden="true"></div>
+  <div class="center">
+    <div class="dialog wide-list" role="dialog" aria-modal="true" aria-labelledby="new-title" use:trapFocus>
+      <h2 id="new-title">{`What’s new in ${w.changes.packName} ${w.changes.toVersion}`}</h2>
+      <p>Your ticks are kept on every step that’s still there.</p>
+      <ChangeList changes={w.changes} tags />
+      {#if w.changes.added.length || w.changes.reworded.length || w.changes.removed.length}
+        <div class="list-scroll"><ChangeList changes={w.changes} /></div>
+      {:else}
+        <p>No step changes: this version changes other parts of the pack.</p>
+      {/if}
+      <div class="row">
+        <button class="btn" type="button" bind:this={closeNew} onclick={onCloseWhatsNew}>Close</button>
+        <button class="btn primary" type="button" disabled={busy !== null} onclick={() => onUpdate(w.entry)}>{busy === w.entry.id ? "Updating…" : "Update"}</button>
       </div>
     </div>
   </div>
@@ -798,6 +835,15 @@ the packs, the catalog and the saved flights.
   .tick small {
     color: var(--color-text-muted);
     font-size: calc(var(--font-size-caption) + var(--border-thin));
+  }
+  /* What's new: the update note's list, in the dialog, scrolling inside it when it is long. */
+  .dialog.wide-list {
+    width: calc(var(--size-side-pane) + var(--space-10) * 2);
+    max-height: calc(100dvh - var(--space-8));
+  }
+  .list-scroll {
+    min-height: 0;
+    overflow-y: auto;
   }
   .dialog .row {
     display: flex;
