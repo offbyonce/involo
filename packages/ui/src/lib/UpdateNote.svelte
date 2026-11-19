@@ -14,11 +14,14 @@ counts as tags, and What changed (open by itself the first time it shows): one r
   let {
     note,
     onStep,
+    stepHref = () => null,
     onSeen,
     onDismiss,
   }: {
     note: UpdateNote;
     onStep: (id: string) => void;
+    /** The address of a step's phase, for its link. */
+    stepHref?: (id: string) => string | null;
     /** The note has shown once: its list then stays folded until opened. */
     onSeen: () => void;
     onDismiss: () => void;
@@ -45,7 +48,7 @@ counts as tags, and What changed (open by itself the first time it shows): one r
   </div>
   <div class="more">
     <button class="fold" type="button" aria-expanded={open} onclick={() => (open = !open)}>{open ? "Hide what changed" : "What changed"}<Icon name={open ? "chevron-down" : "chevron-right"} /></button>
-    {#if open}<ChangeList changes={note.changes} {onStep} />{/if}
+    {#if open}<ChangeList changes={note.changes} {onStep} {stepHref} />{/if}
     <div class="acts">
       {#if first}<button class="btn primary" type="button" onclick={() => first && onStep(first)}>Go to the first new step</button>{/if}
       <button class="btn" type="button" onclick={onDismiss}>Dismiss</button>

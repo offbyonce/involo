@@ -1461,6 +1461,10 @@ in Rust. The host saves progress and settings on the device.
     <UpdateNote
       note={flight.update}
       onStep={goToStep}
+      stepHref={(id) => {
+        const phase = index?.phaseOf(id);
+        return phase ? phaseHref(phase) : null;
+      }}
       onSeen={() => void act({ type: "seeUpdateNote" })}
       onDismiss={() => void act({ type: "dismissUpdateNote" })}
     />

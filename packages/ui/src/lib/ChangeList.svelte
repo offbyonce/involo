@@ -14,12 +14,15 @@ says so. Used by the update note and by the Packs page's What's new.
     changes,
     tags = false,
     onStep,
+    stepHref = () => null,
   }: {
     changes: PackChanges;
     /** The counts as tags, in place of the rows. */
     tags?: boolean;
     /** Goes to a step still in the pack; without it, names are plain text. */
     onStep?: ((id: string) => void) | undefined;
+    /** The address of a step's phase, for the link; null when it has none. */
+    stepHref?: (id: string) => string | null;
   } = $props();
 
   /** Fields shown in the mono face, as steps show them. */
@@ -28,7 +31,14 @@ says so. Used by the update note and by the Packs page's What's new.
 
 {#snippet title(step: string, name: string, place: string, link: boolean)}
   <span class="what">
-    {#if link && onStep}<button class="step" type="button" onclick={() => onStep(step)}>{name}</button>{:else}<span class="step plain">{name}</span>{/if}
+    {#if link && onStep}<a
+        class="step"
+        href={stepHref(step) ?? "#/"}
+        onclick={(e) => {
+          e.preventDefault();
+          onStep(step);
+        }}>{name}</a
+      >{:else}<span class="step plain">{name}</span>{/if}
     {#if place}<span class="place">{place}</span>{/if}
   </span>
 {/snippet}
@@ -125,15 +135,10 @@ says so. Used by the update note and by the Packs page's What's new.
     gap: var(--space-1) calc(var(--space-2) + var(--border-thick));
   }
   .step {
-    padding: 0;
-    border: 0;
-    background: none;
     color: var(--color-link);
-    font: inherit;
     font-size: var(--font-size-secondary);
     font-weight: var(--weight-semibold);
-    text-align: left;
-    cursor: pointer;
+    text-decoration: none;
   }
   /* A removed step is gone from the pack: named, not linked. */
   .step.plain {
