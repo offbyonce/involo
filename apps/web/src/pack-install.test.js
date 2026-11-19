@@ -194,7 +194,8 @@ test("a pack file with another version of an installed pack comes with what chan
   assert.equal(next.changes.toVersion, "0.2.0");
   assert.deepEqual(
     next.changes.reworded.map((r) => [r.step, r.title, r.fields]),
-    [[step.id, step.text, [{ field: "Check", before, after: "A light comes on" }]]],
+    // Named as its checklist row shows it.
+    [[step.id, "STANDBY POWER switch", [{ field: "Check", before, after: "A light comes on" }]]],
   );
   // The same version again: nothing changed.
   const again = await installFile(file(new TextEncoder().encode(JSON.stringify(pack))), deps);

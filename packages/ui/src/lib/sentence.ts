@@ -36,7 +36,9 @@ export function cockpitLabels(step: Step): string[] {
   return (step.targets ?? []).map((t) => t.at.split("/").slice(2, -1).join("/")).filter(Boolean);
 }
 
-/** A step's title as the app shows it: a sentence, with its cockpit text in capitals. */
+/** A step's title as the app shows it: a sentence, with its cockpit text in capitals. The update
+ * note's names come from Rust's twin of this (involo-app-core `update.rs`, `step_name`), held to
+ * it on every iFly step by update-names.test.ts: change both together. */
 export function stepTitle(index: PackIndex, step: Step): string {
   return sentence(index, step.text, cockpitLabels(step));
 }

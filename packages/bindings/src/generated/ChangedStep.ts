@@ -10,7 +10,7 @@ export type ChangedStep = {
  */
 step: StepId, 
 /**
- * The step's name.
+ * The step's name, as its checklist row shows it.
  */
 title: string, 
 /**
