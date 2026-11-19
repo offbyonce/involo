@@ -206,6 +206,7 @@ function host(overrides: Partial<Host> = {}): Host {
       throw new Error("no plan file in tests");
     },
     planValues: async () => ({ values: {}, filled: 0, origin: "", destination: "", checkClearance: false }),
+    otherAircraft: async () => null,
     readPlan: async () => null,
     savePlan: async () => {},
     decodeMetar: async () => ({ station: null, time: null, groups: [], rows: [] }),
@@ -904,6 +905,126 @@ describe("App", () => {
         expect(plans).toEqual([imported]);
       });
     }
+  });
+
+  describe("a SimBrief plan for another aircraft type (#106, decision 0028)", () => {
+    const imported = { format: 1, plan: {}, loadedAt: 5 } as unknown as SavedPlan;
+    const OTHER_TYPE = {
+      planName: "A320neo",
+      planType: "A20N",
+      packName: "Demo",
+      packTypes: ["B38M", "B39M"],
+    };
+    function setup(other: typeof OTHER_TYPE | null, source: InstalledPack["source"] = "catalog") {
+      const actions: Action[] = [];
+      const plans: (SavedPlan | null)[] = [];
+      const h = host({
+        installedPacks: async () => [{ ...DEMO, source }],
+        defaultSettings: async () =>
+          ({
+            theme: "dark",
+            dimming: 0,
+            detail: "expanded",
+            listView: "checklist",
+            tourSeen: true,
+            simbriefUser: "Pilot",
+          }) as Settings,
+        fetchPlan: async () => imported,
+        readPlanFile: async () => imported,
+        otherAircraft: async () => other,
+        planValues: async () => ({
+          values: { fuel: "8001" },
+          filled: 1,
+          origin: "EGLL",
+          destination: "EHAM",
+          checkClearance: false,
+        }),
+        savePlan: async (_p, plan) => {
+          plans.push(plan);
+        },
+        apply: async (_pack, flight, action) => {
+          actions.push(action);
+          return { ...flight };
+        },
+      });
+      render(App, { context: hostContext(h) });
+      return { actions, plans };
+    }
+    const importLatest = async () => {
+      await fireEvent.click(
+        await screen.findByRole("button", {
+          name: "Add your flight: import from SimBrief or enter the clearance",
+        }),
+      );
+      const button = screen.getAllByRole("button", { name: "Import latest from SimBrief" })[0] as HTMLElement;
+      button.focus();
+      await fireEvent.click(button);
+      return button;
+    };
+
+    it("imports a plan for one of the pack's types with no warning", async () => {
+      const { actions, plans } = setup(null);
+      await importLatest();
+      expect(await screen.findByText(/^Imported EGLL → EHAM/)).toBeTruthy();
+      expect(screen.queryByRole("dialog", { name: "Use this plan anyway?" })).toBeNull();
+      expect(actions).toContainEqual({ type: "setValues", values: { fuel: "8001" } });
+      expect(plans).toEqual([imported]);
+    });
+
+    it("names both aircraft, and Cancel leaves the flight and the kept plan unchanged", async () => {
+      const { actions, plans } = setup(OTHER_TYPE);
+      const button = await importLatest();
+      const dialog = await screen.findByRole("dialog", { name: "Use this plan anyway?" });
+      expect(dialog.textContent).toContain("A320neo A20N");
+      expect(dialog.textContent).toContain("Demo B38M, B39M");
+      expect(within(dialog).queryByText("Not from the Involo catalog")).toBeNull();
+      expect(document.activeElement).toBe(within(dialog).getByRole("button", { name: "Cancel" }));
+      await fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+      expect(screen.queryByRole("dialog", { name: "Use this plan anyway?" })).toBeNull();
+      await new Promise((r) => setTimeout(r, 20));
+      expect(actions.filter((a) => a.type === "setValues")).toEqual([]);
+      expect(plans).toEqual([]);
+      expect(screen.queryByText(/^Imported /)).toBeNull();
+      expect(document.activeElement).toBe(button);
+    });
+
+    it("Use it anyway imports as before; Esc cancels", async () => {
+      const { actions, plans } = setup(OTHER_TYPE);
+      await importLatest();
+      await fireEvent.keyDown(window, { key: "Escape" });
+      expect(screen.queryByRole("dialog", { name: "Use this plan anyway?" })).toBeNull();
+      await fireEvent.click(
+        screen.getAllByRole("button", { name: "Import latest from SimBrief" })[0] as HTMLElement,
+      );
+      const dialog = await screen.findByRole("dialog", { name: "Use this plan anyway?" });
+      await fireEvent.click(within(dialog).getByRole("button", { name: "Use it anyway" }));
+      expect(await screen.findByText(/^Imported EGLL → EHAM: 1 values\./)).toBeTruthy();
+      expect(actions).toContainEqual({ type: "setValues", values: { fuel: "8001" } });
+      expect(plans).toEqual([imported]);
+    });
+
+    it("warns for an OFP file too, and marks a pack added from a file", async () => {
+      const { actions } = setup(
+        { ...OTHER_TYPE, planName: undefined } as unknown as typeof OTHER_TYPE,
+        "file",
+      );
+      window.location.hash = "#/flight/simbrief";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+      const picker = (await waitFor(() => {
+        const input = document.querySelector('input[type="file"]');
+        if (!input) throw new Error("no file input yet");
+        return input;
+      })) as HTMLInputElement;
+      const file = new File(["{}"], "ofp.json", { type: "application/json" });
+      await fireEvent.change(picker, { target: { files: [file] } });
+      const dialog = await screen.findByRole("dialog", { name: "Use this plan anyway?" });
+      // A plan with no aircraft name shows its type code alone.
+      expect(dialog.textContent).toMatch(/This plan\s*A20N/);
+      expect(within(dialog).getByText("Not from the Involo catalog")).toBeTruthy();
+      await fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+      await new Promise((r) => setTimeout(r, 20));
+      expect(actions.filter((a) => a.type === "setValues")).toEqual([]);
+    });
   });
 
   it("clears a list's ticks at once and offers Undo", async () => {

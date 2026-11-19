@@ -19,6 +19,7 @@ import type {
   LogEdit,
   LoggedFlight,
   OpenStep,
+  OtherAircraft,
   PackChanges,
   PackSummary,
   PhaseModel,
@@ -109,6 +110,9 @@ export interface Host {
   readPlanFile(text: string): Promise<SavedPlan>;
   /** The flight values a plan fills in. */
   planValues(pack: string, plan: SavedPlan): Promise<PlanValues>;
+  /** A plan for an aircraft type the pack doesn't cover: what the warning names, or null when the
+   * plan's type is one of the pack's (or the plan has no type). */
+  otherAircraft(pack: string, plan: SavedPlan): Promise<OtherAircraft | null>;
   /**
    * Reads the plan kept on this device for a pack from storage; Rust parses it as ready, newer or
    * unreadable, with the saved text, so a plan this version can't use is kept and reported

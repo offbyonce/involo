@@ -41,7 +41,10 @@ pub use names::{Glossaries, pack_glossaries, pack_names};
 pub use open_steps::{OpenStep, open_steps};
 pub use packs::{MAX_PACK_FILE_BYTES, PackCheck, check_pack, load_pack, parse_catalog};
 pub use phase_model::{PhaseLink, PhaseList, PhaseModel, StepRow, phase_model};
-pub use plans::{PLAN_FORMAT, PlanValues, SavedPlan, parse_plan, plan_url, plan_values};
+pub use plans::{
+    OtherAircraft, PLAN_FORMAT, PlanValues, SavedPlan, other_aircraft, parse_plan, plan_url,
+    plan_values,
+};
 pub use rail::{Rail, RailPhase, RailStage, rail};
 pub use saved::{Loaded, load_flight, load_plan, load_settings};
 pub use settings::{

@@ -234,7 +234,11 @@ before and after shots in its pull request.
   (only when steps were added) and "Dismiss"; a dismissed note doesn't come back.
 - **SimBrief warning** (#106): when the plan's aircraft type isn't one of the pack's `icaoTypes`:
   the plan's aircraft and type code against the open pack's name and type code. "Use it anyway" is
-  the primary button; Cancel leaves the plan unloaded.
+  the primary button; Cancel leaves the plan unloaded. For a SimBrief fetch and an OFP file alike.
+  On a phone it takes the Remove dialog's form. A plan with no aircraft name shows its type code
+  alone; a pack with several types lists them all; a pack added from a file carries the "Not from
+  the Involo catalog" badge in its row. A plan with no type imports without the warning. The
+  primary button's text is color.on-accent, as on every accent button.
 - **Flight log** (#107): filter chips for All packs and each pack with flights, with counts; each
   entry shows the pack name and version it was flown with.
 

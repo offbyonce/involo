@@ -19,6 +19,7 @@ import type {
   LogEdit,
   LoggedFlight,
   OpenStep,
+  OtherAircraft,
   PackChanges,
   PackCheck,
   PhaseModel,
@@ -190,6 +191,12 @@ export async function decodeMetar(text: string): Promise<Decoded> {
 export async function decodeTaf(text: string): Promise<Decoded> {
   await load();
   return unwrap<Decoded>(wasm.decode_taf(text));
+}
+
+/** A plan for an aircraft type the pack doesn't cover: what the warning names, or null (0028). */
+export async function otherAircraft(pack: string, plan: Plan): Promise<OtherAircraft | null> {
+  await load();
+  return unwrap<OtherAircraft | null>(wasm.other_aircraft(pack, JSON.stringify(plan)));
 }
 
 /** The flight values a plan fills in (decision 0019). */
