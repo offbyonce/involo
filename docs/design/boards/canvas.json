@@ -2057,6 +2057,142 @@
       "h": 900,
       "title": "Shared source: crew roles (tweaks: layout, theme)",
       "page": "b13"
+    },
+    "PacksDesktop.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1100,
+      "title": "Packs page (dark)",
+      "page": "b14"
+    },
+    "PacksDesktopLight.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 1100,
+      "title": "Packs page (light)",
+      "page": "b14"
+    },
+    "PacksFirst.dc.html": {
+      "x": 0,
+      "y": 1220,
+      "w": 1440,
+      "h": 1000,
+      "title": "First launch: no packs yet (dark)",
+      "page": "b14"
+    },
+    "PacksFirstLight.dc.html": {
+      "x": 1520,
+      "y": 1220,
+      "w": 1440,
+      "h": 1000,
+      "title": "First launch: no packs yet (light)",
+      "page": "b14"
+    },
+    "PacksPhone.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 390,
+      "h": 1100,
+      "title": "Packs page: phone (dark)",
+      "page": "b14"
+    },
+    "PacksPhoneLight.dc.html": {
+      "x": 3510,
+      "y": 0,
+      "w": 390,
+      "h": 1100,
+      "title": "Packs page: phone (light)",
+      "page": "b14"
+    },
+    "PacksSwitcher.dc.html": {
+      "x": 3040,
+      "y": 1220,
+      "w": 390,
+      "h": 844,
+      "title": "Switching packs from the menu (dark)",
+      "page": "b14"
+    },
+    "PacksSwitcherLight.dc.html": {
+      "x": 3510,
+      "y": 1220,
+      "w": 390,
+      "h": 844,
+      "title": "Switching packs from the menu (light)",
+      "page": "b14"
+    },
+    "PacksRemove.dc.html": {
+      "x": 0,
+      "y": 2240,
+      "w": 1440,
+      "h": 900,
+      "title": "Removing a pack (dark)",
+      "page": "b14"
+    },
+    "PacksRemoveLight.dc.html": {
+      "x": 1520,
+      "y": 2240,
+      "w": 1440,
+      "h": 900,
+      "title": "Removing a pack (light)",
+      "page": "b14"
+    },
+    "PacksSimbrief.dc.html": {
+      "x": 0,
+      "y": 3260,
+      "w": 1440,
+      "h": 900,
+      "title": "SimBrief plan for another aircraft (dark)",
+      "page": "b14"
+    },
+    "PacksSimbriefLight.dc.html": {
+      "x": 1520,
+      "y": 3260,
+      "w": 1440,
+      "h": 900,
+      "title": "SimBrief plan for another aircraft (light)",
+      "page": "b14"
+    },
+    "PacksUpdate.dc.html": {
+      "x": 3040,
+      "y": 2180,
+      "w": 880,
+      "h": 1020,
+      "title": "After a pack update: what changed (dark)",
+      "page": "b14"
+    },
+    "PacksUpdateLight.dc.html": {
+      "x": 4000,
+      "y": 2180,
+      "w": 880,
+      "h": 1020,
+      "title": "After a pack update: what changed (light)",
+      "page": "b14"
+    },
+    "PacksLog.dc.html": {
+      "x": 3040,
+      "y": 3320,
+      "w": 1040,
+      "h": 520,
+      "title": "Flight log: filter by pack (dark)",
+      "page": "b14"
+    },
+    "PacksLogLight.dc.html": {
+      "x": 4160,
+      "y": 3320,
+      "w": 1040,
+      "h": 520,
+      "title": "Flight log: filter by pack (light)",
+      "page": "b14"
+    },
+    "Packs.dc.html": {
+      "x": 0,
+      "y": 4280,
+      "w": 1440,
+      "h": 1100,
+      "title": "Shared source: several packs (tweaks: layout, theme)",
+      "page": "b14"
     }
   },
   "createdOnFiles": {
@@ -2065,7 +2201,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b13",
+    "page": "b14",
     "view": "canvas"
   },
   "notes": {},
@@ -2326,7 +2462,24 @@
     "SeatSetting.dc.html",
     "SeatSettingLight.dc.html",
     "FindMessages.dc.html",
-    "Roles.dc.html"
+    "Roles.dc.html",
+    "PacksDesktop.dc.html",
+    "PacksDesktopLight.dc.html",
+    "PacksFirst.dc.html",
+    "PacksFirstLight.dc.html",
+    "PacksPhone.dc.html",
+    "PacksPhoneLight.dc.html",
+    "PacksSwitcher.dc.html",
+    "PacksSwitcherLight.dc.html",
+    "PacksRemove.dc.html",
+    "PacksRemoveLight.dc.html",
+    "PacksSimbrief.dc.html",
+    "PacksSimbriefLight.dc.html",
+    "PacksUpdate.dc.html",
+    "PacksUpdateLight.dc.html",
+    "PacksLog.dc.html",
+    "PacksLogLight.dc.html",
+    "Packs.dc.html"
   ],
   "pages": [
     {
@@ -2412,6 +2565,10 @@
     {
       "id": "b13",
       "name": "Beta 1: Find and crew roles"
+    },
+    {
+      "id": "b14",
+      "name": "Beta 1: several packs"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"

@@ -104,7 +104,7 @@ practice-diff base="main":
 
 # Screenshots of the built app for review (phone, both tablets, 1440 and 2560, dark and light), to a
 # folder outside the repo. Needs Firefox; not part of `just ci`.
-screenshots out: site
+screenshots out: site test-packs
     node apps/web/build/screenshots.mjs {{out}}
 
 # The drawing renderer's review images (gallery, each control state, the board's drawings), both

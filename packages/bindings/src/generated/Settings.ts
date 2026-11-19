@@ -33,4 +33,14 @@ descriptions: boolean, chime: boolean, simbriefUser: string | null, loadPlanOnOp
  * Whether the tour's welcome card has been seen (the tour, 2026-11-16): the only thing the
  * tour stores. Not flight data.
  */
-tourSeen: boolean, };
+tourSeen: boolean, 
+/**
+ * The pack the app opens (decision 0028), by id: set when the pilot installs, opens or
+ * switches to a pack. None until one is chosen; settings from format 6 take the pack whose
+ * flight is saved, which the app finds when it starts.
+ */
+currentPack: string | null, 
+/**
+ * The pilot's seat, by one of the pack's seat ids; None until chosen.
+ */
+seat: string | null, };

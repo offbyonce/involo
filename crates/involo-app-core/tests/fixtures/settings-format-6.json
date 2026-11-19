@@ -1,0 +1,21 @@
+{
+  "format": 6,
+  "theme": "light",
+  "dimming": 2,
+  "textSize": "115",
+  "detail": "quick",
+  "listView": "flow",
+  "essentials": true,
+  "essentialsChanges": {
+    "ifly-737-max8": {
+      "added": ["ifly-737-max8.preflight.irs"],
+      "removed": ["ifly-737-max8.preflight.elt-switch"]
+    }
+  },
+  "panelPreview": false,
+  "descriptions": false,
+  "chime": false,
+  "simbriefUser": "123456",
+  "loadPlanOnOpen": true,
+  "tourSeen": true
+}

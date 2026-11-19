@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// The saved format of [`Settings`]. Raise it, with a migration and tests, when the shape changes.
-pub const SETTINGS_FORMAT: u32 = 6;
+pub const SETTINGS_FORMAT: u32 = 7;
 
 /// The highest dimming step; 0 is full brightness.
 pub const MAX_DIMMING: u8 = 4;
@@ -112,6 +112,12 @@ pub struct Settings {
     /// Whether the tour's welcome card has been seen (the tour, 2026-11-16): the only thing the
     /// tour stores. Not flight data.
     pub tour_seen: bool,
+    /// The pack the app opens (decision 0028), by id: set when the pilot installs, opens or
+    /// switches to a pack. None until one is chosen; settings from format 6 take the pack whose
+    /// flight is saved, which the app finds when it starts.
+    pub current_pack: Option<String>,
+    /// The pilot's seat, by one of the pack's seat ids; None until chosen.
+    pub seat: Option<String>,
 }
 
 impl Default for Settings {
@@ -131,6 +137,8 @@ impl Default for Settings {
             simbrief_user: None,
             load_plan_on_open: false,
             tour_seen: false,
+            current_pack: None,
+            seat: None,
         }
     }
 }

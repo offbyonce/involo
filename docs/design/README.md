@@ -197,6 +197,50 @@ has no line above it; area labels sit above their area, 8 px clear of the outlin
 the area before; the dashed outline runs 6 px outside the area's panels; a marked box is labeled
 only when the label fits with 6 px either side.
 
+**Several packs (2026-11-18).** `Packs.dc.html` draws decision 0028's screens, dark and light:
+`PacksDesktop` and `PacksPhone` (the Packs page), `PacksFirst` (the first launch, with no packs),
+`PacksSwitcher` (the pack line at the top of the menu, opened), `PacksRemove` (Remove…),
+`PacksUpdate` (the note after a pack update, #105), `PacksSimbrief` (a SimBrief plan for another
+aircraft, #106) and `PacksLog` (the Flight log by pack, #107). The build may improve on these
+boards but never be worse in any state, theme or size; each change from a board is listed with
+before and after shots in its pull request.
+
+- Existing tokens only. Progress bars use color.todo-ring for the track and color.accent for the
+  fill. Update bands use the open (amber) set. Change tags: added `done`, reworded `accent`,
+  removed neutral. Dialogs use color.popover-surface, color.popover-border, color.overlay-shadow
+  and color.scrim.
+- **Packs page.** One card per installed pack: its name, the aircraft line (family · simulator ·
+  developer, from the pack's `aircraft` block), its version, and the saved flight as a progress bar
+  (or "No saved flight yet"). The open pack has the accent outline and "In use". "Use this pack"
+  switches; "Remove…" asks first. A waiting update is a band inside the card with "Update";
+  nothing updates without that tap. (The board's "What's new" waits for #105's change list.)
+- **Not from the catalog.** A pack added from a file shows the neutral "Not from the Involo
+  catalog" badge wherever the pack is named, never in a warning color.
+- **More packs** lists the catalog's packs not on this device, each with Download, its size and
+  version. "Add a pack file…" opens a file picker.
+- **First launch** (no packs): the welcome, the three steps and the catalog list; the first
+  catalog pack's Download is the primary button.
+- **Switcher.** The pack line ("<pack> · saved <time>") opens a menu of the installed packs, a tick
+  on the open one, each with its saved flight or catalog label, and "Manage packs", which opens the
+  Packs page. It is a real menu: arrow keys, Esc, and focus back on the pack line.
+- **Remove.** "Also remove its saved flight" starts unticked; unticked, the flight comes back if
+  the pack is added again.
+- **Update note** (#105): at the top of the checklist after a pack update during a flight: the
+  title with the new version, "Your ticks are kept on every step that's still there", the change
+  counts as tags, and "What changed" (opened the first time): one row per change with its tag, the
+  step as a link and its phase. A reworded step shows the field that changed, the old wording
+  struck through above the new. A removed step that was ticked says so. "Go to the first new step"
+  (only when steps were added) and "Dismiss"; a dismissed note doesn't come back.
+- **SimBrief warning** (#106): when the plan's aircraft type isn't one of the pack's `icaoTypes`:
+  the plan's aircraft and type code against the open pack's name and type code. "Use it anyway" is
+  the primary button; Cancel leaves the plan unloaded.
+- **Flight log** (#107): filter chips for All packs and each pack with flights, with counts; each
+  entry shows the pack name and version it was flown with.
+
+Pack names other than iFly, versions, sizes, step names, the reworded text and the plan's aircraft
+on these boards are invented examples; the app builds everything from the pack, the catalog and the
+flight.
+
 ## Read in this order
 
 1. `rules.md`: what the tokens mean and the rules every screen follows.

@@ -225,6 +225,15 @@ const SHOTS = [
   ["R6Log", { view: "log", r6: true }, 1440, 900, "Views", round6],
   ["RefsDesk", { layout: "desktop" }, 1440, 1100, "References", round6],
   ["RefsPhone", { layout: "phone" }, 390, 844, "References", round6],
+  // Several packs (docs/design/boards/Packs.dc.html).
+  ["PacksDesktop", { layout: "desktop" }, 1440, 1100, "Packs"],
+  ["PacksPhone", { layout: "phone" }, 390, 1100, "Packs"],
+  ["PacksFirst", { layout: "first" }, 1440, 1000, "Packs"],
+  ["PacksSwitcher", { layout: "switcher" }, 390, 844, "Packs"],
+  ["PacksRemove", { layout: "remove" }, 1440, 900, "Packs"],
+  ["PacksUpdate", { layout: "update" }, 880, 1020, "Packs"],
+  ["PacksSimbrief", { layout: "simbrief" }, 1440, 900, "Packs"],
+  ["PacksLog", { layout: "log" }, 1040, 520, "Packs"],
 ];
 
 async function main() {

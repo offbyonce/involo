@@ -28,6 +28,7 @@ describe("parseRoute", () => {
 
   it("reads References", () => {
     expect(parseRoute("#/references")).toEqual({ screen: "references" });
+    expect(parseRoute("#/packs")).toEqual({ screen: "packs" });
   });
 
   it("reads the Flight log and the flight it opens; a flight's id goes in and comes back whole", () => {

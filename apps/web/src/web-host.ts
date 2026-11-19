@@ -5,7 +5,7 @@
 // APIs (decisions 0010 and 0012). Packs and their index are files beside the app, written by
 // `involo-pack build`; this page is app/index.html, so they are one folder up.
 
-import { isAppError, type PackSummary, type SavedPlan } from "@involo/bindings";
+import { isAppError, type SavedPlan } from "@involo/bindings";
 import type { Host } from "@involo/ui";
 import { applyBrandTheme } from "./brand-theme";
 import {
@@ -34,15 +34,9 @@ import {
   suggestion,
 } from "./core";
 import { readLog as readLogText, writeLog } from "./log-store.js";
-import {
-  type InstallDeps,
-  installFile,
-  installFromCatalog,
-  openFromCatalog,
-  readCatalog,
-} from "./pack-install.js";
+import { type InstallDeps, installFile, installFromCatalog, readCatalog } from "./pack-install.js";
 import { deletePack, readPacks, readPackText, writePack } from "./pack-store.js";
-import { readPlan, readSaved, save, savePlan, setAside } from "./saved";
+import { readPlan, readSaved, readSettings, removeSaved, save, savePlan, setAside } from "./saved";
 import { fetchPlanText } from "./simbrief-fetch.js";
 
 /** Whether the browser has been asked this visit to keep the site's data: the log (decision
@@ -80,39 +74,14 @@ async function simbriefSays(text: string): Promise<string | null> {
 
 export const webHost: Host = {
   appInfo,
-  // Until the Packs page (#103): the installed packs, or else the catalog's.
-  packs: async () => {
-    const installed = await readPacks().catch(() => []);
-    if (installed.length > 0) return installed.map((p) => p.summary);
-    return (await readCatalog({ fetch: fetchOwn, parse: parseCatalog })).map(
-      (e): PackSummary => ({
-        id: e.id,
-        name: e.name,
-        version: e.version,
-        kind: "aircraft",
-        aircraft: e.aircraft,
-      }),
-    );
-  },
-  loadPack: async (id) => {
-    const text = await readPackText(id).catch(() => null);
-    if (text !== null) return parsePack(text);
-    const entry = (await readCatalog({ fetch: fetchOwn, parse: parseCatalog })).find((e) => e.id === id);
-    if (!entry) throw new Error(`The pack ${id} is not in the catalog.`);
-    const opened = await openFromCatalog(entry, { ...(await installDeps()), fetch: fetchOwn });
-    if (opened.outcome.state === "refused" || opened.text === null)
-      throw new Error(
-        `${entry.name} could not be installed: ${opened.outcome.state === "refused" ? opened.outcome.reasons.join(" ") : ""}`,
-      );
-    return parsePack(opened.text);
-  },
   catalog: () => readCatalog({ fetch: fetchOwn, parse: parseCatalog }),
   installedPacks: () => readPacks(),
   installPackFile: async (file) => installFile(file, await installDeps()),
   installCatalogPack: async (entry) =>
     installFromCatalog(entry, { ...(await installDeps()), fetch: fetchOwn }),
   removePack: (id) => deletePack(id),
-  loadInstalledPack: async (id) => {
+  removeSaved,
+  loadPack: async (id) => {
     const text = await readPackText(id);
     if (text === null) throw new Error(`The pack ${id} is not installed on this device.`);
     return parsePack(text);
@@ -124,6 +93,7 @@ export const webHost: Host = {
   openSteps,
   suggestion,
   readSaved,
+  readSettings,
   save,
   setAside,
   defaultSettings,

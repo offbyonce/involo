@@ -2,11 +2,18 @@
 SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 The menu drawer, at every size (boards: Menu at 1440, Tablet's menu overlay from 600 to 1439 px,
-Mobile's menu screen below 600 px). Its header holds the small mark, "involo", a sub-line
-(aircraft, the time of the last save this visit, and on tablet the overall count) and Close. Then
+Mobile's menu screen below 600 px). Its header holds the small mark, "involo", the pack line
+(the open pack, the time of the last save this visit, and on tablet the overall count) and Close.
+The pack line opens the pack switcher (PacksSwitcher board): the installed packs, a tick on the
+open one, each with its saved flight or catalog label, and Manage packs. Then
 the step settings, the menu groups and Reset flight plan. Every item on the Menu boards has its page
 now (References was the last). The version line lives at the foot of Settings.
 -->
+<script lang="ts" module>
+  /** An installed pack as the switcher lists it. */
+  export type SwitchPack = { id: string; name: string; line: string; fromFile: boolean };
+</script>
+
 <script lang="ts">
   import type { Detail, StepLayout, Progress } from "@involo/bindings";
   import headerMark from "../icons/brand/header-mark.svg?raw";
@@ -15,6 +22,9 @@ now (References was the last). The version line lives at the foot of Settings.
   let {
     open,
     aircraft,
+    packs = [],
+    currentPack = "",
+    onSwitchPack = () => {},
     savedAt,
     saveFailed = false,
     total,
@@ -32,6 +42,11 @@ now (References was the last). The version line lives at the foot of Settings.
   }: {
     open: boolean;
     aircraft: string;
+    /** The installed packs, for the switcher. */
+    packs?: SwitchPack[];
+    /** The open pack's id. */
+    currentPack?: string;
+    onSwitchPack?: (id: string) => void;
     /** When this visit last saved, if it has. */
     savedAt: number | null;
     /** The last save was refused: "not saved" in place of the save time (the page's notice says why). */
@@ -59,6 +74,40 @@ now (References was the last). The version line lives at the foot of Settings.
     savedAt === null ? null : new Date(savedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
   );
   let closer = $state<HTMLButtonElement | null>(null);
+  /** The pack switcher, a menu under the pack line (PacksSwitcher). */
+  let switching = $state(false);
+  let packLine = $state<HTMLButtonElement | null>(null);
+  let switcher = $state<HTMLDivElement | null>(null);
+  const items = () => [...(switcher?.querySelectorAll<HTMLElement>('[role="menuitemradio"], [role="menuitem"]') ?? [])];
+  function openSwitcher(): void {
+    switching = true;
+    // The open pack first, as a menu opens on its checked item.
+    queueMicrotask(() => (switcher?.querySelector<HTMLElement>('[aria-checked="true"]') ?? items()[0])?.focus());
+  }
+  function closeSwitcher(focusLine = true): void {
+    switching = false;
+    if (focusLine) packLine?.focus();
+  }
+  function menuKey(e: KeyboardEvent): void {
+    const all = items();
+    const at = all.indexOf(document.activeElement as HTMLElement);
+    const go = (i: number) => {
+      e.preventDefault();
+      all[(i + all.length) % all.length]?.focus();
+    };
+    if (e.key === "ArrowDown") go(at + 1);
+    else if (e.key === "ArrowUp") go(at - 1);
+    else if (e.key === "Home") go(0);
+    else if (e.key === "End") go(all.length - 1);
+    else if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
+      closeSwitcher();
+    } else if (e.key === "Tab") closeSwitcher(false);
+  }
+  $effect(() => {
+    if (!open) switching = false;
+  });
   let back: HTMLElement | null = null;
   // Focus moves into the drawer when it opens and back to where it was when it closes.
   $effect(() => {
@@ -74,7 +123,7 @@ now (References was the last). The version line lives at the foot of Settings.
 
 <svelte:window
   onkeydown={(e) => {
-    if (open && e.key === "Escape") onClose();
+    if (open && !switching && e.key === "Escape") onClose();
   }}
 />
 {#if open}
@@ -84,13 +133,56 @@ now (References was the last). The version line lives at the foot of Settings.
   <div class="head">
     <div class="who">
       <span class="name"><span class="mark" aria-hidden="true">{@html headerMark}</span>involo</span>
-      <small
-        >{aircraft}{#if saveFailed}<span>{" · not saved"}</span>{:else if saved}<span>{` · saved ${saved}`}</span>{/if}<span class="count">{` · ${total.done}/${total.total}`}</span></small
+      <button
+        bind:this={packLine}
+        class="packline"
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={switching}
+        aria-controls="pack-switcher"
+        onclick={() => (switching ? closeSwitcher() : openSwitcher())}
+        ><span
+          >{aircraft}{#if saveFailed}<span>{" · not saved"}</span>{:else if saved}<span>{` · saved ${saved}`}</span>{/if}<span class="count">{` · ${total.done}/${total.total}`}</span></span
+        ><Icon name="chevron-down" /></button
       >
     </div>
     <button bind:this={closer} class="close" type="button" aria-label="Close menu" onclick={onClose}><Icon name="x" /></button>
   </div>
-  <div class="body">
+  <div class="body" class:switching>
+    {#if switching}
+      <!-- svelte-ignore a11y_interactive_supports_focus -->
+      <div id="pack-switcher" class="switcher" role="menu" aria-label="Switch pack" tabindex="-1" bind:this={switcher} onkeydown={menuKey}>
+        {#each packs as p (p.id)}
+          {@const on = p.id === currentPack}
+          <button
+            class="pk"
+            class:on
+            type="button"
+            role="menuitemradio"
+            aria-checked={on}
+            tabindex="-1"
+            onclick={() => {
+              closeSwitcher(false);
+              if (!on) onSwitchPack(p.id);
+            }}
+            ><span class="tk">{#if on}<Icon name="check" />{/if}</span><span class="pt"
+              ><span class="pn">{p.name}</span>{#if p.line}<span class="pl">{p.line}</span>{/if}{#if p.fromFile}<span class="pl">Not from the Involo catalog</span>{/if}</span
+            ></button
+          >
+        {/each}
+        <div class="manage">
+          <a
+            href="#/packs"
+            role="menuitem"
+            tabindex="-1"
+            onclick={() => {
+              closeSwitcher(false);
+              onClose();
+            }}>Manage packs<Icon name="chevron-right" /></a
+          >
+        </div>
+      </div>
+    {/if}
     <div class="steps">
       <span class="label">Steps</span>
       {#if view && open}
@@ -207,10 +299,13 @@ now (References was the last). The version line lives at the foot of Settings.
   .head {
     display: flex;
     flex: none;
-    align-items: center;
-    height: var(--bar-header);
-    padding: 0 var(--space-2) 0 calc(var(--space-4) + var(--space-1));
+    align-items: flex-start;
+    min-height: var(--bar-header);
+    padding: calc(var(--space-3) + var(--border-thick)) var(--space-2) calc(var(--space-2) + var(--border-thick)) calc(var(--space-4) + var(--space-1));
     border-bottom: var(--border-thin) solid var(--color-line);
+  }
+  .who {
+    gap: var(--space-1);
   }
   .who {
     display: flex;
@@ -233,9 +328,114 @@ now (References was the last). The version line lives at the foot of Settings.
     display: flex;
     flex: none;
   }
-  .who small {
+  /* The pack line (PacksSwitcher): the open pack and the last save, opening the switcher. */
+  .packline {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    align-self: flex-start;
+    max-width: 100%;
+    min-height: var(--space-8);
+    margin-left: calc(-1 * (var(--space-1) + var(--border-thick)));
+    padding: 0 calc(var(--space-1) + var(--border-thick));
+    border: 0;
+    border-radius: var(--radius-small);
+    background: transparent;
     color: var(--color-text-muted);
-    font-size: var(--font-size-caption);
+    font: inherit;
+    font-size: calc(var(--font-size-caption) + var(--border-thin));
+    text-align: left;
+    cursor: pointer;
+  }
+  .packline[aria-expanded="true"] {
+    background: var(--color-accent-soft);
+    color: var(--color-text);
+  }
+  .packline > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .packline :global(svg) {
+    flex: none;
+    width: var(--size-icon-small);
+    height: var(--size-icon-small);
+  }
+  /* The switcher: a popover menu under the pack line; the rest of the menu dims behind it. */
+  .switcher {
+    display: flex;
+    flex-direction: column;
+    gap: var(--border-thick);
+    padding: calc(var(--space-1) + var(--border-thick));
+    border: var(--border-thin) solid var(--color-popover-border);
+    border-radius: var(--radius-segment);
+    background: var(--color-popover-surface);
+    box-shadow: var(--color-overlay-shadow);
+  }
+  .body.switching > :not(.switcher) {
+    opacity: 0.5;
+  }
+  .pk {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--space-2) + var(--border-thick));
+    width: 100%;
+    min-height: calc(var(--size-touch-min) + var(--space-2));
+    padding: calc(var(--space-1) + var(--border-thick)) calc(var(--space-2) + var(--border-thick));
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .pk.on {
+    background: var(--color-accent-soft);
+  }
+  .tk {
+    display: flex;
+    flex: none;
+    width: calc(var(--size-icon-small) + var(--border-thick));
+    color: var(--color-accent);
+  }
+  .tk :global(svg) {
+    width: calc(var(--size-icon-small) + var(--border-thick));
+    height: calc(var(--size-icon-small) + var(--border-thick));
+  }
+  .pt {
+    display: flex;
+    flex-direction: column;
+    gap: var(--border-thick);
+  }
+  .pn {
+    color: var(--color-text);
+    font-size: calc(var(--font-size-secondary) + var(--border-thin));
+  }
+  .pk.on .pn {
+    color: var(--color-text-strong);
+    font-weight: var(--weight-semibold);
+  }
+  .pl {
+    color: var(--color-text-muted);
+    font-size: calc(var(--font-size-caption) + var(--border-thin));
+  }
+  .manage {
+    margin-top: var(--space-1);
+    padding: var(--space-1) var(--space-1) 0;
+    border-top: var(--border-thin) solid var(--color-line);
+  }
+  .manage a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: var(--size-touch-min);
+    color: var(--color-link);
+    font-size: calc(var(--font-size-secondary) + var(--border-thin));
+    text-decoration: none;
+  }
+  .manage :global(svg) {
+    width: var(--size-icon-small);
+    height: var(--size-icon-small);
   }
   .close {
     display: grid;

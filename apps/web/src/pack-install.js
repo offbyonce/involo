@@ -31,16 +31,15 @@ export async function readCatalog({ fetch, parse }) {
   return parse(await response.text());
 }
 
-/** Checks the pack's bytes and keeps it when it passes: what happened, and the pack's text when
- * it passed. */
+/** Checks the pack's bytes and keeps it when it passes. */
 async function install(bytes, source, sha256, { check, keep, now, askToKeep }) {
   const checked = await check(bytes, sha256);
-  if (checked.state === "refused") return { outcome: checked, text: null };
+  if (checked.state === "refused") return checked;
   const pack = { summary: checked.summary, source, installedAt: now() };
   const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-  if (!(await keep({ ...pack, text }))) return { outcome: { state: "notKept", pack }, text };
+  if (!(await keep({ ...pack, text }))) return { state: "notKept", pack };
   askToKeep();
-  return { outcome: { state: "installed", pack }, text };
+  return { state: "installed", pack };
 }
 
 /** Installs a pack file the pilot chose. One over `limit` bytes is refused unread. */
@@ -49,7 +48,7 @@ export async function installFile(file, deps) {
     return refused(
       `That file is too large to be an Involo pack (over ${deps.limit / MB} MB), so it wasn’t read.`,
     );
-  return (await install(new Uint8Array(await file.arrayBuffer()), "file", "", deps)).outcome;
+  return install(new Uint8Array(await file.arrayBuffer()), "file", "", deps);
 }
 
 /**
@@ -57,16 +56,7 @@ export async function installFile(file, deps) {
  * catalog or the server says is over `limit` bytes is refused before it is downloaded.
  */
 export async function installFromCatalog(entry, deps) {
-  return (await openFromCatalog(entry, deps)).outcome;
-}
-
-/** As installFromCatalog, with the pack's text when it passed (null when refused), so it can be
- * opened even when this device doesn't keep it. */
-export async function openFromCatalog(entry, deps) {
-  const tooLarge = {
-    outcome: refused(`The pack is too large (over ${deps.limit / MB} MB), so it wasn’t downloaded.`),
-    text: null,
-  };
+  const tooLarge = refused(`The pack is too large (over ${deps.limit / MB} MB), so it wasn’t downloaded.`);
   if (entry.size > deps.limit) return tooLarge;
   const file = catalogFile(entry);
   // Called on its own: the browser's fetch refuses to run as another object's method.

@@ -16,7 +16,7 @@ import type {
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App.svelte";
-import { type Host, hostContext } from "./host";
+import { type Host, hostContext, type InstalledPack } from "./host";
 import { appLabels, iflyPack } from "./test-pack";
 
 function phase(id: string, title: string, done: number, skipped: number, total: number): RailPhase {
@@ -154,17 +154,23 @@ function view(states: [StepState, StepState]): PhaseModel {
   };
 }
 
+/** The pack the tests' device has installed. */
+const DEMO: InstalledPack = {
+  summary: { id: "demo", name: "Demo", version: "0.1.0", kind: "aircraft" },
+  source: "catalog",
+  installedAt: 1,
+};
+
 function host(overrides: Partial<Host> = {}): Host {
-  return {
+  const h: Omit<Host, "readSettings"> & Partial<Pick<Host, "readSettings">> = {
     appInfo: async () => ({ name: "Involo", version: "0.1.0", packSchemaVersion: 2 }),
-    packs: async () => [{ id: "demo", name: "Demo", version: "0.1.0", kind: "aircraft" }],
+    installedPacks: async () => [DEMO],
     loadPack: async () => pack,
     catalog: async () => [],
-    installedPacks: async () => [],
     installPackFile: async () => ({ state: "refused", reasons: ["no packs in tests"] }),
     installCatalogPack: async () => ({ state: "refused", reasons: ["no packs in tests"] }),
     removePack: async () => false,
-    loadInstalledPack: async () => pack,
+    removeSaved: async () => true,
     newFlight: async () =>
       ({
         pack: "demo",
@@ -196,6 +202,8 @@ function host(overrides: Partial<Host> = {}): Host {
     ...fakeLog(),
     ...overrides,
   };
+  // Settings are read on their own now; a test that saves them with the flight reads them there.
+  return { ...h, readSettings: h.readSettings ?? (async () => (await h.readSaved("demo")).settings) };
 }
 
 /** The Flight log's host calls, with the log's rules reduced to what these tests need (the real
@@ -699,13 +707,13 @@ describe("App", () => {
     expect(await screen.findByText("Progress isn’t being saved on this device.")).toBeTruthy();
     expect(screen.queryByText(/^Saved /)).toBeNull();
     expect(screen.getByText("Not saved")).toBeTruthy();
-    expect(document.querySelector("#drawer .who small")?.textContent).toMatch(/ · not saved · /);
+    expect(document.querySelector("#drawer .packline > span")?.textContent).toMatch(/ · not saved · /);
 
     refuse = false;
     await fireEvent.click(screen.getByRole("button", { name: "Confirm Standby power: AUTO" }));
     expect(await screen.findByText("Saved 14:05")).toBeTruthy();
     expect(screen.queryByText("Progress isn’t being saved on this device.")).toBeNull();
-    expect(document.querySelector("#drawer .who small")?.textContent).toMatch(/saved 14:05/);
+    expect(document.querySelector("#drawer .packline > span")?.textContent).toMatch(/saved 14:05/);
   });
 
   it("keeps the notice when Start fresh can't set saved data aside, and saves nothing", async () => {
@@ -771,6 +779,7 @@ describe("App", () => {
       const saved: Flight[] = [];
       const h = host({
         apply: ticking,
+        readSettings: async () => null,
         readSaved: async () => (loads++ === 0 ? ready(flightWith({})) : ready(other)),
         save: async (_p, what, value) => {
           if (what !== "flight") return 0;
@@ -795,6 +804,7 @@ describe("App", () => {
       const saves: Flight[] = [];
       const h = host({
         apply: ticking,
+        readSettings: async () => null,
         readSaved: async () =>
           loads++ === 0
             ? ready(flightWith({}))
@@ -1825,5 +1835,276 @@ describe("the Flight log (decision 0026)", () => {
     await screen.findByRole("heading", { level: 1, name: "Power up" });
     await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
     expect(screen.getByRole("link", { name: "Flight log" }).getAttribute("href")).toBe("#/log");
+  });
+});
+
+describe("packs (decision 0028; Packs boards)", () => {
+  const aircraft = {
+    family: "Test family",
+    name: "Test jet",
+    icaoTypes: ["TJ1"],
+    simulator: "Test sim",
+    developer: "Test dev",
+  };
+  const OTHER: InstalledPack = {
+    summary: { id: "other", name: "Other jet", version: "0.1.0", kind: "aircraft", aircraft },
+    source: "file",
+    installedAt: 2,
+  };
+  const entry = (id: string, name: string, version = "0.1.0") => ({
+    id,
+    name,
+    version,
+    aircraft,
+    engine: ">=0.1.0",
+    size: 600_000,
+    sha256: "",
+  });
+  const settingsWith = (currentPack: string | null) =>
+    ({
+      theme: "dark",
+      dimming: 0,
+      detail: "expanded",
+      listView: "checklist",
+      tourSeen: true,
+      currentPack,
+      seat: null,
+    }) as Settings;
+  const savedSettings = (s: Settings) => ({
+    loaded: { state: "ready", value: s, migratedFrom: null } as Loaded<Settings>,
+    text: "",
+  });
+
+  it("opens a fresh device on the Packs page, and installing a pack opens it", async () => {
+    const saves: Settings[] = [];
+    const restart = vi.fn();
+    const installCatalogPack = vi.fn(async () => ({ state: "installed" as const, pack: DEMO }));
+    const h = host({
+      installedPacks: async () => [],
+      catalog: async () => [entry("demo", "Demo"), entry("other", "Other jet")],
+      installCatalogPack,
+      save: async (_p, what, value) => {
+        if (what === "settings") saves.push(value as Settings);
+        return 1;
+      },
+    });
+    render(App, { props: { onRestart: restart }, context: hostContext(h) });
+    expect(await screen.findByRole("heading", { level: 1, name: "Choose your first aircraft" })).toBeTruthy();
+    // The first catalog pack's Download is the primary button.
+    const first = await screen.findByRole("button", { name: "Download Demo" });
+    expect(first.classList.contains("primary")).toBe(true);
+    expect(screen.getByRole("button", { name: "Download Other jet" }).classList.contains("primary")).toBe(
+      false,
+    );
+    await fireEvent.click(first);
+    await waitFor(() => expect(restart).toHaveBeenCalled());
+    expect(installCatalogPack).toHaveBeenCalledWith(expect.objectContaining({ id: "demo" }));
+    expect(saves.at(-1)?.currentPack).toBe("demo");
+  });
+
+  it("says a connection is needed once when a fresh device is offline", async () => {
+    const h = host({
+      installedPacks: async () => [],
+      catalog: async () => {
+        throw new Error("offline");
+      },
+    });
+    render(App, { context: hostContext(h) });
+    expect(
+      await screen.findByText("Involo needs a connection once, to download a pack. Connect, then try again."),
+    ).toBeTruthy();
+  });
+
+  it("shows why a pack file was refused, and keeps the page", async () => {
+    const restart = vi.fn();
+    const h = host({
+      installedPacks: async () => [],
+      installPackFile: async () => ({ state: "refused", reasons: ["This is not an Involo pack file."] }),
+    });
+    render(App, { props: { onRestart: restart }, context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Choose your first aircraft" });
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+    if (!input) throw new Error("no file input");
+    Object.defineProperty(input, "files", { value: [new File(["x"], "x.involo-pack")] });
+    await fireEvent.change(input);
+    expect(await screen.findByText("That file wasn’t added.")).toBeTruthy();
+    expect(screen.getByText("This is not an Involo pack file.")).toBeTruthy();
+    expect(restart).not.toHaveBeenCalled();
+  });
+
+  it("opens the pack the settings name, so a switch survives a reload", async () => {
+    const loaded: string[] = [];
+    const h = host({
+      installedPacks: async () => [DEMO, OTHER],
+      readSettings: async () => savedSettings(settingsWith("other")),
+      loadPack: async (id) => {
+        loaded.push(id);
+        return pack;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    expect(loaded[0]).toBe("other");
+  });
+
+  it("opens the pack with a saved flight when the settings name none (saved before packs were chosen)", async () => {
+    const loaded: string[] = [];
+    const h = host({
+      installedPacks: async () => [DEMO, OTHER],
+      readSettings: async () => savedSettings(settingsWith(null)),
+      readSaved: async (id) => ({
+        flight:
+          id === "other"
+            ? {
+                loaded: {
+                  state: "ready",
+                  value: { pack: "other", options: {}, session: { done: {}, skipped: {} }, values: {} },
+                  migratedFrom: 3,
+                } as unknown as Loaded<Flight>,
+                text: "",
+              }
+            : null,
+        settings: null,
+      }),
+      loadPack: async (id) => {
+        loaded.push(id);
+        return pack;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    expect(loaded[0]).toBe("other");
+  });
+
+  it("switches packs from the menu's pack line, a real menu", async () => {
+    const saves: Settings[] = [];
+    const restart = vi.fn();
+    const h = host({
+      installedPacks: async () => [DEMO, OTHER],
+      save: async (_p, what, value) => {
+        if (what === "settings") saves.push(value as Settings);
+        return 1;
+      },
+    });
+    render(App, { props: { onRestart: restart }, context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    const line = document.querySelector<HTMLButtonElement>("#drawer .packline");
+    if (!line) throw new Error("no pack line");
+    await fireEvent.click(line);
+    const menu = await screen.findByRole("menu", { name: "Switch pack" });
+    const items = within(menu).getAllByRole("menuitemradio");
+    expect(items.map((i) => i.getAttribute("aria-checked"))).toEqual(["true", "false"]);
+    // A pack from a file says so wherever it is named.
+    expect(within(items[1] as HTMLElement).getByText("Not from the Involo catalog")).toBeTruthy();
+    expect(within(menu).getByRole("menuitem", { name: "Manage packs" }).getAttribute("href")).toBe("#/packs");
+    // Arrow keys move; Esc closes and gives the pack line focus back.
+    await waitFor(() => expect(document.activeElement).toBe(items[0]));
+    await fireEvent.keyDown(menu, { key: "ArrowDown" });
+    expect(document.activeElement).toBe(items[1]);
+    await fireEvent.keyDown(menu, { key: "Escape" });
+    expect(screen.queryByRole("menu")).toBeNull();
+    expect(document.activeElement).toBe(line);
+    expect(document.querySelector("#drawer")?.classList.contains("open")).toBe(true);
+    await fireEvent.click(line);
+    await fireEvent.click(
+      within(await screen.findByRole("menu")).getByRole("menuitemradio", { name: /Other jet/ }),
+    );
+    await waitFor(() => expect(restart).toHaveBeenCalled());
+    expect(saves.at(-1)?.currentPack).toBe("other");
+  });
+
+  it("switches from the Packs page, and offers an update only for a newer catalog version", async () => {
+    window.location.hash = "#/packs";
+    const restart = vi.fn();
+    const installCatalogPack = vi.fn(async () => ({ state: "installed" as const, pack: DEMO }));
+    const h = host({
+      installedPacks: async () => [DEMO, OTHER],
+      // The open pack has a newer version; the file pack's id has one too, but it isn't offered.
+      catalog: async () => [
+        entry("demo", "Demo", "0.2.0"),
+        entry("other", "Other jet", "9.0.0"),
+        entry("third", "Third jet"),
+      ],
+      installCatalogPack,
+    });
+    render(App, { props: { onRestart: restart }, context: hostContext(h) });
+    const demo = await screen.findByRole("article", { name: "Demo" });
+    expect(within(demo).getByText("In use")).toBeTruthy();
+    expect(await within(demo).findByText("Version 0.2.0 is available.")).toBeTruthy();
+    const other = screen.getByRole("article", { name: "Other jet" });
+    expect(within(other).queryByText(/is available/)).toBeNull();
+    expect(within(other).getByText("Not from the Involo catalog")).toBeTruthy();
+    // More packs: the catalog's packs not on this device.
+    expect(screen.getByRole("button", { name: "Download Third jet" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Download Demo" })).toBeNull();
+    // Nothing updates without the tap.
+    expect(installCatalogPack).not.toHaveBeenCalled();
+    await fireEvent.click(within(demo).getByRole("button", { name: "Update Demo to version 0.2.0" }));
+    await waitFor(() =>
+      expect(installCatalogPack).toHaveBeenCalledWith(expect.objectContaining({ version: "0.2.0" })),
+    );
+    // The open pack's update opens it again.
+    await waitFor(() => expect(restart).toHaveBeenCalledTimes(1));
+    await fireEvent.click(within(other).getByRole("button", { name: "Use this pack" }));
+    await waitFor(() => expect(restart).toHaveBeenCalledTimes(2));
+  });
+
+  it("removes a pack and keeps its saved flight unless asked; with the tick, removes that too", async () => {
+    window.location.hash = "#/packs";
+    const removed: string[] = [];
+    const forgotten: string[] = [];
+    const h = host({
+      installedPacks: async () => [DEMO, OTHER],
+      removePack: async (id) => {
+        removed.push(id);
+        return true;
+      },
+      removeSaved: async (id) => {
+        forgotten.push(id);
+        return true;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    const other = await screen.findByRole("article", { name: "Other jet" });
+    await fireEvent.click(within(other).getByRole("button", { name: "Remove Other jet…" }));
+    const dialog = screen.getByRole("dialog", { name: "Remove Other jet?" });
+    const tick = within(dialog).getByRole("checkbox", {
+      name: /Also remove its saved flight/,
+    }) as HTMLInputElement;
+    expect(tick.checked).toBe(false);
+    await fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
+    await waitFor(() => expect(removed).toEqual(["other"]));
+    expect(forgotten).toEqual([]);
+
+    await fireEvent.click(
+      within(await screen.findByRole("article", { name: "Other jet" })).getByRole("button", {
+        name: "Remove Other jet…",
+      }),
+    );
+    const again = screen.getByRole("dialog", { name: "Remove Other jet?" });
+    await fireEvent.click(within(again).getByRole("checkbox", { name: /Also remove its saved flight/ }));
+    await fireEvent.click(within(again).getByRole("button", { name: "Remove" }));
+    await waitFor(() => expect(forgotten).toEqual(["other"]));
+    expect(removed).toEqual(["other", "other"]);
+  });
+
+  it("removing the open pack opens another, or the first launch when none is left", async () => {
+    window.location.hash = "#/packs";
+    const saves: Settings[] = [];
+    const restart = vi.fn();
+    const h = host({
+      removePack: async () => true,
+      save: async (_p, what, value) => {
+        if (what === "settings") saves.push(value as Settings);
+        return 1;
+      },
+    });
+    render(App, { props: { onRestart: restart }, context: hostContext(h) });
+    const demo = await screen.findByRole("article", { name: "Demo" });
+    await fireEvent.click(within(demo).getByRole("button", { name: "Remove Demo…" }));
+    await fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Remove" }));
+    await waitFor(() => expect(restart).toHaveBeenCalled());
+    expect(saves.at(-1)?.currentPack).toBeNull();
   });
 });

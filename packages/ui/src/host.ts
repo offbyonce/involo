@@ -34,12 +34,7 @@ import { getContext } from "svelte";
 export interface Host {
   /** Basic facts for the About box and the window title. */
   appInfo(): Promise<AppInfo>;
-  /** The packs to open: those installed on this device, or else the catalog's. */
-  packs(): Promise<PackSummary[]>;
-  /**
-   * Loads a pack; it stays loaded for the calls below. The installed copy, or else the catalog's,
-   * which is downloaded, checked and installed first.
-   */
+  /** Loads a pack installed on this device; it stays loaded for the calls below. */
   loadPack(id: string): Promise<FlatPack>;
   /**
    * The packs the catalog on the app's own site offers (decision 0028). The request carries
@@ -55,10 +50,11 @@ export interface Host {
   installPackFile(file: Blob): Promise<PackInstall>;
   /** Downloads a catalog pack, checks it and its SHA-256, and installs it in the same way. */
   installCatalogPack(entry: CatalogEntry): Promise<PackInstall>;
-  /** Removes an installed pack. Resolves false when the device refused. */
+  /** Removes an installed pack. Resolves false when the device refused. Its saved flight and
+   * plan stay unless removeSaved is called too. */
   removePack(id: string): Promise<boolean>;
-  /** Loads an installed pack from this device; it stays loaded for the calls below. */
-  loadInstalledPack(id: string): Promise<FlatPack>;
+  /** Forgets a pack's saved flight and plan on this device. Resolves false when it refused. */
+  removeSaved(pack: string): Promise<boolean>;
   newFlight(pack: string): Promise<Flight>;
   /** Applies an action and returns the changed flight. */
   apply(pack: string, flight: Flight, action: Action): Promise<Flight>;
@@ -76,6 +72,9 @@ export interface Host {
    * Null when none.
    */
   readSaved(pack: string): Promise<Saved>;
+  /** The settings saved on this device, read as readSaved reads them; null when none. They
+   * belong to no pack, so the app reads them before it opens one. */
+  readSettings(): Promise<SavedItem<Settings>>;
   /**
    * Saves the flight or the settings on this device. Resolves to when, in milliseconds; to null
    * when it wasn't stored (storage blocked or full); or to "changed" when another window saved
