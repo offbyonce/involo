@@ -17,6 +17,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App.svelte";
 import { type Host, hostContext, type InstalledPack } from "./host";
+import Root from "./Root.svelte";
 import { appLabels, iflyPack } from "./test-pack";
 
 function phase(id: string, title: string, done: number, skipped: number, total: number): RailPhase {
@@ -2106,5 +2107,273 @@ describe("packs (decision 0028; Packs boards)", () => {
     await fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Remove" }));
     await waitFor(() => expect(restart).toHaveBeenCalled());
     expect(saves.at(-1)?.currentPack).toBeNull();
+  });
+});
+
+describe("one flight per pack (decision 0028)", () => {
+  const OTHER: InstalledPack = {
+    summary: { id: "other", name: "Other jet", version: "0.1.0", kind: "aircraft" },
+    source: "catalog",
+    installedAt: 2,
+  };
+  const fresh = (id: string) =>
+    ({
+      pack: id,
+      options: { power: "gpu" },
+      session: { done: {}, skipped: {} },
+      values: {},
+      notes: "",
+    }) as unknown as Flight;
+  const plan = (origin: string) =>
+    ({ format: 1, loadedAt: 1, plan: { origin: { icao: origin } } }) as unknown as SavedPlan;
+
+  const copy = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
+  /** A device that keeps each pack's flight and plan under its own key, as the web host does. */
+  function device() {
+    const flights = new Map<string, Flight>();
+    const plans = new Map<string, SavedPlan>();
+    let settings: Settings | null = null;
+    const railed: Flight[] = [];
+    const ready = <T>(value: T) => ({
+      loaded: { state: "ready", value, migratedFrom: null } as Loaded<T>,
+      text: "",
+    });
+    const h = host({
+      installedPacks: async () => [DEMO, OTHER],
+      newFlight: async (id) => fresh(id),
+      apply: async (_p, f, action) => {
+        if (action.type === "tick")
+          return { ...f, session: { ...f.session, done: { ...f.session.done, [action.step]: action.at } } };
+        if (action.type === "setNotes") return { ...f, notes: action.notes };
+        return f;
+      },
+      rail: async (_p, f) => {
+        railed.push(copy(f));
+        return rail;
+      },
+      readSaved: async (id) => {
+        const f = flights.get(id);
+        return { flight: f ? ready(f) : null, settings: null };
+      },
+      readSettings: async () => (settings ? ready(settings) : null),
+      save: async (id, what, value) => {
+        if (what === "flight") flights.set(id, copy(value as Flight));
+        else settings = copy(value as Settings);
+        return 1;
+      },
+      readPlan: async (id) => {
+        const p = plans.get(id);
+        return p ? ready(p) : null;
+      },
+      savePlan: async (id, p) => {
+        if (p) plans.set(id, p);
+        else plans.delete(id);
+      },
+    });
+    return { h, flights, plans, railed };
+  }
+
+  async function switchTo(name: RegExp): Promise<void> {
+    await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    const line = document.querySelector<HTMLButtonElement>("#drawer .packline");
+    if (!line) throw new Error("no pack line");
+    await fireEvent.click(line);
+    await fireEvent.click(within(await screen.findByRole("menu")).getByRole("menuitemradio", { name }));
+  }
+
+  it("ticks in one pack, switches, ticks in the other, and finds the first as it was left", async () => {
+    const { h, flights, plans, railed } = device();
+    // Pack A's flight already has values and a plan.
+    flights.set("demo", {
+      ...fresh("demo"),
+      values: { origin: "EGLL", destination: "LFPG" },
+    } as unknown as Flight);
+    plans.set("demo", plan("EGLL"));
+    const loadedPlans: string[] = [];
+    const readPlan = h.readPlan;
+    h.readPlan = async (id) => {
+      loadedPlans.push(id);
+      return readPlan(id);
+    };
+    render(Root, { context: hostContext(h) });
+
+    await fireEvent.click(await screen.findByRole("button", { name: "Confirm Standby power: AUTO" }));
+    await waitFor(() => expect(Object.keys(flights.get("demo")?.session.done ?? {})).toEqual(["standby"]));
+    await switchTo(/Other jet/);
+
+    // Pack B: its own new flight, its own tick; A's are untouched.
+    await waitFor(() => expect(railed.at(-1)?.pack).toBe("other"));
+    expect(railed.at(-1)?.session.done).toEqual({});
+    await fireEvent.click(await screen.findByRole("button", { name: "Confirm Battery: ON" }));
+    await waitFor(() => expect(Object.keys(flights.get("other")?.session.done ?? {})).toEqual(["battery"]));
+    expect(Object.keys(flights.get("demo")?.session.done ?? {})).toEqual(["standby"]);
+    expect(plans.has("other")).toBe(false);
+
+    await switchTo(/Demo/);
+    await waitFor(() => expect(railed.at(-1)?.pack).toBe("demo"));
+    const back = railed.at(-1) as Flight;
+    expect(Object.keys(back.session.done)).toEqual(["standby"]);
+    expect(back.values).toEqual({ origin: "EGLL", destination: "LFPG" });
+    await waitFor(() => expect(document.querySelector(".fsline")?.textContent).toMatch(/EGLL → LFPG/));
+    expect(loadedPlans).toEqual(["demo", "other", "demo"]);
+    expect(plans.get("demo")).toEqual(plan("EGLL"));
+  });
+
+  it("keeps notes typed just before a switch with their pack", async () => {
+    const { h, flights } = device();
+    render(Root, { context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    const strip = document.querySelector<HTMLButtonElement>(".fsline");
+    if (strip) await fireEvent.click(strip);
+    const notes = await waitFor(() => {
+      const t = document.querySelector<HTMLTextAreaElement>("#sp-notes");
+      if (!t) throw new Error("no notes");
+      return t;
+    });
+    await fireEvent.input(notes, { target: { value: "Climb FL240" } });
+    await switchTo(/Other jet/);
+    await waitFor(() =>
+      expect((flights.get("demo") as unknown as { notes: string }).notes).toBe("Climb FL240"),
+    );
+    expect(flights.get("other")).toBeUndefined();
+  });
+
+  it("opens the pack a switch chose even when the settings can't be saved", async () => {
+    const loaded: string[] = [];
+    const h = host({
+      installedPacks: async () => [DEMO, OTHER],
+      // Settings this version can't read: kept as they are, never saved over.
+      readSettings: async () => ({
+        loaded: { state: "newer", format: 99 } as Loaded<Settings>,
+        text: '{"format":99}',
+      }),
+      loadPack: async (id) => {
+        loaded.push(id);
+        return pack;
+      },
+    });
+    render(Root, { context: hostContext(h) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await switchTo(/Other jet/);
+    await waitFor(() => expect(loaded).toEqual(["demo", "other"]));
+  });
+
+  // The saving rules (#38, #39, #40, #45) hold per pack: each case opens the second pack.
+  const settingsFor = (id: string) => ({
+    loaded: {
+      state: "ready",
+      value: {
+        theme: "dark",
+        dimming: 0,
+        detail: "expanded",
+        listView: "checklist",
+        tourSeen: true,
+        currentPack: id,
+        seat: null,
+      },
+      migratedFrom: null,
+    } as unknown as Loaded<Settings>,
+    text: "",
+  });
+
+  it("sets aside only the open pack's unusable flight on Start fresh (#38)", async () => {
+    const asides: string[] = [];
+    const read: string[] = [];
+    const h = host({
+      installedPacks: async () => [DEMO, OTHER],
+      readSettings: async () => settingsFor("other"),
+      newFlight: async (id) => fresh(id),
+      readSaved: async (id) => {
+        read.push(id);
+        return {
+          flight:
+            id === "other"
+              ? { loaded: { state: "newer", format: 9 } as Loaded<Flight>, text: '{"format":9}' }
+              : null,
+          settings: null,
+        };
+      },
+      setAside: async (id, what) => {
+        asides.push(`${id}:${what}`);
+        return true;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    expect(await screen.findByText("Your saved progress is from a newer version of the app.")).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "Start fresh" }));
+    await waitFor(() => expect(asides).toEqual(["other:flight"]));
+    // The first pack's saved flight is read only for its line in the switcher.
+    expect(read[0]).toBe("other");
+  });
+
+  it("says the open pack's progress isn't being saved, and saves under that pack (#39)", async () => {
+    const saved: string[] = [];
+    const h = host({
+      installedPacks: async () => [DEMO, OTHER],
+      readSettings: async () => settingsFor("other"),
+      newFlight: async (id) => fresh(id),
+      save: async (id, what) => {
+        saved.push(`${id}:${what}`);
+        return null;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await fireEvent.click(await screen.findByRole("button", { name: "Confirm Standby power: AUTO" }));
+    expect(await screen.findByText("Progress isn’t being saved on this device.")).toBeTruthy();
+    expect(saved).toContain("other:flight");
+    expect(saved).not.toContain("demo:flight");
+  });
+
+  it("ignores another window's save of a different pack's flight (#40)", async () => {
+    const stored = new Map<string, Flight>([
+      ["other", { ...fresh("other"), values: { origin: "KSEA" } } as unknown as Flight],
+    ]);
+    const h = host({
+      installedPacks: async () => [DEMO, OTHER],
+      readSettings: async () => settingsFor("other"),
+      newFlight: async (id) => fresh(id),
+      readSaved: async (id) => {
+        const f = stored.get(id);
+        return {
+          flight: f
+            ? { loaded: { state: "ready", value: f, migratedFrom: null } as Loaded<Flight>, text: "" }
+            : null,
+          settings: null,
+        };
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await waitFor(() => expect(document.querySelector(".fsline")?.textContent).toMatch(/KSEA/));
+    // Another window ticks in the first pack: this window's pack and flight stay as they are.
+    stored.set("demo", { ...fresh("demo"), values: { origin: "EGLL" } } as unknown as Flight);
+    window.dispatchEvent(new StorageEvent("storage", { key: "involo.flight.demo" }));
+    await new Promise((r) => setTimeout(r, 30));
+    expect(document.querySelector(".fsline")?.textContent).toMatch(/KSEA/);
+    expect(document.querySelector(".fsline")?.textContent).not.toMatch(/EGLL/);
+  });
+
+  it("reads and keeps only the open pack's unreadable plan (#45)", async () => {
+    const plansRead: string[] = [];
+    const asides: string[] = [];
+    const h = host({
+      installedPacks: async () => [DEMO, OTHER],
+      readSettings: async () => settingsFor("other"),
+      newFlight: async (id) => fresh(id),
+      readPlan: async (id) => {
+        plansRead.push(id);
+        return id === "other"
+          ? { loaded: { state: "unreadable", reason: "bad" } as Loaded<SavedPlan>, text: "x" }
+          : null;
+      },
+      setAside: async (id, what) => {
+        asides.push(`${id}:${what}`);
+        return true;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    expect(await screen.findByText("Your saved SimBrief plan could not be read.")).toBeTruthy();
+    expect(plansRead).toEqual(["other"]);
+    await fireEvent.click(screen.getByRole("button", { name: "Start fresh" }));
+    await waitFor(() => expect(asides).toEqual(["other:plan"]));
   });
 });

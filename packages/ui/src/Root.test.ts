@@ -13,8 +13,9 @@ describe("Root", () => {
     window.location.hash = "#/packs";
     render(Root);
     await fireEvent.click(screen.getByRole("button", { name: "Mount 1" }));
-    // A fresh app: nothing of the pack that was open stays, and it opens at the start.
-    expect(await screen.findByRole("button", { name: "Mount 2" })).toBeTruthy();
+    // A fresh app on the pack the switch chose: nothing of the pack that was open stays, and it
+    // opens at the start.
+    expect(await screen.findByRole("button", { name: "Mount 2: pack-2" })).toBeTruthy();
     expect(mounts.count).toBe(2);
     expect(window.location.hash).toBe("");
   });
