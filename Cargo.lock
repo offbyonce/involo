@@ -367,6 +367,7 @@ dependencies = [
  "involo-pack",
  "involo-simbrief",
  "proptest",
+ "semver",
  "serde",
  "serde_json",
  "thiserror",
@@ -409,6 +410,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "insta",
+ "involo-app-core",
  "involo-checklist-core",
  "involo-pack",
  "involo-pack-overlap",

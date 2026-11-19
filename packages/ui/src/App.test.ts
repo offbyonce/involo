@@ -159,6 +159,12 @@ function host(overrides: Partial<Host> = {}): Host {
     appInfo: async () => ({ name: "Involo", version: "0.1.0", packSchemaVersion: 2 }),
     packs: async () => [{ id: "demo", name: "Demo", version: "0.1.0", kind: "aircraft" }],
     loadPack: async () => pack,
+    catalog: async () => [],
+    installedPacks: async () => [],
+    installPackFile: async () => ({ state: "refused", reasons: ["no packs in tests"] }),
+    installCatalogPack: async () => ({ state: "refused", reasons: ["no packs in tests"] }),
+    removePack: async () => false,
+    loadInstalledPack: async () => pack,
     newFlight: async () =>
       ({
         pack: "demo",

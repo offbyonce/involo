@@ -35,7 +35,7 @@ pub use log::{
     PlanSource, PracticeResult, StageTime, edit_log, load_log, log_csv, log_entry, new_log,
 };
 pub use open_steps::{OpenStep, open_steps};
-pub use packs::load_pack;
+pub use packs::{MAX_PACK_FILE_BYTES, PackCheck, check_pack, load_pack, parse_catalog};
 pub use phase_model::{PhaseLink, PhaseList, PhaseModel, StepRow, phase_model};
 pub use plans::{PLAN_FORMAT, PlanValues, SavedPlan, parse_plan, plan_url, plan_values};
 pub use rail::{Rail, RailPhase, RailStage, rail};

@@ -288,11 +288,12 @@ pub fn attribute(issues: Vec<Issue>, touched: &[Touched]) -> Vec<Issue> {
 /// The SHA-256 of a built pack's lists and content, in hex: it changes when any of them changes,
 /// and only then.
 pub fn content_hash(lists: &[involo_checklist_core::Checklist], content: &PackContent) -> String {
-    let mut hasher = Sha256::new();
-    let bytes = serde_json::to_vec(&(lists, content)).unwrap_or_default();
-    hasher.update(&bytes);
-    hasher
-        .finalize()
+    sha256_hex(&serde_json::to_vec(&(lists, content)).unwrap_or_default())
+}
+
+/// The SHA-256 of some bytes, in lower-case hex: how the catalog gives a pack file's hash.
+pub fn sha256_hex(bytes: &[u8]) -> String {
+    Sha256::digest(bytes)
         .iter()
         .fold(String::with_capacity(64), |mut hex, b| {
             use std::fmt::Write;

@@ -8,5 +8,14 @@ export { default as App } from "./App.svelte";
 export { default as DecisionGallery } from "./gallery/DecisionGallery.svelte";
 export { default as DrawingGallery } from "./gallery/DrawingGallery.svelte";
 export { default as GateGallery } from "./gallery/GateGallery.svelte";
-export { getHost, type Host, hostContext, type Saved, type SavedItem } from "./host";
+export {
+  getHost,
+  type Host,
+  hostContext,
+  type InstalledPack,
+  type PackInstall,
+  type PackSource,
+  type Saved,
+  type SavedItem,
+} from "./host";
 export { COLOR } from "./theme/tokens.generated";

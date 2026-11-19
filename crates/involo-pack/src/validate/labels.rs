@@ -6,11 +6,44 @@
 
 use std::collections::BTreeSet;
 
+use involo_checklist_core::content::ReferenceLabelsFile;
+use involo_checklist_core::{Labels, LabelsFile};
+
 use super::ids::{unique, valid_segment};
 use super::{Issue, error};
 use crate::Pack;
 
 const FILE: &str = "labels.yaml";
+
+/// The words a built pack carries, as a `labels.yaml` for these checks (decision 0028): each list
+/// the app's defaults don't give, so a flattened pack is checked as its own `labels.yaml` was.
+/// What building already drops can't be seen here and is checked when the pack is built: labels
+/// for basis tags `pack.json` doesn't list, a second label for one tag or reference group, and a
+/// list of glossary exceptions written the same as the default list.
+pub(super) fn as_written(labels: &Labels) -> LabelsFile {
+    let defaults = Labels::default();
+    let given = |list: &Vec<String>, default: &Vec<String>| (list != default).then(|| list.clone());
+    LabelsFile {
+        list_kinds: None,
+        methods: None,
+        seats: (labels.seats != defaults.seats).then(|| labels.seats.clone()),
+        roles: (labels.roles != defaults.roles).then(|| labels.roles.clone()),
+        reference: (labels.reference.groups != defaults.reference.groups).then(|| {
+            ReferenceLabelsFile {
+                title: None,
+                groups: labels.reference.groups.clone(),
+            }
+        }),
+        seat_view_title: None,
+        panel_states: None,
+        position_words: None,
+        find_examples: None,
+        glossary_exceptions: given(&labels.glossary_exceptions, &defaults.glossary_exceptions),
+        side_words: None,
+        plain_words: None,
+        basis_tags: labels.basis_tags.clone(),
+    }
+}
 
 pub(super) fn check_labels(pack: &Pack, issues: &mut Vec<Issue>) {
     let Some(file) = &pack.labels_file else {

@@ -17,8 +17,8 @@ pub mod validate;
 
 pub use load::{LoadError, load_pack_dir, parse_checklist_yaml, parse_yaml};
 pub use manifest::{AircraftInfo, PackKind, PackManifest, ResolvedParent};
-pub use resolve::{ResolveError, Resolved, resolve};
-pub use validate::{Issue, Severity, validate_pack};
+pub use resolve::{ResolveError, Resolved, resolve, sha256_hex};
+pub use validate::{Issue, Severity, validate_flat, validate_pack};
 
 /// The newest pack format this build of the app reads.
 pub const SCHEMA_VERSION: u32 = 6;
@@ -141,4 +141,27 @@ impl From<&PackManifest> for PackSummary {
             aircraft: m.aircraft.clone(),
         }
     }
+}
+
+/// One pack in the catalog, `packs/index.json` on the app's own site (decision 0028): what the
+/// app needs to offer the pack and to check the file it downloads, `<id>-<version>.involo-pack`
+/// beside the catalog. Fields a later catalog adds are ignored, so an older app still reads a
+/// newer catalog.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub struct CatalogEntry {
+    pub id: String,
+    pub name: String,
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
+    pub version: semver::Version,
+    pub aircraft: AircraftInfo,
+    /// The app versions the pack works with, as its manifest gives them.
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
+    pub engine: semver::VersionReq,
+    /// The pack file's size in bytes.
+    #[cfg_attr(feature = "ts", ts(type = "number"))]
+    pub size: u64,
+    /// The pack file's SHA-256, in hex.
+    pub sha256: String,
 }

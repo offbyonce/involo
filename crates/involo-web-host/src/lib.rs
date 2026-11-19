@@ -79,6 +79,32 @@ pub fn parse_pack(json: &str) -> String {
     }))
 }
 
+/// Check a pack file before it is installed (decision 0028): `sha256` is the catalog's hash for a
+/// download, or empty for a file the pilot chose. Answers the pack's summary or every reason it is
+/// refused; nothing is kept.
+#[wasm_bindgen]
+pub fn check_pack(bytes: &[u8], sha256: &str) -> String {
+    let sha256 = Some(sha256).filter(|s| !s.is_empty());
+    reply(Ok::<_, AppError>(involo_app_core::check_pack(
+        bytes, sha256,
+    )))
+}
+
+/// The largest pack file the app reads, in bytes: a larger file is refused before it is read.
+#[wasm_bindgen]
+pub fn pack_file_limit() -> f64 {
+    // Exact: the limit is far below 2^53.
+    #[allow(clippy::cast_precision_loss)]
+    let limit = involo_app_core::MAX_PACK_FILE_BYTES as f64;
+    limit
+}
+
+/// Read the pack catalog, `packs/index.json`.
+#[wasm_bindgen]
+pub fn parse_catalog(json: &str) -> String {
+    reply(involo_app_core::parse_catalog(json))
+}
+
 /// A new flight for a loaded pack.
 #[wasm_bindgen]
 pub fn new_flight(pack: &str) -> String {
@@ -303,6 +329,34 @@ mod tests {
             ))["ok"]["origin"]["icao"],
             "EGLL"
         );
+    }
+
+    #[test]
+    fn a_pack_file_is_checked_against_the_catalog_s_hash() {
+        let dir =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
+        let text =
+            serde_json::to_string(&FlatPack::built(involo_pack::load_pack_dir(&dir).unwrap()))
+                .unwrap();
+        let ready = json(&check_pack(text.as_bytes(), ""));
+        assert_eq!(ready["ok"]["state"], "ready");
+        assert_eq!(ready["ok"]["summary"]["id"], "example-trainer");
+        let hash = involo_pack::sha256_hex(text.as_bytes());
+        assert_eq!(
+            json(&check_pack(text.as_bytes(), &hash))["ok"]["state"],
+            "ready"
+        );
+        let other = json(&check_pack(b"{}", &hash));
+        assert_eq!(other["ok"]["state"], "refused");
+        assert!(
+            other["ok"]["reasons"][0]
+                .as_str()
+                .unwrap()
+                .contains("SHA-256")
+        );
+        assert_eq!(pack_file_limit(), 16.0 * 1024.0 * 1024.0);
+        assert!(json(&parse_catalog("[]"))["ok"].is_array());
+        assert_eq!(json(&parse_catalog("{}"))["error"]["kind"], "PackInvalid");
     }
 
     #[test]
