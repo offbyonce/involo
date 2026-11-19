@@ -80,10 +80,13 @@ in Rust. The host saves progress and settings on the device.
   import { applyPalette, applyScale } from "./theme/tokens";
 
   let {
+    pack: wanted = null,
     onRestart = () => {},
   }: {
-    /** Starts the app again (the root remounts it), after the current pack changes. */
-    onRestart?: () => void;
+    /** The pack a switch chose, opened if installed, before the one the settings name. */
+    pack?: string | null;
+    /** Starts the app again on `pack` (the root remounts it), after the current pack changes. */
+    onRestart?: (pack: string | null) => void;
   } = $props();
   const host = getHost();
   const route = currentRoute();
@@ -231,6 +234,7 @@ in Rust. The host saves progress and settings on the device.
    * before packs were chosen, the one with a saved flight; else the first installed. */
   async function choosePack(installed: InstalledPack[], s: Settings): Promise<string> {
     const ids = installed.map((p) => p.summary.id);
+    if (wanted && ids.includes(wanted)) return wanted;
     if (s.currentPack && ids.includes(s.currentPack)) return s.currentPack;
     if (ids.length < 2) return ids[0] ?? "";
     for (const id of ids) if ((await host.readSaved(id)).flight) return id;
@@ -343,14 +347,16 @@ in Rust. The host saves progress and settings on the device.
     })),
   );
 
-  /** Opens another pack: it becomes the current pack, and the app starts again on it. */
+  /** Opens another pack: it becomes the current pack, and the app starts again on it. The open
+   * pack's flight is saved first; each pack keeps its own (decision 0028). */
   async function switchPack(id: string | null): Promise<void> {
+    if (flight && packId) await persist("flight");
     if (settings) {
       settings = { ...settings, currentPack: id };
       if (packId) await persist("settings");
       else await host.save("", "settings", settings);
     }
-    onRestart();
+    onRestart(id);
   }
 
   /** What an install said, as the Packs page shows it; true when the pack is installed. */

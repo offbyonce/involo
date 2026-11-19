@@ -8,9 +8,9 @@ A stand-in for App in Root's test: counts its mounts and restarts when its butto
 </script>
 
 <script lang="ts">
-  let { onRestart }: { onRestart: () => void } = $props();
+  let { pack, onRestart }: { pack: string | null; onRestart: (pack: string | null) => void } = $props();
   mounts.count++;
   const mine = mounts.count;
 </script>
 
-<button type="button" onclick={onRestart}>{`Mount ${mine}`}</button>
+<button type="button" onclick={() => onRestart(`pack-${mine + 1}`)}>{`Mount ${mine}${pack ? `: ${pack}` : ""}`}</button>
