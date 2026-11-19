@@ -242,10 +242,26 @@ pub fn new_log() -> String {
     reply(Ok::<_, AppError>(involo_app_core::new_log()))
 }
 
-/// Parse the saved flight log's text: ready (migrated if older), newer or unreadable.
+/// The installed packs whose text loading this log text needs (`log_packs`), as a JSON array of
+/// pack ids: empty unless it is a format 1 log.
 #[wasm_bindgen]
-pub fn parse_log(json: &str) -> String {
-    reply(Ok::<_, AppError>(involo_app_core::load_log(json)))
+pub fn log_packs(json: &str) -> String {
+    reply(Ok::<_, AppError>(involo_app_core::log_packs(json)))
+}
+
+/// The glossaries of installed packs, from `packs`: a JSON array of their texts.
+fn glossaries(packs: &str) -> Result<involo_app_core::Glossaries, AppError> {
+    let texts: Vec<String> = read("installed packs", packs)?;
+    Ok(involo_app_core::pack_glossaries(&texts))
+}
+
+/// Parse the saved flight log's text: ready (migrated if older), newer or unreadable. `packs` is
+/// a JSON array of the installed packs' texts that `log_packs` named.
+#[wasm_bindgen]
+pub fn parse_log(json: &str, packs: &str) -> String {
+    reply((|| {
+        Ok::<_, AppError>(involo_app_core::load_log(json, &glossaries(packs)?))
+    })())
 }
 
 /// The flight as a log entry: `plan` is the JSON "simbrief" or "manual", `at` when it was logged
@@ -263,11 +279,16 @@ pub fn log_entry(pack: &str, flight: &str, settings: &str, plan: &str, at: &str)
     })())
 }
 
-/// Applies an edit to the log: add, delete, or merge a log file.
+/// Applies an edit to the log: add, delete, or merge a log file. `packs` is a JSON array of the
+/// installed packs' texts that `log_packs` named for a merged file.
 #[wasm_bindgen]
-pub fn edit_log(log: &str, edit: &str) -> String {
+pub fn edit_log(log: &str, edit: &str, packs: &str) -> String {
     reply((|| {
-        involo_app_core::edit_log(read("log", log)?, read("log edit", edit)?)
+        involo_app_core::edit_log(
+            read("log", log)?,
+            read("log edit", edit)?,
+            &glossaries(packs)?,
+        )
     })())
 }
 
@@ -326,11 +347,15 @@ mod tests {
             json(&new_log())["ok"]["format"],
             involo_app_core::LOG_FORMAT
         );
-        assert_eq!(json(&parse_log(r#"{"format":99}"#))["ok"]["state"], "newer");
+        assert_eq!(
+            json(&parse_log(r#"{"format":99}"#, "[]"))["ok"]["state"],
+            "newer"
+        );
         assert_eq!(
             json(&edit_log(
                 &new_log_text(),
-                r#"{"type":"merge","text":"nope"}"#
+                r#"{"type":"merge","text":"nope"}"#,
+                "[]"
             ))["error"]["kind"],
             "LogFile"
         );

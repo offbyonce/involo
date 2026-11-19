@@ -204,10 +204,18 @@ export async function newLog(): Promise<Log> {
   return unwrap<Log>(wasm.new_log());
 }
 
-/** Reads the saved flight log: ready (migrated if older), newer, or unreadable. */
-export async function parseLog(json: string): Promise<Loaded<Log>> {
+/** The installed packs whose texts reading this log text needs: any only for a format 1 log, whose
+ * entries are named with their pack's glossary. */
+export async function logPacks(json: string): Promise<string[]> {
   await load();
-  return unwrap<Loaded<Log>>(wasm.parse_log(json));
+  return unwrap<string[]>(wasm.log_packs(json));
+}
+
+/** Reads the saved flight log: ready (migrated if older), newer, or unreadable. `packs` are the
+ * texts of the installed packs `logPacks` named. */
+export async function parseLog(json: string, packs: string[] = []): Promise<Loaded<Log>> {
+  await load();
+  return unwrap<Loaded<Log>>(wasm.parse_log(json, JSON.stringify(packs)));
 }
 
 /** The flight as a log entry, logged at `at`. */
@@ -230,10 +238,11 @@ export async function logEntry(
   );
 }
 
-/** Applies an edit to the log: add, delete, or merge a log file. */
-export async function editLog(log: Log, edit: LogEdit): Promise<LogChange> {
+/** Applies an edit to the log: add, delete, or merge a log file. `packs` are the texts of the
+ * installed packs `logPacks` named for a merged file. */
+export async function editLog(log: Log, edit: LogEdit, packs: string[] = []): Promise<LogChange> {
   await load();
-  return unwrap<LogChange>(wasm.edit_log(JSON.stringify(log), JSON.stringify(edit)));
+  return unwrap<LogChange>(wasm.edit_log(JSON.stringify(log), JSON.stringify(edit), JSON.stringify(packs)));
 }
 
 /** The log's flights as CSV. */

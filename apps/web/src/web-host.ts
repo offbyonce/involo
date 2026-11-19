@@ -19,6 +19,7 @@ import {
   editLog,
   logCsv,
   logEntry,
+  logPacks,
   newFlight,
   newLog,
   openSteps,
@@ -73,6 +74,15 @@ const fetchPack: typeof fetch = async (input, init) => {
   lastDownload = { url, bytes };
   return new Response(bytes.slice(0), { status: response.status, headers: response.headers });
 };
+
+/** The texts of the installed packs a log text needs to be read (`logPacks`: only a format 1 log
+ * needs any). A pack that isn't installed, or can't be read, is left out: its entries are named
+ * without its glossary. */
+async function logPackTexts(text: string): Promise<string[]> {
+  const ids = await logPacks(text);
+  const texts = await Promise.all(ids.map((id) => readPackText(id).catch(() => null)));
+  return texts.filter((t): t is string => t !== null);
+}
 
 /** What changed from the installed version of a pack to `text`, another version of it. */
 async function changesFrom(summary: PackSummary, text: string): Promise<PackChanges | null> {
@@ -164,7 +174,7 @@ export const webHost: Host = {
         text: "",
       };
     }
-    return text === null ? null : { loaded: await parseLog(text), text };
+    return text === null ? null : { loaded: await parseLog(text, await logPackTexts(text)), text };
   },
   saveLog: async (log, keep) => {
     const saved = await writeLog(JSON.stringify(log));
@@ -174,6 +184,7 @@ export const webHost: Host = {
     return saved;
   },
   logEntry,
-  editLog,
+  editLog: async (log, edit) =>
+    editLog(log, edit, edit.type === "merge" ? await logPackTexts(edit.text) : []),
   logCsv,
 };

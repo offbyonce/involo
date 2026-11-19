@@ -34,9 +34,10 @@ pub use error::AppError;
 pub use flight::{AnswerSource, FLIGHT_FORMAT, Flight, new_flight};
 pub use log::{
     LOG_FORMAT, LOG_LIMIT, Log, LogChange, LogEdit, LoggedFlight, LoggedStep, LoggedTick,
-    PlanSource, PracticeResult, StageTime, edit_log, load_log, log_csv, log_entry, new_log,
+    PlanSource, PracticeResult, StageTime, edit_log, load_log, log_csv, log_entry, log_packs,
+    new_log,
 };
-pub use names::pack_names;
+pub use names::{Glossaries, pack_glossaries, pack_names};
 pub use open_steps::{OpenStep, open_steps};
 pub use packs::{MAX_PACK_FILE_BYTES, PackCheck, check_pack, load_pack, parse_catalog};
 pub use phase_model::{PhaseLink, PhaseList, PhaseModel, StepRow, phase_model};

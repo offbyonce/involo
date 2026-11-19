@@ -15,8 +15,9 @@ use ts_rs::TS;
 
 use crate::error::AppError;
 use crate::flight::Flight;
+use crate::names::Glossaries;
 use crate::rail::rail;
-use crate::saved::{Loaded, Migration, load_with};
+use crate::saved::{Loaded, load_with};
 use crate::settings::Settings;
 use crate::values::blank_values;
 
@@ -26,19 +27,25 @@ pub const LOG_FORMAT: u32 = 2;
 /// How many flights, and how many practice results, the log keeps.
 pub const LOG_LIMIT: usize = 500;
 
-/// Migrations for [`Log`]: entry `i` turns format `i + 1` into format `i + 2`.
-const LOG_MIGRATIONS: &[Migration] = &[log_1_to_2];
-
 /// Format 2 saves each logged step's name as the app showed it. An entry logged before that has
-/// only the pack's text: its name is that text by the app's naming rule, with no control labels
-/// or glossary, since the entry doesn't carry them (`names::saved_text_name`). The interface shows
-/// this name only for a step its pack no longer has; a step still in the pack is named from it.
-fn log_1_to_2(mut value: serde_json::Value) -> Result<serde_json::Value, String> {
+/// only the pack's text: its name is that text by the app's naming rule, without control labels,
+/// which the entry doesn't carry, and with the glossary of the entry's pack when that pack is
+/// installed (`names::saved_text_name`). The interface shows this name only for a step its pack
+/// no longer has; a step still in the pack is named from it.
+fn log_1_to_2(
+    mut value: serde_json::Value,
+    glossaries: &Glossaries,
+) -> Result<serde_json::Value, String> {
     let flights = value
         .get_mut("flights")
         .and_then(serde_json::Value::as_array_mut)
         .ok_or("the log has no flights")?;
     for flight in flights {
+        let glossary = flight
+            .get("pack")
+            .and_then(serde_json::Value::as_str)
+            .and_then(|id| glossaries.get(id))
+            .cloned();
         for key in ["ticks", "skipped"] {
             for step in flight
                 .get_mut(key)
@@ -49,7 +56,7 @@ fn log_1_to_2(mut value: serde_json::Value) -> Result<serde_json::Value, String>
                 let name = step
                     .get("text")
                     .and_then(serde_json::Value::as_str)
-                    .map(crate::names::saved_text_name)
+                    .map(|text| crate::names::saved_text_name(text, glossary.as_ref()))
                     .unwrap_or_default();
                 if let Some(o) = step.as_object_mut() {
                     o.insert("name".into(), name.into());
@@ -236,9 +243,31 @@ pub fn new_log() -> Log {
     }
 }
 
-/// Read a saved log or a log file.
-pub fn load_log(json: &str) -> Loaded<Log> {
-    load_with(json, LOG_FORMAT, LOG_MIGRATIONS)
+/// Read a saved log or a log file. `glossaries` holds the installed packs' glossaries that
+/// [`log_packs`] asked for, used to name a format 1 log's entries.
+pub fn load_log(json: &str, glossaries: &Glossaries) -> Loaded<Log> {
+    load_with(json, LOG_FORMAT, &[|v| log_1_to_2(v, glossaries)])
+}
+
+/// The packs whose glossaries loading this log text needs: the packs a format 1 log's flights
+/// were logged with, so their entries can be named. None for any other text.
+pub fn log_packs(json: &str) -> Vec<String> {
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(json) else {
+        return Vec::new();
+    };
+    if value.get("format").and_then(serde_json::Value::as_u64) != Some(1) {
+        return Vec::new();
+    }
+    value
+        .get("flights")
+        .and_then(serde_json::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|f| f.get("pack").and_then(serde_json::Value::as_str))
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect()
 }
 
 /// A flight's ticks (oldest first), skipped steps, and each stage's first tick (in the flight's
@@ -421,8 +450,9 @@ fn filled_value(flight: &Flight, step: &involo_checklist_core::Step) -> String {
     out
 }
 
-/// Applies an edit to the log.
-pub fn edit_log(log: Log, edit: LogEdit) -> Result<LogChange, AppError> {
+/// Applies an edit to the log. `glossaries` names a merged format 1 log file's entries, as for
+/// [`load_log`].
+pub fn edit_log(log: Log, edit: LogEdit, glossaries: &Glossaries) -> Result<LogChange, AppError> {
     let mut change = LogChange {
         log,
         added_flights: 0,
@@ -437,7 +467,7 @@ pub fn edit_log(log: Log, edit: LogEdit) -> Result<LogChange, AppError> {
         LogEdit::AddPractice { result } => add_practice(&mut change, vec![result]),
         LogEdit::DeleteFlight { id } => change.log.flights.retain(|f| f.id != id),
         LogEdit::Merge { text } => {
-            let other = match load_log(&text) {
+            let other = match load_log(&text, glossaries) {
                 Loaded::Ready { value, .. } => value,
                 Loaded::Newer { .. } => {
                     return Err(AppError::LogFile(
@@ -736,6 +766,7 @@ mod tests {
             LogEdit::AddFlight {
                 flight: Box::new(f),
             },
+            &Glossaries::new(),
         )
         .unwrap()
     }
@@ -1053,6 +1084,7 @@ mod tests {
             LogEdit::AddPractice {
                 result: result("new", 5000),
             },
+            &Glossaries::new(),
         )
         .unwrap();
         assert_eq!(change.log.practice.len(), LOG_LIMIT);
@@ -1070,9 +1102,13 @@ mod tests {
             log = add(log, entry(id, at)).log;
         }
         let b = log.flights[1].clone();
-        let log = edit_log(log, LogEdit::DeleteFlight { id: "b".into() })
-            .unwrap()
-            .log;
+        let log = edit_log(
+            log,
+            LogEdit::DeleteFlight { id: "b".into() },
+            &Glossaries::new(),
+        )
+        .unwrap()
+        .log;
         assert_eq!(log.flights.len(), 2);
         let log = add(log, b).log;
         let ids: Vec<&str> = log.flights.iter().map(|f| f.id.as_str()).collect();
@@ -1088,7 +1124,7 @@ mod tests {
         theirs.flights = vec![entry("b", 200), entry("a", 100)];
         theirs.practice = vec![result("r2", 300), result("r1", 100)];
         let text = serde_json::to_string(&theirs).unwrap();
-        let change = edit_log(mine, LogEdit::Merge { text }).unwrap();
+        let change = edit_log(mine, LogEdit::Merge { text }, &Glossaries::new()).unwrap();
         assert_eq!(
             (change.added_flights, change.added_practice, change.already),
             (1, 1, 2)
@@ -1103,7 +1139,7 @@ mod tests {
             .map(|n| entry(&format!("f{n}"), 1000 + n))
             .collect();
         let text = serde_json::to_string(&theirs).unwrap();
-        let change = edit_log(big, LogEdit::Merge { text }).unwrap();
+        let change = edit_log(big, LogEdit::Merge { text }, &Glossaries::new()).unwrap();
         assert_eq!(change.log.flights.len(), LOG_LIMIT);
         assert_eq!(
             change.dropped_flights, 2,
@@ -1116,7 +1152,7 @@ mod tests {
         theirs.flights = flights;
         theirs.practice = practice;
         let text = serde_json::to_string(&theirs).unwrap();
-        edit_log(new_log(), LogEdit::Merge { text }).unwrap()
+        edit_log(new_log(), LogEdit::Merge { text }, &Glossaries::new()).unwrap()
     }
 
     #[test]
@@ -1312,7 +1348,12 @@ mod tests {
             "not json",
             r#"{"format": 1, "flights": 3}"#,
         ] {
-            let e = edit_log(new_log(), LogEdit::Merge { text: text.into() }).unwrap_err();
+            let e = edit_log(
+                new_log(),
+                LogEdit::Merge { text: text.into() },
+                &Glossaries::new(),
+            )
+            .unwrap_err();
             assert!(matches!(e, AppError::LogFile(_)), "{text}");
         }
     }
@@ -1323,7 +1364,7 @@ mod tests {
         log.practice.push(result("r", 50));
         let text = serde_json::to_string(&log).unwrap();
         assert_eq!(
-            load_log(&text),
+            load_log(&text, &Glossaries::new()),
             Loaded::Ready {
                 value: log,
                 migrated_from: None
@@ -1331,11 +1372,11 @@ mod tests {
         );
         let newer = LOG_FORMAT + 1;
         assert_eq!(
-            load_log(&format!(r#"{{"format": {newer}}}"#)),
+            load_log(&format!(r#"{{"format": {newer}}}"#), &Glossaries::new()),
             Loaded::Newer { format: newer }
         );
         assert!(matches!(
-            load_log(r#"{"format": 1}"#),
+            load_log(r#"{"format": 1}"#, &Glossaries::new()),
             Loaded::Unreadable { .. }
         ));
     }
@@ -1348,7 +1389,7 @@ mod tests {
         let Loaded::Ready {
             value,
             migrated_from,
-        } = load_log(text)
+        } = load_log(text, &Glossaries::new())
         else {
             panic!("the format 1 log did not load");
         };
@@ -1363,7 +1404,8 @@ mod tests {
         assert_eq!(f.ticks.len(), 3);
         assert_eq!(f.skipped[0].phase_title, "Before start");
         // Format 2's names: an entry logged before them is named from its saved text by the
-        // naming rule, without labels; the text itself stays as saved.
+        // naming rule, without labels (and here without a glossary: its pack isn't installed);
+        // the text itself stays as saved.
         let names: Vec<(&str, &str)> = f
             .ticks
             .iter()
@@ -1378,6 +1420,49 @@ mod tests {
         assert_eq!(value.practice[0].score, 9);
         let raw: serde_json::Value = serde_json::from_str(text).unwrap();
         assert_eq!(raw["format"], json!(1));
+    }
+
+    /// The example pack's text as installed under `id`, with `term` added to its glossary.
+    fn installed_pack(id: &str, term: &str) -> String {
+        let mut pack = serde_json::to_value(crate::test_support::example_pack()).unwrap();
+        pack["manifest"]["id"] = json!(id);
+        pack["content"]["glossary"]["terms"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({ "term": term, "meaning": "A term for the test." }));
+        pack.to_string()
+    }
+
+    #[test]
+    fn a_format_1_entry_keeps_its_installed_pack_s_glossary_terms_in_capitals() {
+        let text = include_str!("../tests/fixtures/log-format-1.json");
+        // The log names the packs it needs; only a format 1 log needs any.
+        assert_eq!(log_packs(text), vec!["trainer".to_owned()]);
+        assert_eq!(
+            log_packs(&serde_json::to_string(&new_log()).unwrap()),
+            Vec::<String>::new()
+        );
+        let named = |packs: &[String]| {
+            let Loaded::Ready { value, .. } = load_log(text, &crate::names::pack_glossaries(packs))
+            else {
+                panic!("the format 1 log did not load");
+            };
+            value.flights[0].skipped[0].name.clone()
+        };
+        // Its pack is installed, with TERR in the glossary: "TERR" stays "TERR".
+        assert_eq!(named(&[installed_pack("trainer", "TERR")]), "TERR");
+        // Its pack isn't installed (another pack is): the rule without a glossary.
+        assert_eq!(named(&[installed_pack("other", "TERR")]), "Terr");
+        assert_eq!(named(&[]), "Terr");
+        // A merged log file is named the same way.
+        let change = edit_log(
+            new_log(),
+            LogEdit::Merge { text: text.into() },
+            &crate::names::pack_glossaries(&[installed_pack("trainer", "TERR")]),
+        )
+        .unwrap();
+        let merged = change.log.flights.iter().find(|f| f.pack == "trainer");
+        assert_eq!(merged.unwrap().skipped[0].name, "TERR");
     }
 
     #[test]
@@ -1402,8 +1487,11 @@ mod tests {
             "ticks": [{ "at": 1, "step": gone, "text": "CREW OXYGEN", "value": "VERIFY" }]
         }], "practice": [] })
         .to_string();
-        let Loaded::Ready { value, .. } = load_log(&text) else {
-            panic!("the format 1 log did not load: {:?}", load_log(&text));
+        let Loaded::Ready { value, .. } = load_log(&text, &Glossaries::new()) else {
+            panic!(
+                "the format 1 log did not load: {:?}",
+                load_log(&text, &Glossaries::new())
+            );
         };
         let f = &value.flights[0];
         assert_eq!(f.skipped[0].name, "Crew oxygen");

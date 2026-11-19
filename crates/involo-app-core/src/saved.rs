@@ -143,10 +143,10 @@ fn settings_1_to_2(mut value: Value) -> Result<Value, String> {
     Ok(value)
 }
 
-pub(crate) fn load_with<T: DeserializeOwned>(
+pub(crate) fn load_with<T: DeserializeOwned, M: Fn(Value) -> Result<Value, String>>(
     json: &str,
     current: u32,
-    migrations: &[Migration],
+    migrations: &[M],
 ) -> Loaded<T> {
     let mut value: Value = match serde_json::from_str(json) {
         Ok(value) => value,
@@ -206,7 +206,7 @@ pub fn load_flight(json: &str) -> Loaded<Flight> {
 
 /// Read the saved SimBrief plan (decision 0019).
 pub fn load_plan(json: &str) -> Loaded<crate::SavedPlan> {
-    load_with(json, crate::PLAN_FORMAT, &[])
+    load_with(json, crate::PLAN_FORMAT, &[] as &[Migration])
 }
 
 /// Read saved settings.
@@ -574,7 +574,7 @@ mod tests {
     #[test]
     fn older_formats_migrate_forward_step_by_step() {
         let chain: &[Migration] = &[rename_title, add_lights];
-        let from_one = load_with::<Demo>(r#"{"format": 1, "title": "A"}"#, 3, chain);
+        let from_one = load_with::<Demo, _>(r#"{"format": 1, "title": "A"}"#, 3, chain);
         let expected = Demo {
             format: 3,
             name: "A".into(),
@@ -587,7 +587,7 @@ mod tests {
                 migrated_from: Some(1)
             }
         );
-        let from_two = load_with::<Demo>(r#"{"format": 2, "name": "B"}"#, 3, chain);
+        let from_two = load_with::<Demo, _>(r#"{"format": 2, "name": "B"}"#, 3, chain);
         assert!(matches!(
             from_two,
             Loaded::Ready {
@@ -595,7 +595,7 @@ mod tests {
                 ..
             }
         ));
-        let broken = load_with::<Demo>(
+        let broken = load_with::<Demo, _>(
             r#"{"format": 1, "title": "A", "name": "x"}"#,
             3,
             &[|_| Err("bad".into()), add_lights],

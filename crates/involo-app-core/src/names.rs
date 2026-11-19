@@ -61,12 +61,30 @@ pub(crate) fn step_name(pack: &FlatPack, step: &Step) -> String {
     sentence(&step.text, &labels, &glossary(pack))
 }
 
-/// The name for a step logged before the log saved names (format 1), from its saved text alone:
-/// the same rule with no labels and no glossary, which a log entry doesn't carry. Codes (a word
-/// with a digit or a slash) still stay in capitals.
-pub(crate) fn saved_text_name(text: &str) -> String {
-    sentence(text, &[], &BTreeSet::new())
+/// The name for a step logged before the log saved names (format 1), from its saved text: the
+/// same rule with no control labels, which a log entry doesn't carry, and with its pack's glossary
+/// when that pack is installed (`None` when it isn't). Codes (a word with a digit or a slash)
+/// stay in capitals either way.
+pub(crate) fn saved_text_name(text: &str, glossary: Option<&BTreeSet<String>>) -> String {
+    let terms: BTreeSet<&str> = glossary.into_iter().flatten().map(String::as_str).collect();
+    sentence(text, &[], &terms)
 }
+
+/// Each pack's glossary terms, by pack id, from installed packs' texts. A text that isn't a pack
+/// is skipped: its entries are named without a glossary.
+pub fn pack_glossaries(texts: &[String]) -> Glossaries {
+    texts
+        .iter()
+        .filter_map(|text| serde_json::from_str::<FlatPack>(text).ok())
+        .map(|pack| {
+            let terms = glossary(&pack).into_iter().map(str::to_owned).collect();
+            (pack.manifest.id.clone(), terms)
+        })
+        .collect()
+}
+
+/// Glossary terms by pack id: what naming a format 1 log's entries needs from installed packs.
+pub type Glossaries = std::collections::BTreeMap<String, BTreeSet<String>>;
 
 fn sentence(text: &str, keep: &[String], glossary: &BTreeSet<&str>) -> String {
     if text != text.to_uppercase() {
@@ -191,9 +209,32 @@ mod tests {
 
     #[test]
     fn a_saved_text_alone_is_named_by_the_same_rule_without_labels() {
-        assert_eq!(saved_text_name("CREW OXYGEN"), "Crew oxygen");
-        assert_eq!(saved_text_name("FMC/CDU PREFLIGHT"), "FMC/CDU preflight");
-        assert_eq!(saved_text_name("IRS 2 ALIGN"), "Irs 2 align");
-        assert_eq!(saved_text_name("Seat belt sign"), "Seat belt sign");
+        assert_eq!(saved_text_name("CREW OXYGEN", None), "Crew oxygen");
+        assert_eq!(
+            saved_text_name("FMC/CDU PREFLIGHT", None),
+            "FMC/CDU preflight"
+        );
+        assert_eq!(saved_text_name("IRS 2 ALIGN", None), "Irs 2 align");
+        assert_eq!(saved_text_name("Seat belt sign", None), "Seat belt sign");
+        // With its pack's glossary, a glossary term stays in capitals.
+        let glossary: BTreeSet<String> = ["IRS".to_owned()].into_iter().collect();
+        assert_eq!(
+            saved_text_name("IRS 2 ALIGN", Some(&glossary)),
+            "IRS 2 align"
+        );
+    }
+
+    #[test]
+    fn installed_packs_give_their_glossaries_by_id() {
+        let pack = crate::test_support::example_pack();
+        let text = serde_json::to_string(&pack).unwrap();
+        let glossaries = pack_glossaries(&[text, "not a pack".into()]);
+        assert_eq!(glossaries.len(), 1);
+        let terms = &glossaries[pack.manifest.id.as_str()];
+        assert!(!terms.is_empty());
+        assert_eq!(
+            terms,
+            &glossary(&pack).into_iter().map(str::to_owned).collect()
+        );
     }
 }
