@@ -401,7 +401,10 @@ and a caution note under If not. A step with no control shows the steps coming u
     font-size: var(--font-size-caption);
     font-weight: var(--weight-regular);
   }
+  /* No touch-size minimum of its own: its target is the whole card (below), and the caption row
+     keeps the board's height. */
   .show {
+    min-height: 0;
     padding: 0;
     border: 0;
     background: none;
