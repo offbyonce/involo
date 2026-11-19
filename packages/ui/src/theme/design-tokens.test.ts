@@ -18,36 +18,72 @@ const SOURCES: Record<string, string> = Object.fromEntries(
   ),
 );
 
-/** The shared drawing renderer (decision 0021): the only files that may draw SVG. Their sizes
- * inside a drawing come from their templates in SVG units (panel-layout.ts); their colors and
- * every size outside the drawing are tokens, like everywhere else. */
-const DRAWINGS = new Set([
-  "lib/PanelSection.svelte",
-  "lib/PanelSchematic.svelte",
-  "lib/PanelPreview.svelte",
-  "lib/PanelNavigator.svelte",
-  "lib/Locator.svelte",
-  "lib/OverviewMap.svelte",
-  "lib/ViewDrawing.svelte",
-  "lib/DeckMap.svelte",
-  "lib/FlowFigure.svelte",
-]);
+/**
+ * Every exception to the token rules, in one place, each with its reason. Nothing else in src may
+ * use a raw color, font family, font size, size, radius or shadow.
+ */
+export const EXCEPTIONS = {
+  /** Files the rules don't read. */
+  files: {
+    "theme/tokens.generated.css": "the generated token file: where the values live",
+    "theme/tokens.generated.ts": "the generated color sets: where the values live",
+  } as Record<string, string>,
+  /** The shared drawing renderer (decision 0021): the only files that may draw SVG. Their sizes
+   * inside a drawing come from their templates in SVG units (panel-layout.ts); their colors and
+   * every size outside the drawing are tokens, like everywhere else. */
+  drawings: {
+    "lib/PanelSection.svelte": "draws a panel section",
+    "lib/PanelSchematic.svelte": "draws a panel schematic",
+    "lib/PanelPreview.svelte": "draws a panel preview",
+    "lib/PanelNavigator.svelte": "draws the panel navigator",
+    "lib/Locator.svelte": "draws the locator map",
+    "lib/OverviewMap.svelte": "draws the flight deck overview",
+    "lib/ViewDrawing.svelte": "draws the side and seat views",
+    "lib/DeckMap.svelte": "draws the flight deck map",
+    "lib/FlowFigure.svelte": "draws the flow figure",
+  } as Record<string, string>,
+  /** Values allowed inside drawing stylesheets: font sizes in SVG units ("11.5px" in Locator),
+   * which scale with the drawing, not the screen. */
+  svgUnits: /^(font-size: \d+(\.\d+)?px)$/,
+};
 
-/** The generated token file. Font sizes in map units inside a drawing ("11.5px" in Locator) are
- * SVG units, not screen sizes. */
-const EXEMPT = new Set(["theme/tokens.generated.css"]);
-/** Sizes in SVG units allowed inside drawing stylesheets. */
-const SVG_UNITS = /^(font-size: \d+(\.\d+)?px)$/;
+const DRAWINGS = new Set(Object.keys(EXCEPTIONS.drawings));
+const EXEMPT = new Set(Object.keys(EXCEPTIONS.files));
+const SVG_UNITS = EXCEPTIONS.svgUnits;
+
+/** CSS named colors (CSS Color 4), which are raw colors too. `transparent` and `currentColor`
+ * name no color of their own and are allowed. */
+const NAMED_COLORS =
+  "aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet brown burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue darkcyan darkgoldenrod darkgray darkgreen darkgrey darkkhaki darkmagenta darkolivegreen darkorange darkorchid darkred darksalmon darkseagreen darkslateblue darkslategray darkslategrey darkturquoise darkviolet deeppink deepskyblue dimgray dimgrey dodgerblue firebrick floralwhite forestgreen fuchsia gainsboro ghostwhite gold goldenrod gray green greenyellow grey honeydew hotpink indianred indigo ivory khaki lavender lavenderblush lawngreen lemonchiffon lightblue lightcoral lightcyan lightgoldenrodyellow lightgray lightgreen lightgrey lightpink lightsalmon lightseagreen lightskyblue lightslategray lightslategrey lightsteelblue lightyellow lime limegreen linen magenta maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream mistyrose moccasin navajowhite navy oldlace olive olivedrab orange orangered orchid palegoldenrod palegreen paleturquoise palevioletred papayawhip peachpuff peru pink plum powderblue purple rebeccapurple red rosybrown royalblue saddlebrown salmon sandybrown seagreen seashell sienna silver skyblue slateblue slategray slategrey snow springgreen steelblue tan teal thistle tomato turquoise violet wheat white whitesmoke yellow yellowgreen".split(
+    " ",
+  );
+const NAMED = new RegExp(`(?<![\\w-])(?:${NAMED_COLORS.join("|")})(?![\\w-])`, "gi");
+/** Properties whose value can hold a color. */
+const COLORED =
+  /^(color|background(-color)?|border(-(top|right|bottom|left|block|inline))?(-color)?|outline(-color)?|fill|stroke|box-shadow|text-shadow|text-decoration(-color)?|caret-color|accent-color|column-rule(-color)?|stop-color|flood-color|lighting-color)$/;
+/** Font-size keywords, which are raw sizes too. */
+const SIZE_WORDS =
+  /(?<![\w-])(?:xx-small|x-small|small|medium|large|x-large|xx-large|xxx-large|smaller|larger)(?![\w-])/g;
+
+/** Every script under src, by its path from src. */
+const SCRIPTS: Record<string, string> = Object.fromEntries(
+  Object.entries(
+    import.meta.glob<string>("../**/*.ts", { query: "?raw", import: "default", eager: true }),
+  ).map(([path, text]) => [path.startsWith("./") ? `theme/${path.slice(2)}` : path.slice(3), text]),
+);
 
 /** The first width of each layout class above phone (docs/design/tokens.json). */
 export const BREAKPOINTS = [600, 900, 1440];
 
-/** The CSS of a file: a stylesheet, or a component's <style> blocks, without comments. */
-function css(path: string): string {
+/** The CSS of a file: a stylesheet, or a component's <style> blocks, without comments. `given` reads
+ * that text as if it were the file at `path`. */
+function css(path: string, given?: string): string {
   // A raw CSS import is empty under Vitest, so stylesheets are read from disk.
-  const text = path.endsWith(".css")
-    ? readFileSync(`${import.meta.dirname}/../${path}`, "utf8")
-    : (SOURCES[path] ?? "");
+  const text =
+    given ??
+    (path.endsWith(".css")
+      ? readFileSync(`${import.meta.dirname}/../${path}`, "utf8")
+      : (SOURCES[path] ?? ""));
   const styles = path.endsWith(".svelte")
     ? [...text.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join("\n")
     : text;
@@ -73,6 +109,18 @@ export function violations(source: string): string[] {
     for (const raw of value.matchAll(/#[0-9a-f]{3,8}\b|\b(?:rgb|rgba|hsl|hsla)\(/gi)) {
       out.push(`${prop}: ${raw[0]}`);
     }
+    if (COLORED.test(prop)) for (const raw of value.matchAll(NAMED)) out.push(`${prop}: ${raw[0]}`);
+    // A family only through a token (or inherited); a size keyword is a raw size.
+    if (prop === "font-family" && !/^\s*(var\(--font-[a-z-]+\)|inherit)\s*$/.test(value))
+      out.push(`${prop}: ${value.trim()}`);
+    if (
+      prop === "font" &&
+      !/^\s*inherit\s*$/.test(value) &&
+      /["']|(?<![\w-])(?:serif|sans-serif|monospace|system-ui|cursive|fantasy)(?![\w-])/.test(value)
+    )
+      out.push(`${prop}: ${value.trim()}`);
+    if (prop === "font-size" || prop === "font")
+      for (const raw of value.matchAll(SIZE_WORDS)) out.push(`${prop}: ${raw[0]}`);
     if (/^font(-weight)?$/.test(prop)) {
       for (const raw of value.matchAll(/(?<![\w.-])(?:[1-9]00|bold|bolder|lighter)(?![\w.-])/g)) {
         out.push(`${prop}: ${raw[0]}`);
@@ -99,6 +147,47 @@ describe("design tokens", () => {
       "breakpoint max-width 600px",
     ]);
     expect(violations("@media (max-width: 899px) { a { margin: 0; gap: var(--space-2); } }")).toEqual([]);
+    // Named colors, font families and font-size keywords are raw values too.
+    expect(
+      violations("a { color: white; border: var(--border-thin) solid Red; white-space: nowrap; }"),
+    ).toEqual(["color: white", "border: Red"]);
+    expect(violations("a { background: transparent; color: currentColor; }")).toEqual([]);
+    expect(violations("a { font-family: Geist, sans-serif; font-size: larger; }")).toEqual([
+      "font-family: Geist, sans-serif",
+      "font-size: larger",
+    ]);
+    expect(violations("a { font-family: var(--font-mono); font: inherit; }")).toEqual([]);
+  });
+
+  it("finds a raw value added to any interface file", () => {
+    for (const raw of [
+      "color: #fff",
+      "font-size: 13px",
+      "border-radius: 7px",
+      "box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2)",
+    ]) {
+      const component = `<div class="x"></div>\n<style>\n  .x { ${raw}; }\n</style>`;
+      expect(violations(css("lib/New.svelte", component)), raw).not.toEqual([]);
+    }
+  });
+
+  it("lists a reason for every exception", () => {
+    for (const reason of [...Object.values(EXCEPTIONS.files), ...Object.values(EXCEPTIONS.drawings)]) {
+      expect(reason.length).toBeGreaterThan(10);
+    }
+    // Every exception names a file that exists.
+    for (const f of [...DRAWINGS, "theme/tokens.generated.css"]) expect(Object.keys(SOURCES)).toContain(f);
+  });
+
+  it("keeps raw colors out of the interface's scripts too", () => {
+    const found = Object.entries(SCRIPTS)
+      .filter(([f]) => !EXEMPT.has(f) && !f.endsWith(".test.ts"))
+      .flatMap(([f, text]) =>
+        [...text.matchAll(/["'`][^"'`\n]*?(#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?)\()/gi)].map(
+          (m) => `${f}: ${m[1]}`,
+        ),
+      );
+    expect(found).toEqual([]);
   });
 
   it("keeps every size and color in the token files", () => {
