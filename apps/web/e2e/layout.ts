@@ -17,7 +17,7 @@ export const WIDTHS = [
 ] as const;
 export const THEMES = ["dark", "light"] as const;
 /** What the page's layout gets wrong at its current size, worked out in the page. */
-function layoutProblems(phone: boolean): string[] {
+export function layoutProblems(phone: boolean): string[] {
   // The smallest tap target on a phone (WCAG 2.5.5, and the boards' 44 px controls).
   const TAP_MIN = 44;
   const out: string[] = [];
@@ -145,7 +145,10 @@ function layoutProblems(phone: boolean): string[] {
     }
   }
   if (phone) {
-    for (const el of onTop) {
+    // Every shown control, wherever the page is scrolled: a control's size doesn't depend on what
+    // lies over it now (the phone's Done bar over the card under it, or a part scrolled away).
+    // The size measured is the tap area: the control's box grown to its stretched target.
+    for (const el of shown) {
       // A link inside running text is exempt (WCAG 2.5.5), and a box inside its label is as big
       // as the label.
       if (el.tagName === "A" && getComputedStyle(el).display === "inline") continue;
