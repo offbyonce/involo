@@ -301,7 +301,9 @@ const seedLog = (() => {
     ${flight(3, day(12, 7, 30), "KPDX", "KSEA", [20, 28], 118, false, [oxy])}],
     practice: [${result(15, 18, "Lights of the flight deck", 17, 20)}, ${result(15, 17, "Custom test · 5 topics", 16, 20)}, ${result(13, 12, "Memory items", 9, 10)}] }`;
   return [
-    `new Promise((done) => { const r = indexedDB.open("involo", 1); r.onupgradeneeded = () => r.result.createObjectStore("log");
+    // At the version the app left the database (it installs its pack there first), not one of
+    // our own: an older version would never open.
+    `new Promise((done) => { const r = indexedDB.open("involo"); r.onupgradeneeded = () => r.result.createObjectStore("log");
       r.onsuccess = () => { const db = r.result; const tx = db.transaction("log", "readwrite"); tx.objectStore("log").put(JSON.stringify(${log}), "log");
         tx.oncomplete = () => { db.close(); window.seeding = true; setTimeout(() => location.reload(), 50); done(true); }; }; })`,
     // Until the reloaded page (which has no "seeding" mark) is ready.

@@ -4,7 +4,7 @@
 // Every section of every panel in the bundled packs lays out cleanly: no control's shape runs
 // into the section's title, another control or the frame, and every label finds a clear place at
 // 3.0's size, the one size all drawings use. Reads
-// the flattened packs that `just web-packs` writes (`just test` runs it first).
+// the packs in the test catalog that `just test-packs` writes (`just test` runs it first).
 
 import type { Panel, PanelItem, PanelSection } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
@@ -12,16 +12,17 @@ import { packAsReceived } from "../test-pack";
 import { half, halfWidth, LAMP, layoutSection, PX } from "./panel-layout";
 import { em } from "./text-width";
 
-/** The flattened packs, by file, as the interface receives them; the pack index file is not a pack. */
+/** The published packs in the test catalog, by file, as the interface receives them. The example
+ * pack is a format demo that is never published, so it is left out. */
 const files: Record<string, { content?: { panels?: Panel[] | null } }> = Object.fromEntries(
   Object.entries(
-    import.meta.glob<string>("../../../../apps/web/public/packs/*.json", {
+    import.meta.glob<string>("../../../../target/test-packs/*.involo-pack", {
       eager: true,
       query: "?raw",
       import: "default",
     }),
   )
-    .filter(([file]) => !file.endsWith("/index.json"))
+    .filter(([file]) => !file.includes("/example-trainer-"))
     .map(([file, text]) => [file, packAsReceived(text)]),
 );
 
@@ -65,7 +66,7 @@ const packs = Object.entries(files)
   .filter((p) => p.panels.length > 0);
 
 describe("bundled pack panels", () => {
-  it("are built (run `just web-packs` first)", () => {
+  it("are built (run `just test-packs` first)", () => {
     expect(packs.length).toBeGreaterThan(0);
   });
 

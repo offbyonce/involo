@@ -5,9 +5,11 @@
 //! packs). A pack that extends a parent is built over it first (decision 0029): parents are found
 //! among the packs beside it, or in the folders `--parents` names.
 //! `involo-pack schema <dir>`    write the JSON Schemas into `<dir>`.
-//! `involo-pack build <dir> <out-dir> [--parents <dir>]`  check each pack, then write it as one
-//!                        flattened `<id>.json`, plus `index.json` listing the packs written. A
-//!                        library is checked but not written: it is only ever a parent.
+//! `involo-pack build <dir>... <out-dir> [--parents <dir>]`  check each pack, then write the
+//!                        catalog (decision 0028): each pack as one flattened
+//!                        `<id>-<version>.involo-pack`, and `index.json` with each one's entry,
+//!                        size and SHA-256. A library is checked but not written: it is only ever
+//!                        a parent.
 //! `involo-pack overlap <dir> [--refs <folder>] [--allow <file>]`  compare pack text with private
 //! reference files. The folder can also come from `INVOLO_OVERLAP_REFS`.
 //! `involo-pack suggest-targets <pack-dir>`  draft each step's targets from its wording, as JSON, with
@@ -24,13 +26,13 @@ use std::process::ExitCode;
 
 use anyhow::{Context, Result, bail};
 use involo_pack::{
-    FlatPack, PackKind, PackSummary, Severity, load_pack_dir, resolve, validate_pack,
+    CatalogEntry, FlatPack, PackKind, Severity, load_pack_dir, resolve, sha256_hex, validate_pack,
 };
 use involo_pack_overlap::{
     AllowList, REFS_VARIABLE, check_refs_location, find_overlaps, load_references, repo_roots,
 };
 
-const USAGE: &str = "usage:\n  involo-pack check <pack-dir | packs-dir>... [--parents <dir>]\n  involo-pack schema <out-dir>\n  involo-pack build <pack-dir | packs-dir> <out-dir> [--parents <dir>]\n  involo-pack overlap <pack-dir | packs-dir> [--refs <folder>] [--allow <file>]\n  involo-pack suggest-targets <pack-dir>\n  involo-pack terms [--json] <pack-dir>";
+const USAGE: &str = "usage:\n  involo-pack check <pack-dir | packs-dir>... [--parents <dir>]\n  involo-pack schema <out-dir>\n  involo-pack build <pack-dir | packs-dir>... <out-dir> [--parents <dir>]\n  involo-pack overlap <pack-dir | packs-dir> [--refs <folder>] [--allow <file>]\n  involo-pack suggest-targets <pack-dir>\n  involo-pack terms [--json] <pack-dir>";
 
 fn main() -> ExitCode {
     match run() {
@@ -49,7 +51,9 @@ fn run() -> Result<bool> {
     match args.split_first() {
         Some((cmd, rest)) if cmd == "check" && !rest.is_empty() => check(rest, &parents),
         Some((cmd, [out])) if cmd == "schema" => schema(Path::new(out)).map(|()| true),
-        Some((cmd, [packs, out])) if cmd == "build" => build(packs, Path::new(out), &parents),
+        Some((cmd, [packs @ .., out])) if cmd == "build" && !packs.is_empty() => {
+            build(packs, Path::new(out), &parents)
+        }
         Some((cmd, rest)) if cmd == "overlap" && !rest.is_empty() => overlap(rest),
         Some((cmd, [dir])) if cmd == "suggest-targets" => suggest_targets(Path::new(dir)),
         Some((cmd, [dir])) if cmd == "terms" => terms(Path::new(dir)),
@@ -292,14 +296,28 @@ fn schema(out: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Check every pack, then write each one as `<out>/<id>.json`, built over its parents. A pack
-/// with errors is not written; nor is a library, which is only ever a parent.
-fn build(packs: &str, out: &Path, parents: &[PathBuf]) -> Result<bool> {
-    let dirs = pack_dirs(packs)?;
-    if dirs.is_empty() {
-        bail!("no packs found in {packs}");
+/// Check every pack, then write the catalog into `out` (decision 0028): each pack, built over its
+/// parents, as `<id>-<version>.involo-pack`, and `index.json` with an entry for each, in the order
+/// given. Pack files already in `out` are removed first. A pack with errors is not written; nor is
+/// a library, which is only ever a parent.
+fn build(packs: &[String], out: &Path, parents: &[PathBuf]) -> Result<bool> {
+    let mut dirs = Vec::new();
+    for arg in packs {
+        let found = pack_dirs(arg)?;
+        if found.is_empty() {
+            bail!("no packs found in {arg}");
+        }
+        dirs.extend(found);
     }
     std::fs::create_dir_all(out).with_context(|| format!("cannot create {}", out.display()))?;
+    // The catalog is what this build writes: pack files left from an earlier one go.
+    for entry in std::fs::read_dir(out).with_context(|| format!("cannot read {}", out.display()))? {
+        let path = entry?.path();
+        if path.extension().is_some_and(|e| e == "involo-pack") {
+            std::fs::remove_file(&path)
+                .with_context(|| format!("cannot remove {}", path.display()))?;
+        }
+    }
     let mut ok = true;
     let mut index = Vec::new();
     for dir in dirs {
@@ -327,22 +345,34 @@ fn build(packs: &str, out: &Path, parents: &[PathBuf]) -> Result<bool> {
             }
             continue;
         }
-        if pack.manifest.kind == PackKind::Library {
-            println!(
-                "library {}: checked, not written (packs extend it)",
-                pack.manifest.id
-            );
+        let m = pack.manifest.clone();
+        let (PackKind::Aircraft, Some(aircraft)) = (m.kind, m.aircraft) else {
+            println!("library {}: checked, not written (packs extend it)", m.id);
             continue;
-        }
-        let path = out.join(format!("{}.json", pack.manifest.id));
-        index.push(PackSummary::from(&pack.manifest));
+        };
         let json = serde_json::to_string(&FlatPack::built(pack))?;
+        let entry = CatalogEntry {
+            id: m.id,
+            name: m.name,
+            version: m.version,
+            aircraft,
+            engine: m.engine,
+            size: json.len() as u64,
+            sha256: sha256_hex(json.as_bytes()),
+        };
+        let path = out.join(catalog_file(&entry));
         std::fs::write(&path, &json).with_context(|| format!("cannot write {}", path.display()))?;
         println!("built {} ({} bytes)", path.display(), json.len());
+        index.push(entry);
     }
     let path = out.join("index.json");
     std::fs::write(&path, serde_json::to_string(&index)?)
         .with_context(|| format!("cannot write {}", path.display()))?;
     println!("wrote {} ({} packs)", path.display(), index.len());
     Ok(ok)
+}
+
+/// A pack's file name in the catalog: `<id>-<version>.involo-pack`, beside `index.json`.
+fn catalog_file(entry: &CatalogEntry) -> String {
+    format!("{}-{}.involo-pack", entry.id, entry.version)
 }

@@ -23,19 +23,29 @@ export function packAsReceived(json: string): FlatPack {
   return reply.ok;
 }
 
+/** A built pack's file text from the test catalog (`just test-packs` writes it, as `just catalog`
+ * writes the published one), found by id through its index.json. */
+export function testPackText(id: string): string {
+  const dir = `${root}/target/test-packs`;
+  const index = JSON.parse(readFileSync(`${dir}/index.json`, "utf8")) as { id: string; version: string }[];
+  const entry = index.find((e) => e.id === id);
+  if (!entry) throw new Error(`${id} is not in the test catalog; run just test-packs`);
+  return readFileSync(`${dir}/${entry.id}-${entry.version}.involo-pack`, "utf8");
+}
+
 let ifly: FlatPack | undefined;
 
 /** The built iFly pack, read once. */
 export function iflyPack(): FlatPack {
-  ifly ??= packAsReceived(readFileSync(`${root}/apps/web/public/packs/ifly-737-max8.json`, "utf8"));
+  ifly ??= packAsReceived(testPackText("ifly-737-max8"));
   return ifly;
 }
 
 let example: FlatPack | undefined;
 
-/** The built example pack (invented, `just web-packs` builds it for tests), read once. */
+/** The built example pack (invented, in the test catalog only), read once. */
 export function examplePack(): FlatPack {
-  example ??= packAsReceived(readFileSync(`${root}/target/test-packs/example-trainer.json`, "utf8"));
+  example ??= packAsReceived(testPackText("example-trainer"));
   return example;
 }
 

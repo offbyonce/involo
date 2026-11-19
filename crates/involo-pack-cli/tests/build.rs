@@ -8,7 +8,7 @@ mod tests {
     use std::path::{Path, PathBuf};
     use std::process::Command;
 
-    use involo_pack::FlatPack;
+    use involo_pack::{CatalogEntry, FlatPack};
 
     fn temp_dir(name: &str) -> PathBuf {
         let dir = std::env::temp_dir().join(format!("pack-build-{}-{name}", std::process::id()));
@@ -25,22 +25,85 @@ mod tests {
             .unwrap()
     }
 
+    /// The pack files in a built catalog, by name.
+    fn pack_files(out: &Path) -> Vec<String> {
+        let mut names: Vec<String> = std::fs::read_dir(out)
+            .map(|d| {
+                d.filter_map(|e| e.ok()?.file_name().into_string().ok())
+                    .filter(|n| n.ends_with(".involo-pack"))
+                    .collect()
+            })
+            .unwrap_or_default();
+        names.sort();
+        names
+    }
+
     #[test]
-    fn writes_one_flattened_file_per_pack() {
+    fn writes_the_catalog_with_each_file_s_size_and_sha256() {
         let out = temp_dir("ok");
         let packs = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs");
         let output = build(&packs, &out);
         assert!(output.status.success(), "{output:?}");
-        let text = std::fs::read_to_string(out.join("example-trainer.json")).unwrap();
-        let flat: FlatPack = serde_json::from_str(&text).unwrap();
-        assert_eq!(flat.manifest.id, "example-trainer");
-        assert_eq!(flat.lists.len(), 3);
-        assert!(out.join("ifly-737-max8.json").is_file());
-        let index: Vec<involo_pack::PackSummary> =
+        let index: Vec<CatalogEntry> =
             serde_json::from_str(&std::fs::read_to_string(out.join("index.json")).unwrap())
                 .unwrap();
         let ids: Vec<&str> = index.iter().map(|p| p.id.as_str()).collect();
         assert_eq!(ids, ["example-trainer", "ifly-737-max8"]);
+        let mut files = Vec::new();
+        for entry in &index {
+            let file = format!("{}-{}.involo-pack", entry.id, entry.version);
+            let bytes = std::fs::read(out.join(&file)).unwrap();
+            // Recomputed from the file as written.
+            assert_eq!(entry.size, bytes.len() as u64, "{file}");
+            assert_eq!(entry.sha256, involo_pack::sha256_hex(&bytes), "{file}");
+            let flat: FlatPack = serde_json::from_slice(&bytes).unwrap();
+            // The entry is the pack's own: aircraft block and app version range included.
+            assert_eq!(
+                Some(&entry.aircraft),
+                flat.manifest.aircraft.as_ref(),
+                "{file}"
+            );
+            assert_eq!(entry.engine, flat.manifest.engine, "{file}");
+            assert_eq!(entry.version, flat.manifest.version, "{file}");
+            // And the app installs it, the hash checked.
+            assert!(matches!(
+                involo_app_core::check_pack(&bytes, Some(&entry.sha256)),
+                involo_app_core::PackCheck::Ready { .. }
+            ));
+            files.push(file);
+        }
+        assert_eq!(pack_files(&out), files, "one file per pack, nothing else");
+        let catalog = std::fs::read_to_string(out.join("index.json")).unwrap();
+        assert_eq!(involo_app_core::parse_catalog(&catalog).unwrap(), index);
+        std::fs::remove_dir_all(out).unwrap();
+    }
+
+    #[test]
+    fn several_packs_are_written_in_the_order_given_and_older_files_go() {
+        let out = temp_dir("order");
+        let packs = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs");
+        // A pack file from an earlier build, of a version no longer published.
+        std::fs::create_dir_all(&out).unwrap();
+        std::fs::write(out.join("example-trainer-0.0.9.involo-pack"), "{}").unwrap();
+        let output = build_with(&[
+            packs.join("ifly-737-max8").as_os_str(),
+            packs.join("example-trainer").as_os_str(),
+            out.as_os_str(),
+        ]);
+        assert!(output.status.success(), "{output:?}");
+        let index: Vec<CatalogEntry> =
+            serde_json::from_str(&std::fs::read_to_string(out.join("index.json")).unwrap())
+                .unwrap();
+        let ids: Vec<&str> = index.iter().map(|p| p.id.as_str()).collect();
+        assert_eq!(ids, ["ifly-737-max8", "example-trainer"]);
+        assert_eq!(
+            pack_files(&out),
+            [
+                "example-trainer-0.1.0.involo-pack",
+                "ifly-737-max8-0.1.0.involo-pack"
+            ],
+            "the earlier build's file is gone"
+        );
         std::fs::remove_dir_all(out).unwrap();
     }
 
@@ -64,7 +127,7 @@ mod tests {
         let out = dir.join("out");
         let output = build(&pack, &out);
         assert_eq!(output.status.code(), Some(1), "{output:?}");
-        assert!(!out.join("demo.json").exists());
+        assert_eq!(pack_files(&out), Vec::<String>::new());
         std::fs::remove_dir_all(dir).unwrap();
     }
 
@@ -92,7 +155,7 @@ mod tests {
         ]);
         assert!(output.status.success(), "{output:?}");
         let flat: FlatPack = serde_json::from_str(
-            &std::fs::read_to_string(out.join("example-variant.json")).unwrap(),
+            &std::fs::read_to_string(out.join("example-variant-0.1.0.involo-pack")).unwrap(),
         )
         .unwrap();
         assert_eq!(flat.manifest.resolved[0].id, "example-trainer");
@@ -102,7 +165,7 @@ mod tests {
             Some(involo_pack::resolve::content_hash(&flat.lists, &flat.content).as_str())
         );
         // The parent is only read, never written beside its child.
-        assert!(!out.join("example-trainer.json").exists());
+        assert_eq!(pack_files(&out), ["example-variant-0.1.0.involo-pack"]);
         std::fs::remove_dir_all(out).unwrap();
     }
 
@@ -129,7 +192,7 @@ mod tests {
             String::from_utf8_lossy(&output.stdout)
                 .contains("library lib.demo: checked, not written")
         );
-        assert!(!out.join("lib.demo.json").exists());
+        assert_eq!(pack_files(&out), Vec::<String>::new());
         let index = std::fs::read_to_string(out.join("index.json")).unwrap();
         assert_eq!(index, "[]");
         std::fs::remove_dir_all(dir).unwrap();
@@ -166,7 +229,7 @@ mod tests {
             err.contains("patches.yaml patch 1 (remove list `nope`): matches no list"),
             "{err}"
         );
-        assert!(!out.join("child.json").exists());
+        assert_eq!(pack_files(&out), Vec::<String>::new());
         std::fs::remove_dir_all(dir).unwrap();
     }
 }

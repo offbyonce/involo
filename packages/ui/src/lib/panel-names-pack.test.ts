@@ -11,16 +11,17 @@ import { describe, expect, it } from "vitest";
 import { packAsReceived } from "../test-pack";
 import { sectionName } from "./panel-name";
 
-/** The flattened packs, by file, as the interface receives them; the pack index file is not a pack. */
+/** The published packs in the test catalog, by file, as the interface receives them. The example
+ * pack is a format demo that is never published, so it is left out. */
 const packs: Record<string, FlatPack> = Object.fromEntries(
   Object.entries(
-    import.meta.glob<string>("../../../../apps/web/public/packs/*.json", {
+    import.meta.glob<string>("../../../../target/test-packs/*.involo-pack", {
       eager: true,
       query: "?raw",
       import: "default",
     }),
   )
-    .filter(([file]) => !file.endsWith("/index.json"))
+    .filter(([file]) => !file.includes("/example-trainer-"))
     .map(([file, text]) => [file, packAsReceived(text)]),
 );
 
