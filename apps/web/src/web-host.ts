@@ -5,7 +5,7 @@
 // APIs (decisions 0010 and 0012). Packs and their index are files beside the app, written by
 // `involo-pack build`; this page is app/index.html, so they are one folder up.
 
-import { isAppError, type SavedPlan } from "@involo/bindings";
+import { isAppError, type PackChanges, type PackSummary, type SavedPlan } from "@involo/bindings";
 import type { Host } from "@involo/ui";
 import { applyBrandTheme } from "./brand-theme";
 import {
@@ -74,9 +74,26 @@ const fetchPack: typeof fetch = async (input, init) => {
   return new Response(bytes.slice(0), { status: response.status, headers: response.headers });
 };
 
-/** What installing a pack needs: Rust's check, the pack store, the clock. */
+/** What changed from the installed version of a pack to `text`, another version of it. */
+async function changesFrom(summary: PackSummary, text: string): Promise<PackChanges | null> {
+  const installed = await readPacks().catch(() => []);
+  const here = installed.find((p) => p.summary.id === summary.id);
+  if (!here || here.summary.version === summary.version) return null;
+  const old = await readPackText(summary.id);
+  return old === null ? null : comparePacks(old, text);
+}
+
+/** What installing a pack needs: Rust's check, the pack store, the clock, and the comparison
+ * with the version it replaces. */
 async function installDeps(): Promise<InstallDeps> {
-  return { limit: await packFileLimit(), check: checkPack, keep: writePack, now: Date.now, askToKeep };
+  return {
+    limit: await packFileLimit(),
+    check: checkPack,
+    keep: writePack,
+    now: Date.now,
+    askToKeep,
+    changes: changesFrom,
+  };
 }
 
 /** The compact plan from a SimBrief reply or a saved file (decision 0019): the raw text is dropped. */

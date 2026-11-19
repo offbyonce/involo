@@ -210,7 +210,7 @@ offers goes back to unanswered), and a panel state follows its alias or is clear
 is gone loses its marks. So when you rename or move a step id, add a `step` alias from the old id;
 a retired id with no alias drops the pilot's tick. The pilot sees what changed (steps added,
 reworded in their name, value, Check or If not, and removed) in What's new before updating and in
-a note after it.
+a note after it, whether the new version comes from the catalog or from a pack file.
 
 **Overlap check.** `just overlap` flags any run of 8 or more words matching plain-text reference
 files (see `INVOLO_OVERLAP_REFS` under "Optional local files" below). It also compares each list's

@@ -243,6 +243,11 @@ in Rust. The host saves progress and settings on the device.
     return ids[0] ?? "";
   }
 
+  /** Settles once start() has opened the pack and its flight (or failed): a change to the open
+   * pack's saved flight waits for it, so the flight being loaded can't be saved over the change. */
+  let started: () => void = () => {};
+  const booted = new Promise<void>((done) => (started = done));
+
   async function start(): Promise<void> {
     try {
       info = await host.appInfo();
@@ -292,6 +297,8 @@ in Rust. The host saves progress and settings on the device.
       void loadPacks();
     } catch (e) {
       fail(e);
+    } finally {
+      started();
     }
   }
 
@@ -382,6 +389,9 @@ in Rust. The host saves progress and settings on the device.
     try {
       const result = await run();
       if (accepted(name, result) && result.state === "installed") {
+        // Another version of an installed pack (a pack file, say): what changed becomes its
+        // flight's update note, as after Update.
+        if (result.changes) await noteUpdate(result.pack.summary.id, result.changes);
         if (open(result.pack.summary.id)) {
           await switchPack(result.pack.summary.id);
           return;
@@ -413,6 +423,7 @@ in Rust. The host saves progress and settings on the device.
   /** Keeps what changed as the note in the pack's saved flight, for after the update. */
   async function noteUpdate(id: string, changes: PackChanges): Promise<void> {
     const action: Action = { type: "noteUpdate", changes };
+    await booted;
     if (id === packId && flight) {
       flight = await host.apply(packId, flight, action);
       await persist("flight");
@@ -435,9 +446,10 @@ in Rust. The host saves progress and settings on the device.
           ? whatsNew.changes
           : await host.packChanges(entry).catch(() => null);
       const result = await host.installCatalogPack(entry);
-      if (!accepted(entry.name, result)) return;
+      if (!accepted(entry.name, result) || result.state !== "installed") return;
       whatsNew = null;
-      if (changes) await noteUpdate(entry.id, changes);
+      const kept = result.changes ?? changes;
+      if (kept) await noteUpdate(entry.id, kept);
       if (entry.id === packId) {
         await switchPack(entry.id);
         return;

@@ -2614,4 +2614,45 @@ describe("a pack update during a flight (decision 0028; PacksUpdate)", () => {
     expect(kept.update?.changes.packName).toBe("Other jet");
     expect(restart).not.toHaveBeenCalled();
   });
+
+  it("a pack file with a newer version keeps what changed as the note, as an update from the catalog does", async () => {
+    window.location.hash = "#/packs";
+    const restart = vi.fn();
+    const saved: Flight[] = [];
+    const h = host({
+      readSaved: async () => readyFlight(flightV("0.1.0")),
+      installPackFile: async () => ({ state: "installed", pack: { ...DEMO, source: "file" }, changes }),
+      apply: noting,
+      save: async (_p, what, value) => {
+        if (what === "flight") saved.push(value as Flight);
+        return 1;
+      },
+    });
+    render(App, { props: { onRestart: restart }, context: hostContext(h) });
+    await screen.findByRole("article", { name: "Demo" });
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+    if (!input) throw new Error("no file input");
+    Object.defineProperty(input, "files", { value: [new File(["x"], "demo-0.2.0.involo-pack")] });
+    await fireEvent.change(input);
+    await waitFor(() => expect(restart).toHaveBeenCalled());
+    expect((saved.at(-1) as Flight & { update?: { changes: PackChanges } }).update?.changes).toEqual(changes);
+  });
+
+  it("counts ticks it couldn't keep when there was no list of changes, and never shows a step id", async () => {
+    window.location.hash = "#/phase/power-up";
+    const lost = { ...changes, added: [], reworded: [], removed: [], lostTicks: 2 } as unknown as PackChanges;
+    render(App, {
+      context: hostContext(
+        host({
+          readSaved: async () => readyFlight(flightV("0.2.0", { changes: lost, seen: false })),
+          apply: noting,
+        }),
+      ),
+    });
+    const note = await screen.findByRole("region", { name: "Pack updated" });
+    expect(
+      within(note).getByText("2 ticks couldn’t be kept: their steps are no longer in the pack."),
+    ).toBeTruthy();
+    expect(note.textContent).not.toMatch(/old-step|\.[a-z-]+\.[a-z-]+/);
+  });
 });

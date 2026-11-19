@@ -152,10 +152,12 @@ export interface Host {
  * shown as "Not from the Involo catalog" wherever the pack is named (decision 0028). */
 export type PackSource = "catalog" | "file";
 export type InstalledPack = { summary: PackSummary; source: PackSource; installedAt: number };
-/** What installing a pack did: installed; passed every check but this device didn't keep it
+/** What installing a pack did: installed (with what changed, when it replaced another version);
+ * passed every check but this device didn't keep it
  * (no storage, or storage refused); or refused, with every reason, and nothing kept. */
 export type PackInstall =
-  | { state: "installed"; pack: InstalledPack }
+  /** `changes`: what changed, when it replaced another installed version of the pack. */
+  | { state: "installed"; pack: InstalledPack; changes?: PackChanges }
   | { state: "notKept"; pack: InstalledPack }
   | { state: "refused"; reasons: string[] };
 export type SavedItem<T> = { loaded: Loaded<T>; text: string } | null;

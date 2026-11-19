@@ -70,6 +70,15 @@ pub struct PackChanges {
     pub added: Vec<ChangedStep>,
     pub reworded: Vec<RewordedStep>,
     pub removed: Vec<ChangedStep>,
+    /// Ticks lost to steps the pack no longer has when no list of changes was made (a flight
+    /// brought in line with a version it was never compared with): counted, never named by id.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub lost_ticks: u32,
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn is_zero(n: &u32) -> bool {
+    *n == 0
 }
 
 /// The note a flight keeps after its pack updated, until the pilot dismisses it.
@@ -213,6 +222,7 @@ pub fn pack_changes(old: &FlatPack, new: &FlatPack) -> PackChanges {
         added,
         reworded,
         removed,
+        lost_ticks: 0,
     }
 }
 
@@ -266,8 +276,13 @@ pub fn reconcile(pack: &FlatPack, flight: &Flight) -> Flight {
             for row in &mut note.changes.removed {
                 row.was_ticked = lost.contains(&row.step);
             }
+            // A lost tick the list doesn't name is counted, never shown by its id.
+            let named: BTreeSet<&StepId> = note.changes.removed.iter().map(|r| &r.step).collect();
+            let unnamed = lost.iter().filter(|id| !named.contains(*id)).count();
+            note.changes.lost_ticks = u32::try_from(unnamed).unwrap_or(u32::MAX);
         }
         None if !dropped.is_empty() => {
+            // No list of changes to mark: say how many ticks went, never which step ids.
             f.update = Some(UpdateNote {
                 changes: PackChanges {
                     pack_name: pack.manifest.name.clone(),
@@ -275,15 +290,8 @@ pub fn reconcile(pack: &FlatPack, flight: &Flight) -> Flight {
                     to_version: version.clone(),
                     added: vec![],
                     reworded: vec![],
-                    removed: dropped
-                        .iter()
-                        .map(|id| ChangedStep {
-                            step: id.clone(),
-                            title: id.to_string(),
-                            place: String::new(),
-                            was_ticked: true,
-                        })
-                        .collect(),
+                    removed: vec![],
+                    lost_ticks: u32::try_from(dropped.len()).unwrap_or(u32::MAX),
                 },
                 seen: false,
             });
@@ -527,8 +535,10 @@ mod tests {
         flight.session.tick(&old.lists[0], &id(DOORS), 2).unwrap();
         let f = reconcile(&next(), &flight);
         let note = f.update.expect("a note for the lost tick");
-        assert_eq!(note.changes.removed.len(), 1);
-        assert!(note.changes.removed[0].was_ticked);
+        // Counted, never named by its step id.
+        assert_eq!(note.changes.lost_ticks, 1);
+        assert_eq!(note.changes.removed, vec![]);
+        assert!(!serde_json::to_string(&note).unwrap().contains(DOORS));
     }
 
     #[test]

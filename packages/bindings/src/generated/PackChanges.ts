@@ -6,4 +6,9 @@ import type { RewordedStep } from "./RewordedStep";
  * What changed between two versions of a pack: the steps added, reworded and removed, each in
  * its pack's order.
  */
-export type PackChanges = { packName: string, fromVersion: string, toVersion: string, added: Array<ChangedStep>, reworded: Array<RewordedStep>, removed: Array<ChangedStep>, };
+export type PackChanges = { packName: string, fromVersion: string, toVersion: string, added: Array<ChangedStep>, reworded: Array<RewordedStep>, removed: Array<ChangedStep>, 
+/**
+ * Ticks lost to steps the pack no longer has when no list of changes was made (a flight
+ * brought in line with a version it was never compared with): counted, never named by id.
+ */
+lostTicks?: number, };

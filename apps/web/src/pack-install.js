@@ -31,15 +31,20 @@ export async function readCatalog({ fetch, parse }) {
   return parse(await response.text());
 }
 
-/** Checks the pack's bytes and keeps it when it passes. */
-async function install(bytes, source, sha256, { check, keep, now, askToKeep }) {
+/**
+ * Checks the pack's bytes and keeps it when it passes. When it replaces another version of an
+ * installed pack, what changed is worked out first, while both versions are here (decision 0028),
+ * and comes back with the result as `changes`, from a file as from the catalog.
+ */
+async function install(bytes, source, sha256, { check, keep, now, askToKeep, changes }) {
   const checked = await check(bytes, sha256);
   if (checked.state === "refused") return checked;
   const pack = { summary: checked.summary, source, installedAt: now() };
   const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  const changed = changes ? await changes(checked.summary, text) : null;
   if (!(await keep({ ...pack, text }))) return { state: "notKept", pack };
   askToKeep();
-  return { state: "installed", pack };
+  return changed ? { state: "installed", pack, changes: changed } : { state: "installed", pack };
 }
 
 /** Installs a pack file the pilot chose. One over `limit` bytes is refused unread. */

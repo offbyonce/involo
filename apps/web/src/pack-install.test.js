@@ -169,3 +169,34 @@ test("an update is downloaded and checked for What's new without installing it",
   assert.equal(refused.state, "refused");
   assert.match(refused.reasons[0], /SHA-256 differs/);
 });
+
+test("a pack file with another version of an installed pack comes with what changed, from a file as from the catalog", async () => {
+  const d = device();
+  // The web host's comparison: the installed version's text against this one, in Rust.
+  const changes = async (summary, next) => {
+    const installed = (await readPacks(d.idb)).find((p) => p.summary.id === summary.id);
+    if (!installed || installed.summary.version === summary.version) return null;
+    return JSON.parse(wasm.compare_packs(await readPackText(summary.id, d.idb), next)).ok;
+  };
+  const deps = { ...d.deps, changes };
+  const first = await installFile(file(bytes), deps);
+  assert.equal(first.state, "installed");
+  assert.equal(first.changes, undefined, "nothing installed before: nothing to compare");
+  // The next version: a new number, the first list's second step's Check reworded.
+  const pack = JSON.parse(text);
+  const step = pack.lists[0].steps[1];
+  const before = step.check ?? "";
+  step.check = "A light comes on";
+  pack.manifest.version = "0.2.0";
+  const next = await installFile(file(new TextEncoder().encode(JSON.stringify(pack))), deps);
+  assert.equal(next.state, "installed");
+  assert.equal(next.changes.fromVersion, "0.1.0");
+  assert.equal(next.changes.toVersion, "0.2.0");
+  assert.deepEqual(
+    next.changes.reworded.map((r) => [r.step, r.title, r.fields]),
+    [[step.id, step.text, [{ field: "Check", before, after: "A light comes on" }]]],
+  );
+  // The same version again: nothing changed.
+  const again = await installFile(file(new TextEncoder().encode(JSON.stringify(pack))), deps);
+  assert.equal(again.changes, undefined);
+});

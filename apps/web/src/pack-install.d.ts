@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import type { CatalogEntry, PackCheck } from "@involo/bindings";
+import type { CatalogEntry, PackChanges, PackCheck, PackSummary } from "@involo/bindings";
 import type { PackInstall } from "@involo/ui";
 import type { PackRecord } from "./pack-store.js";
 
@@ -13,6 +13,9 @@ export type InstallDeps = {
   now: () => number;
   /** Asks once for storage the browser won't clear on its own. */
   askToKeep: () => void;
+  /** What changed from the installed version of the pack to this one, or null when none is
+   * installed or it is the same version. */
+  changes?: (summary: PackSummary, text: string) => Promise<PackChanges | null>;
 };
 
 export function catalogFile(entry: Pick<CatalogEntry, "id" | "version">): string;

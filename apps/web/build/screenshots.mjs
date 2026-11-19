@@ -393,6 +393,13 @@ const updateFromWhatsNew = [
   restarted,
   `new Promise((d) => { let n = 0; const t = setInterval(() => { if (document.querySelector('[aria-label="Pack updated"]') || ++n > 100) { clearInterval(t); setTimeout(d, 300, true); } }, 100); })`,
 ];
+/** Adds the catalog's iFly pack as a pack file (the newer version, from a file): the app opens
+ * again on it, with its note. */
+const addCatalogIflyAsFile = [
+  `(async () => { const index = await (await fetch("../packs/index.json")).json(); const e = index.find((x) => x.id === "ifly-737-max8"); const text = await (await fetch(\`../packs/\${e.id}-\${e.version}.involo-pack\`)).text(); const input = document.querySelector('input[type="file"]'); const dt = new DataTransfer(); dt.items.add(new File([text], \`\${e.id}-\${e.version}.involo-pack\`, { type: "application/json" })); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true })); return true; })()`,
+  restarted,
+  `new Promise((d) => { let n = 0; const t = setInterval(() => { if (document.querySelector('[aria-label="Pack updated"]') || ++n > 100) { clearInterval(t); setTimeout(d, 300, true); } }, 100); })`,
+];
 
 const SHOTS = [
   { name: "phase", app: { hash: "" }, base: { hash: "#cold-dark" } },
@@ -775,6 +782,14 @@ const SHOTS = [
     fresh: true,
     only: ["desktop", "tablet", "phone"],
     app: { hash: "#/phase/before-start", before: [...olderIflyWithChanges, ...openWhatsNew, ...updateFromWhatsNew] },
+  },
+  // The same newer version added from a file: the same list of changes and the same note.
+  {
+    name: "board-update-file-note",
+    full: true,
+    fresh: true,
+    only: ["desktop", "phone"],
+    app: { hash: "#/phase/before-start", before: [...olderIflyWithChanges, ...addCatalogIflyAsFile] },
   },
   ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ name: `how-part-${n}`, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go(`#/how/${n}`)] } })),
   // The phone list with its fold opened: each later list starts with its label row.

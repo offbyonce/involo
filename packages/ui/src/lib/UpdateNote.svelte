@@ -42,6 +42,10 @@ counts as tags, and What changed (open by itself the first time it shows): one r
     <div class="txt">
       <h2>{`${note.changes.packName} updated to version ${note.changes.toVersion}`}</h2>
       <p>Your ticks are kept on every step that’s still there.</p>
+      {#if note.changes.lostTicks}
+        {@const n = note.changes.lostTicks}
+        <p class="lost">{n === 1 ? "1 tick couldn’t be kept: its step is no longer in the pack." : `${n} ticks couldn’t be kept: their steps are no longer in the pack.`}</p>
+      {/if}
       <ChangeList changes={note.changes} tags />
     </div>
     <button class="x" type="button" aria-label="Dismiss" onclick={onDismiss}><Icon name="x" /></button>
@@ -111,6 +115,9 @@ counts as tags, and What changed (open by itself the first time it shows): one r
     color: var(--color-text-secondary);
     font-size: var(--font-size-secondary);
     line-height: var(--leading-normal);
+  }
+  .lost {
+    color: var(--color-text);
   }
   .x {
     display: flex;
