@@ -114,6 +114,7 @@ only the compact plan is kept, decision 0019), the last import, and Reset flight
     <input
       class="sr-only"
       type="file"
+      aria-label="SimBrief OFP file"
       accept=".json,.xml,application/json,text/xml,application/xml"
       tabindex="-1"
       bind:this={picker}

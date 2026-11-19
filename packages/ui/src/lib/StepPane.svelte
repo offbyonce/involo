@@ -183,7 +183,10 @@ and a caution note under If not. A step with no control shows the steps coming u
     </button>
     {#if preview}
       {#if tiles.length}
-        <button class="preview" data-tour="where" type="button" aria-label="Show the whole {[cardName, tilesTitle(tiles, index.sideWords).also].filter(Boolean).join(", ")}" onclick={() => onOpen({ entry: "panel" })}>
+        <!-- The whole card opens the panel: its Show panel button stretches over the card. The
+             button's name is its own words ("Show panel") and what it shows; the drawing and the
+             caption inside the card are not part of the button. -->
+        <div class="preview" data-tour="where">
           {#if drawnTiles[0]}
             <PanelPreview panel={drawnTiles[0].panel} focus={[]} tiles={drawnTiles.map((d) => d.section)} {targets} {guardClosed} label="The whole {cardName}" />
           {/if}
@@ -192,14 +195,14 @@ and a caution note under If not. A step with no control shows the steps coming u
           {/each}
           <span class="foot">
             <span class="cap">{cardName}{#if drawnTiles.length}{" · blue: set by this step"}{/if}</span>
-            <span class="show">Show panel</span>
-            <kbd aria-hidden="true">P</kbd>
+            <button class="show" type="button" aria-label="Show panel: the whole {[cardName, tilesTitle(tiles, index.sideWords).also].filter(Boolean).join(", ")}" onclick={() => onOpen({ entry: "panel" })}>Show panel</button>
+            <kbd aria-hidden="true" data-key="P"></kbd>
           </span>
-        </button>
+        </div>
       {/if}
     {:else}
       <button class="show-panel" type="button" onclick={() => onOpen({ entry: "panel" })}>
-        <Icon name="panel" /> Show panel <kbd aria-hidden="true">P</kbd>
+        <Icon name="panel" /> Show panel <kbd aria-hidden="true" data-key="P"></kbd>
       </button>
     {/if}
     {#if !targets.length && place.control}
@@ -365,6 +368,7 @@ and a caution note under If not. A step with no control shows the steps coming u
   }
   /* The panel preview card (R6PanePre): the whole card is the button; nothing below it. */
   .preview {
+    position: relative;
     flex: none;
     display: flex;
     flex-direction: column;
@@ -398,9 +402,31 @@ and a caution note under If not. A step with no control shows the steps coming u
     font-weight: var(--weight-regular);
   }
   .show {
+    padding: 0;
+    border: 0;
+    background: none;
     color: var(--color-link);
+    font: inherit;
     font-size: var(--font-size-secondary);
     font-weight: var(--weight-semibold);
+  }
+  /* The button's target is the whole card, and so is its focus ring. */
+  .show::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+  }
+  .show:focus-visible {
+    outline: none;
+  }
+  .preview:has(.show:focus-visible) {
+    outline: var(--border-thick) solid var(--color-accent);
+    outline-offset: var(--border-thick);
+  }
+  /* The key is drawn from data-key, so it isn't part of any button's words (a speech user says
+     the button's name, not its shortcut). */
+  kbd::before {
+    content: attr(data-key);
   }
   kbd {
     padding: 0 var(--space-1);

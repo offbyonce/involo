@@ -108,7 +108,7 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
       <!-- Find (Checklist, Tablet and Mobile boards): the word and its shortcut on desktop, the
            icon alone below 1440 px. -->
       <button class="find" data-tour="find" type="button" aria-label="Find a step, control or term" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" onclick={onFind}
-        ><Icon name="find" /><span class="fw">Find</span><span class="fk">{findKey}</span></button
+        ><Icon name="find" /><span class="fw">Find</span><span class="fk" aria-hidden="true" data-key={findKey}></span></button
       >
     {/if}
     {#if view}
@@ -218,6 +218,11 @@ the stage and phase picker; phone keeps Checklist / Flow in the menu.
   .find :global(.icon) {
     width: var(--size-icon-small);
     height: var(--size-icon-small);
+  }
+  /* The shortcut is drawn from data-key, so the button's words are only "Find" (its name starts
+     with them; the shortcut is in aria-keyshortcuts). */
+  .fk::before {
+    content: attr(data-key);
   }
   .fk {
     color: var(--color-text-muted);

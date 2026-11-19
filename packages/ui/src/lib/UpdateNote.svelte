@@ -139,6 +139,7 @@ counts as tags, and What changed (open by itself the first time it shows): one r
     padding-left: calc(var(--space-8) + var(--space-4) + var(--border-thick));
   }
   .fold {
+    position: relative;
     display: inline-flex;
     align-items: center;
     align-self: flex-start;
@@ -152,6 +153,12 @@ counts as tags, and What changed (open by itself the first time it shows): one r
     font-size: var(--font-size-secondary);
     font-weight: var(--weight-semibold);
     cursor: pointer;
+  }
+  /* The tap target is the touch minimum, a little taller than the 40 px the button draws. */
+  .fold::before {
+    position: absolute;
+    inset: calc((var(--space-10) - var(--size-touch-min)) / 2) 0;
+    content: "";
   }
   .acts {
     display: flex;

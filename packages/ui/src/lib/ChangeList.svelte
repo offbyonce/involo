@@ -116,6 +116,7 @@ says so. Used by the update note and by the Packs page's What's new.
     list-style: none;
   }
   .rows li {
+    position: relative;
     display: grid;
     grid-template-columns: calc(var(--space-10) * 2 + var(--space-4)) minmax(0, 1fr);
     align-items: start;
@@ -139,6 +140,13 @@ says so. Used by the update note and by the Packs page's What's new.
     font-size: var(--font-size-secondary);
     font-weight: var(--weight-semibold);
     text-decoration: none;
+  }
+  /* The whole row opens the step (a stretched target over the row, as on the checklist), so the
+     tap target is the row's height, not the line's. */
+  a.step::after {
+    position: absolute;
+    inset: 0;
+    content: "";
   }
   /* A removed step is gone from the pack: named, not linked. */
   .step.plain {

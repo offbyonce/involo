@@ -33,7 +33,7 @@ Colors are given in both themes. Sizes are in pixels unless they carry their own
 | `color.accent-text` | #a9caff | #1d4fd8 |
 | `color.current-row` | #132036 | #eaf1fe |
 | `color.link` | #7fb0ff | #1d4fd8 |
-| `color.done` | #3fb67a | #1f8a55 |
+| `color.done` | #3fb67a | #1a7a4b |
 | `color.on-done` | #08140e | #ffffff |
 | `color.done-soft` | #12261b | #e3f3ea |
 | `color.track` | #2a323e | #d3d9e1 |

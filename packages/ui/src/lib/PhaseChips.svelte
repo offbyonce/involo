@@ -72,7 +72,7 @@ Phone has the progress row instead (ProgressRow).
   </div>
   <button class="more" type="button" aria-label="More phases" onclick={more}><Icon name="chevron-right" /></button>
   <div class="meta">
-    <a class="pill" href="#/settings" aria-label="Step mode: {essentials ? 'Essentials' : 'Full'} and {detail === 'expanded' ? 'Detailed' : 'Simple'}, change"
+    <a class="pill" href="#/settings" aria-label="{essentials ? 'Essentials' : 'Full'} · {detail === 'expanded' ? 'Detailed' : 'Simple'}: step mode, change"
       >{essentials ? "Essentials" : "Full"} · {detail === "expanded" ? "Detailed" : "Simple"}</a
     >
     <span class="count-all" aria-label="{total.done} of {total.total} steps done">{total.done}/{total.total}</span>
