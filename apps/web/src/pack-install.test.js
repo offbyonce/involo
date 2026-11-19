@@ -11,7 +11,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { testPackText } from "../test-packs.js";
 import { fakeIndexedDB } from "./fake-indexeddb.js";
-import { catalogFile, installFile, installFromCatalog, readCatalog } from "./pack-install.js";
+import { catalogFile, downloadPack, installFile, installFromCatalog, readCatalog } from "./pack-install.js";
 import { readPacks, readPackText, writePack } from "./pack-store.js";
 import * as wasm from "./wasm/involo_web_host.js";
 
@@ -156,4 +156,16 @@ test("the catalog is read from the app's own site with nothing about the pilot",
     ["../packs/index.json", { credentials: "omit", referrerPolicy: "no-referrer", cache: "no-cache" }],
   ]);
   assert.equal(catalogFile(entry), "ifly-737-max8-0.1.0.involo-pack");
+});
+
+test("an update is downloaded and checked for What's new without installing it", async () => {
+  const d = device();
+  const got = await downloadPack(entry, { ...d.deps, fetch: served(bytes) });
+  assert.equal(got.state, "ready");
+  assert.equal(got.bytes.length, bytes.length);
+  assert.deepEqual(await readPacks(d.idb), [], "nothing is installed");
+  const tampered = new TextEncoder().encode(text.replace("iFly 737 MAX 8", "iFly 737 MAX 9"));
+  const refused = await downloadPack(entry, { ...d.deps, fetch: served(tampered) });
+  assert.equal(refused.state, "refused");
+  assert.match(refused.reasons[0], /SHA-256 differs/);
 });

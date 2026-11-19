@@ -40,7 +40,15 @@ pub enum Loaded<T> {
 pub(crate) type Migration = fn(Value) -> Result<Value, String>;
 
 /// Migrations for [`Flight`]: entry `i` turns format `i + 1` into format `i + 2`.
-const FLIGHT_MIGRATIONS: &[Migration] = &[flight_1_to_2, flight_2_to_3, flight_3_to_4];
+const FLIGHT_MIGRATIONS: &[Migration] =
+    &[flight_1_to_2, flight_2_to_3, flight_3_to_4, flight_4_to_5];
+
+/// Format 5 adds the note a pack update leaves (decision 0028); an older flight has none, so
+/// nothing changes.
+fn flight_4_to_5(value: Value) -> Result<Value, String> {
+    value.as_object().ok_or("the flight is not an object")?;
+    Ok(value)
+}
 
 /// Format 4 calls the panel state the flight started from what the screen calls it: the saved
 /// key `startState` becomes `panelState`, with the same value (decision 0029, Names).
@@ -255,7 +263,9 @@ mod tests {
         else {
             panic!("the format 4 flight did not load");
         };
-        assert_eq!(migrated_from, None);
+        // Format 5 only adds the update note, which a format 4 flight never has.
+        assert_eq!(migrated_from, Some(4));
+        assert_eq!(value.update, None);
         let values: BTreeMap<String, String> = value
             .values
             .iter()

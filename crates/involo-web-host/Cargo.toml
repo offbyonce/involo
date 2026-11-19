@@ -24,5 +24,8 @@ serde_json.workspace = true
 ts-rs.workspace = true
 wasm-bindgen.workspace = true
 
+[dev-dependencies]
+semver.workspace = true
+
 [lints]
 workspace = true

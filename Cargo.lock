@@ -449,6 +449,7 @@ version = "0.1.0"
 dependencies = [
  "involo-app-core",
  "involo-pack",
+ "semver",
  "serde",
  "serde_json",
  "ts-rs",

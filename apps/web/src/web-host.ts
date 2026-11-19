@@ -12,6 +12,7 @@ import {
   appInfo,
   apply,
   checkPack,
+  comparePacks,
   decodeMetar,
   decodeTaf,
   defaultSettings,
@@ -31,10 +32,17 @@ import {
   planUrl,
   planValues,
   rail,
+  reconcile,
   suggestion,
 } from "./core";
 import { readLog as readLogText, writeLog } from "./log-store.js";
-import { type InstallDeps, installFile, installFromCatalog, readCatalog } from "./pack-install.js";
+import {
+  downloadPack,
+  type InstallDeps,
+  installFile,
+  installFromCatalog,
+  readCatalog,
+} from "./pack-install.js";
 import { deletePack, readPacks, readPackText, writePack } from "./pack-store.js";
 import { readPlan, readSaved, readSettings, removeSaved, save, savePlan, setAside } from "./saved";
 import { fetchPlanText } from "./simbrief-fetch.js";
@@ -51,6 +59,20 @@ function askToKeep(): void {
 
 /** The browser's fetch, called on its own (it refuses to run as another object's method). */
 const fetchOwn: typeof fetch = (input, init) => fetch(input, init);
+
+/** The last pack file downloaded, by address: What's new downloads an update to compare it, and
+ * Update then installs the same bytes without downloading them again. Each pack version has its
+ * own address, so the bytes never go stale. */
+let lastDownload: { url: string; bytes: ArrayBuffer } | null = null;
+const fetchPack: typeof fetch = async (input, init) => {
+  const url = String(input);
+  if (lastDownload?.url === url) return new Response(lastDownload.bytes.slice(0));
+  const response = await fetch(input, init);
+  if (!response.ok) return response;
+  const bytes = await response.arrayBuffer();
+  lastDownload = { url, bytes };
+  return new Response(bytes.slice(0), { status: response.status, headers: response.headers });
+};
 
 /** What installing a pack needs: Rust's check, the pack store, the clock. */
 async function installDeps(): Promise<InstallDeps> {
@@ -78,7 +100,15 @@ export const webHost: Host = {
   installedPacks: () => readPacks(),
   installPackFile: async (file) => installFile(file, await installDeps()),
   installCatalogPack: async (entry) =>
-    installFromCatalog(entry, { ...(await installDeps()), fetch: fetchOwn }),
+    installFromCatalog(entry, { ...(await installDeps()), fetch: fetchPack }),
+  packChanges: async (entry) => {
+    const installed = await readPackText(entry.id);
+    if (installed === null) throw new Error(`The pack ${entry.id} is not installed on this device.`);
+    const got = await downloadPack(entry, { ...(await installDeps()), fetch: fetchPack });
+    if (got.state === "refused") throw new Error(got.reasons.join(" "));
+    return comparePacks(installed, new TextDecoder().decode(got.bytes));
+  },
+  reconcile,
   removePack: (id) => deletePack(id),
   removeSaved,
   loadPack: async (id) => {

@@ -99,6 +99,24 @@ pub fn pack_file_limit() -> f64 {
     limit
 }
 
+/// What changed between two versions of a pack, from their files: the installed one and an update
+/// (decision 0028).
+#[wasm_bindgen]
+pub fn compare_packs(old: &str, new: &str) -> String {
+    reply(involo_app_core::load_pack(old).and_then(|o| {
+        involo_app_core::load_pack(new).map(|n| involo_app_core::pack_changes(&o, &n))
+    }))
+}
+
+/// A saved flight brought in line with the loaded pack's version, through its aliases.
+#[wasm_bindgen]
+pub fn reconcile_flight(pack: &str, flight: &str) -> String {
+    reply(
+        read::<Flight>("flight", flight)
+            .and_then(|f| with_pack(pack, |p| Ok(involo_app_core::reconcile(p, &f)))),
+    )
+}
+
 /// Read the pack catalog, `packs/index.json`.
 #[wasm_bindgen]
 pub fn parse_catalog(json: &str) -> String {
@@ -357,6 +375,41 @@ mod tests {
         assert_eq!(pack_file_limit(), 16.0 * 1024.0 * 1024.0);
         assert!(json(&parse_catalog("[]"))["ok"].is_array());
         assert_eq!(json(&parse_catalog("{}"))["error"]["kind"], "PackInvalid");
+    }
+
+    #[test]
+    fn two_versions_of_a_pack_compare_and_a_flight_is_brought_in_line() {
+        let dir =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
+        let old = FlatPack::from(involo_pack::load_pack_dir(&dir).unwrap());
+        let mut new = old.clone();
+        new.manifest.version = semver::Version::new(0, 2, 0);
+        new.lists[0].steps.remove(1);
+        let (old_json, new_json) = (
+            serde_json::to_string(&old).unwrap(),
+            serde_json::to_string(&new).unwrap(),
+        );
+        let changes = json(&compare_packs(&old_json, &new_json))["ok"].clone();
+        assert_eq!(changes["toVersion"], "0.2.0");
+        assert_eq!(
+            changes["removed"][0]["step"],
+            "example-trainer.before-start.beacon"
+        );
+        // A flight saved with 0.1.0, loaded with 0.2.0: brought in line, the version recorded.
+        json(&parse_pack(&new_json));
+        let flight = json(&new_flight("example-trainer"))["ok"].clone();
+        let mut old_flight = flight.clone();
+        old_flight["packVersion"] = "0.1.0".into();
+        let brought = json(&reconcile_flight(
+            "example-trainer",
+            &old_flight.to_string(),
+        ))["ok"]
+            .clone();
+        assert_eq!(brought["packVersion"], "0.2.0");
+        assert_eq!(
+            json(&compare_packs("{}", &new_json))["error"]["kind"],
+            "PackInvalid"
+        );
     }
 
     #[test]

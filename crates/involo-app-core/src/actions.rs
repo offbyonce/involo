@@ -82,6 +82,15 @@ pub enum Action {
     },
     /// A new flight: ticks, values, notes and timers are cleared; option choices are kept.
     Clear,
+    /// The pack is updating while this flight is saved: keep what changed as the update note
+    /// (decision 0028), in place of any earlier note.
+    NoteUpdate {
+        changes: crate::update::PackChanges,
+    },
+    /// The update note has been shown: its list no longer opens by itself.
+    SeeUpdateNote,
+    /// The pilot dismissed the update note; it doesn't come back.
+    DismissUpdateNote,
 }
 
 fn invalid(message: impl Into<String>) -> AppError {
@@ -326,6 +335,9 @@ pub fn apply(pack: &FlatPack, mut flight: Flight, action: Action) -> Result<Flig
                 flight.options.remove(option);
             }
             flight.answers.clear();
+        }
+        note @ (Action::NoteUpdate { .. } | Action::SeeUpdateNote | Action::DismissUpdateNote) => {
+            crate::update::apply_note(&mut flight, note);
         }
     }
     Ok(flight)

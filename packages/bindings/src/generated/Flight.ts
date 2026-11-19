@@ -2,10 +2,11 @@
 import type { AnswerSource } from "./AnswerSource";
 import type { Session } from "./Session";
 import type { StepId } from "./StepId";
+import type { UpdateNote } from "./UpdateNote";
 
 export type Flight = { format: number, 
 /**
- * The pack this flight belongs to, and its version when the flight started.
+ * The pack this flight belongs to, and the version it was last brought in line with.
  */
 pack: string, packVersion: string, 
 /**
@@ -40,4 +41,9 @@ timers: Record<string, number>,
 /**
  * How each option a decision step asks was answered (format 3, decision 0027).
  */
-answers: { [key in string]: AnswerSource }, };
+answers: { [key in string]: AnswerSource }, 
+/**
+ * What changed when the pack updated during this flight, until the pilot dismisses it
+ * (format 5, decision 0028).
+ */
+update?: UpdateNote | null, };

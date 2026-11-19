@@ -11,14 +11,14 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// The saved format of a [`Flight`]. Raise it, with a migration and tests, when the shape changes.
-pub const FLIGHT_FORMAT: u32 = 4;
+pub const FLIGHT_FORMAT: u32 = 5;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export)]
 pub struct Flight {
     pub format: u32,
-    /// The pack this flight belongs to, and its version when the flight started.
+    /// The pack this flight belongs to, and the version it was last brought in line with.
     pub pack: String,
     pub pack_version: String,
     /// The pilot's choice for each option the pack declares, e.g. the power source.
@@ -45,6 +45,10 @@ pub struct Flight {
     /// How each option a decision step asks was answered (format 3, decision 0027).
     #[serde(default)]
     pub answers: BTreeMap<String, AnswerSource>,
+    /// What changed when the pack updated during this flight, until the pilot dismisses it
+    /// (format 5, decision 0028).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub update: Option<crate::update::UpdateNote>,
 }
 
 /// How a decision was answered: by the pilot, confirmed from the flight plan's suggestion, or
@@ -105,6 +109,7 @@ pub fn new_flight(pack: &FlatPack) -> Flight {
         notes: String::new(),
         timers: BTreeMap::new(),
         answers: BTreeMap::new(),
+        update: None,
     }
 }
 

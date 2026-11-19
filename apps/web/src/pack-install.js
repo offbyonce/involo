@@ -52,10 +52,11 @@ export async function installFile(file, deps) {
 }
 
 /**
- * Downloads a catalog pack and installs it once its SHA-256 matches the catalog's. One the
- * catalog or the server says is over `limit` bytes is refused before it is downloaded.
+ * Downloads a catalog pack and checks it, its SHA-256 against the catalog's: its bytes, or why it
+ * is refused. One the catalog or the server says is over `limit` bytes is refused before it is
+ * downloaded. Nothing is kept.
  */
-export async function installFromCatalog(entry, deps) {
+export async function downloadPack(entry, deps) {
   const tooLarge = refused(`The pack is too large (over ${deps.limit / MB} MB), so it wasn’t downloaded.`);
   if (entry.size > deps.limit) return tooLarge;
   const file = catalogFile(entry);
@@ -70,5 +71,14 @@ export async function installFromCatalog(entry, deps) {
     await response.body?.cancel();
     return tooLarge;
   }
-  return install(new Uint8Array(await response.arrayBuffer()), "catalog", entry.sha256, deps);
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const checked = await deps.check(bytes, entry.sha256);
+  return checked.state === "refused" ? checked : { state: "ready", bytes };
+}
+
+/** Downloads a catalog pack and installs it once its SHA-256 matches the catalog's. */
+export async function installFromCatalog(entry, deps) {
+  const got = await downloadPack(entry, deps);
+  if (got.state === "refused") return got;
+  return install(got.bytes, "catalog", entry.sha256, deps);
 }

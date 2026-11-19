@@ -42,6 +42,7 @@ step at a time (lib/FlowView.svelte).
     decisions,
     inline,
     inlineStep = null,
+    notice,
   }: {
     index: PackIndex;
     view: PhaseModel;
@@ -71,6 +72,8 @@ step at a time (lib/FlowView.svelte).
     /** Below 900 px: the opened step's details, shown in the row of `inlineStep`. */
     inline?: Snippet | undefined;
     inlineStep?: string | null;
+    /** Shown under the title, above the lists: the note after a pack update (PacksUpdate). */
+    notice?: Snippet | undefined;
   } = $props();
   /** The phase's procedure is not done yet: its checklist stays folded (Checklist board). */
   let procedureOpen = $derived(view.lists.some((l) => l.kind === "flow" && !l.complete));
@@ -130,6 +133,8 @@ step at a time (lib/FlowView.svelte).
   </div>
   {#if onGo}<OpenStepsPop {index} {open} {onGo} />{/if}
 </div>
+
+{#if notice}{@render notice()}{/if}
 
 {#each asked as option (option.id)}
   <OptionChoices

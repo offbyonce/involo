@@ -19,6 +19,7 @@ import type {
   LogEdit,
   LoggedFlight,
   OpenStep,
+  PackChanges,
   PackSummary,
   PhaseModel,
   PlanSource,
@@ -50,6 +51,14 @@ export interface Host {
   installPackFile(file: Blob): Promise<PackInstall>;
   /** Downloads a catalog pack, checks it and its SHA-256, and installs it in the same way. */
   installCatalogPack(entry: CatalogEntry): Promise<PackInstall>;
+  /**
+   * What changed between the installed version of a pack and the catalog's update (decision
+   * 0028): the update is downloaded and checked, not installed. Rejects when it is refused.
+   */
+  packChanges(entry: CatalogEntry): Promise<PackChanges>;
+  /** A saved flight brought in line with the loaded pack's version, through its aliases; the
+   * same flight when the versions match. */
+  reconcile(pack: string, flight: Flight): Promise<Flight>;
   /** Removes an installed pack. Resolves false when the device refused. Its saved flight and
    * plan stay unless removeSaved is called too. */
   removePack(id: string): Promise<boolean>;

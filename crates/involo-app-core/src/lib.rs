@@ -21,6 +21,7 @@ mod suggest;
 mod targets;
 #[cfg(test)]
 mod test_support;
+mod update;
 mod values;
 mod visibility;
 mod weather;
@@ -45,5 +46,8 @@ pub use settings::{
 };
 pub use suggest::{Suggestion, suggestion};
 pub use targets::{ItemTarget, step_targets};
+pub use update::{
+    ChangedStep, PackChanges, RewordedStep, Rewording, UpdateNote, pack_changes, reconcile,
+};
 pub use visibility::{Shown, in_essentials, passes, shown_steps, step_shows, visible_steps};
 pub use weather::{Altimeter, Decoded, DecodedRow, Element, altimeter, decode_metar, decode_taf};

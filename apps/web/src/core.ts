@@ -19,6 +19,7 @@ import type {
   LogEdit,
   LoggedFlight,
   OpenStep,
+  PackChanges,
   PackCheck,
   PhaseModel,
   Plan,
@@ -75,6 +76,18 @@ export async function checkPack(bytes: Uint8Array, sha256 = ""): Promise<PackChe
 export async function packFileLimit(): Promise<number> {
   await load();
   return wasm.pack_file_limit();
+}
+
+/** What changed between two versions of a pack, from their files' text (decision 0028). */
+export async function comparePacks(old: string, next: string): Promise<PackChanges> {
+  await load();
+  return unwrap<PackChanges>(wasm.compare_packs(old, next));
+}
+
+/** A saved flight brought in line with the loaded pack's version, through its aliases. */
+export async function reconcile(pack: string, flight: Flight): Promise<Flight> {
+  await load();
+  return unwrap<Flight>(wasm.reconcile_flight(pack, JSON.stringify(flight)));
 }
 
 /** Reads the pack catalog, `packs/index.json`. */

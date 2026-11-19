@@ -25,3 +25,7 @@ export function installFromCatalog(
   entry: CatalogEntry,
   deps: InstallDeps & { fetch: typeof fetch },
 ): Promise<PackInstall>;
+export function downloadPack(
+  entry: CatalogEntry,
+  deps: InstallDeps & { fetch: typeof fetch },
+): Promise<{ state: "refused"; reasons: string[] } | { state: "ready"; bytes: Uint8Array }>;

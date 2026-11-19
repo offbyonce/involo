@@ -212,8 +212,9 @@ before and after shots in its pull request.
 - **Packs page.** One card per installed pack: its name, the aircraft line (family · simulator ·
   developer, from the pack's `aircraft` block), its version, and the saved flight as a progress bar
   (or "No saved flight yet"). The open pack has the accent outline and "In use". "Use this pack"
-  switches; "Remove…" asks first. A waiting update is a band inside the card with "Update";
-  nothing updates without that tap. (The board's "What's new" waits for #105's change list.)
+  switches; "Remove…" asks first. A waiting update is a band inside the card with "What's new"
+  and "Update"; nothing updates without that tap. What's new opens the update note's list of
+  changes in a dialog (the Remove dialog's form, on a phone too), with Close and Update.
 - **Not from the catalog.** A pack added from a file shows the neutral "Not from the Involo
   catalog" badge wherever the pack is named, never in a warning color.
 - **More packs** lists the catalog's packs not on this device, each with Download, its size and
