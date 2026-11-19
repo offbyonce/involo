@@ -6,7 +6,9 @@ packages:
 
 # Every JS dependency version lives here, once. Packages write "catalog:".
 catalog:
+  "@axe-core/playwright": 4.14.0
   "@biomejs/biome": 2.6.6
+  "@playwright/test": 1.65.1
   "@sveltejs/vite-plugin-svelte": 7.3.1
   "@testing-library/svelte": 5.4.2
   jsdom: 31.0.0
