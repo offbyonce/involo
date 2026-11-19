@@ -5,6 +5,7 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { defineConfig, type Plugin } from "vite";
 import { thirdPartyText } from "./build/licenses.js";
 import { writeServiceWorker } from "./build/precache.js";
+import { serveTestCatalog } from "./build/test-catalog.js";
 
 // The site's content security policy (decision 0009): everything from this site only, except
 // SimBrief, which the browser calls directly. 'wasm-unsafe-eval' lets the WebAssembly module
@@ -79,12 +80,24 @@ function thirdPartyLicenses(): Plugin {
   };
 }
 
+// The dev server's packs: the test catalog (build/test-catalog.js). The built site gets its
+// catalog from `just site` instead.
+function testCatalog(): Plugin {
+  return {
+    name: "test-catalog",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use("/packs", serveTestCatalog(server.config.root));
+    },
+  };
+}
+
 // `base: "./"` keeps paths relative, so the built site works under the Pages project path
-// (decision 0010). `just site` builds the WebAssembly module and the packs first; the packs are
-// copied from ./public. Pages: the placeholder front page, the app at app/ and the SimBrief
-// probe page.
+// (decision 0010). `just site` builds the WebAssembly module first, and writes the pack catalog
+// into packs/ after this build, so no pack is in the app's code or its precache list. Pages: the
+// placeholder front page, the app at app/ and the SimBrief probe page.
 export default defineConfig({
-  plugins: [svelte(), contentSecurityPolicy(), thirdPartyLicenses(), serviceWorker()],
+  plugins: [svelte(), contentSecurityPolicy(), thirdPartyLicenses(), serviceWorker(), testCatalog()],
   base: "./",
   server: { port: 1420, strictPort: true },
   build: {

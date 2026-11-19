@@ -25,3 +25,7 @@ export function installFromCatalog(
   entry: CatalogEntry,
   deps: InstallDeps & { fetch: typeof fetch },
 ): Promise<PackInstall>;
+export function openFromCatalog(
+  entry: CatalogEntry,
+  deps: InstallDeps & { fetch: typeof fetch },
+): Promise<{ outcome: PackInstall; text: string | null }>;

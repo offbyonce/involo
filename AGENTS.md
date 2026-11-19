@@ -90,7 +90,7 @@ engine never names an aircraft. **The app never connects to the simulator** (dec
 | `crates/involo-app-core` | App operations that do not depend on where the app runs; `AppError`, `AppInfo` |
 | `crates/involo-checklist-core` | Domain: checklists, steps, sessions. No I/O. |
 | `crates/involo-pack` | Pack manifest, strict YAML loading (`serde-saphyr`), validation, schemas |
-| `crates/involo-pack-cli` | `involo-pack check <dir>`, `involo-pack schema <dir>`, `involo-pack build <dir> <out>` (flattened JSON), `involo-pack overlap <dir>`, `involo-pack suggest-targets <dir>` (drafts step targets) |
+| `crates/involo-pack-cli` | `involo-pack check <dir>`, `involo-pack schema <dir>`, `involo-pack build <dir>... <out>` (the pack catalog: one `<id>-<version>.involo-pack` per pack and `index.json`), `involo-pack overlap <dir>`, `involo-pack suggest-targets <dir>` (drafts step targets) |
 | `crates/involo-pack-overlap` | Text-overlap check against private references, with its allow list (`allow.txt`) |
 | `crates/involo-simbrief` | SimBrief OFP parsing |
 | `crates/store` | SQLite saved data and migrations. Parked: not in the workspace (0010) |
@@ -111,7 +111,9 @@ just setup     # pnpm install + cargo fetch (once after cloning)
 just dev       # run the web app's dev server
 just test      # Rust and interface tests
 just packs     # validate every pack
-just site      # build the web site into apps/web/dist (WebAssembly, packs, app)
+just site      # build the web site into apps/web/dist (WebAssembly, app, then the pack catalog in packs/)
+just catalog <out>  # build the published packs' catalog into <out>
+just test-packs     # the catalog tests and the dev server read, with the example pack, in target/test-packs
 just update-test  # service worker update test in headless Firefox (local; needs Firefox)
 just screenshots <dir>  # review screenshots (five sizes, dark and light) into <dir>
 just ci        # everything; must pass before a push

@@ -16,6 +16,9 @@ export const WORKER = "app/sw.js";
 const OUTSIDE_APP = new Set(["index.html", "simbrief-probe.html"]);
 /** The drawing gallery (design/) and its script: for review only, never part of the app a pilot installs. */
 const DESIGN = (file) => file.startsWith("design/") || /^assets\/design-[^/]*$/.test(file);
+/** The pack catalog (packs/): the pilot installs the packs they want, kept on the device, so none
+ * is precached (decision 0028). */
+const CATALOG = (file) => file.startsWith("packs/");
 
 function filesIn(dir, base = dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -27,7 +30,7 @@ function filesIn(dir, base = dir) {
 /** The files to precache (relative to the site) and the version they give. */
 export function precacheList(dist) {
   const files = filesIn(dist)
-    .filter((file) => file !== WORKER && !OUTSIDE_APP.has(file) && !DESIGN(file))
+    .filter((file) => file !== WORKER && !OUTSIDE_APP.has(file) && !DESIGN(file) && !CATALOG(file))
     .sort();
   const hash = createHash("sha256");
   for (const file of files) {

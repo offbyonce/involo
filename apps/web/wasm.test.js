@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: MIT
 
 // Loads the built WebAssembly module in Node and calls each export once, including on the
-// flattened iFly pack. Run `just wasm web-packs` first (`just test` does).
+// flattened iFly pack. Run `just wasm test-packs` first (`just test` does).
 
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import * as wasm from "./src/wasm/involo_web_host.js";
+import { testPackText } from "./test-packs.js";
 
 const here = import.meta.dirname;
 wasm.initSync({ module: fs.readFileSync(path.join(here, "src/wasm/involo_web_host_bg.wasm")) });
@@ -27,9 +28,7 @@ test("the module answers with app facts and the example checklist", () => {
 });
 
 test("the flattened iFly pack loads", () => {
-  const pack = ok(
-    wasm.parse_pack(fs.readFileSync(path.join(here, "public/packs/ifly-737-max8.json"), "utf8")),
-  );
+  const pack = ok(wasm.parse_pack(testPackText("ifly-737-max8")));
   assert.equal(pack.manifest.id, "ifly-737-max8");
   assert.equal(pack.lists.length, 65);
 });
@@ -47,7 +46,7 @@ test("SimBrief plans read in both forms, and errors arrive tagged", () => {
 });
 
 test("the module keeps a loaded pack for flights, actions and the rail", () => {
-  ok(wasm.parse_pack(fs.readFileSync(path.join(here, "public/packs/ifly-737-max8.json"), "utf8")));
+  ok(wasm.parse_pack(testPackText("ifly-737-max8")));
   const flight = ok(wasm.new_flight("ifly-737-max8"));
   assert.equal(flight.options.power, "gpu");
   const step = "ifly-737-max8.exterior.left-forward-fuselage";

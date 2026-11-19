@@ -184,6 +184,14 @@ given. In `controls.yaml`, a control whose name is plural carries `plural: true`
 optional `short` name ("Overhead", shared by both overhead regions) names that area in the How
 page's flow figure.
 
+**Publishing a pack.** The catalog is built by `just catalog <out>`: each pack in the justfile's
+`published` list (the example pack is a format demo and is not published), checked, as one
+`<id>-<version>.involo-pack`, and `index.json` with each pack's id, name, version, aircraft,
+`engine`, size and SHA-256. `just site` writes it into the site's `packs/`, as separate files the
+service worker never precaches; a release attaches the same files. Interface tests and the dev
+server read `target/test-packs`, which `just test-packs` builds with the same recipe and the
+example pack. Raise a pack's `version` for each change you publish.
+
 **Installing a pack.** The app checks every pack before it keeps it on the device (decision 0028),
 with the checks `involo-pack check` makes, run on the built file. The file must be at most 16 MB
 (a larger one is refused unread), JSON with a manifest, of a format the app reads, not a library,

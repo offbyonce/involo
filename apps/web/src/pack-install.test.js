@@ -2,22 +2,29 @@
 // SPDX-License-Identifier: MIT
 
 // Installs the built iFly pack through the real WebAssembly check into a fake IndexedDB. Run
-// `just wasm web-packs` first (`just test` does).
+// `just wasm test-packs` first (`just test` does).
 
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
+import { testPackText } from "../test-packs.js";
 import { fakeIndexedDB } from "./fake-indexeddb.js";
-import { catalogFile, installFile, installFromCatalog, readCatalog } from "./pack-install.js";
+import {
+  catalogFile,
+  installFile,
+  installFromCatalog,
+  openFromCatalog,
+  readCatalog,
+} from "./pack-install.js";
 import { readPacks, readPackText, writePack } from "./pack-store.js";
 import * as wasm from "./wasm/involo_web_host.js";
 
 const here = import.meta.dirname;
 wasm.initSync({ module: fs.readFileSync(path.join(here, "wasm/involo_web_host_bg.wasm")) });
 
-const text = fs.readFileSync(path.join(here, "../public/packs/ifly-737-max8.json"), "utf8");
+const text = testPackText("ifly-737-max8");
 const bytes = new TextEncoder().encode(text);
 const sha256 = (b) => createHash("sha256").update(b).digest("hex");
 const limit = wasm.pack_file_limit();
@@ -155,4 +162,16 @@ test("the catalog is read from the app's own site with nothing about the pilot",
     ["../packs/index.json", { credentials: "omit", referrerPolicy: "no-referrer", cache: "no-cache" }],
   ]);
   assert.equal(catalogFile(entry), "ifly-737-max8-0.1.0.involo-pack");
+});
+
+test("a catalog pack opens from its download even when this device keeps nothing", async () => {
+  const d = device(null);
+  const opened = await openFromCatalog(entry, { ...d.deps, fetch: served(bytes) });
+  assert.equal(opened.outcome.state, "notKept");
+  assert.equal(opened.text, text);
+  const t = device();
+  const tampered = new TextEncoder().encode(text.replace("iFly 737 MAX 8", "iFly 737 MAX 9"));
+  const refused = await openFromCatalog(entry, { ...t.deps, fetch: served(tampered) });
+  assert.equal(refused.outcome.state, "refused");
+  assert.equal(refused.text, null);
 });

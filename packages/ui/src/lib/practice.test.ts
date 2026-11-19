@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
 import { parseRoute } from "../route.svelte";
-import { iflyPack, packAsReceived } from "../test-pack";
+import { iflyPack, packAsReceived, testPackText } from "../test-pack";
 import { deckAreas } from "./deck";
 import { howCountsOf } from "./how-content";
 import {
@@ -44,9 +44,7 @@ const count = (topic: Topic, id = "") =>
 
 describe("items named by id (decision 0029)", () => {
   it("asks about a light whose note names its item as panel/section/#id", () => {
-    const raw = JSON.parse(
-      readFileSync(`${import.meta.dirname}/../../../../apps/web/public/packs/ifly-737-max8.json`, "utf8"),
-    );
+    const raw = JSON.parse(testPackText("ifly-737-max8"));
     const note = raw.content.lights.lights[0];
     const [panel, section, label] = note.locator.split("/");
     const items = raw.content.panels

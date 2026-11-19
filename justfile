@@ -16,7 +16,7 @@ setup:
     cargo fetch
 
 # Run the web app's dev server (the app is at /app/).
-dev: wasm web-packs
+dev: wasm test-packs
     pnpm --filter @involo/web dev
 
 # Format everything in place.
@@ -37,7 +37,7 @@ lint: wasm
     pnpm --filter @involo/web check
 
 # All tests: Rust (nextest + doctests), the interface (Vitest), the 3.0 converter and the web site.
-test: wasm web-packs
+test: wasm test-packs
     cargo nextest run --workspace
     cargo test --doc --workspace
     pnpm --filter @involo/ui test
@@ -49,18 +49,29 @@ wasm:
     cargo build -q -p involo-web-host --target wasm32-unknown-unknown --profile wasm
     wasm-bindgen --target web --remove-name-section --remove-producers-section --out-dir apps/web/src/wasm target/wasm32-unknown-unknown/wasm/involo_web_host.wasm
 
-# Check the published packs and write them as flattened JSON for the web app to fetch. The
-# example pack is a format demo for authors and is not published.
-web-packs:
-    cargo run -q -p involo-pack-cli -- build packs/ifly-737-max8 apps/web/public/packs
-    # The invented example pack, for interface tests only (it draws every format 6 control).
-    cargo run -q -p involo-pack-cli -- build packs/example-trainer target/test-packs
+# The packs the catalog publishes: every aircraft pack in packs/ except the invented example,
+# which is a format demo for authors. Add a new pack here to publish it.
+published := "packs/ifly-737-max8"
+
+# Build the pack catalog into <out> (decision 0028): each published pack, checked, as one
+# `<id>-<version>.involo-pack`, and index.json with each one's entry, size and SHA-256. Extra packs
+# may follow, for test folders.
+catalog out *extra:
+    cargo run -q -p involo-pack-cli -- build {{published}} {{extra}} {{out}}
+
+# The catalog the interface tests and the dev server read, built the same way into
+# target/test-packs, with the example pack (invented; it draws every format 6 control) after it.
+test-packs:
+    just catalog target/test-packs packs/example-trainer
 
 # Build the deployable web site into apps/web/dist (published to GitHub Pages): the placeholder
 # front page, the work-in-progress app at app/ and the SimBrief probe page, with the WebAssembly
-# module and the flattened packs.
-site: wasm web-packs
+# module, then the catalog under packs/ as separate files, after the app's files are listed for
+# the service worker, so no pack is in the app's code or precached.
+site: wasm
     pnpm --filter @involo/web build
+    just catalog apps/web/dist/packs
+    node apps/web/build/site-check.js apps/web/dist
 
 # The service worker's version-to-version update test in headless Firefox (needs Firefox; not
 # part of `just ci`). See apps/web/build/update-test.mjs.
@@ -80,9 +91,9 @@ practice-diff base="main":
     git worktree remove --force "$dir/base" 2>/dev/null || true
     git worktree add --detach "$dir/base" "{{base}}" >/dev/null
     cp "$dump" "$dir/base/$dump"
-    just wasm web-packs >/dev/null
+    just wasm test-packs >/dev/null
     (cd packages/ui && PRACTICE_DUMP="$dir/branch.json" pnpm exec vitest run src/lib/practice-dump.test.ts >/dev/null)
-    (cd "$dir/base" && pnpm install --frozen-lockfile --prefer-offline >/dev/null && just wasm web-packs >/dev/null \
+    (cd "$dir/base" && pnpm install --frozen-lockfile --prefer-offline >/dev/null && { just wasm test-packs 2>/dev/null || just wasm web-packs; } >/dev/null \
       && cd packages/ui && PRACTICE_DUMP="$dir/base.json" pnpm exec vitest run src/lib/practice-dump.test.ts >/dev/null)
     git worktree remove --force "$dir/base"
     if diff -u "$dir/base.json" "$dir/branch.json" > "$dir/diff.txt"; then

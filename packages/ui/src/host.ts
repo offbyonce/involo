@@ -34,9 +34,12 @@ import { getContext } from "svelte";
 export interface Host {
   /** Basic facts for the About box and the window title. */
   appInfo(): Promise<AppInfo>;
-  /** The packs this build offers. */
+  /** The packs to open: those installed on this device, or else the catalog's. */
   packs(): Promise<PackSummary[]>;
-  /** Loads a pack; it stays loaded for the calls below. */
+  /**
+   * Loads a pack; it stays loaded for the calls below. The installed copy, or else the catalog's,
+   * which is downloaded, checked and installed first.
+   */
   loadPack(id: string): Promise<FlatPack>;
   /**
    * The packs the catalog on the app's own site offers (decision 0028). The request carries
