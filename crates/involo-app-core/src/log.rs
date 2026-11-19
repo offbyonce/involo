@@ -30,7 +30,9 @@ pub const LOG_LIMIT: usize = 500;
 const LOG_MIGRATIONS: &[Migration] = &[log_1_to_2];
 
 /// Format 2 saves each logged step's name as the app showed it. An entry logged before that has
-/// only the pack's text, which becomes its name.
+/// only the pack's text: its name is that text by the app's naming rule, with no control labels
+/// or glossary, since the entry doesn't carry them (`names::saved_text_name`). The interface shows
+/// this name only for a step its pack no longer has; a step still in the pack is named from it.
 fn log_1_to_2(mut value: serde_json::Value) -> Result<serde_json::Value, String> {
     let flights = value
         .get_mut("flights")
@@ -44,9 +46,13 @@ fn log_1_to_2(mut value: serde_json::Value) -> Result<serde_json::Value, String>
                 .into_iter()
                 .flatten()
             {
-                let text = step.get("text").cloned().unwrap_or_default();
+                let name = step
+                    .get("text")
+                    .and_then(serde_json::Value::as_str)
+                    .map(crate::names::saved_text_name)
+                    .unwrap_or_default();
                 if let Some(o) = step.as_object_mut() {
-                    o.insert("name".into(), text);
+                    o.insert("name".into(), name.into());
                 }
             }
         }
@@ -1356,14 +1362,53 @@ mod tests {
         );
         assert_eq!(f.ticks.len(), 3);
         assert_eq!(f.skipped[0].phase_title, "Before start");
-        // Format 2's names: an entry logged before them keeps its saved text as its name.
-        for t in &f.ticks {
-            assert_eq!(t.name, t.text);
-        }
-        assert_eq!(f.skipped[0].name, f.skipped[0].text);
+        // Format 2's names: an entry logged before them is named from its saved text by the
+        // naming rule, without labels; the text itself stays as saved.
+        let names: Vec<(&str, &str)> = f
+            .ticks
+            .iter()
+            .map(|t| (t.text.as_str(), t.name.as_str()))
+            .collect();
+        assert_eq!(names[0], ("BATTERY SWITCH", "Battery switch"));
+        assert_eq!(names[1], ("ALTIMETERS", "Altimeters"));
+        assert_eq!(
+            (f.skipped[0].text.as_str(), f.skipped[0].name.as_str()),
+            ("TERR", "Terr")
+        );
         assert_eq!(value.practice[0].score, 9);
         let raw: serde_json::Value = serde_json::from_str(text).unwrap();
         assert_eq!(raw["format"], json!(1));
+    }
+
+    #[test]
+    fn a_format_1_entry_for_a_step_gone_from_its_pack_is_named_by_the_rule() {
+        // A skipped step logged in format 1, whose step the pack has since removed: the log page
+        // can't name it from the pack, so it shows the name the migration gave it.
+        let gone = "ifly-737-max8.preflight.crew-oxygen-old";
+        let pack = crate::test_support::ifly_pack();
+        assert!(
+            pack.lists
+                .iter()
+                .flat_map(|l| &l.steps)
+                .all(|s| s.id.as_str() != gone)
+        );
+        let text = json!({ "format": 1, "flights": [{
+            "id": "ifly-737-max8@1", "loggedAt": 1, "pack": "ifly-737-max8",
+            "packVersion": "0.0.1", "aircraft": "Trainer", "origin": "KSEA",
+            "destination": "KSFO", "offBlocks": 1, "onBlocks": 2, "stages": [],
+            "done": 0, "total": 1, "plan": "simbrief", "finished": false,
+            "skipped": [{ "step": gone, "text": "CREW OXYGEN", "value": "VERIFY",
+                "stage": "Preflight", "phase": "preflight", "phaseTitle": "Preflight" }],
+            "ticks": [{ "at": 1, "step": gone, "text": "CREW OXYGEN", "value": "VERIFY" }]
+        }], "practice": [] })
+        .to_string();
+        let Loaded::Ready { value, .. } = load_log(&text) else {
+            panic!("the format 1 log did not load: {:?}", load_log(&text));
+        };
+        let f = &value.flights[0];
+        assert_eq!(f.skipped[0].name, "Crew oxygen");
+        assert_eq!(f.skipped[0].text, "CREW OXYGEN");
+        assert_eq!(f.ticks[0].name, "Crew oxygen");
     }
 
     #[test]

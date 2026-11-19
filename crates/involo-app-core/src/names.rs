@@ -45,8 +45,9 @@ pub(crate) fn step_name(pack: &FlatPack, step: &Step) -> String {
         .targets
         .iter()
         .filter_map(|t| {
-            // The item's label on its panel; for a panel the pack doesn't draw, the label the
-            // locator names (`panel/section/LABEL/n`).
+            // The item's label on its panel. When the pack doesn't draw that panel (or that
+            // section), the label the locator itself names: `panel/section/LABEL/n` gives LABEL.
+            // A `panel/section/#id` locator names no label, so it gives none.
             involo_checklist_core::locate(&pack.content.panels, &t.at)
                 .and_then(|(section, item)| section.items.get(item).map(|i| i.label.clone()))
                 .or_else(|| {
@@ -58,6 +59,13 @@ pub(crate) fn step_name(pack: &FlatPack, step: &Step) -> String {
         .filter(|l| !l.is_empty())
         .collect();
     sentence(&step.text, &labels, &glossary(pack))
+}
+
+/// The name for a step logged before the log saved names (format 1), from its saved text alone:
+/// the same rule with no labels and no glossary, which a log entry doesn't carry. Codes (a word
+/// with a digit or a slash) still stay in capitals.
+pub(crate) fn saved_text_name(text: &str) -> String {
+    sentence(text, &[], &BTreeSet::new())
 }
 
 fn sentence(text: &str, keep: &[String], glossary: &BTreeSet<&str>) -> String {
@@ -158,5 +166,34 @@ mod tests {
         // A pack read by the app carries them.
         let json = serde_json::to_string(&pack).unwrap();
         assert_eq!(crate::load_pack(&json).unwrap().names, names);
+    }
+
+    #[test]
+    fn a_step_on_a_panel_the_pack_does_not_draw_keeps_the_label_its_locator_names() {
+        let mut pack = crate::test_support::example_pack();
+        pack.content.panels.clear();
+        pack.content.glossary = None;
+        let mut step = pack.lists[0].steps[0].clone();
+        step.text = "STANDBY POWER SWITCH".into();
+        let target = |at: &str| -> involo_checklist_core::StepTarget {
+            serde_json::from_value(serde_json::json!({ "at": at })).unwrap()
+        };
+        // `panel/section/LABEL/n`: the label between the section and the count.
+        step.targets = vec![target("oh/elec/STANDBY POWER/1")];
+        assert_eq!(step_name(&pack, &step), "STANDBY POWER switch");
+        // `panel/section/#id` names an item by its id, not its label: no label to keep.
+        step.targets = vec![target("oh/elec/#stby-power")];
+        assert_eq!(step_name(&pack, &step), "Standby power switch");
+        // With no target at all, the name is the plain sentence.
+        step.targets.clear();
+        assert_eq!(step_name(&pack, &step), "Standby power switch");
+    }
+
+    #[test]
+    fn a_saved_text_alone_is_named_by_the_same_rule_without_labels() {
+        assert_eq!(saved_text_name("CREW OXYGEN"), "Crew oxygen");
+        assert_eq!(saved_text_name("FMC/CDU PREFLIGHT"), "FMC/CDU preflight");
+        assert_eq!(saved_text_name("IRS 2 ALIGN"), "Irs 2 align");
+        assert_eq!(saved_text_name("Seat belt sign"), "Seat belt sign");
     }
 }
