@@ -18,4 +18,5 @@ export {
   type Saved,
   type SavedItem,
 } from "./host";
+export { default as Root } from "./Root.svelte";
 export { COLOR } from "./theme/tokens.generated";

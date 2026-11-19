@@ -351,6 +351,28 @@ const savedAs = (what) => [
   `(() => { localStorage.setItem("involo.${what}.ifly-737-max8", '{"format":99}'); setTimeout(() => location.reload(), 50); return true; })()`,
   "new Promise((done) => { const t = setInterval(() => { if (document.querySelector('[data-app-ready]') && document.querySelector('.kept')) { clearInterval(t); done(true); } }, 100); })",
 ];
+/** The example pack's built file (`just test-packs`), added from a file on the Packs page. */
+const examplePack = (() => {
+  const dir = path.resolve(web, "../../target/test-packs");
+  const index = JSON.parse(fs.readFileSync(path.join(dir, "index.json"), "utf8"));
+  const e = index.find((x) => x.id === "example-trainer");
+  return fs.readFileSync(path.join(dir, `${e.id}-${e.version}.involo-pack`), "utf8");
+})();
+/** Until the app has started again on a pack (after an install, a switch or a reload). */
+const restarted = `new Promise((done) => { let n = 0; const t = setInterval(() => { if (document.querySelector("#drawer") || ++n > 150) { clearInterval(t); setTimeout(() => done(true), 300); } }, 100); })`;
+/** Adds the example pack from a file on the Packs page; installing opens it. */
+const addExample = [go("#/packs"), `new Promise((d) => setTimeout(() => d(true), 300))`, chooseFile('input[type="file"]', examplePack, "example-trainer.involo-pack"), restarted];
+/** Makes the installed iFly pack an older version, so the catalog's is an update (PacksDesktop's band). */
+const olderIfly = [
+  `new Promise((done) => { const r = indexedDB.open("involo"); r.onsuccess = () => { const db = r.result; const tx = db.transaction("packs", "readwrite"); const store = tx.objectStore("packs"); const g = store.get("ifly-737-max8"); g.onsuccess = () => { const rec = g.result; rec.summary.version = "0.0.9"; store.put(rec, "ifly-737-max8"); }; tx.oncomplete = () => { db.close(); location.reload(); done(true); }; }; })`,
+  restarted,
+];
+/** No pack on this device: the first launch (PacksFirst). */
+const noPacks = [
+  `new Promise((done) => { const r = indexedDB.open("involo"); r.onsuccess = () => { const db = r.result; const tx = db.transaction("packs", "readwrite"); tx.objectStore("packs").clear(); tx.oncomplete = () => { db.close(); location.reload(); done(true); }; }; })`,
+  `new Promise((done) => { let n = 0; const t = setInterval(() => { if (document.querySelector(".packs.first [data-app-ready], .packs.first") || ++n > 150) { clearInterval(t); setTimeout(() => done(true), 600); } }, 100); })`,
+];
+
 const SHOTS = [
   { name: "phase", app: { hash: "" }, base: { hash: "#cold-dark" } },
   {
@@ -704,6 +726,25 @@ const SHOTS = [
   { name: "board-refs", full: true, only: ["desktop", "phone", "tablet", "tablet-landscape"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/references")] } },
   { name: "refs-sim-find", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/references"), click(".sim .more")] } },
   { name: "board-log-empty", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/log")] } },
+  // Packs (Packs boards): the page with the open pack's saved flight; two packs, one from a file,
+  // with an update waiting; the switcher; Remove…; and the first launch. `fresh`: the shot changes
+  // the installed packs, so iFly is installed again after it.
+  { name: "board-packs", full: true, only: ["desktop", "phone", "tablet"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go("#/packs")] } },
+  {
+    name: "board-packs-two",
+    full: true,
+    fresh: true,
+    only: ["desktop", "phone"],
+    app: { hash: "#/phase/before-start", before: [...BOARD_STATE, ...olderIfly, ...addExample, go("#/packs")] },
+  },
+  {
+    name: "board-packs-switcher",
+    fresh: true,
+    only: ["desktop", "phone"],
+    app: { hash: "#/phase/before-start", before: [...BOARD_STATE, ...addExample, click('button[aria-label="Menu"]'), click("#drawer .packline")] },
+  },
+  { name: "board-packs-remove", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go("#/packs"), click('button[aria-label^="Remove "]')] } },
+  { name: "board-packs-first", full: true, fresh: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: noPacks } },
   ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ name: `how-part-${n}`, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go(`#/how/${n}`)] } })),
   // The phone list with its fold opened: each later list starts with its label row.
   { name: "board-phone-fold", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("button.after"), click("button.card.folded"), `(() => { [...document.querySelectorAll("section.card > p.label")].find((p) => p.offsetParent)?.scrollIntoView({ block: "center" }); return true; })()`] } },
@@ -788,6 +829,17 @@ async function openAt(profile, prefs, viewport, firstUrl) {
     firefox.kill();
     throw e;
   }
+}
+
+/** On the first launch (no packs on this device), downloads the iFly pack from the catalog, as a
+ * pilot does; the app then starts on it. */
+async function installIfly(browser, target) {
+  await visit(browser, target.url(""), target.ready);
+  const first = await browser.js(`!!document.querySelector(".packs.first")`);
+  if (!first) return;
+  await browser.until(`!!document.querySelector('button[aria-label="Download iFly 737 MAX 8"]')`, "the catalog");
+  await browser.js(click('button[aria-label="Download iFly 737 MAX 8"]'));
+  await browser.until(`!!document.querySelector("#drawer")`, "the iFly pack to open");
 }
 
 async function visit(browser, url, ready) {
@@ -928,9 +980,9 @@ async function main() {
       url: (hash) => `http://localhost:8772/app/?shot=${Date.now()}${hash}`,
       ready: "!!document.querySelector('[data-app-ready]')",
       dir: out,
-      // The app saves progress on the device: each screen starts from nothing saved.
-      // The Flight log lives in IndexedDB: removed too.
-      reset: `localStorage.clear(); sessionStorage.clear(); new Promise((done) => { const r = indexedDB.deleteDatabase("involo"); r.onsuccess = r.onerror = r.onblocked = () => done(true); })`,
+      // The app saves progress on the device: each screen starts from nothing saved. The Flight log
+      // lives in IndexedDB: cleared too, with any pack but the iFly pack the browser installed.
+      reset: `localStorage.clear(); sessionStorage.clear(); new Promise((done) => { const r = indexedDB.open("involo"); r.onerror = () => done(true); r.onsuccess = () => { const db = r.result; const stores = ["log", "packs"].filter((x) => db.objectStoreNames.contains(x)); if (!stores.length) { db.close(); return done(true); } const tx = db.transaction(stores, "readwrite"); if (stores.includes("log")) tx.objectStore("log").clear(); if (stores.includes("packs")) { const all = tx.objectStore("packs").getAllKeys(); all.onsuccess = () => { for (const k of all.result) if (k !== "ifly-737-max8") tx.objectStore("packs").delete(k); }; } tx.oncomplete = () => { db.close(); done(true); }; }; })`,
     },
   ];
   if (baseline) {
@@ -967,6 +1019,7 @@ async function main() {
           // browser: each shot starts from them, so no shot shows the welcome or a fresh save time.
           let seen = "";
           if (target.side === "app") {
+            await installIfly(browser, target);
             await visit(browser, target.url(""), target.ready);
             await browser.js(`localStorage.clear(); sessionStorage.clear(); true`);
             await visit(browser, target.url(""), target.ready);
@@ -997,6 +1050,11 @@ async function main() {
                   if (attempt === 2) throw e;
                   process.stderr.write(`retrying ${target.side} ${key}: ${e.message}\n`);
                 }
+              }
+              // The shot changed the installed packs: back to iFly alone, installed as a pilot does.
+              if (shot.fresh && target.side === "app") {
+                await browser.js(`new Promise((done) => { const r = indexedDB.deleteDatabase("involo"); r.onsuccess = r.onerror = r.onblocked = () => done(true); })`);
+                await installIfly(browser, target);
               }
               if (target.side === "app") written.push(`${key}.png`);
               else pairs.push(key);

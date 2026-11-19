@@ -4,7 +4,7 @@
 // Screens have their own address after `#`, so Back works and a screen can be bookmarked,
 // offline too. `#/phase/<id>`, `#/reference` (optionally `/<phase id>`), `#/settings`,
 // `#/flight/<section>` (the Flight pages; optionally `/<field>` to focus a field, or the
-// Weather tab), `#/open` (open steps), `#/glossary` (optionally `/<term>`), `#/deck` (optionally `/<area>/<place>`), `#/messages` (the Flight deck's Alert messages, optionally `/<message id>`), `#/practice`, `#/how` (optionally `/<part>`, 1 to 7), `#/log` (optionally `/<flight id>`, or `/current` for This flight), `#/references`; anything else is the start. `#/setup` (Flight setup until
+// Weather tab), `#/open` (open steps), `#/glossary` (optionally `/<term>`), `#/deck` (optionally `/<area>/<place>`), `#/messages` (the Flight deck's Alert messages, optionally `/<message id>`), `#/practice`, `#/how` (optionally `/<part>`, 1 to 7), `#/log` (optionally `/<flight id>`, or `/current` for This flight), `#/references`, `#/packs`; anything else is the start. `#/setup` (Flight setup until
 // leads to Flight › Overview.
 
 export type Route =
@@ -20,7 +20,8 @@ export type Route =
   | { screen: "practice" }
   | { screen: "how"; part: number | null }
   | { screen: "log"; entry: string | null }
-  | { screen: "references" };
+  | { screen: "references" }
+  | { screen: "packs" };
 
 export function parseRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
@@ -42,6 +43,7 @@ export function parseRoute(hash: string): Route {
     return { screen: "how", part: Number.isInteger(n) && n >= 1 ? n : null };
   }
   if (parts[0] === "references") return { screen: "references" };
+  if (parts[0] === "packs") return { screen: "packs" };
   if (parts[0] === "log") return { screen: "log", entry: parts[1] ?? null };
   if (parts[0] === "messages") return { screen: "messages", id: parts[1] ?? null };
   if (parts[0] === "deck") return { screen: "deck", area: parts[1] ?? null, zone: parts[2] ?? null };

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-import { App, hostContext } from "@involo/ui";
+import { hostContext, Root } from "@involo/ui";
 import "@involo/ui/app.css";
 import "./app-page.css";
 import "./fonts/fonts.css";
@@ -21,4 +21,4 @@ try {
 }
 registerServiceWorker();
 
-export default mount(App, { target, context: hostContext(webHost) });
+export default mount(Root, { target, context: hostContext(webHost) });

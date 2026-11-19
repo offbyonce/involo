@@ -77,7 +77,17 @@ const SETTINGS_MIGRATIONS: &[Migration] = &[
     settings_3_to_4,
     settings_4_to_5,
     settings_5_to_6,
+    settings_6_to_7,
 ];
+
+/// Format 7 adds the pack the app opens and the pilot's seat (decision 0028), neither chosen yet.
+/// The app sets the pack from the flight saved with format 6, the one pack the app had then.
+fn settings_6_to_7(mut value: Value) -> Result<Value, String> {
+    let object = value.as_object_mut().ok_or("settings are not an object")?;
+    object.insert("currentPack".into(), Value::Null);
+    object.insert("seat".into(), Value::Null);
+    Ok(value)
+}
 
 /// Format 6 adds whether the tour's welcome card has been seen. Settings saved before it come from
 /// someone who has used the app already, so it counts as seen: the welcome is for a first visit.
@@ -350,8 +360,43 @@ mod tests {
                 panic!("{text}: saved settings did not load");
             };
             assert_eq!(value.list_view, layout);
-            assert_eq!(serde_json::to_string(&value).unwrap(), saved(text));
+            // Saved back the same, in today's format with the fields format 7 added.
+            let mut back: serde_json::Value = serde_json::to_value(&value).unwrap();
+            let object = back.as_object_mut().unwrap();
+            assert_eq!(object.remove("currentPack"), Some(serde_json::Value::Null));
+            assert_eq!(object.remove("seat"), Some(serde_json::Value::Null));
+            object.insert("format".into(), json!(6));
+            let before: serde_json::Value = serde_json::from_str(&saved(text)).unwrap();
+            assert_eq!(back, before);
         }
+    }
+
+    #[test]
+    fn settings_saved_in_format_6_keep_every_value_and_choose_no_pack_yet() {
+        // Frozen: format 6 settings as the app saved them, every value changed from its default.
+        let text = include_str!("../tests/fixtures/settings-format-6.json");
+        let Loaded::Ready {
+            value,
+            migrated_from,
+        } = load_settings(text)
+        else {
+            panic!("format 6 settings did not load");
+        };
+        assert_eq!(migrated_from, Some(6));
+        assert_eq!(value.format, SETTINGS_FORMAT);
+        assert_eq!(
+            (value.current_pack.as_deref(), value.seat.as_deref()),
+            (None, None)
+        );
+        let mut kept = serde_json::to_value(&value).unwrap();
+        let object = kept.as_object_mut().unwrap();
+        object.remove("currentPack");
+        object.remove("seat");
+        object.insert("format".into(), json!(6));
+        assert_eq!(
+            kept,
+            serde_json::from_str::<serde_json::Value>(text).unwrap()
+        );
     }
 
     #[test]

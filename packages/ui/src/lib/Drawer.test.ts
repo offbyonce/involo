@@ -28,9 +28,9 @@ describe("Drawer", () => {
     expect(container.querySelector(".name")?.textContent?.trim()).toBe("involo");
     expect(container.querySelector(".mark svg")).toBeTruthy();
     // The count shows on tablet only (CSS); the saved time is left out before the first save.
-    expect(container.querySelector(".who small")?.textContent).toBe("Test Jet · 41/366");
+    expect(container.querySelector(".packline > span")?.textContent).toBe("Test Jet · 41/366");
     rerender({ ...base, savedAt: new Date(2026, 10, 15, 10, 14).getTime() });
-    expect(container.querySelector(".who small")?.textContent).toBe("Test Jet · saved 10:14 · 41/366");
+    expect(container.querySelector(".packline > span")?.textContent).toBe("Test Jet · saved 10:14 · 41/366");
   });
 
   it("after a refused save, says not saved in place of the save time", () => {
@@ -39,7 +39,7 @@ describe("Drawer", () => {
       savedAt: new Date(2026, 10, 15, 10, 14).getTime(),
       saveFailed: true,
     });
-    expect(container.querySelector(".who small")?.textContent).toBe("Test Jet · not saved · 41/366");
+    expect(container.querySelector(".packline > span")?.textContent).toBe("Test Jet · not saved · 41/366");
   });
 
   it("shows every item of the Menu boards, each going to its page (References was the last to come)", () => {

@@ -48,6 +48,28 @@ export async function readSaved(pack: string): Promise<Saved> {
   };
 }
 
+/** The saved settings, read as readSaved reads them. */
+export async function readSettings(): Promise<SavedItem<Settings>> {
+  const text = readSeen(key("", "settings"));
+  return text === null ? null : { loaded: await parseSettings(text), text };
+}
+
+/** Forgets a pack's saved flight and plan (Remove, with "Also remove its saved flight"). False
+ * when storage refused. */
+export async function removeSaved(pack: string): Promise<boolean> {
+  const s = storage();
+  if (!s) return false;
+  try {
+    for (const what of ["flight", "plan"] as const) {
+      s.removeItem(key(pack, what));
+      seen.set(key(pack, what), null);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Saves progress or settings. When, in milliseconds; null when storage refused it (blocked, full,
  * or it didn't read back); "changed" when another window saved since this one last read or wrote,

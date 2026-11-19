@@ -13,6 +13,7 @@ in Rust. The host saves progress and settings on the device.
   import {
     type Action,
     type AppInfo,
+    type CatalogEntry,
     type Checklist,
     type FieldId,
     type FlatPack,
@@ -30,7 +31,10 @@ in Rust. The host saves progress and settings on the device.
     type Suggestion,
     type Settings,
   } from "@involo/bindings";
-  import { getHost, type Kept, type SavedItem } from "./host";
+  import { getHost, type InstalledPack, type Kept, type PackInstall, type SavedItem } from "./host";
+  import PacksPage, { type PackRow, type PacksNotice } from "./pages/PacksPage.svelte";
+  import { morePacks, savedLine, updateFor } from "./lib/packs";
+  import type { SwitchPack } from "./lib/Drawer.svelte";
   import { fetchProblem, fileProblem } from "./lib/problems";
   import { safely } from "./lib/safely";
   import type { Opening } from "./lib/opening";
@@ -75,6 +79,12 @@ in Rust. The host saves progress and settings on the device.
   import { currentRoute, flightHref, phaseHref } from "./route.svelte";
   import { applyPalette, applyScale } from "./theme/tokens";
 
+  let {
+    onRestart = () => {},
+  }: {
+    /** Starts the app again (the root remounts it), after the current pack changes. */
+    onRestart?: () => void;
+  } = $props();
   const host = getHost();
   const route = currentRoute();
 
@@ -217,13 +227,38 @@ in Rust. The host saves progress and settings on the device.
     error = isAppError(e) ? `${e.kind}: ${e.message}` : String(e);
   }
 
+  /** The pack to open: the one the settings name if it is installed; else, for settings from
+   * before packs were chosen, the one with a saved flight; else the first installed. */
+  async function choosePack(installed: InstalledPack[], s: Settings): Promise<string> {
+    const ids = installed.map((p) => p.summary.id);
+    if (s.currentPack && ids.includes(s.currentPack)) return s.currentPack;
+    if (ids.length < 2) return ids[0] ?? "";
+    for (const id of ids) if ((await host.readSaved(id)).flight) return id;
+    return ids[0] ?? "";
+  }
+
   async function start(): Promise<void> {
     try {
       info = await host.appInfo();
-      const aircraft = (await host.packs()).find((p) => p.kind === "aircraft");
-      if (!aircraft) throw new Error("No aircraft pack was found.");
-      const pack = await host.loadPack(aircraft.id);
-      packId = aircraft.id;
+      const usable = <T,>(what: Kept, item: SavedItem<T>): T | null => {
+        if (!item) return null;
+        if (item.loaded.state === "ready") return item.loaded.value;
+        kept = [...kept, { what, state: item.loaded.state, text: item.text }];
+        return null;
+      };
+      // Settings belong to no pack: read first, so the first launch has the pilot's theme too.
+      const savedSettings = await host.readSettings();
+      settings = usable("settings", savedSettings) ?? (await host.defaultSettings());
+      installed = await host.installedPacks();
+      if (installed.length === 0) {
+        // The app ships with no aircraft (decision 0028): the first launch is the Packs page.
+        firstLaunch = true;
+        await loadPacks();
+        return;
+      }
+      const id = await choosePack(installed, settings);
+      packId = id;
+      const pack = await host.loadPack(id);
       index = indexPack(pack);
       findIndex = buildFind(pack, index);
       useFlightPack(pack);
@@ -231,24 +266,155 @@ in Rust. The host saves progress and settings on the device.
       lists = new Map(pack.lists.map((l) => [l.id, l]));
       intros = new Map((pack.content.phases?.phases ?? []).map((p) => [p.id, p.intro ?? []]));
       // What is saved on this device, if anything; what cannot be used is kept, never dropped.
-      const saved = await host.readSaved(aircraft.id);
-      const usable = <T,>(what: Kept, item: SavedItem<T>): T | null => {
-        if (!item) return null;
-        if (item.loaded.state === "ready") return item.loaded.value;
-        kept = [...kept, { what, state: item.loaded.state, text: item.text }];
-        return null;
-      };
+      const saved = await host.readSaved(id);
       // A flight saved with no settings: settings are saved only once changed, so this pilot has been
       // here before. Saved settings say for themselves.
-      hadFlight = !!saved.flight && !saved.settings;
-      settings = usable("settings", saved.settings) ?? (await host.defaultSettings());
+      hadFlight = !!saved.flight && !savedSettings;
       const savedFlight = usable("flight", saved.flight);
-      flight = savedFlight && savedFlight.pack === aircraft.id ? savedFlight : await host.newFlight(aircraft.id);
-      plan = usable("plan", await host.readPlan(aircraft.id));
+      flight = savedFlight && savedFlight.pack === id ? savedFlight : await host.newFlight(id);
+      plan = usable("plan", await host.readPlan(id));
+      // Noted, not saved: settings are saved once the pilot changes something (installing or
+      // switching a pack saves it), so the next save carries it.
+      if (settings.currentPack !== id) settings = { ...settings, currentPack: id };
       await openLog();
       await refresh();
+      void loadPacks();
     } catch (e) {
       fail(e);
+    }
+  }
+
+  // Packs (decision 0028): what the Packs page and the menu's pack switcher show.
+  let installed = $state<InstalledPack[]>([]);
+  /** No pack on this device: the Packs page is the whole app until one is installed. */
+  let firstLaunch = $state(false);
+  let catalog = $state<CatalogEntry[]>([]);
+  let catalogProblem = $state<string | null>(null);
+  /** Each installed pack's saved flight, by id (the open pack's comes from its rail). */
+  let savedLines = $state<Record<string, ReturnType<typeof savedLine>>>({});
+  let packsNotice = $state<PacksNotice | null>(null);
+  let packsBusy = $state<string | null>(null);
+
+  /** Reads the installed packs, their saved flights and the catalog. */
+  async function loadPacks(): Promise<void> {
+    installed = await host.installedPacks();
+    const lines: Record<string, ReturnType<typeof savedLine>> = {};
+    for (const p of installed) {
+      const id = p.summary.id;
+      if (id === packId) continue;
+      try {
+        const saved = (await host.readSaved(id)).flight;
+        if (saved?.loaded.state !== "ready" || !settings) continue;
+        await host.loadPack(id);
+        lines[id] = savedLine(await host.rail(id, saved.loaded.value, settings));
+      } catch {
+        // A pack this version can't open, or a flight it can't read: no line, nothing lost.
+      }
+    }
+    savedLines = lines;
+    try {
+      catalog = await host.catalog();
+      catalogProblem = null;
+    } catch {
+      catalog = [];
+      catalogProblem = firstLaunch
+        ? "Involo needs a connection once, to download a pack. Connect, then try again."
+        : "The Involo catalog can’t be reached right now, so more packs and updates aren’t shown.";
+    }
+  }
+
+  /** The open pack's saved flight, from the live rail. */
+  let openLine = $derived(rail ? savedLine(rail) : null);
+  let packRows = $derived<PackRow[]>(
+    [...installed]
+      .sort((a, b) => Number(b.summary.id === packId) - Number(a.summary.id === packId))
+      .map((pack) => ({
+        pack,
+        saved: pack.summary.id === packId ? openLine : (savedLines[pack.summary.id] ?? null),
+        update: updateFor(pack, catalog),
+      })),
+  );
+  let switchPacks = $derived<SwitchPack[]>(
+    packRows.map((r) => ({
+      id: r.pack.summary.id,
+      name: r.pack.summary.name,
+      line: r.saved ? `${r.saved.where}, ${r.saved.done} of ${r.saved.total}` : r.pack.source === "file" ? "" : "No saved flight",
+      fromFile: r.pack.source === "file",
+    })),
+  );
+
+  /** Opens another pack: it becomes the current pack, and the app starts again on it. */
+  async function switchPack(id: string | null): Promise<void> {
+    if (settings) {
+      settings = { ...settings, currentPack: id };
+      if (packId) await persist("settings");
+      else await host.save("", "settings", settings);
+    }
+    onRestart();
+  }
+
+  /** What an install said, as the Packs page shows it; true when the pack is installed. */
+  function accepted(name: string, result: PackInstall): boolean {
+    if (result.state === "installed") return true;
+    packsNotice =
+      result.state === "refused"
+        ? { title: `${name} wasn’t added.`, lines: result.reasons }
+        : { title: `${name} passed its checks, but this device didn’t keep it.`, lines: ["Storage is blocked or full here, so the pack can’t be installed."] };
+    return false;
+  }
+
+  async function installing(key: string, name: string, run: () => Promise<PackInstall>, open: (id: string) => boolean): Promise<void> {
+    packsBusy = key;
+    packsNotice = null;
+    try {
+      const result = await run();
+      if (accepted(name, result) && result.state === "installed") {
+        if (open(result.pack.summary.id)) {
+          await switchPack(result.pack.summary.id);
+          return;
+        }
+        await loadPacks();
+      }
+    } catch (e) {
+      packsNotice = { title: `${name} couldn’t be downloaded.`, lines: [e instanceof Error ? e.message : String(e)] };
+    } finally {
+      packsBusy = null;
+    }
+  }
+
+  const packsHandlers = {
+    onUse: (id: string) => void switchPack(id),
+    // Installing a pack opens it (decision 0028).
+    onDownload: (entry: CatalogEntry) =>
+      void installing(entry.id, entry.name, () => host.installCatalogPack(entry), () => true),
+    // An update opens again only when it is the open pack's.
+    onUpdate: (entry: CatalogEntry) =>
+      void installing(entry.id, entry.name, () => host.installCatalogPack(entry), (id) => id === packId),
+    onFile: (file: File) => void installing("file", "That file", () => host.installPackFile(file), () => true),
+    onRemove: (id: string, alsoFlight: boolean) => void removePack(id, alsoFlight),
+    onRetry: () => void loadPacks(),
+  };
+
+  async function removePack(id: string, alsoFlight: boolean): Promise<void> {
+    const name = installed.find((p) => p.summary.id === id)?.summary.name ?? id;
+    packsBusy = id;
+    packsNotice = null;
+    try {
+      if (!(await host.removePack(id))) {
+        packsNotice = { title: `${name} couldn’t be removed.`, lines: ["This device refused the change. Nothing was removed."] };
+        return;
+      }
+      if (alsoFlight && !(await host.removeSaved(id)))
+        packsNotice = { title: `${name} was removed, but its saved flight stays.`, lines: ["This device refused the change."] };
+      if (id === packId) {
+        // The open pack went: open another, or start again with none.
+        const next = installed.find((p) => p.summary.id !== id)?.summary.id ?? null;
+        await switchPack(next);
+        return;
+      }
+      await loadPacks();
+    } finally {
+      packsBusy = null;
     }
   }
 
@@ -1100,7 +1266,22 @@ in Rust. The host saves progress and settings on the device.
     onClose={() => closeFind()}
   />
 {/if}
-{#if route.value.screen === "glossary" && index}
+{#if firstLaunch}
+  <PacksPage rows={[]} more={catalog} current={null} {catalogProblem} notice={packsNotice} busy={packsBusy} backHref="#/" {...packsHandlers} />
+{:else if route.value.screen === "packs" && packId}
+  <div class="flightwrap">
+    <PacksPage
+      rows={packRows}
+      more={morePacks(installed, catalog)}
+      current={packId}
+      {catalogProblem}
+      notice={packsNotice}
+      busy={packsBusy}
+      backHref={lastPhase ? phaseHref(lastPhase) : "#/"}
+      {...packsHandlers}
+    />
+  </div>
+{:else if route.value.screen === "glossary" && index}
   <div class="flightwrap">
     <GlossaryPage terms={glossary} term={route.value.term} {rail} referenceTitle={index?.labels.reference.title ?? ""} backHref={lastPhase ? phaseHref(lastPhase) : "#/"} onStep={goToStep} />
   </div>
@@ -1248,6 +1429,9 @@ in Rust. The host saves progress and settings on the device.
     <Drawer
       open={menuOpen}
       aircraft={index.name}
+      packs={switchPacks}
+      currentPack={packId}
+      onSwitchPack={(id) => void switchPack(id)}
       {savedAt}
       {saveFailed}
       {total}
