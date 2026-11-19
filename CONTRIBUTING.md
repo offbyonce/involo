@@ -34,6 +34,28 @@ checks dependencies. The git hooks (installed by `pnpm install`) run the quick p
 - American English everywhere: code identifiers, pack field names, error messages, docs and pack content (color, behavior, license as a noun, optimize, pressurization).
   Exceptions keep their exact spelling: SPDX license IDs, file names such as `LICENSE` and `LICENSES/`, and anything quoted from outside sources.
 
+### What each check covers
+
+| Check | What it catches | Run it |
+| --- | --- | --- |
+| Token rules (`packages/ui/src/theme/design-tokens.test.ts`) | A raw color (hex, `rgb()`, `hsl()` or a named color), font family, font size, size, radius or shadow anywhere in the interface outside the token files. The few exceptions (the generated token files, the drawing renderer's SVG units) are listed in one place in that file, each with its reason. | `just test`, part of `just ci` |
+| Token table (`packages/ui/src/theme/token-table.md`) | A token whose value changed without the table changing. The table lists every token in `docs/design/tokens.json` with its value in both themes; when the test fails it names each token that differs and the row to write. Change the table only when you mean to change the token. | `just test`, part of `just ci` |
+| End-to-end flows (`apps/web/e2e`) | The built site in Chromium and WebKit, with the catalog served locally and every request off the machine refused: the first run, ticks and notes surviving a reload, switching packs, updating a pack, adding and refusing pack files, importing a plan, working offline, and the flight log. Each test says what it expected to see or find saved. | `just e2e` (builds the site first); `just e2e --project=chromium ticks` runs one browser and one file |
+| Layout and accessibility (`apps/web/e2e/layout.ts`) | On every screen a flow visits, at 390 and 1440 px, in dark and light: sideways scrolling, a control overlapping another or off the side of the screen, a tap target under 44 by 44 px on a phone, a key element missing, and any serious or critical finding of an axe scan (contrast included). A failure names the screen, width, theme and element. | part of `just e2e` |
+| Review shots (`just review-shots <out> <screen>...`) | Nothing by itself: they are for design review. Each named screen is shot at its sizes in both themes and put beside its approved board (`apps/web/build/review-boards.mjs`). | by hand, for the screens a pull request adds or changes |
+
+The end-to-end tests need their browsers once:
+`pnpm --filter @involo/web exec playwright install --with-deps chromium webkit`. On Linux without
+administrator rights, `--with-deps` can't install the system libraries; install the browsers
+without it and add the libraries Playwright names. A new flow goes in `apps/web/e2e`, starts from
+`fixtures.ts` (a fresh browser, no network, helpers that act as a pilot does), sets up its state
+with the scenes in `apps/web/build/scenes.mjs`, and calls `checkScreen` on each screen it reaches.
+
+**When to include review shots.** A pull request that adds or changes a screen includes review
+shots of those screens, each beside its board in both themes, and lists every difference from the
+board. Other pull requests include none: the flows, the layout checks and the token rules cover
+side effects. Add a row to `review-boards.mjs` when a new screen comes with its board.
+
 ## 3. Checklist content rules
 
 These protect the project and other people's work. `involo-pack check` enforces most of them
@@ -229,16 +251,16 @@ works; the extra check is just skipped.
 | Variable | Names | Used by | Without it |
 | --- | --- | --- | --- |
 | `INVOLO_OVERLAP_REFS` | a folder of plain-text reference files | `just overlap`, which flags pack text matching them | the check prints "not run"; it is run before merging content |
-| `INVOLO_BASELINE` | a local copy of the earlier single-file HTML checklist (3.0) | `just screenshots`, which also shoots the same screens of it and writes side-by-side images | only the app's screenshots are taken |
-| `INVOLO_STEPS` | a list of steps, one per line: `phase` or `reference`, the phase id and the step id, tab-separated, with an optional number | `just screenshots`, which shoots each step's panel sheet and preview card | those shots are left out |
+| `INVOLO_BASELINE` | a local copy of the earlier single-file HTML checklist (3.0) | `just review-shots`, which also shoots the same screens of it and writes side-by-side images | only the app's screenshots are taken |
+| `INVOLO_STEPS` | a list of steps, one per line: `phase` or `reference`, the phase id and the step id, tab-separated, with an optional number | `just review-shots … tiles-01 …`, which shoots each named step's panel sheet and preview card | those shots don't exist |
 | `INVOLO_PLAN` | a real SimBrief plan file (with `INVOLO_PLAN_OUT`, where to write its compact form) | the ignored test `measures_a_real_plan` in `crates/involo-simbrief` (`cargo test -p involo-simbrief -- --ignored`) | the test is ignored, as it is by default |
 
-`just screenshots` shows every page one fixed time and one seeded random sequence, so two runs of
+`just review-shots` shows every page one fixed time and one seeded random sequence, so two runs of
 a build are pixel-identical and can be compared directly. Its Firefox profiles go in
 `target/screenshots`, or in `~/involo-screenshots` when the checkout is under the system's
 temporary folder (a sandboxed Firefox may not read there); `SCREENSHOTS_WORK` names another
-folder. `SCREENSHOTS_ONLY` (shot name prefixes, comma-separated) and `SCREENSHOTS_THEME` (`dark`
-or `light`) narrow a run.
+folder. `SCREENSHOTS_ONLY` (shot key prefixes such as `board-log-phone`, comma-separated) names
+screens by size or theme, and `SCREENSHOTS_THEME` (`dark` or `light`) shoots one theme.
 
 ## Reporting problems
 

@@ -500,8 +500,16 @@ the packs, the catalog and the saved flights.
     border: var(--border-thin) solid var(--color-danger);
     background: var(--color-danger);
   }
+  /* The update row's 40 px button (Packs): its tap area reaches the 44 px touch size above and
+     below it, with nothing drawn. */
   .btn.short {
+    position: relative;
     min-height: var(--space-10);
+  }
+  .btn.short::before {
+    position: absolute;
+    inset: calc((var(--space-10) - var(--size-touch-min)) / 2) 0;
+    content: "";
   }
   .btn:disabled {
     opacity: 0.6;

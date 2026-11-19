@@ -44,14 +44,14 @@ describe("StepPane", () => {
     const opened: unknown[] = [];
     render(StepPane, { ...fuel(), onOpen: (how: unknown) => opened.push(how) });
     await fireEvent.click(screen.getByRole("button", { name: /Where is this\?/ }));
-    await fireEvent.click(screen.getByRole("button", { name: "Show the whole Fuel panel" }));
+    await fireEvent.click(screen.getByRole("button", { name: "Show panel: the whole Fuel panel" }));
     expect(opened).toEqual([{ entry: "where" }, { entry: "panel" }]);
   });
 
   it("shows Show panel instead of the preview when Panel preview in steps is off", async () => {
     const opened: unknown[] = [];
     render(StepPane, { ...fuel(), preview: false, onOpen: (how: unknown) => opened.push(how) });
-    expect(document.querySelector("button.preview")).toBeNull();
+    expect(document.querySelector(".preview")).toBeNull();
     await fireEvent.click(screen.getByRole("button", { name: /Show panel/ }));
     expect(opened).toEqual([{ entry: "panel" }]);
   });

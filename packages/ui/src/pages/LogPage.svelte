@@ -541,9 +541,16 @@ bottom bar, and "···" opens the export and import actions as a sheet.
     font-size: calc(var(--font-size-caption) + var(--border-thin));
   }
   .link {
+    position: relative;
     color: var(--color-link);
     font-size: var(--font-size-secondary);
     text-decoration: none;
+  }
+  /* The tap target is the touch minimum tall, around the one line the link draws. */
+  .link::before {
+    position: absolute;
+    inset: calc((1lh - var(--size-touch-min)) / 2) 0;
+    content: "";
   }
   /* This flight's rows: the time (or "open" in amber), the step, its value. */
   .ticks {

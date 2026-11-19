@@ -102,10 +102,19 @@ practice-diff base="main":
       echo "practice-diff: differences from {{base}} in $dir/diff.txt"; exit 1
     fi
 
-# Screenshots of the built app for review (phone, both tablets, 1440 and 2560, dark and light), to a
-# folder outside the repo. Needs Firefox; not part of `just ci`.
-screenshots out: site test-packs
-    node apps/web/build/screenshots.mjs {{out}}
+# The end-to-end tests (apps/web/e2e): the built site in Chromium and WebKit, served locally with
+# the catalog and the network blocked, through the main flows, with the layout and accessibility
+# checks on every screen they visit. Needs the browsers once:
+# `pnpm --filter @involo/web exec playwright install --with-deps chromium webkit`.
+e2e *args: site
+    pnpm --filter @involo/web e2e {{args}}
+
+# Review shots of the named screens (phone, both tablets, 1440 and 2560 unless a screen names its
+# sizes; dark and light), each beside its approved board, into a folder outside the repo: for the
+# screens a pull request adds or changes. The names are in SHOTS in apps/web/build/screenshots.mjs.
+# Needs Firefox; not part of `just ci`.
+review-shots out +screens: site test-packs
+    node apps/web/build/screenshots.mjs {{out}} {{screens}}
 
 # The drawing renderer's review images (gallery, each control state, the board's drawings), both
 # themes, into <out>, outside the repo. Needs Firefox; not part of `just ci`.
