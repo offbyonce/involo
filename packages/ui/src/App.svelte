@@ -28,6 +28,7 @@ in Rust. The host saves progress and settings on the device.
     type Progress,
     type Rail,
     type OpenStep,
+    type OtherAircraft,
     type SavedPlan,
     type Suggestion,
     type Settings,
@@ -35,6 +36,7 @@ in Rust. The host saves progress and settings on the device.
   import { getHost, type InstalledPack, type Kept, type PackInstall, type SavedItem } from "./host";
   import PacksPage, { type PackRow, type PacksNotice } from "./pages/PacksPage.svelte";
   import UpdateNote from "./lib/UpdateNote.svelte";
+  import OtherAircraftDialog from "./lib/OtherAircraft.svelte";
   import { morePacks, savedLine, updateFor } from "./lib/packs";
   import type { SwitchPack } from "./lib/Drawer.svelte";
   import { fetchProblem, fileProblem } from "./lib/problems";
@@ -1091,6 +1093,10 @@ in Rust. The host saves progress and settings on the device.
    */
   async function usePlan(next: SavedPlan): Promise<string | null> {
     if (!flight) return null;
+    // A plan for another aircraft type: the pilot chooses (decision 0028: warn, never refuse).
+    // Cancel leaves the flight and the kept plan as they were.
+    const other = await host.otherAircraft(packId, next);
+    if (other && !(await askOtherAircraft(other))) return null;
     const before = flight;
     const keptPlan = plan;
     const filled = await host.planValues(packId, next);
@@ -1113,6 +1119,22 @@ in Rust. The host saves progress and settings on the device.
       if (!kept.some((k) => k.what === "plan")) void host.savePlan(packId, keptPlan);
     });
     return null;
+  }
+  /** The plan-for-another-aircraft warning while it is open, and how it answers. */
+  let otherPlan = $state<{ other: OtherAircraft; answer: (use: boolean) => void } | null>(null);
+  function askOtherAircraft(other: OtherAircraft): Promise<boolean> {
+    const back = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    return new Promise((done) => {
+      otherPlan = {
+        other,
+        answer: (use) => {
+          otherPlan = null;
+          done(use);
+          // Focus goes back where it was once the import has finished (its button waits until then).
+          setTimeout(() => back?.focus());
+        },
+      };
+    });
   }
   async function importFor(user: string): Promise<string | null> {
     try {
@@ -1685,6 +1707,16 @@ in Rust. The host saves progress and settings on the device.
     </div>
   {/if}
 </div>
+{/if}
+
+{#if otherPlan}
+  {@const o = otherPlan}
+  <OtherAircraftDialog
+    other={o.other}
+    fromFile={installed.find((p) => p.summary.id === packId)?.source === "file"}
+    onUse={() => o.answer(true)}
+    onCancel={() => o.answer(false)}
+  />
 {/if}
 
 <style>

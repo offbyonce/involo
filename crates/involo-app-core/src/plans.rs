@@ -46,6 +46,55 @@ pub struct PlanValues {
     pub check_clearance: bool,
 }
 
+/// A plan for an aircraft type the open pack doesn't cover (decision 0028: warn, never refuse):
+/// what the warning names on each side.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct OtherAircraft {
+    /// The plan's aircraft name in SimBrief, when the plan has one (`737 MAX 8`).
+    #[ts(optional)]
+    pub plan_name: Option<String>,
+    /// The plan's type code (`A20N`).
+    pub plan_type: String,
+    /// The open pack's name (`iFly 737 MAX 8`).
+    pub pack_name: String,
+    /// Every type code the pack covers, in its order (`["B38M"]`).
+    pub pack_types: Vec<String>,
+}
+
+/// Whether a plan is for an aircraft type the pack doesn't list in `aircraft.icaoTypes`
+/// (compared ignoring case and surrounding spaces), and if so what to name. A plan with no type,
+/// or a pack for no aircraft, gives `None`: nothing to compare, so no warning.
+pub fn other_aircraft(pack: &FlatPack, plan: &Plan) -> Option<OtherAircraft> {
+    let plan_type = plan
+        .general
+        .aircraft
+        .as_deref()
+        .map(str::trim)
+        .filter(|t| !t.is_empty())?;
+    let aircraft = pack.manifest.aircraft.as_ref()?;
+    if aircraft
+        .icao_types
+        .iter()
+        .any(|t| t.trim().eq_ignore_ascii_case(plan_type))
+    {
+        return None;
+    }
+    Some(OtherAircraft {
+        plan_name: plan
+            .general
+            .aircraft_name
+            .as_deref()
+            .map(str::trim)
+            .filter(|n| !n.is_empty())
+            .map(str::to_owned),
+        plan_type: plan_type.to_owned(),
+        pack_name: pack.manifest.name.clone(),
+        pack_types: aircraft.icao_types.clone(),
+    })
+}
+
 /// The address of the latest plan for a SimBrief username or Pilot ID.
 pub fn plan_url(user: &str) -> Result<String, AppError> {
     Ok(involo_simbrief::fetch_url(user)?)
@@ -457,6 +506,47 @@ mod tests {
     fn fixture(name: &str) -> String {
         let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../involo-simbrief/tests/fixtures");
         std::fs::read_to_string(dir.join(name)).unwrap()
+    }
+
+    #[test]
+    fn a_plan_for_another_type_names_both_aircraft() {
+        let pack = crate::test_support::ifly_pack();
+        let mut plan = parse_plan(&fixture("ofp-sample.json")).unwrap();
+        // The pack's own type, in any case or with spaces: no warning.
+        for code in ["B38M", "b38m", " B38M "] {
+            plan.general.aircraft = Some(code.into());
+            assert_eq!(other_aircraft(&pack, &plan), None, "{code}");
+        }
+        // Another type: both sides named, the plan's name when it has one.
+        plan.general.aircraft = Some("A20N".into());
+        plan.general.aircraft_name = Some("A320neo".into());
+        assert_eq!(
+            other_aircraft(&pack, &plan),
+            Some(OtherAircraft {
+                plan_name: Some("A320neo".into()),
+                plan_type: "A20N".into(),
+                pack_name: pack.manifest.name.clone(),
+                pack_types: vec!["B38M".into()],
+            })
+        );
+        plan.general.aircraft_name = Some("  ".into());
+        assert_eq!(other_aircraft(&pack, &plan).unwrap().plan_name, None);
+        // Every type the pack covers counts.
+        let mut two = pack.clone();
+        if let Some(a) = two.manifest.aircraft.as_mut() {
+            a.icao_types.push("A20N".into());
+        }
+        assert_eq!(other_aircraft(&two, &plan), None);
+        // No type in the plan: nothing to compare, no warning.
+        for none in [None, Some(String::new()), Some(" ".into())] {
+            plan.general.aircraft = none;
+            assert_eq!(other_aircraft(&pack, &plan), None);
+        }
+        // A pack for no aircraft: no warning either.
+        plan.general.aircraft = Some("A20N".into());
+        let mut library = pack;
+        library.manifest.aircraft = None;
+        assert_eq!(other_aircraft(&library, &plan), None);
     }
 
     #[test]

@@ -224,6 +224,16 @@ pub fn plan_values(pack: &str, plan: &str) -> String {
     })())
 }
 
+/// Whether a plan is for an aircraft type the loaded pack doesn't cover: what the warning names,
+/// or null (decision 0028).
+#[wasm_bindgen]
+pub fn other_aircraft(pack: &str, plan: &str) -> String {
+    reply((|| {
+        let plan = read("plan", plan)?;
+        with_pack(pack, |p| Ok(involo_app_core::other_aircraft(p, &plan)))
+    })())
+}
+
 /// Parse the saved SimBrief plan's text: ready (migrated if older), newer or unreadable.
 #[wasm_bindgen]
 pub fn parse_saved_plan(json: &str) -> String {
@@ -453,6 +463,20 @@ mod tests {
             ))["error"]["kind"],
             "FlightPlan",
             "a plan with no destination fills nothing"
+        );
+        let other = json(&other_aircraft(
+            "example-trainer",
+            r#"{"general":{"aircraft":"B38M","aircraftName":"737 MAX 8"}}"#,
+        ));
+        assert_eq!(other["ok"]["planType"], "B38M");
+        assert_eq!(other["ok"]["planName"], "737 MAX 8");
+        assert_eq!(other["ok"]["packTypes"][0], "ZZZZ");
+        assert!(
+            json(&other_aircraft(
+                "example-trainer",
+                r#"{"general":{"aircraft":"zzzz"}}"#
+            ))["ok"]
+                .is_null()
         );
         let flight = json(&new_flight("example-trainer"))["ok"].to_string();
         let action = r#"{"type":"tick","step":"example-trainer.before-start.battery","at":7}"#;

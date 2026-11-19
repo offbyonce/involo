@@ -385,6 +385,24 @@ const olderIflyWithChanges = [
   go("#/packs"),
   `new Promise((d) => setTimeout(d, 600, true))`,
 ];
+/** The board OFP as a plan for another aircraft (PacksSimbrief's stand-in, an A320neo), chosen on
+ * SimBrief and OFP file; then the warning, Use this plan anyway?, is open. */
+const otherAircraftOfp = (() => {
+  const ofp = JSON.parse(OFP);
+  ofp.aircraft = { ...ofp.aircraft, icaocode: "A20N", name: "Airbus A320neo" };
+  return JSON.stringify(ofp);
+})();
+const importOtherAircraft = [
+  go("#/flight/simbrief"),
+  `new Promise((d) => setTimeout(d, 400, true))`,
+  chooseFile('.choose ~ input[type="file"]', otherAircraftOfp, "ofp.json"),
+  `new Promise((d) => { let n = 0; const t = setInterval(() => { if (document.querySelector('[aria-labelledby="other-title"]') || ++n > 100) { clearInterval(t); setTimeout(d, 300, true); } }, 100); })`,
+];
+/** Marks the installed iFly pack as added from a file, then reloads. */
+const iflyFromFile = [
+  `new Promise((done) => { const r = indexedDB.open("involo"); r.onsuccess = () => { const db = r.result; const tx = db.transaction("packs", "readwrite"); const store = tx.objectStore("packs"); const g = store.get("ifly-737-max8"); g.onsuccess = () => { const rec = g.result; rec.source = "file"; store.put(rec, "ifly-737-max8"); }; tx.oncomplete = () => { db.close(); location.reload(); done(true); }; }; })`,
+  restarted,
+];
 /** Opens What's new for the waiting update. */
 const openWhatsNew = [click('button[aria-label^="What’s new in"]'), `new Promise((d) => { let n = 0; const t = setInterval(() => { if (document.querySelector('[aria-labelledby="new-title"]') || ++n > 100) { clearInterval(t); setTimeout(d, 300, true); } }, 100); })`];
 /** Updates from What's new: the app opens again on the new version, with its note. */
@@ -791,6 +809,10 @@ const SHOTS = [
     only: ["desktop", "phone"],
     app: { hash: "#/phase/before-start", before: [...olderIflyWithChanges, ...addCatalogIflyAsFile] },
   },
+  // A SimBrief plan for another aircraft (PacksSimbrief): the warning at desktop, and on a phone
+  // in the Remove dialog's form; then with a pack added from a file, its row marked so.
+  { name: "board-simbrief-other", fresh: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: importOtherAircraft } },
+  { name: "board-simbrief-other-file", fresh: true, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...iflyFromFile, ...importOtherAircraft] } },
   ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ name: `how-part-${n}`, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go(`#/how/${n}`)] } })),
   // The phone list with its fold opened: each later list starts with its label row.
   { name: "board-phone-fold", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("button.after"), click("button.card.folded"), `(() => { [...document.querySelectorAll("section.card > p.label")].find((p) => p.offsetParent)?.scrollIntoView({ block: "center" }); return true; })()`] } },
