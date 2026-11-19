@@ -1,21 +1,28 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// Screenshots of the built app for review, at the five review sizes (phone, tablet portrait,
-// tablet landscape, 1440 and 2560 by 1440; decision 0021), in the dark and light themes: `just screenshots <out-dir>` after `just site`. The theme comes from a Firefox
-// preference, so the app needs no test hook. Writes PNG files to <out-dir>, which should be
-// outside the repo. Needs Firefox on the PATH (or FIREFOX=/path/to/firefox).
+// Review shots of named screens of the built app, for design review: `just review-shots <out-dir>
+// <screen>...` after `just site`, with each screen's name as SHOTS gives it below. Each screen is
+// shot at the sizes it lists (the five review sizes when it lists none: phone, tablet portrait,
+// tablet landscape, 1440 and 2560 by 1440; decision 0021), in the dark and light themes, and each
+// shot with an approved board, as review-boards.mjs lists, is put beside that board in
+// <out-dir>/side-by-side. The theme comes from a Firefox preference, so the app needs no test hook.
+// Writes PNG files to <out-dir>, which should be outside the repo. Needs Firefox on the PATH (or
+// FIREFOX=/path/to/firefox). There is no run of every screen: the end-to-end tests check every
+// flow (apps/web/e2e), and review shots are for the screens a pull request adds or changes.
 //
 // Optionally (CONTRIBUTING.md, "Optional local files"): with INVOLO_BASELINE set to a local copy of
 // the 3.0 checklist's HTML file, it also shoots
 // the same screens of 3.0 into <out-dir>/baseline and writes side-by-side images (3.0 left, new
 // right, same size and theme) into <out-dir>/compare. The 3.0 copy is never part of the repo.
-// SCREENSHOTS_ONLY=phase-desktop-dark,flow limits the run to keys that start with one of those.
+// SCREENSHOTS_ONLY=phase-desktop-dark,flow names screens by key prefix instead (name-size-theme).
 
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { serve, session, sleep, startFirefox } from "./browser.mjs";
+import { REVIEW_BOARDS } from "./review-boards.mjs";
 import {
   addCatalogIflyAsFile,
   addExample,
@@ -662,8 +669,11 @@ async function shoot(browser, url, ready, steps, file, full = false, tour = fals
 async function shootWhole(browser, file) {
   const { send, js, context } = browser;
   const base = file.replace(/\.png$/, "");
-  const page = await send("browsingContext.captureScreenshot", { context, origin: "document" });
-  fs.writeFileSync(`${base}-page.png`, Buffer.from(page.data, "base64"));
+  // The whole page only when it is taller than the screen: otherwise it is the shot itself.
+  if (await js("document.documentElement.scrollHeight > innerHeight + 1")) {
+    const page = await send("browsingContext.captureScreenshot", { context, origin: "document" });
+    fs.writeFileSync(`${base}-page.png`, Buffer.from(page.data, "base64"));
+  }
   // What scrolls on its own: the side pane, or on the Flight pages the section column (the whole
   // body on narrow screens), or How procedures work's reading column or phone page, sliced top to
   // bottom.
@@ -695,43 +705,57 @@ async function shootWhole(browser, file) {
   await js(`document.querySelector(${q}).scrollTop = ${pane.top}; true`);
 }
 
-/** One side-by-side image per screen: 3.0 on the left, the new app on the right. */
-async function compose(out, keys) {
-  const dir = path.join(work, "compose");
-  fs.rmSync(dir, { recursive: true, force: true });
-  fs.mkdirSync(dir, { recursive: true });
-  fs.mkdirSync(path.join(out, "compare"), { recursive: true });
-  fs.writeFileSync(path.join(dir, "index.html"), "<!doctype html><title>compose</title>");
-  const server = await serve(dir, 8774);
+/**
+ * One side-by-side image per pair, each image at its own size: `left` (a board, or the 3.0 screen)
+ * and `right` (the app's shot), labeled, into `dir`.
+ */
+async function compose(pairs) {
+  if (!pairs.length) return [];
+  const work2 = path.join(work, "compose");
+  fs.rmSync(work2, { recursive: true, force: true });
+  fs.mkdirSync(work2, { recursive: true });
+  fs.writeFileSync(path.join(work2, "index.html"), "<!doctype html><title>compose</title>");
+  const size = (file) => {
+    // A PNG's width and height are bytes 16 to 24 of its header.
+    const head = fs.readFileSync(file).subarray(16, 24);
+    return { width: head.readUInt32BE(0), height: head.readUInt32BE(4) };
+  };
+  const sized = pairs.map((p) => ({ ...p, l: size(p.left), r: size(p.right) }));
+  const canvas = {
+    width: Math.max(...sized.map((p) => p.l.width + p.r.width + 16)),
+    height: Math.max(...sized.map((p) => Math.max(p.l.height, p.r.height) + 28)),
+  };
+  const server = await serve(work2, 8774);
   const written = [];
   try {
-    for (const [size, { width, height }] of Object.entries(VIEWPORTS)) {
-      const mine = keys.filter((k) => k.includes(`-${size}-`));
-      if (!mine.length) continue;
-      const canvas = { width: 2 * width + 16, height: height + 28 };
-      const { firefox, browser } = await openAt(path.join(work, `profile-compose-${size}`), {}, canvas, "http://localhost:8774/");
-      try {
-        for (const key of mine) {
-          fs.copyFileSync(path.join(out, "baseline", `${key}.png`), path.join(dir, `${key}-3.0.png`));
-          fs.copyFileSync(path.join(out, `${key}.png`), path.join(dir, `${key}-new.png`));
-          const half = (label, src) =>
-            `<div style="width:${width}px"><p>${label}</p><img src="${src}" width="${width}" height="${height}"></div>`;
-          fs.writeFileSync(
-            path.join(dir, `${key}.html`),
-            `<!doctype html><meta charset="utf-8"><style>body{margin:0;display:flex;gap:16px;background:#7a7f87}` +
-              `p{margin:0;padding-left:12px;font:600 14px/28px sans-serif;color:#fff}img{display:block}</style>` +
-              half("3.0", `${key}-3.0.png`) +
-              half("New", `${key}-new.png`),
-          );
-          const file = path.join(out, "compare", `${key}.png`);
-          const ready = "[...document.images].every((i) => i.complete)";
-          await shoot(browser, `http://localhost:8774/${key}.html`, ready, [], file);
-          written.push(`compare/${key}.png`);
-        }
-      } finally {
-        firefox.kill();
-        await sleep(500);
+    const { firefox, browser } = await openAt(path.join(work, "profile-compose"), {}, canvas, "http://localhost:8774/");
+    try {
+      for (const [n, p] of sized.entries()) {
+        fs.copyFileSync(p.left, path.join(work2, `${n}-left.png`));
+        fs.copyFileSync(p.right, path.join(work2, `${n}-right.png`));
+        const half = (label, src, { width, height }) =>
+          `<div style="width:${width}px"><p>${label}</p><img src="${src}" width="${width}" height="${height}"></div>`;
+        fs.writeFileSync(
+          path.join(work2, `${n}.html`),
+          `<!doctype html><meta charset="utf-8"><style>body{margin:0;display:inline-flex;gap:16px;align-items:flex-start;background:#7a7f87}` +
+            `p{margin:0;padding-left:12px;font:600 14px/28px sans-serif;color:#fff}img{display:block}</style>` +
+            half(p.leftLabel, `${n}-left.png`, p.l) +
+            half(p.rightLabel, `${n}-right.png`, p.r),
+        );
+        await browser.send("browsingContext.navigate", { context: browser.context, url: `http://localhost:8774/${n}.html`, wait: "complete" });
+        await browser.until("[...document.images].every((i) => i.complete)", "the images");
+        const box = JSON.parse(await browser.js("JSON.stringify(document.body.getBoundingClientRect())"));
+        const { data } = await browser.send("browsingContext.captureScreenshot", {
+          context: browser.context,
+          clip: { type: "box", x: 0, y: 0, width: box.width, height: box.height },
+        });
+        fs.mkdirSync(p.dir, { recursive: true });
+        fs.writeFileSync(path.join(p.dir, `${p.key}.png`), Buffer.from(data, "base64"));
+        written.push(path.join(path.basename(p.dir), `${p.key}.png`));
       }
+    } finally {
+      firefox.kill();
+      await sleep(500);
     }
   } finally {
     server.close();
@@ -739,9 +763,53 @@ async function compose(out, keys) {
   return written;
 }
 
+/** The approved boards for the shots written, rendered by board-shots.mjs, each beside its shot. */
+async function besideBoards(out, written) {
+  const pairs = [];
+  const alone = [];
+  for (const file of written) {
+    // Sizes have dashes too ("tablet-landscape"), so the longest that ends the name wins.
+    const theme = file.endsWith("-dark.png") ? "dark" : file.endsWith("-light.png") ? "light" : null;
+    const size = Object.keys(VIEWPORTS)
+      .sort((a, b) => b.length - a.length)
+      .find((v) => theme && file.endsWith(`-${v}-${theme}.png`));
+    if (!theme || !size) continue;
+    const name = file.slice(0, -`-${size}-${theme}.png`.length);
+    const board = REVIEW_BOARDS[name]?.[size];
+    if (!board) {
+      alone.push(file);
+      continue;
+    }
+    pairs.push({ key: `${name}-${size}-${theme}`, board, theme });
+  }
+  const boards = [...new Set(pairs.map((p) => p.board))];
+  if (boards.length) {
+    const dir = path.join(out, "boards");
+    const run = spawnSync(process.execPath, [path.join(import.meta.dirname, "board-shots.mjs"), dir, ...boards], { stdio: ["ignore", "ignore", "inherit"] });
+    if (run.status !== 0) throw new Error("board-shots.mjs failed");
+  }
+  const made = await compose(
+    pairs.map((p) => ({
+      key: p.key,
+      left: path.join(out, "boards", `${p.board}-${p.theme}.png`),
+      leftLabel: `Board: ${p.board}`,
+      right: path.join(out, `${p.key}.png`),
+      rightLabel: "App",
+      dir: path.join(out, "side-by-side"),
+    })),
+  );
+  return { made, alone };
+}
+
 async function main() {
   const out = path.resolve(process.argv[2] ?? "");
-  if (!process.argv[2]) throw new Error("usage: screenshots.mjs <out-dir>");
+  const names = process.argv.slice(3);
+  const prefixes = (process.env.SCREENSHOTS_ONLY ?? "").split(",").filter(Boolean);
+  if (!process.argv[2] || (!names.length && !prefixes.length)) {
+    throw new Error("usage: screenshots.mjs <out-dir> <screen>... (name the screens a pull request adds or changes)");
+  }
+  const unknown = names.filter((n) => !SHOTS.some((s) => s.name === n));
+  if (unknown.length) throw new Error(`no screen named ${unknown.join(", ")} (the names are in SHOTS in screenshots.mjs)`);
   if (!fs.existsSync(path.join(dist, "app/index.html"))) throw new Error("build the site first: just site");
   const baseline = process.env.INVOLO_BASELINE ? path.resolve(process.env.INVOLO_BASELINE) : null;
   if (baseline && !fs.existsSync(baseline)) throw new Error(`INVOLO_BASELINE: no such file ${baseline}`);
@@ -784,10 +852,10 @@ async function main() {
       for (const [size, viewport] of Object.entries(VIEWPORTS)) {
         for (const target of targets) {
           const prefs = { "layout.css.prefers-color-scheme.content-override": override };
-          const only = (process.env.SCREENSHOTS_ONLY ?? "").split(",").filter(Boolean);
-          const wanted = (key) => !only.length || only.some((o) => key.startsWith(o) || `${theme}-${size}`.endsWith(o));
+          const wanted = (s) =>
+            names.includes(s.name) || prefixes.some((o) => `${s.name}-${size}-${theme}`.startsWith(o) || `${theme}-${size}`.endsWith(o));
           const fits = (s) => (!s.only ? !viewport.named : [s.only].flat().includes(size));
-          const shots = SHOTS.filter((s) => fits(s) && wanted(`${s.name}-${size}-${theme}`));
+          const shots = SHOTS.filter((s) => fits(s) && wanted(s));
           if (!shots.length) continue;
           const profile = path.join(work, `profile-${target.side}-${theme}-${size}`);
           const { firefox, browser } = await openAt(profile, prefs, { width: viewport.width, height: viewport.height }, target.url(""));
@@ -845,7 +913,24 @@ async function main() {
   } finally {
     for (const s of servers) s.close();
   }
-  if (baseline) written.push(...pairs.map((k) => `baseline/${k}.png`), ...(await compose(out, pairs)));
+  if (baseline) {
+    written.push(...pairs.map((k) => `baseline/${k}.png`));
+    written.push(
+      ...(await compose(
+        pairs.map((k) => ({
+          key: k,
+          left: path.join(out, "baseline", `${k}.png`),
+          leftLabel: "3.0",
+          right: path.join(out, `${k}.png`),
+          rightLabel: "New",
+          dir: path.join(out, "compare"),
+        })),
+      )),
+    );
+  }
+  const { made, alone } = await besideBoards(out, written.filter((f) => !f.includes("/")));
+  written.push(...made);
+  if (alone.length) process.stdout.write(`no board in review-boards.mjs for: ${alone.join(", ")}\n`);
   process.stdout.write(`screenshots: ${written.length} files in ${out}\n${written.join("\n")}\n`);
 }
 

@@ -115,12 +115,13 @@ just site      # build the web site into apps/web/dist (WebAssembly, app, then t
 just catalog <out>  # build the published packs' catalog into <out>
 just test-packs     # the catalog tests and the dev server read, with the example pack, in target/test-packs
 just update-test  # service worker update test in headless Firefox (local; needs Firefox)
-just screenshots <dir>  # review screenshots (five sizes, dark and light) into <dir>
+just e2e       # end-to-end flows with layout and accessibility checks (Chromium, WebKit)
+just review-shots <dir> <screen>...  # review shots of named screens beside their boards
 just ci        # everything; must pass before a push
 just overlap   # compare packs with local reference files
 ```
 
-`just overlap` and parts of `just screenshots` use optional local files named by `INVOLO_*`
+`just overlap` and parts of `just review-shots` use optional local files named by `INVOLO_*`
 variables; without them those extra checks are skipped. `CONTRIBUTING.md` ("Optional local
 files") lists each one.
 

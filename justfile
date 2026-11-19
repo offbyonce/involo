@@ -109,10 +109,12 @@ practice-diff base="main":
 e2e *args: site
     pnpm --filter @involo/web e2e {{args}}
 
-# Screenshots of the built app for review (phone, both tablets, 1440 and 2560, dark and light), to a
-# folder outside the repo. Needs Firefox; not part of `just ci`.
-screenshots out: site test-packs
-    node apps/web/build/screenshots.mjs {{out}}
+# Review shots of the named screens (phone, both tablets, 1440 and 2560 unless a screen names its
+# sizes; dark and light), each beside its approved board, into a folder outside the repo: for the
+# screens a pull request adds or changes. The names are in SHOTS in apps/web/build/screenshots.mjs.
+# Needs Firefox; not part of `just ci`.
+review-shots out +screens: site test-packs
+    node apps/web/build/screenshots.mjs {{out}} {{screens}}
 
 # The drawing renderer's review images (gallery, each control state, the board's drawings), both
 # themes, into <out>, outside the repo. Needs Firefox; not part of `just ci`.

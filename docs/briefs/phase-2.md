@@ -130,7 +130,7 @@ Steps marked **(maintainer)** need repository settings or workflow changes
    batch's independent reviewer, with fresh context, checks: both themes; all five sizes (phone,
    tablet portrait, tablet landscape, 1440, 2560 by 1440); the coverage rows the batch touches;
    the token lint; 44 px targets; contrast; that nothing was removed; and a matched 3.0 compare
-   (`just screenshots` with `INVOLO_BASELINE`). Its findings are included unedited, with the
+   (`just review-shots` with `INVOLO_BASELINE`). Its findings are included unedited, with the
    fixes. A batch is ready only when nothing is worse. The new app replaces the front page only
    when it clearly exceeds 3.0. Tablet and phone support is claimed only after the qualification
    in decision 0021.
