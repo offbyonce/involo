@@ -59,5 +59,7 @@ export const REVIEW_BOARDS = {
   "board-packs-first": { desktop: "PacksFirst" },
   "board-packs-switcher": { phone: "PacksSwitcher" },
   "board-packs-remove": { desktop: "PacksRemove" },
+  "board-simbrief-other": { desktop: "PacksSimbrief" },
+  "board-simbrief-other-file": { desktop: "PacksSimbrief" },
   "board-update-note": { desktop: "PacksUpdate", tablet: "PacksUpdate", phone: "PacksUpdate" },
 };

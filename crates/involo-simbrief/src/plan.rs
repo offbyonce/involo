@@ -74,6 +74,8 @@ compact! {
         pub flight_number: Option<String>,
         /// The aircraft type code (`B38M`) and registration.
         pub aircraft: Option<String>,
+        /// The aircraft's name in SimBrief (`737 MAX 8`), shown when the type isn't the pack's.
+        pub aircraft_name: Option<String>,
         pub registration: Option<String>,
         pub cruise_altitude_ft: Option<i32>,
         pub cost_index: Option<i32>,
@@ -265,6 +267,7 @@ pub(crate) fn plan_from_value(root: &Value) -> Result<Plan, OfpError> {
             airline: text(root, &["general", "icao_airline"]),
             flight_number: text(root, &["general", "flight_number"]),
             aircraft: text(root, &["aircraft", "icaocode"]),
+            aircraft_name: text(root, &["aircraft", "name"]),
             registration: text(root, &["aircraft", "reg"]),
             cruise_altitude_ft: int(root, &["general", "initial_altitude"]),
             cost_index: int(root, &["general", "costindex"]),

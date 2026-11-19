@@ -311,6 +311,24 @@ export const olderIflyWithChanges = [
   `new Promise((d) => setTimeout(d, 600, true))`,
 ];
 /** Opens What's new for the waiting update. */
+/** The board OFP as a plan for another aircraft (PacksSimbrief's stand-in, an A320neo), chosen on
+ * SimBrief and OFP file; then the warning, Use this plan anyway?, is open. */
+const otherAircraftOfp = (() => {
+  const ofp = JSON.parse(OFP);
+  ofp.aircraft = { ...ofp.aircraft, icaocode: "A20N", name: "Airbus A320neo" };
+  return JSON.stringify(ofp);
+})();
+export const importOtherAircraft = [
+  go("#/flight/simbrief"),
+  `new Promise((d) => setTimeout(d, 400, true))`,
+  chooseFile('.choose ~ input[type="file"]', otherAircraftOfp, "ofp.json"),
+  `new Promise((d) => { let n = 0; const t = setInterval(() => { if (document.querySelector('[aria-labelledby="other-title"]') || ++n > 100) { clearInterval(t); setTimeout(d, 300, true); } }, 100); })`,
+];
+/** Marks the installed iFly pack as added from a file, then reloads. */
+export const iflyFromFile = [
+  `new Promise((done) => { const r = indexedDB.open("involo"); r.onsuccess = () => { const db = r.result; const tx = db.transaction("packs", "readwrite"); const store = tx.objectStore("packs"); const g = store.get("ifly-737-max8"); g.onsuccess = () => { const rec = g.result; rec.source = "file"; store.put(rec, "ifly-737-max8"); }; tx.oncomplete = () => { db.close(); location.reload(); done(true); }; }; })`,
+  restarted,
+];
 export const openWhatsNew = [click('button[aria-label^="What’s new in"]'), `new Promise((d) => { let n = 0; const t = setInterval(() => { if (document.querySelector('[aria-labelledby="new-title"]') || ++n > 100) { clearInterval(t); setTimeout(d, 300, true); } }, 100); })`];
 /** Updates from What's new: the app opens again on the new version, with its note. */
 export const updateFromWhatsNew = [

@@ -187,6 +187,18 @@ mod tests {
     }
 
     #[test]
+    fn the_plan_keeps_the_aircraft_s_type_and_name() {
+        let mut ofp: Value = serde_json::from_str(&fixture("ofp-sample.json")).unwrap();
+        ofp["aircraft"]["name"] = Value::from("737 MAX 8");
+        let plan = parse_ofp_json(&ofp.to_string()).unwrap();
+        assert_eq!(plan.general.aircraft.as_deref(), Some("B38M"));
+        assert_eq!(plan.general.aircraft_name.as_deref(), Some("737 MAX 8"));
+        // A plan without a name has none.
+        let plan = parse_ofp_json(&fixture("ofp-sample.json")).unwrap();
+        assert_eq!(plan.general.aircraft_name, None);
+    }
+
+    #[test]
     fn the_plan_never_reads_personal_fields() {
         // The fixture's pilot is "Pilot" with the ID 123456, in crew, fetch, params and api_params.
         let saved =

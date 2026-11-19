@@ -61,6 +61,7 @@ export type { MessagesFile } from "./generated/MessagesFile";
 export type { NotesRow } from "./generated/NotesRow";
 export type { OpenStep } from "./generated/OpenStep";
 export type { OptionChoice } from "./generated/OptionChoice";
+export type { OtherAircraft } from "./generated/OtherAircraft";
 export type { Overview } from "./generated/Overview";
 export type { OverviewArea } from "./generated/OverviewArea";
 export type { OverviewRegion } from "./generated/OverviewRegion";

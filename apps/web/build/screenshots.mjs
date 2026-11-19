@@ -37,7 +37,9 @@ import {
   finishSkippingLast,
   go,
   hitOf,
+  iflyFromFile,
   IMPOSSIBLE,
+  importOtherAircraft,
   inFlight,
   LOG_OPEN,
   noPacks,
@@ -528,6 +530,10 @@ const SHOTS = [
     only: ["desktop", "phone"],
     app: { hash: "#/phase/before-start", before: [...olderIflyWithChanges, ...addCatalogIflyAsFile] },
   },
+  // A SimBrief plan for another aircraft (PacksSimbrief): the warning at desktop, and on a phone
+  // in the Remove dialog's form; then with a pack added from a file, its row marked so.
+  { name: "board-simbrief-other", fresh: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: importOtherAircraft } },
+  { name: "board-simbrief-other-file", fresh: true, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...iflyFromFile, ...importOtherAircraft] } },
   ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ name: `how-part-${n}`, only: ["desktop"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go(`#/how/${n}`)] } })),
   // The phone list with its fold opened: each later list starts with its label row.
   { name: "board-phone-fold", only: ["phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, click("button.after"), click("button.card.folded"), `(() => { [...document.querySelectorAll("section.card > p.label")].find((p) => p.offsetParent)?.scrollIntoView({ block: "center" }); return true; })()`] } },

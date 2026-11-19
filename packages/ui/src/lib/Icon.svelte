@@ -41,6 +41,7 @@ control around them carries the words.
   import fileAdd from "../icons/board/file-add.svg?raw";
   import panel from "../icons/board/panel.svg?raw";
   import pin from "../icons/board/pin.svg?raw";
+  import warning from "../icons/board/warning.svg?raw";
 
   const ICONS = {
     "alert-triangle": alertTriangle,
@@ -75,6 +76,7 @@ control around them carries the words.
     skip,
     search,
     settings,
+    warning,
     x,
   };
 

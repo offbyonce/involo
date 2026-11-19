@@ -7,7 +7,11 @@ export type General = { airline?: string, flightNumber?: string,
 /**
  * The aircraft type code (`B38M`) and registration.
  */
-aircraft?: string, registration?: string, cruiseAltitudeFt?: number, costIndex?: number, route?: string, sid?: string, sidTransition?: string, star?: string, starTransition?: string, 
+aircraft?: string, 
+/**
+ * The aircraft's name in SimBrief (`737 MAX 8`), shown when the type isn't the pack's.
+ */
+aircraftName?: string, registration?: string, cruiseAltitudeFt?: number, costIndex?: number, route?: string, sid?: string, sidTransition?: string, star?: string, starTransition?: string, 
 /**
  * Average wind along the route: direction (degrees true) and speed (knots).
  */
