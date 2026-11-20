@@ -60,3 +60,47 @@ jobs:
         with:
           persist-credentials: false
       - uses: fsfe/reuse-action@v5
+
+  # The end-to-end flows with their layout and accessibility checks (#163): the built site in
+  # Chromium and WebKit, served locally with the catalog, the network blocked. The token rules
+  # run in `just ci` above (Vitest). About five minutes, most of it building the site.
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Rust (version and targets from rust-toolchain.toml)
+        run: |
+          rustup show active-toolchain || rustup toolchain install
+          rustup target add wasm32-unknown-unknown
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just,wasm-bindgen@0.2.130
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The browsers at the version @playwright/test pins, with their system libraries.
+      - run: pnpm --filter @involo/web exec playwright install --with-deps chromium webkit
+
+      - run: just e2e
+        env:
+          CI: "1"
+
+      # On a failure: the HTML report, with each failed test's trace and the page as it was.
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: target/e2e
+          retention-days: 14
