@@ -25,3 +25,11 @@ minimumReleaseAge: 1440
 # Packages allowed to run install scripts (lefthook installs its git hooks).
 allowBuilds:
   lefthook: true
+
+# `pnpm audit` (`just deny`): high and critical advisories fail. An accepted advisory goes in
+# `ignore` with a comment saying what it is, why it can't reach the app and when to look again,
+# and comes out once a fixed version is in:
+#   - GHSA-xxxx-xxxx-xxxx  # what, why it can't reach the app, when to look again
+audit:
+  level: high
+  ignore: []

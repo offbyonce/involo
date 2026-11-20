@@ -13,6 +13,8 @@ all-features = true
 yanked = "deny"
 unmaintained = "workspace"
 unsound = "all"
+# An accepted advisory: its id, with a comment saying what it is, why it can't reach the app and
+# when to look again (CONTRIBUTING, "When a dependency or size check fails").
 ignore = []
 
 [licenses]
@@ -26,7 +28,8 @@ allow = [
 confidence-threshold = 0.9
 
 [bans]
-multiple-versions = "allow"
+# Two versions of one crate are reported, not failed: align them when an update allows it.
+multiple-versions = "warn"
 wildcards = "deny"
 allow-wildcard-paths = true
 
