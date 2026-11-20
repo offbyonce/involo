@@ -48,10 +48,12 @@ jobs:
         with:
           tool: just,cargo-fuzz
 
-      # pnpm is not needed: the seed script uses Node alone.
+      # pnpm is not needed: the seed script uses Node alone. setup-node v5 caches for the
+      # packageManager named in package.json by default, which looks for pnpm, so that is off.
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+          package-manager-cache: false
 
       # What earlier runs found, per target, so each run starts where the last one stopped.
       - uses: actions/cache@v4
