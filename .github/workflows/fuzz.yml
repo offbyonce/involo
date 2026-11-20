@@ -50,7 +50,7 @@ jobs:
 
       # pnpm is not needed: the seed script uses Node alone. setup-node v5 caches for the
       # packageManager named in package.json by default, which looks for pnpm, so that is off.
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           package-manager-cache: false
