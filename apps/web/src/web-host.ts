@@ -33,6 +33,7 @@ import {
   planFormat,
   planUrl,
   planValues,
+  practiceResult,
   rail,
   reconcile,
   suggestion,
@@ -186,6 +187,7 @@ export const webHost: Host = {
     return saved;
   },
   logEntry,
+  practiceResult,
   editLog: async (log, edit) =>
     editLog(log, edit, edit.type === "merge" ? await logPackTexts(edit.text) : []),
   logCsv,

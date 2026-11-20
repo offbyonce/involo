@@ -26,6 +26,7 @@ import type {
   Plan,
   PlanSource,
   PlanValues,
+  PracticeResult,
   Rail,
   Reply,
   SavedPlan,
@@ -243,6 +244,15 @@ export async function logEntry(
       JSON.stringify(at),
     ),
   );
+}
+
+/** A finished practice test as a log entry, with the pack it was taken in. */
+export async function practiceResult(
+  pack: string,
+  result: { title: string; score: number; total: number; at: number },
+): Promise<PracticeResult> {
+  await load();
+  return unwrap<PracticeResult>(wasm.practice_result(pack, JSON.stringify(result)));
 }
 
 /** Applies an edit to the log: add, delete, or merge a log file. `packs` are the texts of the

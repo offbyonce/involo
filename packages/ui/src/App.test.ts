@@ -220,7 +220,10 @@ function host(overrides: Partial<Host> = {}): Host {
 
 /** The Flight log's host calls, with the log's rules reduced to what these tests need (the real
  * ones are Rust's, tested there): entries newest first, added or deleted by id. */
-function fakeLog(): Pick<Host, "newLog" | "readLog" | "saveLog" | "logEntry" | "editLog" | "logCsv"> {
+function fakeLog(): Pick<
+  Host,
+  "newLog" | "readLog" | "saveLog" | "logEntry" | "practiceResult" | "editLog" | "logCsv"
+> {
   return {
     newLog: async () => ({ format: 1, flights: [], practice: [] }),
     readLog: async () => null,
@@ -230,7 +233,8 @@ function fakeLog(): Pick<Host, "newLog" | "readLog" | "saveLog" | "logEntry" | "
       loggedAt: at,
       pack,
       packVersion: "0.1.0",
-      aircraft: "Demo",
+      packName: "Demo",
+      aircraft: "Demo jet",
       origin: flight.values.origin ?? "",
       destination: flight.values.destination ?? "",
       offBlocks: Object.values(flight.session.done)[0] ?? null,
@@ -248,6 +252,14 @@ function fakeLog(): Pick<Host, "newLog" | "readLog" | "saveLog" | "logEntry" | "
         name: step,
         value: "ON",
       })),
+    }),
+    practiceResult: async (pack, r) => ({
+      id: `${pack}@${r.at}`,
+      pack,
+      packVersion: "0.1.0",
+      packName: "Demo",
+      aircraft: "Demo jet",
+      ...r,
     }),
     editLog: async (log, edit) => {
       const next = { ...log, flights: [...log.flights], practice: [...log.practice] };
@@ -1878,7 +1890,8 @@ describe("the Flight log (decision 0026)", () => {
       loggedAt: 1,
       pack: "demo",
       packVersion: "0.1.0",
-      aircraft: "Demo",
+      packName: "Demo",
+      aircraft: "Demo jet",
       origin: "EGLL",
       destination: "LFPG",
       offBlocks: null,
@@ -1919,6 +1932,83 @@ describe("the Flight log (decision 0026)", () => {
     );
   });
 
+  it("exports only the chosen pack's flights and practice results, and keeps the choice on coming back", async () => {
+    const logged = (id: string, pack: string, packName: string) => ({
+      id,
+      loggedAt: 1_000,
+      pack,
+      packVersion: "0.1.0",
+      packName,
+      aircraft: null,
+      origin: "EGLL",
+      destination: "LFPG",
+      offBlocks: null,
+      onBlocks: null,
+      stages: [],
+      done: 0,
+      total: 4,
+      skipped: [],
+      plan: "manual" as const,
+      finished: false,
+      ticks: [],
+    });
+    const result = {
+      id: "g@2",
+      at: 2_000,
+      pack: "glider",
+      packVersion: "2.3.0",
+      packName: "Glider trainer",
+      aircraft: null,
+      title: "T",
+      score: 1,
+      total: 2,
+    };
+    const saved = {
+      format: 3,
+      flights: [logged("demo@1", "demo", "Demo"), logged("glider@1", "glider", "Glider trainer")],
+      practice: [result],
+    };
+    const csv: unknown[] = [];
+    const files: Blob[] = [];
+    URL.createObjectURL = (b: Blob | MediaSource) => {
+      files.push(b as Blob);
+      return "blob:log";
+    };
+    URL.revokeObjectURL = () => {};
+    window.location.hash = "#/log";
+    const h = host({
+      readLog: async () => ({ loaded: { state: "ready", value: saved, migratedFrom: null }, text: "" }),
+      logCsv: async (log) => {
+        csv.push(log);
+        return "csv";
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await fireEvent.click(await screen.findByRole("button", { name: "Glider trainer 2" }));
+    expect(document.querySelector(".earlier h2")?.textContent).toBe("Earlier flights · 1");
+    await fireEvent.click(screen.getByRole("button", { name: "Export CSV" }));
+    await waitFor(() => expect(csv).toHaveLength(1));
+    expect(csv[0]).toMatchObject({ flights: [{ id: "glider@1" }], practice: [{ id: "g@2" }] });
+    await fireEvent.click(screen.getByRole("button", { name: "Export JSON" }));
+    const json = JSON.parse(await (files.at(-1) as Blob).text());
+    expect(json.flights.map((f: { id: string }) => f.id)).toEqual(["glider@1"]);
+    expect(json.practice.map((r: { id: string }) => r.id)).toEqual(["g@2"]);
+    await fireEvent.click(screen.getByRole("button", { name: "Save copy (HTML file)" }));
+    expect(await (files.at(-1) as Blob).text()).toContain("with Glider trainer only.");
+    // Opening a flight and coming back keeps the chosen pack.
+    window.location.hash = "#/log/glider%401";
+    window.location.hash = "#/log";
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Glider trainer 2" }).getAttribute("aria-pressed")).toBe(
+        "true",
+      ),
+    );
+    // All packs exports everything again.
+    await fireEvent.click(screen.getByRole("button", { name: "All packs 3" }));
+    await fireEvent.click(screen.getByRole("button", { name: "Export JSON" }));
+    expect(JSON.parse(await (files.at(-1) as Blob).text()).flights).toHaveLength(2);
+  });
+
   it("doesn't offer to log a flight that was already finished when it loaded", async () => {
     const done = {
       ...rail,
@@ -1945,6 +2035,9 @@ describe("the Flight log (decision 0026)", () => {
     const result = (pack: string, title: string, at: number) => ({
       id: `${pack}@${at}`,
       pack,
+      packVersion: "0.1.0",
+      packName: pack,
+      aircraft: null,
       at,
       title,
       score: 3,

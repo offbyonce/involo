@@ -59,6 +59,7 @@ import {
   rowMenu,
   savedAs,
   seedLog,
+  seedLogByPack,
   simbrief,
   stepExact,
   stepNamed,
@@ -488,6 +489,9 @@ const SHOTS = [
   // phone; and an empty log (round 6's Log view).
   { name: "board-log", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLog, go(`#/log/${LOG_OPEN}`)] } },
   { name: "board-log-list", full: true, only: ["phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLog, go("#/log")] } },
+  // The Flight log by pack (PacksLog, #107): every pack, then the example pack's chip chosen.
+  { name: "board-log-packs", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLogByPack, go("#/log")] } },
+  { name: "board-log-pack", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLogByPack, go("#/log"), `new Promise((done) => setTimeout(() => { [...document.querySelectorAll(".chip")].find((b) => b.textContent.startsWith("Example trainer")).click(); setTimeout(() => done(true), 300); }, 300))`] } },
   // References (RefsDesk, RefsPhone): the whole page, and Find opened on its simulator
   // model steps.
   { name: "board-refs", full: true, only: ["desktop", "phone", "tablet", "tablet-landscape"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/references")] } },

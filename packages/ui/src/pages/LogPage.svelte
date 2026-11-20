@@ -12,6 +12,10 @@ and start new, Save copy (HTML file), Export CSV, Export JSON, Load log file, Pr
 and the note. Below 900 px (phone and tablet portrait): This flight, Earlier flights and
 Practice results as a list; a flight opens on its own page; Log flight and start new sits in the
 bottom bar, and "···" opens the export and import actions as a sheet.
+With flights or practice results from more than one pack, chips above This flight show every pack
+or one (PacksLog board, decision 0028): the lists, the counts and the exports follow them, This
+flight shows under every pack and its own, and each entry names its pack and version (only the
+version under a pack's chip).
 -->
 <script lang="ts">
   import { safely } from "../lib/safely";
@@ -27,6 +31,9 @@ bottom bar, and "···" opens the export and import actions as a sheet.
     planLabel,
     routeWords,
     score,
+    type LogPack,
+    logOf,
+    packLine,
     stageTimes,
     summary,
   } from "../lib/flight-log";
@@ -39,6 +46,10 @@ bottom bar, and "···" opens the export and import actions as a sheet.
 
   let {
     log,
+    packs = [],
+    pack = null,
+    openPack = "",
+    onPack = () => {},
     current,
     entry,
     name,
@@ -56,6 +67,13 @@ bottom bar, and "···" opens the export and import actions as a sheet.
     onStep,
   }: {
     log: Log;
+    /** The packs the log holds (`logPacks`), for the chips. */
+    packs?: LogPack[];
+    /** The pack whose flights and results show, or null for every pack. */
+    pack?: string | null;
+    /** The open pack's id: This flight is its flight. */
+    openPack?: string;
+    onPack?: (pack: string | null) => void;
     /** This flight as it would be logged now, or null before anything is ticked. */
     current: LoggedFlight | null;
     /** The flight in the address: an earlier flight's id, "current" for This flight, or none. */
@@ -92,6 +110,16 @@ bottom bar, and "···" opens the export and import actions as a sheet.
   });
 
   let opened = $derived(entry && entry !== "current" ? (log.flights.find((f) => f.id === entry) ?? null) : null);
+  /** The flights and practice results the chips show. */
+  let shown = $derived(logOf(log, pack));
+  /** This flight is the open pack's: it shows under every pack and under its own. */
+  let showsThis = $derived(pack === null || pack === openPack);
+  let packName = $derived(new Map(packs.map((p) => [p.id, p.name])));
+  /** An entry's pack and version, as its row shows it: the pack's name from the chips, else the
+   * entry's own, else its id. */
+  const packOf = (id: string, version: string | null, own: string | null) =>
+    packLine(version, packName.get(id) ?? (own || id), pack !== null);
+  let chosen = $derived(packs.find((p) => p.id === pack) ?? null);
   /** This flight's every tick, or only its latest. */
   let allTicks = $state(false);
   /** An earlier flight's every tick. */
@@ -195,7 +223,7 @@ bottom bar, and "···" opens the export and import actions as a sheet.
   <div class="detail">
     <div class="dh">
       <h3 class="mono" aria-label={routeWords(f)}>{route(f)}</h3>
-      <span>{[dayLabel(flightDay(f)), f.aircraft, t === null ? null : duration(t)].filter(Boolean).join(" · ")}</span>
+      <span>{[dayLabel(flightDay(f)), packLine(f.packVersion, packName.get(f.pack) ?? f.packName, false), t === null ? null : duration(t)].filter(Boolean).join(" · ")}</span>
     </div>
     <dl class="facts">
       <div><dt>Off blocks</dt><dd class="mono">{f.offBlocks === null ? "—" : clock(f.offBlocks)}</dd></div>
@@ -255,10 +283,11 @@ bottom bar, and "···" opens the export and import actions as a sheet.
       <a class="link" href="#/practice">Practice ›</a>
     </div>
     <div>
-        {#each log.practice as r, i (i)}
+        {#each shown.practice as r, i (i)}
+          {@const line = packOf(r.pack, r.packVersion, r.packName)}
           <div class="result">
-            {#if wide}<span class="rd">{dayLabel(r.at)}</span><span class="rt">{r.title}</span>
-            {:else}<span class="rt">{r.title}<span class="rd">{dayLabel(r.at)}</span></span>{/if}
+            {#if wide}<span class="rd">{dayLabel(r.at)}</span><span class="rt">{r.title}{#if line}<span class="rp">{line}</span>{/if}</span>
+            {:else}<span class="rt">{r.title}<span class="rd">{[dayLabel(r.at), line].filter(Boolean).join(" · ")}</span></span>{/if}
             <span class="mono rs">{score(r)}</span>
           </div>
         {/each}
@@ -273,7 +302,20 @@ bottom bar, and "···" opens the export and import actions as a sheet.
   <button class="bt act" type="button" onclick={onJson}>Export JSON</button>
   {#if !blocked}<button class="bt act" type="button" onclick={() => file?.click()}>Load log file</button>
     <button class="bt act" type="button" onclick={print}>Print or save as PDF</button>{/if}
-  <span class="note">Logs stay on this device unless you export them. Clearing your browser’s site data removes them, so export now and then to keep a copy.</span>
+  <span class="note">{#if chosen && !blocked}{`Exports hold ${chosen.name} only. `}{/if}Logs stay on this device unless you export them. Clearing your browser’s site data removes them, so export now and then to keep a copy.</span>
+{/snippet}
+
+{#snippet chips()}
+  {#if packs.length > 1}
+    <div class="chips" role="group" aria-label="Show flights from">
+      <button class="chip" type="button" aria-pressed={pack === null} onclick={() => onPack(null)}
+        >All packs <span class="n">{packs.reduce((n, p) => n + p.count, 0)}</span></button
+      >
+      {#each packs as p (p.id)}
+        <button class="chip" type="button" aria-pressed={pack === p.id} onclick={() => onPack(p.id)}>{p.name} <span class="n">{p.count}</span></button>
+      {/each}
+    </div>
+  {/if}
 {/snippet}
 
 {#snippet notices()}
@@ -293,24 +335,27 @@ bottom bar, and "···" opens the export and import actions as a sheet.
     </header>
     <div class="body">
       <main class="main">
+        {@render chips()}
         {@render notices()}
-        <section class="box this" aria-labelledby="log-this">
-          <div class="sh">
-            <h2 id="log-this">This flight{#if current}{" · "}<span aria-label={routeWords(current)}>{route(current)}</span>{/if}</h2>
-            {#if current}<span class="meta">{currentLine}</span>{/if}
-          </div>
-          {@render thisFlight()}
-        </section>
+        {#if showsThis}
+          <section class="box this" aria-labelledby="log-this">
+            <div class="sh">
+              <h2 id="log-this">This flight{#if current}{" · "}<span aria-label={routeWords(current)}>{route(current)}</span>{/if}</h2>
+              {#if current}<span class="meta">{currentLine}</span>{/if}
+            </div>
+            {@render thisFlight()}
+          </section>
+        {/if}
         <section class="box earlier" aria-labelledby="log-earlier">
           <div class="sh">
-            <h2 id="log-earlier">Earlier flights{#if log.flights.length}{` · ${log.flights.length}`}{/if}</h2>
-            {#if log.flights.length}<span class="meta small">Newest first</span>{/if}
+            <h2 id="log-earlier">Earlier flights{#if shown.flights.length}{` · ${shown.flights.length}`}{/if}</h2>
+            {#if shown.flights.length}<span class="meta small">Newest first</span>{/if}
           </div>
-          {#if log.flights.length}
+          {#if shown.flights.length}
             <div class="rows">
-              {#each log.flights as f (f.id)}
+              {#each shown.flights as f (f.id)}
                 <a class="row" href={opened?.id === f.id ? logHref() : logHref(f.id)} aria-current={opened?.id === f.id ? "true" : undefined} aria-expanded={opened?.id === f.id}
-                  ><span class="date">{dayLabel(flightDay(f))}</span><span class="mono rte" aria-label={routeWords(f)}>{route(f)}</span><span class="sum">{summary(f)}</span>{@render status(f)}<Icon
+                  ><span class="date">{dayLabel(flightDay(f))}</span><span class="mono rte" aria-label={routeWords(f)}>{route(f)}</span><span class="sum">{[packOf(f.pack, f.packVersion, f.packName), summary(f)].filter(Boolean).join(" · ")}</span>{@render status(f)}<Icon
                     name="chevron-right"
                   /></a
                 >
@@ -321,7 +366,7 @@ bottom bar, and "···" opens the export and import actions as a sheet.
             <p class="none">Flights you log appear here, newest first.</p>
           {/if}
         </section>
-        {#if log.practice.length}{@render practice(false)}{/if}
+        {#if shown.practice.length}{@render practice(false)}{/if}
       </main>
       <aside class="acts" aria-label="Log actions">
         <button class="primary" type="button" disabled={!current || busy || !!blocked} onclick={() => void logFlight()}>Log flight and start new</button>
@@ -352,24 +397,25 @@ bottom bar, and "···" opens the export and import actions as a sheet.
       <div class="ttl"><h1>Flight log</h1><span>Saved on this device</span></div>
     </header>
     <main class="list">
+      {#if packs.length > 1}<div class="pchips">{@render chips()}</div>{/if}
       {#if blocked || full || notice || problem}<div class="pnotes">{@render notices()}</div>{/if}
-      <a class="prow this" href={logHref("current")}
+      {#if showsThis}<a class="prow this" href={logHref("current")}
         ><span class="pt"><span class="pl">This flight</span>{#if current}<span class="mono pr" aria-label={routeWords(current)}>{route(current)}</span><span class="ps">{currentLine}</span>{:else}<span class="ps">Nothing ticked yet</span>{/if}</span><Icon
           name="chevron-right"
         /></a
-      >
-      <div class="plabel">Earlier flights{#if log.flights.length}{` · ${log.flights.length}`}{/if}</div>
-      {#each log.flights as f (f.id)}
+      >{/if}
+      <div class="plabel">Earlier flights{#if shown.flights.length}{` · ${shown.flights.length}`}{/if}</div>
+      {#each shown.flights as f (f.id)}
         <a class="prow" href={logHref(f.id)}
           ><span class="pt"><span class="pline"><span class="mono pr" aria-label={routeWords(f)}>{route(f)}</span>{@render status(f)}</span><span class="ps"
-                >{[dayLabel(flightDay(f)), summary(f)].join(" · ")}</span
+                >{[packOf(f.pack, f.packVersion, f.packName), dayLabel(flightDay(f)), summary(f)].filter(Boolean).join(" · ")}</span
               ></span
             ><Icon name="chevron-right" /></a
         >
       {:else}
         <p class="none pnone">Flights you log appear here, newest first.</p>
       {/each}
-      {#if log.practice.length}<div class="pwrap">{@render practice(true)}</div>{/if}
+      {#if shown.practice.length}<div class="pwrap">{@render practice(true)}</div>{/if}
     </main>
     <div class="bar-foot">
       <button class="primary" type="button" disabled={!current || busy || !!blocked} onclick={() => void logFlight()}>Log flight and start new</button>
@@ -779,6 +825,52 @@ bottom bar, and "···" opens the export and import actions as a sheet.
   }
   .rs {
     color: var(--color-text-strong);
+  }
+  /* A practice result's pack and version, after its title (desktop). */
+  .rp {
+    margin-left: var(--space-2);
+    color: var(--color-text-muted);
+  }
+  /* The pack chips (PacksLog): 36 px pills, the chosen one in the accent; 44 px on a phone. */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: calc(var(--space-8) + var(--space-1));
+    padding: 0 var(--space-3);
+    border: var(--border-thin) solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-button-bg);
+    box-shadow: var(--color-button-shadow);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--font-size-secondary);
+    cursor: pointer;
+  }
+  .chip .n {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-caption);
+  }
+  .chip[aria-pressed="true"] {
+    border: var(--size-focus-ring) solid var(--color-accent);
+    background: var(--color-accent-soft);
+    color: var(--color-text-strong);
+    font-weight: var(--weight-semibold);
+  }
+  .chip[aria-pressed="true"] .n {
+    color: var(--color-accent-text);
+  }
+  .pchips {
+    padding: var(--space-3) var(--space-4) 0;
+  }
+  .pchips .chip {
+    min-height: var(--size-touch-min);
   }
   .notice {
     margin: 0;

@@ -3,7 +3,12 @@
 /**
  * One finished practice test.
  */
-export type PracticeResult = { id: string, at: number, pack: string, title: string, 
+export type PracticeResult = { id: string, at: number, pack: string, 
+/**
+ * The pack's version, its name and the aircraft's name (format 3), or `None` for a result
+ * saved before, which didn't record them.
+ */
+packVersion: string | null, packName: string | null, aircraft: string | null, title: string, 
 /**
  * Right answers out of the questions answered.
  */

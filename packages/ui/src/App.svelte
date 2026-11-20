@@ -75,7 +75,7 @@ in Rust. The host saves progress and settings on the device.
   import LogPage from "./pages/LogPage.svelte";
   import ReferencesPage from "./pages/ReferencesPage.svelte";
   import { buildReferences } from "./lib/references";
-  import { download, fileDate, htmlCopy } from "./lib/flight-log";
+  import { download, fileDate, htmlCopy, logOf, logPacks } from "./lib/flight-log";
   import Tour from "./lib/Tour.svelte";
   import { tour } from "./lib/tour-state.svelte";
   import { flowAreas, howCountsOf } from "./lib/how-content";
@@ -919,15 +919,26 @@ in Rust. The host saves progress and settings on the device.
     return index && st ? stepTitle(index, st) : name;
   };
   const stamp = () => fileDate(Date.now());
+  /** The Flight log's pack filter (decision 0028): a pack's id, or null for every pack. It lasts
+   * for this visit, so opening a flight and coming back keeps it. */
+  let logPack = $state<string | null>(null);
+  /** Installed packs' names, by id, for log entries that didn't record theirs. */
+  let installedNames = $derived(Object.fromEntries(installed.map((p) => [p.summary.id, p.summary.name])));
+  /** The packs the log holds, for its chips; a chosen pack no longer in it shows every pack. */
+  let loggedPacks = $derived(log ? logPacks(log, installedNames) : []);
+  let shownPack = $derived(loggedPacks.some((p) => p.id === logPack) ? logPack : null);
+  /** What the exports hold: the log, or only the chosen pack's flights and practice results. */
+  let exported = $derived(log ? logOf(log, shownPack) : null);
   function saveLogCopy(): void {
-    if (log) download(`involo-log-${stamp()}.html`, htmlCopy(log, Date.now(), logName), "text/html");
+    const only = loggedPacks.find((p) => p.id === shownPack)?.name ?? null;
+    if (exported) download(`involo-log-${stamp()}.html`, htmlCopy(exported, Date.now(), logName, installedNames, only), "text/html");
   }
   async function exportCsv(): Promise<void> {
-    if (log) download(`involo-log-${stamp()}.csv`, await host.logCsv(log), "text/csv");
+    if (exported) download(`involo-log-${stamp()}.csv`, await host.logCsv(exported), "text/csv");
   }
   function exportJson(): void {
     if (logBlocked && logKept !== null) download(`involo-log-kept-${stamp()}.json`, logKept, "application/json");
-    else if (log && !logBlocked) download(`involo-log-${stamp()}.json`, `${JSON.stringify(log, null, 2)}\n`, "application/json");
+    else if (exported && !logBlocked) download(`involo-log-${stamp()}.json`, `${JSON.stringify(exported, null, 2)}\n`, "application/json");
   }
   async function importLog(text: string): Promise<string> {
     try {
@@ -964,7 +975,7 @@ in Rust. The host saves progress and settings on the device.
   /** A finished practice test goes in the log (Practice results). */
   async function savePractice(r: { title: string; score: number; total: number; at: number }): Promise<void> {
     try {
-      await changeLog({ type: "addPractice", result: { id: `${packId}@${r.at}`, pack: packId, ...r } });
+      await changeLog({ type: "addPractice", result: await host.practiceResult(packId, r) });
     } catch (e) {
       fail(e);
     }
@@ -1404,6 +1415,10 @@ in Rust. The host saves progress and settings on the device.
   <div class="flightwrap">
     <LogPage
       {log}
+      packs={loggedPacks}
+      pack={shownPack}
+      openPack={packId}
+      onPack={(id) => (logPack = id)}
       current={currentEntry}
       entry={route.value.entry}
       name={logName}

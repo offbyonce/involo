@@ -14,9 +14,15 @@ export type LoggedFlight = {
  */
 id: string, loggedAt: number, pack: string, packVersion: string, 
 /**
- * The pack's name, such as the aircraft's.
+ * The pack's name when the flight was logged, as the app showed it (format 3; a format 1 or
+ * 2 flight's `aircraft` held it).
  */
-aircraft: string, 
+packName: string, 
+/**
+ * The aircraft's name from the pack's `aircraft` block (format 3), or `None` for a flight
+ * logged before, which didn't record it.
+ */
+aircraft: string | null, 
 /**
  * The departure and destination as entered, or empty.
  */

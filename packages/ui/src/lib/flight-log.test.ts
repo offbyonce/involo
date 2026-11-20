@@ -3,7 +3,18 @@
 
 import type { Log, LoggedFlight } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
-import { clock, dayLabel, duration, ends, htmlCopy, stageTimes, summary } from "./flight-log";
+import {
+  clock,
+  dayLabel,
+  duration,
+  ends,
+  htmlCopy,
+  logOf,
+  logPacks,
+  packLine,
+  stageTimes,
+  summary,
+} from "./flight-log";
 
 /** Shared with involo-app-core (crates/involo-app-core/tests/fixtures/stage-minutes.json). */
 const fixture = Object.values(
@@ -19,12 +30,13 @@ const f: LoggedFlight = {
   loggedAt: off + 200 * 60_000,
   pack: "demo",
   packVersion: "1",
-  aircraft: "Test <Jet>",
+  packName: "Test <Jet>",
+  aircraft: "Test aircraft",
   origin: "KSEA",
   destination: "",
   offBlocks: off,
   onBlocks: off + 161 * 60_000,
-  stages: [{ title: "Preflight", ms: 38 * 60_000 }],
+  stages: [{ id: "preflight", title: "Preflight", ms: 38 * 60_000 }],
   done: 359,
   total: 366,
   skipped: [
@@ -57,7 +69,7 @@ describe("the Flight log's words", () => {
     "rounds the stage minutes so they add up to the flight's total: $name",
     ({ ms, minutes }) => {
       // The cases involo-app-core's stage_minutes test reads too, so the two copies cannot drift.
-      const stages = ms.map((t) => ({ title: "Stage", ms: t }));
+      const stages = ms.map((t) => ({ id: null, title: "Stage", ms: t }));
       expect(stageTimes(stages)).toEqual(minutes.map((m) => `${m} min`));
       const total = ms.reduce((a, t) => a + t, 0);
       expect(minutes.reduce((a, m) => a + m, 0)).toBe(Math.floor((total + 30_000) / 60_000));
@@ -97,7 +109,19 @@ describe("the Flight log's words", () => {
       {
         format: 1,
         flights: [late],
-        practice: [{ id: "r", at: last, pack: "p", title: "T", score: 1, total: 1 }],
+        practice: [
+          {
+            id: "r",
+            at: last,
+            pack: "p",
+            packVersion: null,
+            packName: null,
+            aircraft: null,
+            title: "T",
+            score: 1,
+            total: 1,
+          },
+        ],
       },
       last,
       (t) => t,
@@ -106,5 +130,70 @@ describe("the Flight log's words", () => {
     expect(html).not.toContain("NaN");
     // Past JavaScript's own limit a date can't be shown at all, which is why it is refused.
     expect(String(new Date(8.64e15 + 1))).toBe("Invalid Date");
+  });
+});
+
+describe("the Flight log by pack (decision 0028)", () => {
+  const result = (id: string, pack: string, packName: string | null) => ({
+    id,
+    at: off,
+    pack,
+    packVersion: packName ? "1" : null,
+    packName,
+    aircraft: null,
+    title: "T",
+    score: 1,
+    total: 1,
+  });
+  const log: Log = {
+    format: 3,
+    flights: [
+      { ...f, id: "a2", packName: "Demo 2" },
+      { ...f, id: "a1", packName: "Demo 1" },
+      { ...f, id: "g1", pack: "glider", packVersion: "2.3.0", packName: "Glider trainer" },
+    ],
+    practice: [result("r1", "demo", null), result("r2", "old", null)],
+  };
+
+  it("lists each pack with its newest name and its count, most entries first", () => {
+    expect(logPacks(log)).toEqual([
+      // The newest entry's name, for a pack renamed between versions.
+      { id: "demo", name: "Demo 2", count: 3 },
+      { id: "glider", name: "Glider trainer", count: 1 },
+      // A pack only in results saved before log format 3 has no saved name: its id, unless it
+      // is installed.
+      { id: "old", name: "old", count: 1 },
+    ]);
+    expect(logPacks(log, { old: "Old trainer" }).at(-1)).toEqual({
+      id: "old",
+      name: "Old trainer",
+      count: 1,
+    });
+  });
+
+  it("keeps only a pack's flights and results, or the whole log", () => {
+    expect(logOf(log, null)).toBe(log);
+    const glider = logOf(log, "glider");
+    expect(glider.flights.map((x) => x.id)).toEqual(["g1"]);
+    expect(glider.practice).toEqual([]);
+    expect(logOf(log, "demo").practice.map((r) => r.id)).toEqual(["r1"]);
+    expect(glider.format).toBe(3);
+  });
+
+  it("names an entry's pack and version, or the version alone under one pack", () => {
+    expect(packLine("0.1.0", "iFly 737 MAX 8", false)).toBe("iFly 737 MAX 8 · 0.1.0");
+    expect(packLine("0.1.0", "iFly 737 MAX 8", true)).toBe("0.1.0");
+    expect(packLine(null, "iFly 737 MAX 8", false)).toBe("iFly 737 MAX 8");
+    expect(packLine(null, "iFly 737 MAX 8", true)).toBe("");
+  });
+
+  it("saves a copy of one pack's entries that says so", () => {
+    const html = htmlCopy(logOf(log, "glider"), off, (t) => t, {}, "Glider trainer");
+    expect(html).toContain("Flights and practice results with Glider trainer only.");
+    expect(html).toContain("Earlier flights · 1,");
+    expect(html).toContain("Sat 14 Nov · Glider trainer · 2.3.0 · 2 h 41 min");
+    const all = htmlCopy(log, off, (t) => t);
+    expect(all).not.toContain(" only.");
+    expect(all).toContain("<td>T</td><td>Demo 2</td><td>1 of 1</td>");
   });
 });

@@ -18,14 +18,15 @@ const MIN = 60_000;
 const at = (d: number, h: number, m: number) => new Date(2026, 10, d, h, m).getTime();
 function flight(id: string, off: number, minutes: number[], over: Partial<LoggedFlight> = {}): LoggedFlight {
   const names = ["Preflight", "Departure", "Enroute", "Arrival", "Post-flight"];
-  const stages = minutes.map((m, i) => ({ title: names[i] ?? "", ms: m * MIN }));
+  const stages = minutes.map((m, i) => ({ id: null, title: names[i] ?? "", ms: m * MIN }));
   const on = off + minutes.reduce((a, b) => a + b, 0) * MIN;
   return {
     id,
     loggedAt: on + MIN,
     pack: "demo",
     packVersion: "0.1.0",
-    aircraft: "Test Jet",
+    packName: "Test Jet",
+    aircraft: "Test aircraft",
     origin: "KSEA",
     destination: "KSFO",
     offBlocks: off,
@@ -80,8 +81,28 @@ const log: Log = {
     }),
   ],
   practice: [
-    { id: "r1", at: at(15, 18, 0), pack: "demo", title: "Lights of the flight deck", score: 17, total: 20 },
-    { id: "r2", at: at(13, 12, 0), pack: "demo", title: "Memory items", score: 9, total: 10 },
+    {
+      id: "r1",
+      at: at(15, 18, 0),
+      pack: "demo",
+      packVersion: "0.1.0",
+      packName: "Test Jet",
+      aircraft: "Test aircraft",
+      title: "Lights of the flight deck",
+      score: 17,
+      total: 20,
+    },
+    {
+      id: "r2",
+      at: at(13, 12, 0),
+      pack: "demo",
+      packVersion: null,
+      packName: null,
+      aircraft: null,
+      title: "Memory items",
+      score: 9,
+      total: 10,
+    },
   ],
 };
 const current = flight("now", at(16, 9, 48), [26], {
@@ -160,9 +181,20 @@ describe("Flight log, desktop (LogDesk)", () => {
       [...r.querySelectorAll(".date, .rte, .sum, .st")].map((s) => s.textContent),
     );
     expect(rows).toEqual([
-      ["Sun 15 Nov", "KSFO → KSEA", "2 h 05 min · 366 of 366 steps", "Finished"],
-      ["Sat 14 Nov", "KSEA → KSFO", "2 h 41 min · 359 of 366 steps · 2 skipped", "Finished"],
-      ["Thu 12 Nov", "KPDX → KSEA", "48 min · 118 of 366 steps · 1 skipped", "Not finished"],
+      // Each flight names the pack and version it was flown with (decision 0028).
+      ["Sun 15 Nov", "KSFO → KSEA", "Test Jet · 0.1.0 · 2 h 05 min · 366 of 366 steps", "Finished"],
+      [
+        "Sat 14 Nov",
+        "KSEA → KSFO",
+        "Test Jet · 0.1.0 · 2 h 41 min · 359 of 366 steps · 2 skipped",
+        "Finished",
+      ],
+      [
+        "Thu 12 Nov",
+        "KPDX → KSEA",
+        "Test Jet · 0.1.0 · 48 min · 118 of 366 steps · 1 skipped",
+        "Not finished",
+      ],
     ]);
     expect(container.querySelector(".row .st.fin")?.textContent).toBe("Finished");
     expect(container.querySelectorAll(".row .st:not(.fin)")).toHaveLength(1);
@@ -178,7 +210,7 @@ describe("Flight log, desktop (LogDesk)", () => {
     expect(opened?.getAttribute("href")).toBe("#/log");
     const d = container.querySelector(".detail") as HTMLElement;
     expect(d.querySelector("h3")?.textContent).toBe("KSEA → KSFO");
-    expect(within(d).getByText("Sat 14 Nov · Test Jet · 2 h 41 min")).toBeTruthy();
+    expect(within(d).getByText("Sat 14 Nov · Test Jet · 0.1.0 · 2 h 41 min")).toBeTruthy();
     expect([...d.querySelectorAll(".facts div")].map(words)).toEqual([
       "Off blocks09:48",
       "On blocks12:29",
@@ -324,10 +356,112 @@ describe("Flight log, desktop (LogDesk)", () => {
   it("lists practice results newest first with their date and score", () => {
     const { container } = render(LogPage, base);
     expect([...container.querySelectorAll(".result")].map(words)).toEqual([
-      "Sun 15 NovLights of the flight deck 17 of 20",
-      "Fri 13 NovMemory items 9 of 10",
+      // Each result names its pack and version; one saved before log format 3 recorded neither,
+      // so it shows its pack's id, the only name it has.
+      "Sun 15 NovLights of the flight deckTest Jet · 0.1.0 17 of 20",
+      "Fri 13 NovMemory itemsdemo 9 of 10",
     ]);
     expect(screen.getByRole("link", { name: "Practice ›" }).getAttribute("href")).toBe("#/practice");
+  });
+});
+
+describe("Flight log by pack (PacksLog, decision 0028)", () => {
+  /** The log with a second pack's flight and practice result. */
+  const glider = flight("g1", at(14, 8, 0), [30], {
+    pack: "glider",
+    packVersion: "2.3.0",
+    packName: "Glider trainer",
+  });
+  const two: Log = {
+    ...log,
+    flights: [log.flights[0], glider, ...log.flights.slice(1)] as LoggedFlight[],
+    practice: [
+      ...log.practice,
+      {
+        id: "g@1",
+        at: at(12, 9, 0),
+        pack: "glider",
+        packVersion: "2.3.0",
+        packName: "Glider trainer",
+        aircraft: "Glider",
+        title: "Memory items",
+        score: 3,
+        total: 4,
+      },
+    ],
+  };
+  const packs = [
+    { id: "demo", name: "Test Jet", count: 5 },
+    { id: "glider", name: "Glider trainer", count: 2 },
+  ];
+  const chips = () =>
+    [...document.querySelectorAll(".chip")].map((c) => [words(c), c.getAttribute("aria-pressed")]);
+
+  it("shows a chip for every pack and one for all of them, each with its count", async () => {
+    const onPack = vi.fn();
+    render(LogPage, { ...base, log: two, packs, openPack: "demo", onPack });
+    expect(screen.getByRole("group", { name: "Show flights from" })).toBeTruthy();
+    expect(chips()).toEqual([
+      ["All packs 7", "true"],
+      ["Test Jet 5", "false"],
+      ["Glider trainer 2", "false"],
+    ]);
+    await fireEvent.click(screen.getByRole("button", { name: "Glider trainer 2" }));
+    expect(onPack).toHaveBeenCalledWith("glider");
+    await fireEvent.click(screen.getByRole("button", { name: "All packs 7" }));
+    expect(onPack).toHaveBeenLastCalledWith(null);
+  });
+
+  it("shows no chips while the log holds one pack", () => {
+    render(LogPage, { ...base, packs: packs.slice(0, 1), openPack: "demo" });
+    expect(document.querySelector(".chips")).toBeNull();
+  });
+
+  it("under All packs: every flight and result, each with its pack and version, and This flight", () => {
+    const { container } = render(LogPage, { ...base, log: two, packs, openPack: "demo" });
+    expect(container.querySelector(".this")).toBeTruthy();
+    expect(container.querySelector(".earlier h2")?.textContent).toBe("Earlier flights · 4");
+    expect([...container.querySelectorAll(".row .sum")].map(words)[1]).toBe(
+      "Glider trainer · 2.3.0 · 30 min · 359 of 366 steps",
+    );
+    expect(container.querySelectorAll(".result")).toHaveLength(3);
+    expect(words(container.querySelector(".acts .note"))).toMatch(/^Logs stay on this device/);
+  });
+
+  it("under another pack's chip: only its flights and results, with the version alone, and no This flight", () => {
+    const { container } = render(LogPage, { ...base, log: two, packs, pack: "glider", openPack: "demo" });
+    expect(container.querySelector(".this")).toBeNull();
+    expect(container.querySelector(".earlier h2")?.textContent).toBe("Earlier flights · 1");
+    expect([...container.querySelectorAll(".row .sum")].map(words)).toEqual([
+      "2.3.0 · 30 min · 359 of 366 steps",
+    ]);
+    expect([...container.querySelectorAll(".result")].map(words)).toEqual([
+      "Thu 12 NovMemory items2.3.0 3 of 4",
+    ]);
+    // The exports hold only this pack's entries, and the note says so.
+    expect(words(container.querySelector(".acts .note"))).toMatch(
+      /^Exports hold Glider trainer only\. Logs stay on this device/,
+    );
+  });
+
+  it("under the open pack's chip: This flight too", () => {
+    const { container } = render(LogPage, { ...base, log: two, packs, pack: "demo", openPack: "demo" });
+    expect(container.querySelector(".this")).toBeTruthy();
+    expect(container.querySelector(".earlier h2")?.textContent).toBe("Earlier flights · 3");
+    expect(words(container.querySelector(".row .sum"))).toBe("0.1.0 · 2 h 05 min · 366 of 366 steps");
+  });
+
+  it("on a phone: the chips above This flight, 44 px tall, and the note in the export sheet", async () => {
+    phone();
+    const { container } = render(LogPage, { ...base, log: two, packs, pack: "glider", openPack: "demo" });
+    const list = container.querySelector(".list") as HTMLElement;
+    expect(list.firstElementChild?.classList.contains("pchips")).toBe(true);
+    expect(container.querySelector(".prow.this")).toBeNull();
+    expect(words(container.querySelector(".prow .ps"))).toBe(
+      "2.3.0 · Sat 14 Nov · 30 min · 359 of 366 steps",
+    );
+    await fireEvent.click(screen.getByRole("button", { name: "Export and import" }));
+    expect(words(container.querySelector(".sheet .note"))).toMatch(/^Exports hold Glider trainer only\./);
   });
 });
 
@@ -342,12 +476,14 @@ describe("Flight log, phone (LogPhone, LogPhoneFlight)", () => {
     const rows = [...container.querySelectorAll(".prow")];
     expect(rows[0]?.getAttribute("href")).toBe("#/log/current");
     expect(words(rows[0])).toBe("This flightKSEA → KSFO41 of 366 steps · started 09:48");
-    expect(words(rows[2])).toBe("KSEA → KSFOFinishedSat 14 Nov · 2 h 41 min · 359 of 366 steps · 2 skipped");
+    expect(words(rows[2])).toBe(
+      "KSEA → KSFOFinishedTest Jet · 0.1.0 · Sat 14 Nov · 2 h 41 min · 359 of 366 steps · 2 skipped",
+    );
     expect(rows[2]?.getAttribute("href")).toBe("#/log/f2");
     expect(container.querySelector(".plabel")?.textContent).toBe("Earlier flights · 3");
     expect([...container.querySelectorAll(".pad .result")].map(words)).toEqual([
-      "Lights of the flight deckSun 15 Nov 17 of 20",
-      "Memory itemsFri 13 Nov 9 of 10",
+      "Lights of the flight deckSun 15 Nov · Test Jet · 0.1.0 17 of 20",
+      "Memory itemsFri 13 Nov · demo 9 of 10",
     ]);
     expect(screen.getByRole("button", { name: "Log flight and start new" })).toBeTruthy();
   });

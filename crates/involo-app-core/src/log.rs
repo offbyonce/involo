@@ -22,10 +22,46 @@ use crate::settings::Settings;
 use crate::values::blank_values;
 
 /// The saved format of a [`Log`]. Raise it, with a migration and tests, when the shape changes.
-pub const LOG_FORMAT: u32 = 2;
+pub const LOG_FORMAT: u32 = 3;
 
 /// How many flights, and how many practice results, the log keeps.
 pub const LOG_LIMIT: usize = 500;
+
+/// Format 3 records each entry's pack by name and version and the aircraft's name, and keys a
+/// stage time by the stage's id. A format 2 flight's `aircraft` held the pack's name, which
+/// becomes its `packName`; what an older entry never recorded (a flight's aircraft name, a stage's
+/// id, a practice result's pack version, pack name and aircraft) is kept unknown (`null`), never
+/// guessed.
+fn log_2_to_3(mut value: serde_json::Value) -> Result<serde_json::Value, String> {
+    use serde_json::Value;
+    for key in ["flights", "practice"] {
+        let entries = value
+            .get_mut(key)
+            .and_then(Value::as_array_mut)
+            .ok_or(format!("the log has no {key}"))?;
+        for o in entries.iter_mut().filter_map(Value::as_object_mut) {
+            if key == "flights" {
+                let name = o.remove("aircraft").unwrap_or_default();
+                o.insert("packName".into(), name);
+                o.insert("aircraft".into(), Value::Null);
+                for stage in o
+                    .get_mut("stages")
+                    .and_then(Value::as_array_mut)
+                    .into_iter()
+                    .flatten()
+                    .filter_map(Value::as_object_mut)
+                {
+                    stage.insert("id".into(), Value::Null);
+                }
+            } else {
+                for field in ["packVersion", "packName", "aircraft"] {
+                    o.insert(field.into(), Value::Null);
+                }
+            }
+        }
+    }
+    Ok(value)
+}
 
 /// Format 2 saves each logged step's name as the app showed it. An entry logged before that has
 /// only the pack's text: its name is that text by the app's naming rule, without control labels,
@@ -118,8 +154,12 @@ pub struct LoggedFlight {
     pub logged_at: Millis,
     pub pack: String,
     pub pack_version: String,
-    /// The pack's name, such as the aircraft's.
-    pub aircraft: String,
+    /// The pack's name when the flight was logged, as the app showed it (format 3; a format 1 or
+    /// 2 flight's `aircraft` held it).
+    pub pack_name: String,
+    /// The aircraft's name from the pack's `aircraft` block (format 3), or `None` for a flight
+    /// logged before, which didn't record it.
+    pub aircraft: Option<String>,
     /// The departure and destination as entered, or empty.
     pub origin: String,
     pub destination: String,
@@ -145,6 +185,8 @@ pub struct LoggedFlight {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export)]
 pub struct StageTime {
+    /// The stage's id (format 3), or `None` for a time logged before, which kept only the title.
+    pub id: Option<String>,
     pub title: String,
     #[ts(type = "number")]
     pub ms: Millis,
@@ -189,6 +231,11 @@ pub struct PracticeResult {
     #[ts(type = "number")]
     pub at: Millis,
     pub pack: String,
+    /// The pack's version, its name and the aircraft's name (format 3), or `None` for a result
+    /// saved before, which didn't record them.
+    pub pack_version: Option<String>,
+    pub pack_name: Option<String>,
+    pub aircraft: Option<String>,
     pub title: String,
     /// Right answers out of the questions answered.
     pub score: usize,
@@ -245,7 +292,9 @@ pub fn new_log() -> Log {
 /// Read a saved log or a log file. `glossaries` holds the installed packs' glossaries that
 /// [`log_packs`] asked for, used to name a format 1 log's entries.
 pub fn load_log(json: &str, glossaries: &Glossaries) -> Loaded<Log> {
-    load_with(json, LOG_FORMAT, &[|v| log_1_to_2(v, glossaries)])
+    let migrations: [&dyn Fn(serde_json::Value) -> Result<serde_json::Value, String>; 2] =
+        [&|v| log_1_to_2(v, glossaries), &log_2_to_3];
+    load_with(json, LOG_FORMAT, &migrations)
 }
 
 /// The packs whose glossaries loading this log text needs: the packs a format 1 log's flights
@@ -353,6 +402,7 @@ fn stage_times(
             (
                 n,
                 StageTime {
+                    id: Some(r.stages[n].id.clone()),
                     title: r.stages[n].title.clone(),
                     ms: to.saturating_sub(from),
                 },
@@ -419,7 +469,8 @@ pub fn log_entry(
         logged_at: at,
         pack: pack.manifest.id.clone(),
         pack_version: pack.manifest.version.to_string(),
-        aircraft: pack.manifest.name.clone(),
+        pack_name: pack.manifest.name.clone(),
+        aircraft: pack.manifest.aircraft.as_ref().map(|a| a.name.clone()),
         origin: value(involo_checklist_core::SimbriefSource::Origin),
         destination: value(involo_checklist_core::SimbriefSource::Destination),
         off_blocks,
@@ -431,6 +482,28 @@ pub fn log_entry(
         plan,
         finished,
         ticks,
+    }
+}
+
+/// A finished practice test as a log entry, with the pack it was taken in: `title` is the test's,
+/// `score` the right answers out of the `total` answered, `at` when it ended.
+pub fn practice_result(
+    pack: &FlatPack,
+    title: &str,
+    score: usize,
+    total: usize,
+    at: Millis,
+) -> PracticeResult {
+    PracticeResult {
+        id: format!("{}@{at}", pack.manifest.id),
+        at,
+        pack: pack.manifest.id.clone(),
+        pack_version: Some(pack.manifest.version.to_string()),
+        pack_name: Some(pack.manifest.name.clone()),
+        aircraft: pack.manifest.aircraft.as_ref().map(|a| a.name.clone()),
+        title: title.to_owned(),
+        score: score.min(total),
+        total,
     }
 }
 
@@ -529,15 +602,17 @@ fn checked_flight(mut f: LoggedFlight) -> Option<LoggedFlight> {
     for t in [
         &mut f.pack,
         &mut f.pack_version,
-        &mut f.aircraft,
+        &mut f.pack_name,
         &mut f.origin,
         &mut f.destination,
     ] {
         cut(t);
     }
+    f.aircraft.as_mut().map(cut);
     f.stages.truncate(MAX_STAGES);
     for s in &mut f.stages {
         s.ms = s.ms.min(MAX_STAGE_MS);
+        s.id.as_mut().map(cut);
         cut(&mut s.title);
     }
     f.ticks.retain(|t| in_time(t.at));
@@ -572,6 +647,9 @@ fn checked_result(mut r: PracticeResult) -> Option<PracticeResult> {
     }
     r.score = r.score.min(r.total);
     cut(&mut r.pack);
+    for t in [&mut r.pack_version, &mut r.pack_name, &mut r.aircraft] {
+        t.as_mut().map(cut);
+    }
     cut(&mut r.title);
     Some(r)
 }
@@ -610,7 +688,7 @@ fn add_practice(change: &mut LogChange, new: Vec<PracticeResult>) {
 /// file reads the same anywhere.
 pub fn log_csv(log: &Log) -> String {
     let mut out = String::from(
-        "Date (UTC),From,To,Aircraft,Off blocks (UTC),On blocks (UTC),Minutes,Steps done,Steps total,Skipped,Finished,Flight plan,Time in each stage (min)\r\n",
+        "Date (UTC),From,To,Pack,Pack version,Aircraft,Off blocks (UTC),On blocks (UTC),Minutes,Steps done,Steps total,Skipped,Finished,Flight plan,Time in each stage (min)\r\n",
     );
     for f in &log.flights {
         let date = utc(f.off_blocks.unwrap_or(f.logged_at));
@@ -630,7 +708,9 @@ pub fn log_csv(log: &Log) -> String {
             date.0,
             f.origin.clone(),
             f.destination.clone(),
-            f.aircraft.clone(),
+            f.pack_name.clone(),
+            f.pack_version.clone(),
+            f.aircraft.clone().unwrap_or_default(),
             time(f.off_blocks),
             time(f.on_blocks),
             total_min,
@@ -739,7 +819,8 @@ mod tests {
             logged_at: at,
             pack: "p".into(),
             pack_version: "1".into(),
-            aircraft: "Trainer".into(),
+            pack_name: "Trainer".into(),
+            aircraft: Some("Trainer jet".into()),
             origin: "KSEA".into(),
             destination: "KSFO".into(),
             off_blocks: Some(at.saturating_sub(10 * MIN)),
@@ -759,6 +840,9 @@ mod tests {
             id: id.into(),
             at,
             pack: "p".into(),
+            pack_version: Some("1".into()),
+            pack_name: Some("Trainer".into()),
+            aircraft: Some("Trainer jet".into()),
             title: "Memory items".into(),
             score: 9,
             total: 10,
@@ -865,7 +949,11 @@ mod tests {
             (e.origin.as_str(), e.destination.as_str()),
             ("KSEA", "KSFO")
         );
-        assert_eq!(e.aircraft, pack.manifest.name);
+        // Format 3: the pack by name and version, and the aircraft's name from the pack's
+        // `aircraft` block.
+        assert_eq!(e.pack_name, pack.manifest.name);
+        assert_eq!(e.pack_version, pack.manifest.version.to_string());
+        assert_eq!(e.aircraft.as_deref(), Some("737 MAX 8"));
         assert_eq!(e.off_blocks, Some(1_000_000 + MIN / 10));
         assert_eq!(e.on_blocks, Some(1_000_000 + 50 * MIN));
         assert_eq!(e.ticks.len(), exterior.len() - 1 + 2);
@@ -876,6 +964,9 @@ mod tests {
         // Each stage runs from its first tick to the next stage's; the last to on blocks.
         assert_eq!(e.stages.len(), 2);
         assert_eq!(e.stages[0].title, stages[0].title);
+        // Format 3 keys each stage time by the stage's id; the title is what it read then.
+        assert_eq!(e.stages[0].id.as_deref(), Some(stages[0].id.as_str()));
+        assert_eq!(e.stages[1].id.as_deref(), Some(stages[1].id.as_str()));
         assert_eq!(e.stages[0].ms, 30 * MIN - MIN / 10);
         assert_eq!(e.stages[1].ms, 20 * MIN);
         let sum: Millis = e.stages.iter().map(|s| s.ms).sum();
@@ -1228,7 +1319,8 @@ mod tests {
     fn a_merged_entry_s_overlong_text_is_cut_and_an_overlong_id_refused() {
         let mut f = entry("a", 100);
         f.origin = "é".repeat(MAX_TEXT + 5);
-        f.aircraft = "x".repeat(MAX_TEXT * 3);
+        f.pack_name = "x".repeat(MAX_TEXT * 3);
+        f.aircraft = Some("y".repeat(MAX_TEXT * 2));
         f.ticks = vec![LoggedTick {
             at: 100,
             step: StepId::new("s"),
@@ -1237,6 +1329,7 @@ mod tests {
             value: "V".into(),
         }];
         f.stages = vec![StageTime {
+            id: None,
             title: "S".repeat(MAX_TEXT + 1),
             ms: MIN,
         }];
@@ -1247,7 +1340,8 @@ mod tests {
         assert_eq!(change.refused, 1);
         let got = &change.log.flights[0];
         assert_eq!(got.origin.chars().count(), MAX_TEXT);
-        assert_eq!(got.aircraft.chars().count(), MAX_TEXT);
+        assert_eq!(got.pack_name.chars().count(), MAX_TEXT);
+        assert_eq!(got.aircraft.as_ref().unwrap().chars().count(), MAX_TEXT);
         assert_eq!(got.ticks[0].text.chars().count(), MAX_TEXT);
         assert_eq!(got.stages[0].title.chars().count(), MAX_TEXT);
         assert_eq!(change.log.practice[0].title.chars().count(), MAX_TEXT);
@@ -1276,6 +1370,7 @@ mod tests {
         f.skipped = vec![skip; MAX_STEPS + 10];
         f.stages = vec![
             StageTime {
+                id: None,
                 title: "S".into(),
                 ms: Millis::MAX
             };
@@ -1301,10 +1396,12 @@ mod tests {
         assert_eq!(minutes(30_000), 1);
         let huge = [
             StageTime {
+                id: None,
                 title: "A".into(),
                 ms: Millis::MAX,
             },
             StageTime {
+                id: None,
                 title: "B".into(),
                 ms: Millis::MAX,
             },
@@ -1423,8 +1520,161 @@ mod tests {
             ("TERR", "Terr")
         );
         assert_eq!(value.practice[0].score, 9);
+        // Format 3: the pack's name was saved as `aircraft`; what format 1 never recorded stays
+        // unknown.
+        assert!(value.flights.iter().all(|f| f.pack_name == "Trainer"
+            && f.pack_version == "0.1.0"
+            && f.aircraft.is_none()));
+        assert!(f.stages.iter().all(|s| s.id.is_none()));
+        assert_eq!(
+            f.stages
+                .iter()
+                .map(|s| s.title.as_str())
+                .collect::<Vec<_>>(),
+            ["Preflight", "Departure"]
+        );
+        let r = &value.practice[0];
+        assert_eq!(
+            (r.pack.as_str(), r.title.as_str()),
+            ("trainer", "Memory items")
+        );
+        assert_eq!(
+            (&r.pack_version, &r.pack_name, &r.aircraft),
+            (&None, &None, &None)
+        );
         let raw: serde_json::Value = serde_json::from_str(text).unwrap();
         assert_eq!(raw["format"], json!(1));
+        assert_eq!(
+            value.flights.len() + value.practice.len(),
+            raw["flights"].as_array().unwrap().len() + raw["practice"].as_array().unwrap().len(),
+            "every entry kept"
+        );
+    }
+
+    /// The second log format, frozen: a log saved by format 2 (step names saved, the pack's name
+    /// as `aircraft`, two packs) loads with every entry and value kept, its pack's name moved to
+    /// `packName`, and what it never recorded unknown.
+    #[test]
+    fn a_format_2_log_still_loads_with_every_entry() {
+        let text = include_str!("../tests/fixtures/log-format-2.json");
+        let raw: serde_json::Value = serde_json::from_str(text).unwrap();
+        assert_eq!(raw["format"], json!(2));
+        let Loaded::Ready {
+            value,
+            migrated_from,
+        } = load_log(text, &Glossaries::new())
+        else {
+            panic!("the format 2 log did not load");
+        };
+        assert_eq!(migrated_from, Some(2));
+        assert_eq!(value.format, LOG_FORMAT);
+        assert_eq!(
+            value.flights.len(),
+            raw["flights"].as_array().unwrap().len()
+        );
+        assert_eq!(
+            value.practice.len(),
+            raw["practice"].as_array().unwrap().len()
+        );
+        for (f, old) in value.flights.iter().zip(raw["flights"].as_array().unwrap()) {
+            assert_eq!(f.id, old["id"].as_str().unwrap());
+            assert_eq!(f.pack, old["pack"].as_str().unwrap());
+            assert_eq!(f.pack_version, old["packVersion"].as_str().unwrap());
+            assert_eq!(f.pack_name, old["aircraft"].as_str().unwrap());
+            assert_eq!(f.aircraft, None);
+            assert_eq!(f.ticks.len(), old["ticks"].as_array().unwrap().len());
+            assert_eq!(f.skipped.len(), old["skipped"].as_array().unwrap().len());
+            assert_eq!(
+                f.done,
+                usize::try_from(old["done"].as_u64().unwrap()).unwrap()
+            );
+            let titles: Vec<&str> = f.stages.iter().map(|s| s.title.as_str()).collect();
+            let old_titles: Vec<&str> = old["stages"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|s| s["title"].as_str().unwrap())
+                .collect();
+            assert_eq!(titles, old_titles);
+            assert!(f.stages.iter().all(|s| s.id.is_none()));
+        }
+        assert_eq!(value.flights[0].ticks[0].name, "Canopy");
+        for (r, old) in value
+            .practice
+            .iter()
+            .zip(raw["practice"].as_array().unwrap())
+        {
+            assert_eq!(r.pack, old["pack"].as_str().unwrap());
+            assert_eq!(
+                r.score,
+                usize::try_from(old["score"].as_u64().unwrap()).unwrap()
+            );
+            assert_eq!(
+                (&r.pack_version, &r.pack_name, &r.aircraft),
+                (&None, &None, &None)
+            );
+        }
+    }
+
+    /// A log file of any format this version reads merges into today's log: format 1 and 2
+    /// files are carried forward first, and their entries keep what they recorded.
+    #[test]
+    fn format_1_and_2_log_files_merge_into_a_format_3_log() {
+        let mut log = new_log();
+        log.flights = vec![entry("p@1", 1000 * MIN)];
+        for (text, flights, practice) in [
+            (include_str!("../tests/fixtures/log-format-1.json"), 2, 1),
+            (include_str!("../tests/fixtures/log-format-2.json"), 1, 1),
+        ] {
+            let change = edit_log(
+                log.clone(),
+                LogEdit::Merge { text: text.into() },
+                &Glossaries::new(),
+            )
+            .unwrap();
+            assert_eq!(change.log.format, LOG_FORMAT);
+            assert_eq!(
+                (change.added_flights, change.added_practice),
+                (flights, practice),
+                "the format 2 file shares the format 1 file's entries except the glider's"
+            );
+            log = change.log;
+        }
+        assert_eq!(log.flights.len(), 4);
+        assert_eq!(log.practice.len(), 2);
+        let glider = log.flights.iter().find(|f| f.pack == "glider").unwrap();
+        assert_eq!(
+            (glider.pack_name.as_str(), glider.pack_version.as_str()),
+            ("Glider trainer", "2.3.0")
+        );
+        // And the merged log saves and loads as today's format.
+        let text = serde_json::to_string(&log).unwrap();
+        assert!(matches!(
+            load_log(&text, &Glossaries::new()),
+            Loaded::Ready {
+                migrated_from: None,
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn a_practice_result_records_its_pack_by_name_and_version_and_the_aircraft() {
+        let pack = crate::test_support::example_pack();
+        let r = practice_result(&pack, "Memory items", 11, 10, 5_000);
+        assert_eq!(r.id, format!("{}@5000", pack.manifest.id));
+        assert_eq!(r.pack, pack.manifest.id);
+        assert_eq!(
+            r.pack_version.as_deref(),
+            Some(pack.manifest.version.to_string().as_str())
+        );
+        assert_eq!(r.pack_name.as_deref(), Some(pack.manifest.name.as_str()));
+        assert_eq!(r.aircraft.as_deref(), Some("Example trainer"));
+        assert_eq!(
+            (r.score, r.total),
+            (10, 10),
+            "the score is never over the total"
+        );
     }
 
     /// The example pack's text as installed under `id`, with `term` added to its glossary.
@@ -1524,6 +1774,7 @@ mod tests {
             let stages: Vec<StageTime> = numbers("ms")
                 .into_iter()
                 .map(|ms| StageTime {
+                    id: None,
                     title: "Stage".into(),
                     ms,
                 })
@@ -1543,17 +1794,40 @@ mod tests {
         f.origin = "=KSEA".into();
         f.destination = "San Francisco, CA".into();
         f.stages = vec![StageTime {
+            id: None,
             title: "Preflight".into(),
             ms: 38 * MIN,
         }];
-        log.flights = vec![f, entry("b", 1000 * MIN)];
+        let mut older = entry("b", 1000 * MIN);
+        older.aircraft = None;
+        log.flights = vec![f, older];
         let csv = log_csv(&log);
         let rows: Vec<&str> = csv.split("\r\n").filter(|r| !r.is_empty()).collect();
         assert_eq!(rows.len(), 3);
-        assert!(rows[0].starts_with("Date (UTC),From,To"));
+        assert!(rows[0].starts_with("Date (UTC),From,To,Pack,Pack version,Aircraft,"));
         assert_eq!(
             rows[1],
-            "2025-11-14,'=KSEA,\"San Francisco, CA\",Trainer,07:08,09:49,161,1,2,0,No,Entered by hand,Preflight 38"
+            "2025-11-14,'=KSEA,\"San Francisco, CA\",Trainer,1,Trainer jet,07:08,09:49,161,1,2,0,No,Entered by hand,Preflight 38"
+        );
+        // A flight logged before format 3 has no aircraft name: its cell is empty.
+        assert!(rows[2].contains(",Trainer,1,,"), "{}", rows[2]);
+    }
+
+    /// The pack's name and version and the aircraft's name come from a pack file, which can say
+    /// anything: the formula guard (#46) covers their cells too.
+    #[test]
+    fn csv_guards_the_pack_and_aircraft_cells_against_formulas() {
+        let mut log = new_log();
+        let mut f = entry("a", 1000 * MIN);
+        f.pack_name = "=HYPERLINK(\"x\")".into();
+        f.pack_version = "+1".into();
+        f.aircraft = Some("@SUM(A1)".into());
+        log.flights = vec![f];
+        let csv = log_csv(&log);
+        let row = csv.split("\r\n").nth(1).unwrap();
+        assert!(
+            row.contains(",\"'=HYPERLINK(\"\"x\"\")\",'+1,'@SUM(A1),"),
+            "{row}"
         );
     }
 
