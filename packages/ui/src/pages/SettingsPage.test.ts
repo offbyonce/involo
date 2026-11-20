@@ -61,7 +61,9 @@ describe("SettingsPage", () => {
     const rows = [...document.querySelectorAll(".set")];
     const preview = rows.findIndex((r) => r.textContent?.includes("Panel preview in steps"));
     expect(rows[preview + 1]?.contains(group)).toBe(true);
-    expect(screen.getByText(/^“Where is this\?” shows the view from this seat/)).toBeTruthy();
+    expect(group.closest(".set")?.querySelector("p")?.textContent).toBe(
+      "Panel views show what you see from this seat.",
+    );
     await fireEvent.click(within(group).getByRole("radio", { name: "Right seat · First officer" }));
     expect(changed.at(-1)?.seat).toBe("right");
     await rerender({ settings: { ...settings, seat: "right" }, version: null, seats, onChange: () => {} });

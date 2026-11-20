@@ -119,7 +119,7 @@ on the device (decision 0012).
           <button type="button" role="radio" aria-checked={seat === s.id} onclick={() => onChange({ ...settings, seat: s.id })}>{s.label}</button>
         {/each}
       </div>
-      <p>“Where is this?” shows the view from this seat, unless a step belongs to the other seat’s crew role. The seats and their names come from the pack; this setting shows only when the pack draws a view for more than one seat.</p>
+      <p>Panel views show what you see from this seat.</p>
     </div>
   {/if}
 {/snippet}
