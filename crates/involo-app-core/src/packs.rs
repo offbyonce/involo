@@ -14,10 +14,9 @@ use ts_rs::TS;
 
 use crate::AppError;
 
-/// The largest pack file the app reads. The iFly pack, the largest, is about 0.6 MB built; 16 MB
-/// leaves room for packs many times larger, and is still read and checked in a moment. A larger
-/// file is refused before it is read.
-pub const MAX_PACK_FILE_BYTES: u64 = 16 * 1024 * 1024;
+/// The largest pack file the app reads; a larger file is refused before it is read. The limits on
+/// what a pack holds are named in [`involo_pack::limits`].
+pub use involo_pack::limits::MAX_PACK_FILE_BYTES;
 
 /// What checking a pack file found: it may be installed, or it is refused with every reason.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, TS)]
@@ -58,6 +57,14 @@ fn read_flat(json: &str) -> Result<FlatPack, String> {
     }
     let flat: FlatPack =
         serde_json::from_str(json).map_err(|e| format!("the pack file could not be read: {e}"))?;
+    // Before anything reads the lists and content (naming every step looks for each glossary
+    // term in it).
+    if let Some((at, what)) = involo_pack::limits::over_limits(&flat.lists, &flat.content)
+        .into_iter()
+        .next()
+    {
+        return Err(format!("{at}: {what}"));
+    }
     if flat.manifest.kind == PackKind::Library {
         return Err(format!(
             "{} is a library pack: it can't be opened on its own, only built into the packs that extend it",
@@ -96,12 +103,34 @@ fn checked(bytes: &[u8], sha256: Option<&str>) -> Result<FlatPack, Vec<String>> 
                 .to_owned(),
         ));
     }
-    let not_a_pack = || one("This is not an Involo pack file.".to_owned());
-    let json = std::str::from_utf8(bytes).map_err(|_| not_a_pack())?;
-    let has_manifest = serde_json::from_str::<serde_json::Value>(json)
-        .is_ok_and(|v| v.get("manifest").is_some_and(serde_json::Value::is_object));
-    if !has_manifest {
-        return Err(not_a_pack());
+    // Why the file can't be a pack at all, in words an author can act on.
+    let not_a_pack = |why: String| one(format!("This is not an Involo pack file: {why}."));
+    if bytes.iter().all(u8::is_ascii_whitespace) {
+        return Err(not_a_pack("it is empty".to_owned()));
+    }
+    let json = std::str::from_utf8(bytes).map_err(|e| {
+        not_a_pack(format!(
+            "it isn't text (the byte at {} isn't UTF-8)",
+            e.valid_up_to()
+        ))
+    })?;
+    let value = serde_json::from_str::<serde_json::Value>(json).map_err(|e| {
+        not_a_pack(if e.to_string().starts_with("recursion limit exceeded") {
+            format!(
+                "maps and lists nest too deeply at line {}, column {}; a pack file may nest them at most {} deep",
+                e.line(),
+                e.column(),
+                involo_pack::limits::MAX_JSON_NESTING
+            )
+        } else {
+            format!("it isn't valid JSON ({e})")
+        })
+    })?;
+    if !value
+        .get("manifest")
+        .is_some_and(serde_json::Value::is_object)
+    {
+        return Err(not_a_pack("it has no `manifest`".to_owned()));
     }
     let flat = read_flat(json).map_err(one)?;
     if let Some(problem) = engine_problem(&flat.manifest.engine) {
@@ -368,19 +397,89 @@ mod tests {
     }
 
     #[test]
+    fn a_cut_off_or_deeply_nested_pack_file_is_refused_saying_why() {
+        let json = example_json();
+        let cut = &json[..json.len() / 2];
+        let said = reasons(cut.as_bytes(), None);
+        assert_eq!(said.len(), 1);
+        assert!(
+            said[0].starts_with(
+                "This is not an Involo pack file: it isn't valid JSON (EOF while parsing"
+            ),
+            "{said:?}"
+        );
+        let deep = format!(
+            "{{\"manifest\": {{}}, \"lists\": {}{}}}",
+            "[".repeat(200),
+            "]".repeat(200)
+        );
+        assert_eq!(
+            reasons(deep.as_bytes(), None),
+            [
+                "This is not an Involo pack file: maps and lists nest too deeply at line 1, column 153; a pack file may nest them at most 128 deep."
+            ]
+        );
+    }
+
+    #[test]
+    fn a_pack_over_an_item_limit_is_refused_by_the_check_and_when_opened() {
+        use involo_pack::limits::{MAX_GLOSSARY_TERMS, MAX_STEPS};
+        let many_steps = with(|j| {
+            let step = j["lists"][0]["steps"][0].clone();
+            let steps = j["lists"][0]["steps"].as_array_mut().unwrap();
+            for n in 0..MAX_STEPS {
+                let mut s = step.clone();
+                s["id"] = format!("example-trainer.many.step-{n}").into();
+                steps.push(s);
+            }
+        });
+        let said = reasons(many_steps.as_bytes(), None);
+        assert_eq!(said.len(), 1, "{said:?}");
+        assert!(said[0].starts_with("lists: the pack has "), "{said:?}");
+        assert!(said[0].ends_with(&format!("steps; the most a pack may have is {MAX_STEPS}")));
+        assert_eq!(refused(&many_steps), said[0]);
+
+        let many_terms = with(|j| {
+            let terms = j["content"]["glossary"]["terms"].as_array_mut().unwrap();
+            for n in 0..=MAX_GLOSSARY_TERMS {
+                terms.push(serde_json::json!({ "term": format!("TERM{n}"), "meaning": "A term." }));
+            }
+        });
+        let said = reasons(many_terms.as_bytes(), None);
+        assert!(
+            said[0].starts_with("glossary: the glossary has "),
+            "{said:?}"
+        );
+        assert_eq!(refused(&many_terms), said[0]);
+    }
+
+    #[test]
     fn a_file_that_is_not_a_pack_says_so() {
-        for bytes in [
-            &b"hello"[..],
-            b"{}",
-            b"[1, 2]",
-            b"\xff\xfe{}",
-            b"{\"manifest\": 3}",
+        let not = |why: &str| vec![format!("This is not an Involo pack file: {why}.")];
+        for (bytes, why) in [
+            (&b""[..], "it is empty".to_owned()),
+            (b" \n\t", "it is empty".to_owned()),
+            (
+                b"\xff\xfe{}",
+                "it isn't text (the byte at 0 isn't UTF-8)".to_owned(),
+            ),
+            (
+                b"{\"manifest\": \xc3}",
+                "it isn't text (the byte at 13 isn't UTF-8)".to_owned(),
+            ),
+            (
+                b"hello",
+                "it isn't valid JSON (expected value at line 1 column 1)".to_owned(),
+            ),
+            (
+                b"{\"manifest\": {\"id\": \"a\"",
+                "it isn't valid JSON (EOF while parsing an object at line 1 column 23)".to_owned(),
+            ),
+            (b"{}", "it has no `manifest`".to_owned()),
+            (b"[1, 2]", "it has no `manifest`".to_owned()),
+            (b"{\"manifest\": 3}", "it has no `manifest`".to_owned()),
         ] {
-            assert_eq!(
-                reasons(bytes, None),
-                ["This is not an Involo pack file."],
-                "{bytes:?}"
-            );
+            assert_eq!(reasons(bytes, None), not(&why), "{bytes:?}");
         }
         // A pack file that breaks the format names where.
         let broken = with(|j| j["lists"] = 3.into());

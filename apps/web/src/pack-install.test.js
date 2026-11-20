@@ -117,7 +117,9 @@ test("a pack that fails its checks is refused with the reasons, and nothing is s
   const library = text.replace('"kind":"aircraft"', '"kind":"library"');
   assert.equal((await installFile(file(new TextEncoder().encode(library)), d.deps)).state, "refused");
   const notAPack = await installFile(file(new TextEncoder().encode("hello")), d.deps);
-  assert.deepEqual(notAPack.reasons, ["This is not an Involo pack file."]);
+  assert.deepEqual(notAPack.reasons, [
+    "This is not an Involo pack file: it isn't valid JSON (expected value at line 1 column 1).",
+  ]);
   assert.deepEqual(await readPacks(d.idb), []);
 });
 

@@ -107,6 +107,11 @@ pub fn validate_flat(flat: &FlatPack) -> Vec<Issue> {
 }
 
 fn validate_with_allow_list(pack: &Pack, allow: &[&str]) -> Vec<Issue> {
+    // A pack over a limit is refused for that alone: the other checks are not run on it.
+    let over = crate::limits::over_limits(&pack.checklists, &pack.content);
+    if !over.is_empty() {
+        return over.into_iter().map(|(at, what)| error(at, what)).collect();
+    }
     let mut issues = Vec::new();
     check_manifest(pack, &mut issues);
     check_files(pack, &mut issues);

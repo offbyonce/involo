@@ -7,6 +7,7 @@
 //! model from `involo-checklist-core`, validates them, and writes plain JSON for the app.
 
 pub mod draft_targets;
+pub mod limits;
 pub mod load;
 pub mod manifest;
 pub mod patch;
@@ -15,9 +16,14 @@ pub mod schema;
 pub mod terms;
 pub mod validate;
 
-pub use load::{LoadError, load_pack_dir, parse_checklist_yaml, parse_yaml};
+pub use load::{
+    Folder, InMemory, LoadError, PackFiles, load_pack_dir, load_pack_files, parse_checklist_yaml,
+    parse_yaml,
+};
 pub use manifest::{AircraftInfo, PackKind, PackManifest, ResolvedParent};
-pub use resolve::{ResolveError, Resolved, resolve, sha256_hex};
+pub use resolve::{
+    Parents, Places, ResolveError, Resolved, Shelf, resolve, resolve_files, sha256_hex,
+};
 pub use validate::{Issue, Severity, validate_flat, validate_pack};
 
 /// The newest pack format this build of the app reads.
