@@ -67,11 +67,13 @@ test-packs:
 # Build the deployable web site into apps/web/dist (published to GitHub Pages): the placeholder
 # front page, the work-in-progress app at app/ and the SimBrief probe page, with the WebAssembly
 # module, then the catalog under packs/ as separate files, after the app's files are listed for
-# the service worker, so no pack is in the app's code or precached.
+# the service worker, so no pack is in the app's code or precached. Last, the size budget
+# (apps/web/size-budget.json): the app, the WebAssembly module and the largest script.
 site: wasm
     pnpm --filter @involo/web build
     just catalog apps/web/dist/packs
     node apps/web/build/site-check.js apps/web/dist
+    node apps/web/build/size-budget.js apps/web/dist apps/web/size-budget.json
 
 # The service worker's version-to-version update test in headless Firefox (needs Firefox; not
 # part of `just ci`). See apps/web/build/update-test.mjs.
@@ -159,7 +161,8 @@ packs:
 overlap:
     cargo run -q -p involo-pack-cli -- overlap packs --allow crates/involo-pack-overlap/allow.txt
 
-# Licenses, advisories, banned crates and sources (Rust), then JS advisories.
+# Licenses, advisories, banned crates and sources (Rust), then JS advisories in what the app
+# ships (level and accepted advisories in pnpm-workspace.yaml: high and critical fail).
 deny:
     cargo deny check
     pnpm audit --prod

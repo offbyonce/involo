@@ -44,6 +44,9 @@ checks dependencies. The git hooks (installed by `pnpm install`) run the quick p
 | Layout and accessibility (`apps/web/e2e/layout.ts`) | On every screen a flow visits, at 390 and 1440 px, in dark and light: sideways scrolling, a control overlapping another or off the side of the screen, a tap target under 44 by 44 px on a phone, a key element missing, and any serious or critical finding of an axe scan (contrast included). A failure names the screen, width, theme and element. | part of `just e2e` |
 | Broken packs (`crates/involo-pack/tests/broken.rs`, and the pack file tests in `crates/involo-app-core/src/packs.rs`) | A broken pack that isn't refused with a message an author can act on: empty, cut-off and non-UTF-8 files, very large files, deep nesting, alias bombs, `extends` cycles and missing parents, duplicate, malformed and unknown ids, wrong format numbers, paths outside the pack folder, and packs over the limits in `docs/packs/limits.md`. | `just test`, part of `just ci` |
 | Fuzzing (`fuzz/fuzz_targets`) | A pack file, data file or pack folder that makes the loader panic, hang or run out of memory. Four targets: `pack_file` (a built pack file, checked and opened), `pack_edits` (a valid pack with fuzzer-chosen edits), `data_file` (`pack.json` and each YAML file) and `pack_folder` (a whole folder, with `extends` and patches). An input that fails is saved in `target/fuzz-artifacts/<target>/`; fix it and keep it as a test. | `just fuzz <target> [seconds]` (needs a nightly compiler and cargo-fuzz); weekly in CI |
+| Dependencies (`deny.toml`, and `audit` in `pnpm-workspace.yaml`) | A Rust crate with a security advisory, yanked, or under a license outside the list in `deny.toml`, or from a source other than crates.io; two versions of one crate (reported, not failed). A JavaScript package the app ships with a high or critical advisory. | `just deny`, part of `just ci` |
+| Size budget (`apps/web/size-budget.json`) | The built app (every file but the pack catalog), the WebAssembly module or the largest script growing past its limit. Each run prints the three sizes against their limits. | the last step of `just site`, part of `just ci` |
+| Code scanning (CodeQL) | Security problems in the JavaScript, TypeScript and Rust, such as unsafe use of input or a weak pattern. Findings appear on the pull request. | in CI on every pull request and on main |
 | Review shots (`just review-shots <out> <screen>...`) | Nothing by itself: they are for design review. Each named screen is shot at its sizes in both themes and put beside its approved board (`apps/web/build/review-boards.mjs`). | by hand, for the screens a pull request adds or changes |
 
 The end-to-end tests need their browsers once:
@@ -57,6 +60,15 @@ with the scenes in `apps/web/build/scenes.mjs`, and calls `checkScreen` on each 
 shots of those screens, each beside its board in both themes, and lists every difference from the
 board. Other pull requests include none: the flows, the layout checks and the token rules cover
 side effects. Add a row to `review-boards.mjs` when a new screen comes with its board.
+
+**When a dependency or size check fails.**
+
+- **An advisory** (`cargo deny` or `pnpm audit`): update to a fixed version (`cargo update -p <crate>`, or the version in the catalog in `pnpm-workspace.yaml`). If none exists yet, or the code the advisory names can't be reached from the app, add it to the ignore list (`[advisories] ignore` in `deny.toml`, `audit.ignore` in `pnpm-workspace.yaml`) with a comment saying what it is, why it is safe here and when to look again, and say so in the pull request. Remove it once a fix is in.
+- **A license:** choose another crate, or a version under an allowed license. The list in `deny.toml` holds permissive licenses only, compatible with the app's MIT license; adding one is a change that needs agreement first (an issue, or a question in the pull request).
+- **Two versions of one crate:** a warning, not a failure. Align the versions when an update allows it.
+- **The size budget:** find what grew (the step prints each size and the file). If the growth is meant, raise the limit in `apps/web/size-budget.json` a little above the new size, and say in the pull request what grew and why.
+
+Dependabot proposes updates every Monday: all minor and patch updates of each kind (Cargo, npm, GitHub Actions) in one pull request, and each major update on its own.
 
 ## 3. Checklist content rules
 
