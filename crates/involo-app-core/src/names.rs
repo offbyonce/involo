@@ -308,30 +308,20 @@ mod tests {
 
     /// Naming looks each word up in the glossary, indexed once per pack: it grows with the length
     /// of the names, not with steps × terms. Before the index, the glossary was gathered again for
-    /// every step, and a pack at the limits took 255 ms to name in an optimized build (1.49 s in
-    /// a test build); with it, 32 ms (278 ms).
+    /// every step, so a pack at the limits took 8 times as long to name with its 2,000 terms as
+    /// without them. The test compares the two on the same machine, so it holds however fast that
+    /// machine is.
     #[test]
-    fn a_pack_at_the_limits_is_named_in_well_under_a_second() {
+    fn a_pack_at_the_limits_is_named_as_fast_with_its_glossary_as_without() {
         let pack = pack_at_the_limits();
         let mut no_glossary = pack.clone();
         no_glossary.content.glossary = None;
         let (with_terms, without) = (naming_time(&pack), naming_time(&no_glossary));
-        // 2,000 terms cost about what none do. Before the index they cost 8 times as much; the
-        // margin leaves room for a busy machine (the tests run in parallel).
+        // The margin leaves room for a busy machine (the tests run in parallel); the old naming
+        // took 8 times as long with the terms.
         assert!(
             with_terms < without * 3 + std::time::Duration::from_millis(50),
             "naming took {with_terms:?} with the glossary and {without:?} without it"
-        );
-        // Tests build without optimizing, several times slower than the app, and run beside the
-        // other tests: the budget there allows for both, and the old naming still missed it.
-        let budget = if cfg!(debug_assertions) {
-            std::time::Duration::from_millis(1200)
-        } else {
-            std::time::Duration::from_millis(100)
-        };
-        assert!(
-            with_terms < budget,
-            "naming a pack at the limits took {with_terms:?}"
         );
     }
 }
