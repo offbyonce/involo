@@ -200,7 +200,12 @@ fn unsafe_path(rel: &str) -> Option<&'static str> {
     let path = Path::new(rel);
     if rel.is_empty() {
         Some("the path is empty")
-    } else if path.is_absolute() || rel.starts_with('/') || rel.starts_with('\\') {
+    } else if path.is_absolute()
+        || rel.starts_with(['/', '\\'])
+        // A drive (`C:\…`, `C:…`): absolute on Windows, and refused alike everywhere so a pack
+        // checked on one system reads the same on another.
+        || rel.as_bytes().get(1) == Some(&b':')
+    {
         Some("the path must be relative to the pack folder")
     } else if path
         .components()

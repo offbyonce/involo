@@ -43,6 +43,12 @@ mod tests {
         }
     }
 
+    /// How a message names the example pack's file `rel`: as a path, with the system's separator
+    /// (`example-trainer\smoke.yaml` on Windows), as the loader joins it.
+    fn file(rel: &str) -> String {
+        Path::new("example-trainer").join(rel).display().to_string()
+    }
+
     fn text(pack: &InMemory, rel: &str) -> String {
         String::from_utf8(pack.files[rel].clone()).unwrap()
     }
@@ -89,11 +95,14 @@ mod tests {
         refused_with(
             &pack,
             &[],
-            "example-trainer/pack.json: EOF while parsing a value at line 1 column 0",
+            &format!(
+                "{}: EOF while parsing a value at line 1 column 0",
+                file("pack.json")
+            ),
         );
         let mut pack = example();
         put(&mut pack, "glossary.yaml", "");
-        refused_with(&pack, &[], "example-trainer/glossary.yaml:");
+        refused_with(&pack, &[], &format!("{}:", file("glossary.yaml")));
     }
 
     #[test]
@@ -101,13 +110,17 @@ mod tests {
         let mut pack = example();
         let json = text(&pack, "pack.json");
         put(&mut pack, "pack.json", &json[..json.len() / 2]);
-        refused_with(&pack, &[], "example-trainer/pack.json: EOF while parsing");
+        refused_with(
+            &pack,
+            &[],
+            &format!("{}: EOF while parsing", file("pack.json")),
+        );
         let mut pack = example();
         let yaml = text(&pack, "smoke.yaml");
         // Cut inside the second step's quoted value.
         let cut = yaml.find("'ON").unwrap() + 2;
         put(&mut pack, "smoke.yaml", &yaml[..cut]);
-        refused_with(&pack, &[], "example-trainer/smoke.yaml:");
+        refused_with(&pack, &[], &format!("{}:", file("smoke.yaml")));
         assert!(
             refusal(&pack, &[]).contains("line 16"),
             "{}",
@@ -124,7 +137,10 @@ mod tests {
         refused_with(
             &pack,
             &[],
-            "example-trainer/smoke.yaml: the file is not UTF-8 text (an invalid byte at 200)",
+            &format!(
+                "{}: the file is not UTF-8 text (an invalid byte at 200)",
+                file("smoke.yaml")
+            ),
         );
     }
 
@@ -137,7 +153,10 @@ mod tests {
         refused_with(
             &pack,
             &[],
-            "example-trainer/glossary.yaml: the file is 4.1 MB, over the 4.0 MB a pack may use for it",
+            &format!(
+                "{}: the file is 4.1 MB, over the 4.0 MB a pack may use for it",
+                file("glossary.yaml")
+            ),
         );
     }
 
@@ -154,7 +173,10 @@ mod tests {
             );
             put(&mut pack, "smoke.yaml", yaml);
             let said = refusal(&pack, &[]);
-            assert!(said.starts_with("example-trainer/smoke.yaml:"), "{said}");
+            assert!(
+                said.starts_with(&format!("{}:", file("smoke.yaml"))),
+                "{said}"
+            );
             assert!(
                 said.contains("line 17")
                     && said.contains(
@@ -178,7 +200,10 @@ mod tests {
         );
         put(&mut pack, "smoke.yaml", yaml);
         let said = refusal(&pack, &[]);
-        assert!(said.starts_with("example-trainer/smoke.yaml:"), "{said}");
+        assert!(
+            said.starts_with(&format!("{}:", file("smoke.yaml"))),
+            "{said}"
+        );
         assert!(
             said.contains("line 17")
                 && said.contains(
@@ -284,7 +309,7 @@ mod tests {
         refused_with(
             &pack,
             &[],
-            "example-trainer/pack.json: invalid type: string \"six\"",
+            &format!("{}: invalid type: string \"six\"", file("pack.json")),
         );
     }
 
@@ -300,6 +325,23 @@ mod tests {
                 "the path must be relative to the pack folder",
             ),
             ("", "the path is empty"),
+            // Windows separators and drives, refused alike on every system.
+            (
+                "..\\ifly-737-max8\\glossary.yaml",
+                "the path must stay inside the pack folder (no `..`)",
+            ),
+            (
+                "\\etc\\glossary.yaml",
+                "the path must be relative to the pack folder",
+            ),
+            (
+                "C:\\packs\\glossary.yaml",
+                "the path must be relative to the pack folder",
+            ),
+            (
+                "C:glossary.yaml",
+                "the path must be relative to the pack folder",
+            ),
         ] {
             let mut pack = example();
             manifest(&mut pack, |m| m["glossary"] = path.into());
