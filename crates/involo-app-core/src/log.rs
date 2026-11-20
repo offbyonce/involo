@@ -44,8 +44,7 @@ fn log_1_to_2(
         let glossary = flight
             .get("pack")
             .and_then(serde_json::Value::as_str)
-            .and_then(|id| glossaries.get(id))
-            .cloned();
+            .and_then(|id| glossaries.get(id));
         for key in ["ticks", "skipped"] {
             for step in flight
                 .get_mut(key)
@@ -56,7 +55,7 @@ fn log_1_to_2(
                 let name = step
                     .get("text")
                     .and_then(serde_json::Value::as_str)
-                    .map(|text| crate::names::saved_text_name(text, glossary.as_ref()))
+                    .map(|text| crate::names::saved_text_name(text, glossary))
                     .unwrap_or_default();
                 if let Some(o) = step.as_object_mut() {
                     o.insert("name".into(), name.into());
@@ -290,6 +289,8 @@ fn marks(pack: &FlatPack, flight: &Flight, r: &crate::rail::Rail) -> Marks {
         starts: vec![],
     };
     let mut seen = BTreeSet::new();
+    // For a step the pack's names don't give, indexed once for every step.
+    let terms = crate::names::Terms::of(pack);
     for (n, stage) in r.stages.iter().enumerate() {
         let mut first: Option<Millis> = None;
         for rp in &stage.phases {
@@ -308,14 +309,14 @@ fn marks(pack: &FlatPack, flight: &Flight, r: &crate::rail::Rail) -> Marks {
                         at: t,
                         step: step.id.clone(),
                         text: step.text.clone(),
-                        name: shown_name(pack, step),
+                        name: shown_name(pack, &terms, step),
                         value: filled_value(flight, step),
                     });
                 } else if flight.session.is_skipped(&step.id) {
                     out.skipped.push(LoggedStep {
                         step: step.id.clone(),
                         text: step.text.clone(),
-                        name: shown_name(pack, step),
+                        name: shown_name(pack, &terms, step),
                         value: filled_value(flight, step),
                         stage: stage.title.clone(),
                         phase: phase.id.clone(),
@@ -364,12 +365,16 @@ fn stage_times(
 
 /// The flight as a log entry, logged at `at`.
 /// A step's name as the app shows it: the pack's names when it was read, else worked out here.
-fn shown_name(pack: &FlatPack, step: &involo_checklist_core::Step) -> String {
+fn shown_name(
+    pack: &FlatPack,
+    terms: &crate::names::Terms,
+    step: &involo_checklist_core::Step,
+) -> String {
     pack.names
         .steps
         .get(&step.id)
         .cloned()
-        .unwrap_or_else(|| crate::names::step_name(pack, step))
+        .unwrap_or_else(|| crate::names::step_name_with(pack, step, terms))
 }
 
 pub fn log_entry(

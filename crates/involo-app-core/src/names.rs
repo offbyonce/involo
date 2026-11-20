@@ -5,42 +5,65 @@
 //! reads the pack: every screen (the checklist, the step pane, Find, Practice, the flight log and
 //! the update note) names a step the same way, because there is one rule.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 
 use involo_checklist_core::Step;
 use involo_pack::{FlatPack, PackNames};
 
-/// Every step's and control's name, as the app shows them.
+/// Every step's and control's name, as the app shows them. The pack's glossary is indexed once
+/// and each word of each name is looked up in it, so naming grows with the length of the names,
+/// not with steps × terms.
 pub fn pack_names(pack: &FlatPack) -> PackNames {
-    let terms = glossary(pack);
+    let terms = Terms::of(pack);
     let mut names = PackNames::default();
     for step in pack.lists.iter().flat_map(|l| &l.steps) {
         names
             .steps
             .entry(step.id.clone())
-            .or_insert_with(|| step_name(pack, step));
+            .or_insert_with(|| step_name_with(pack, step, &terms));
     }
     for control in pack.content.controls.iter().flat_map(|c| &c.controls) {
-        names
-            .controls
-            .insert(control.id.clone(), sentence(&control.name, &[], &terms));
+        names.controls.insert(
+            control.id.clone(),
+            sentence(&control.name, &[], |w| terms.contains(w)),
+        );
     }
     names
 }
 
-fn glossary(pack: &FlatPack) -> BTreeSet<&str> {
+/// A pack's glossary terms, indexed once for naming: a word is looked up in one step, however
+/// many terms there are.
+pub(crate) struct Terms<'a>(HashSet<&'a str>);
+
+impl<'a> Terms<'a> {
+    pub(crate) fn of(pack: &'a FlatPack) -> Self {
+        Self(glossary(pack).collect())
+    }
+
+    fn contains(&self, word: &str) -> bool {
+        self.0.contains(word)
+    }
+}
+
+fn glossary(pack: &FlatPack) -> impl Iterator<Item = &str> {
     pack.content
         .glossary
         .iter()
         .flat_map(|g| &g.terms)
         .map(|t| t.term.as_str())
-        .collect()
+}
+
+/// One step's name (see [`step_name_with`]), for tests. It indexes the pack's glossary for this
+/// one step; the app indexes it once per pack with [`Terms::of`].
+#[cfg(test)]
+pub(crate) fn step_name(pack: &FlatPack, step: &Step) -> String {
+    step_name_with(pack, step, &Terms::of(pack))
 }
 
 /// A step's name as its checklist row shows it: a name in capitals as a sentence, keeping its
 /// controls' labels, glossary terms and codes (a word with a digit or a slash) in capitals; a
 /// name in mixed case as it is.
-pub(crate) fn step_name(pack: &FlatPack, step: &Step) -> String {
+pub(crate) fn step_name_with(pack: &FlatPack, step: &Step, terms: &Terms) -> String {
     let labels: Vec<String> = step
         .targets
         .iter()
@@ -58,7 +81,7 @@ pub(crate) fn step_name(pack: &FlatPack, step: &Step) -> String {
         })
         .filter(|l| !l.is_empty())
         .collect();
-    sentence(&step.text, &labels, &glossary(pack))
+    sentence(&step.text, &labels, |w| terms.contains(w))
 }
 
 /// The name for a step logged before the log saved names (format 1), from its saved text: the
@@ -66,8 +89,7 @@ pub(crate) fn step_name(pack: &FlatPack, step: &Step) -> String {
 /// when that pack is installed (`None` when it isn't). Codes (a word with a digit or a slash)
 /// stay in capitals either way.
 pub(crate) fn saved_text_name(text: &str, glossary: Option<&BTreeSet<String>>) -> String {
-    let terms: BTreeSet<&str> = glossary.into_iter().flatten().map(String::as_str).collect();
-    sentence(text, &[], &terms)
+    sentence(text, &[], |w| glossary.is_some_and(|g| g.contains(w)))
 }
 
 /// Each pack's glossary terms, by pack id, from installed packs' texts. A text that isn't a pack
@@ -77,7 +99,7 @@ pub fn pack_glossaries(texts: &[String]) -> Glossaries {
         .iter()
         .filter_map(|text| serde_json::from_str::<FlatPack>(text).ok())
         .map(|pack| {
-            let terms = glossary(&pack).into_iter().map(str::to_owned).collect();
+            let terms = glossary(&pack).map(str::to_owned).collect();
             (pack.manifest.id.clone(), terms)
         })
         .collect()
@@ -86,7 +108,8 @@ pub fn pack_glossaries(texts: &[String]) -> Glossaries {
 /// Glossary terms by pack id: what naming a format 1 log's entries needs from installed packs.
 pub type Glossaries = std::collections::BTreeMap<String, BTreeSet<String>>;
 
-fn sentence(text: &str, keep: &[String], glossary: &BTreeSet<&str>) -> String {
+/// `text` as a name: `is_term` says whether a word is one of the pack's glossary terms.
+fn sentence(text: &str, keep: &[String], is_term: impl Fn(&str) -> bool) -> String {
     if text != text.to_uppercase() {
         return text.to_owned();
     }
@@ -131,7 +154,7 @@ fn sentence(text: &str, keep: &[String], glossary: &BTreeSet<&str>) -> String {
         }
         let word: String = chars[start..i].iter().collect();
         let keep_word = (!word.trim().is_empty() && kept[start..i].iter().all(|k| *k))
-            || glossary.contains(word.as_str())
+            || is_term(word.as_str())
             || word.chars().any(|c| c.is_ascii_digit() || c == '/');
         out.push_str(&if keep_word { word } else { word.to_lowercase() });
     }
@@ -151,7 +174,7 @@ mod tests {
             sentence(
                 text,
                 &keep.iter().map(|k| (*k).to_owned()).collect::<Vec<_>>(),
-                &glossary,
+                |w| glossary.contains(w),
             )
         };
         assert_eq!(
@@ -232,9 +255,83 @@ mod tests {
         assert_eq!(glossaries.len(), 1);
         let terms = &glossaries[pack.manifest.id.as_str()];
         assert!(!terms.is_empty());
+        assert_eq!(terms, &glossary(&pack).map(str::to_owned).collect());
+    }
+
+    /// A pack at the limits on what naming reads (`involo_pack::limits`): the most steps, each
+    /// text as long as it may be and in capitals (so every word is looked up), and the most
+    /// glossary terms, some of them in the texts.
+    pub(crate) fn pack_at_the_limits() -> FlatPack {
+        use involo_pack::limits::{MAX_GLOSSARY_TERMS, MAX_NAME_CHARS, MAX_STEPS};
+        let mut pack = crate::test_support::ifly_pack();
+        let glossary = pack.content.glossary.as_mut().unwrap();
+        let entry = glossary.terms[0].clone();
+        for n in glossary.terms.len()..MAX_GLOSSARY_TERMS {
+            let mut e = entry.clone();
+            e.term = format!("TERM{n}");
+            glossary.terms.push(e);
+        }
+        let words = "APU BLEED AIR SWITCH TERM1999 STANDBY POWER (IRS 2) FMC/CDU ";
+        let text: String = words.repeat(MAX_NAME_CHARS / words.len() + 1)[..MAX_NAME_CHARS]
+            .trim_end()
+            .to_owned();
+        let first = pack.lists[0].steps[0].clone();
+        let mut n = pack.lists.iter().map(|l| l.steps.len()).sum::<usize>();
+        let steps = &mut pack.lists[0].steps;
+        while n < MAX_STEPS {
+            let mut s = first.clone();
+            s.id = involo_checklist_core::StepId::new(format!("ifly-737-max8.limits.step-{n}"));
+            s.text.clone_from(&text);
+            steps.push(s);
+            n += 1;
+        }
         assert_eq!(
-            terms,
-            &glossary(&pack).into_iter().map(str::to_owned).collect()
+            involo_pack::limits::over_limits(&pack.lists, &pack.content),
+            vec![]
+        );
+        pack
+    }
+
+    /// The best of three timings of naming `pack`'s steps and controls.
+    fn naming_time(pack: &FlatPack) -> std::time::Duration {
+        (0..3)
+            .map(|_| {
+                let start = std::time::Instant::now();
+                let names = pack_names(pack);
+                let took = start.elapsed();
+                assert_eq!(names.steps.len(), involo_pack::limits::MAX_STEPS);
+                took
+            })
+            .min()
+            .unwrap()
+    }
+
+    /// Naming looks each word up in the glossary, indexed once per pack: it grows with the length
+    /// of the names, not with steps × terms. Before the index, the glossary was gathered again for
+    /// every step, and a pack at the limits took 255 ms to name in an optimized build (1.49 s in
+    /// a test build); with it, 32 ms (278 ms).
+    #[test]
+    fn a_pack_at_the_limits_is_named_in_well_under_a_second() {
+        let pack = pack_at_the_limits();
+        let mut no_glossary = pack.clone();
+        no_glossary.content.glossary = None;
+        let (with_terms, without) = (naming_time(&pack), naming_time(&no_glossary));
+        // 2,000 terms cost about what none do. Before the index they cost 8 times as much; the
+        // margin leaves room for a busy machine (the tests run in parallel).
+        assert!(
+            with_terms < without * 3 + std::time::Duration::from_millis(50),
+            "naming took {with_terms:?} with the glossary and {without:?} without it"
+        );
+        // Tests build without optimizing, several times slower than the app, and run beside the
+        // other tests: the budget there allows for both, and the old naming still missed it.
+        let budget = if cfg!(debug_assertions) {
+            std::time::Duration::from_millis(1200)
+        } else {
+            std::time::Duration::from_millis(100)
+        };
+        assert!(
+            with_terms < budget,
+            "naming a pack at the limits took {with_terms:?}"
         );
     }
 }
