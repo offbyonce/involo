@@ -43,6 +43,6 @@ A file past one of these says so with its line and column, for example `smoke.ya
 | A step's text, or a control's name | 300 characters | `<step id>: its text is 389 characters; the most is 300` |
 | Packs in one `extends` chain, the pack itself included | 8 | `the extends chain … is longer than 8 packs, the most a pack may build on` |
 
-The app looks for every glossary term in each step text and control name to name them on screen,
-so these three are set together: at their limits, a pack still opens in well under a second.
+The app names every step and control when it reads a pack, looking each word up in the glossary:
+at these limits, naming a whole pack takes a few hundredths of a second.
 An `extends` chain may not loop back on itself (`extends makes a cycle: a → b → a`).

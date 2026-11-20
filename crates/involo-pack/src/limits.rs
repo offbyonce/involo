@@ -41,8 +41,8 @@ pub const MAX_STEPS: usize = 5_000;
 /// The most terms in a pack's glossary.
 pub const MAX_GLOSSARY_TERMS: usize = 2_000;
 
-/// The longest step text or control name, in characters. The app looks for every glossary term
-/// in each of these to name them, so their length and the glossary's size are bounded together.
+/// The longest step text or control name, in characters. The app names each one when it reads the
+/// pack, word by word: together with the most steps, this bounds that work.
 pub const MAX_NAME_CHARS: usize = 300;
 
 /// The YAML reader's budget, from the limits above.
