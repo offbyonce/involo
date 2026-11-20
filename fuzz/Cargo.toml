@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+
+# Fuzz targets for everything that reads pack data (`just fuzz <target>`). A workspace of its own,
+# outside the main one: cargo-fuzz builds it with a nightly compiler and sanitizers, which `just ci`
+# never needs. Its one new dependency, libfuzzer-sys, is the fuzzing engine cargo-fuzz runs (with
+# its `arbitrary` derive, which turns fuzz input into pack edits). serde and serde_json are the
+# main workspace's: a workspace of its own can't inherit their versions, so they are written here
+# at the same versions as in the root Cargo.toml.
+
+[package]
+name = "involo-fuzz"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = { version = "0.4.12", features = ["arbitrary-derive"] }
+serde = "1.0.229"
+serde_json = "1.0.154"
+involo-app-core = { path = "../crates/involo-app-core" }
+involo-checklist-core = { path = "../crates/involo-checklist-core" }
+involo-pack = { path = "../crates/involo-pack" }
+
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "pack_file"
+path = "fuzz_targets/pack_file.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "pack_edits"
+path = "fuzz_targets/pack_edits.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "data_file"
+path = "fuzz_targets/data_file.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "pack_folder"
+path = "fuzz_targets/pack_folder.rs"
+test = false
+doc = false
+bench = false

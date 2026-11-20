@@ -13,7 +13,7 @@ members = [
     "crates/involo-web-host",
 ]
 # Parked for Phase 2 (decision 0010): kept in the repo, not built. See PARKED.md in each.
-exclude = ["apps/desktop/src-tauri", "crates/store"]
+exclude = ["apps/desktop/src-tauri", "crates/store", "fuzz"]
 
 [workspace.package]
 version = "0.1.0"

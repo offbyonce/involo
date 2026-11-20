@@ -15,8 +15,10 @@ use std::path::{Path, PathBuf};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
+use crate::limits::MAX_EXTENDS_CHAIN;
+use crate::load::{Folder, InMemory, PackFiles, load_pack_files, read_text};
 use crate::patch::{self, PatchesFile, Touched};
-use crate::{Issue, LoadError, Pack, PackContent, ResolvedParent, load_pack_dir};
+use crate::{Issue, LoadError, Pack, PackContent, ResolvedParent};
 
 /// Why a pack could not be built from its parents.
 #[derive(Debug, thiserror::Error)]
@@ -40,20 +42,84 @@ pub struct Resolved {
     pub touched: Vec<Touched>,
 }
 
+/// Where a pack's parent is looked for, by id: folders of packs on disk ([`Places`]) or packs in
+/// memory ([`Shelf`] for tests and fuzzing).
+pub trait Parents {
+    type Files: PackFiles;
+    /// The pack whose id is `id`.
+    fn find(&self, id: &str) -> Option<Self::Files>;
+    /// Where it looked, for the message when no pack has the id.
+    fn searched(&self) -> Vec<String>;
+}
+
+/// Folders, each holding pack folders.
+#[derive(Debug, Clone)]
+pub struct Places(pub Vec<PathBuf>);
+
+impl Parents for Places {
+    type Files = Folder;
+
+    fn find(&self, id: &str) -> Option<Folder> {
+        self.0.iter().find_map(|place| {
+            let mut dirs: Vec<PathBuf> = std::fs::read_dir(place)
+                .ok()?
+                .filter_map(|e| e.ok().map(|e| e.path()))
+                .filter(|p| p.join("pack.json").is_file())
+                .collect();
+            dirs.sort();
+            dirs.into_iter()
+                .map(Folder)
+                .find(|d| d.id().as_deref() == Some(id))
+        })
+    }
+
+    fn searched(&self) -> Vec<String> {
+        self.0.iter().map(|p| p.display().to_string()).collect()
+    }
+}
+
+/// Packs held in memory.
+#[derive(Debug, Clone, Default)]
+pub struct Shelf(pub Vec<InMemory>);
+
+impl Parents for Shelf {
+    type Files = InMemory;
+
+    fn find(&self, id: &str) -> Option<InMemory> {
+        self.0
+            .iter()
+            .find(|p| p.id().as_deref() == Some(id))
+            .cloned()
+    }
+
+    fn searched(&self) -> Vec<String> {
+        self.0
+            .iter()
+            .map(|p| p.name.display().to_string())
+            .collect()
+    }
+}
+
 /// Loads the pack in `dir` and, when it extends a parent, builds it over the parent. Parents are
 /// looked for among the packs beside `dir` and in each of `search`.
 pub fn resolve(dir: &Path, search: &[PathBuf]) -> Result<Resolved, ResolveError> {
     let mut places: Vec<PathBuf> = dir.parent().map(Path::to_path_buf).into_iter().collect();
     places.extend(search.iter().cloned());
-    resolve_in(dir, &places, &mut Vec::new())
+    resolve_files(&Folder(dir.to_path_buf()), &Places(places))
 }
 
-fn resolve_in(
-    dir: &Path,
-    places: &[PathBuf],
+/// Loads the pack in `files` and, when it extends a parent, builds it over the parent found in
+/// `parents`.
+pub fn resolve_files<P: Parents>(files: &P::Files, parents: &P) -> Result<Resolved, ResolveError> {
+    resolve_in(files, parents, &mut Vec::new())
+}
+
+fn resolve_in<P: Parents>(
+    files: &P::Files,
+    parents: &P,
     chain: &mut Vec<String>,
 ) -> Result<Resolved, ResolveError> {
-    let child = load_pack_dir(dir)?;
+    let child = load_pack_files(files)?;
     let id = child.manifest.id.clone();
     let fail = |m: String| Err(ResolveError::Pack(format!("{id}: {m}")));
     if !child.manifest.resolved.is_empty() || child.manifest.content_hash.is_some() {
@@ -73,13 +139,23 @@ fn resolve_in(
             touched: vec![],
         });
     };
-    let parent_dir = find(parent_id, places).ok_or_else(|| ResolveError::NotFound {
-        child: id.clone(),
-        parent: parent_id.clone(),
-        searched: places.iter().map(|p| p.display().to_string()).collect(),
-    })?;
+    if chain.len() + 1 >= MAX_EXTENDS_CHAIN {
+        let mut packs = chain.clone();
+        packs.extend([id.clone(), parent_id.clone()]);
+        return fail(format!(
+            "the `extends` chain {} is longer than {MAX_EXTENDS_CHAIN} packs, the most a pack may build on",
+            packs.join(" → ")
+        ));
+    }
+    let parent_files = parents
+        .find(parent_id)
+        .ok_or_else(|| ResolveError::NotFound {
+            child: id.clone(),
+            parent: parent_id.clone(),
+            searched: parents.searched(),
+        })?;
     chain.push(id.clone());
-    let parent = resolve_in(&parent_dir, places, chain)?.pack;
+    let parent = resolve_in(&parent_files, parents, chain)?.pack;
     chain.pop();
     let pm = &parent.manifest;
     if !range.matches(&pm.version) {
@@ -96,35 +172,13 @@ fn resolve_in(
     }
     let patches: Option<PatchesFile> = match &child.manifest.patches {
         Some(rel) => Some(crate::load::parse_yaml(
-            &std::fs::read_to_string(dir.join(rel)).map_err(|source| LoadError::Io {
-                path: dir.join(rel),
-                source,
-            })?,
-            &dir.join(rel),
+            &read_text(files, rel)?,
+            &files.path(rel),
         )?),
         None => None,
     };
     let file = child.manifest.patches.clone().unwrap_or_default();
     merge(parent, child, &file, patches.as_ref())
-}
-
-/// The folder among `places` (each a folder of packs) whose pack has the id `id`.
-fn find(id: &str, places: &[PathBuf]) -> Option<PathBuf> {
-    places.iter().find_map(|place| {
-        let mut dirs: Vec<PathBuf> = std::fs::read_dir(place)
-            .ok()?
-            .filter_map(|e| e.ok().map(|e| e.path()))
-            .filter(|p| p.join("pack.json").is_file())
-            .collect();
-        dirs.sort();
-        dirs.into_iter().find(|d| {
-            std::fs::read_to_string(d.join("pack.json"))
-                .ok()
-                .and_then(|t| serde_json::from_str::<Value>(&t).ok())
-                .and_then(|v| v.get("id")?.as_str().map(|s| s == id))
-                .unwrap_or(false)
-        })
-    })
 }
 
 /// `a` then whatever of `b` is not already in it.

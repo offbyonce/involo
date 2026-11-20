@@ -17,6 +17,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 use crate::flight::Flight;
+use crate::names::{Terms, step_name_with};
 
 /// A step added or removed by an update, as the note lists it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
@@ -151,9 +152,9 @@ fn steps(pack: &FlatPack) -> impl Iterator<Item = &Step> {
 
 /// The fields the note compares, by the name it gives them, each as the pilot reads it: the name
 /// as its checklist row shows it.
-fn wording(pack: &FlatPack, step: &Step) -> [(&'static str, String); 4] {
+fn wording(pack: &FlatPack, terms: &Terms, step: &Step) -> [(&'static str, String); 4] {
     [
-        ("Name", crate::names::step_name(pack, step)),
+        ("Name", step_name_with(pack, step, terms)),
         ("Value", step.expect.clone()),
         ("Check", step.check.clone().unwrap_or_default()),
         ("If not", step.if_not.clone().unwrap_or_default()),
@@ -163,6 +164,8 @@ fn wording(pack: &FlatPack, step: &Step) -> [(&'static str, String); 4] {
 /// What changed from `old` to `new`, two versions of one pack. A step is the same step when it
 /// keeps its id or `new`'s aliases retire its old id for its new one.
 pub fn pack_changes(old: &FlatPack, new: &FlatPack) -> PackChanges {
+    // Each pack's glossary, indexed once for naming every step.
+    let (old_terms, new_terms) = (Terms::of(old), Terms::of(new));
     let renamed = aliases(new, AliasKind::Step);
     let now = |id: &StepId| -> StepId {
         renamed
@@ -181,14 +184,14 @@ pub fn pack_changes(old: &FlatPack, new: &FlatPack) -> PackChanges {
         match old_steps.get(&step.id) {
             None => added.push(ChangedStep {
                 step: step.id.clone(),
-                title: crate::names::step_name(new, step),
+                title: step_name_with(new, step, &new_terms),
                 place: place(&new_places, &step.id),
                 was_ticked: false,
             }),
             Some(before) => {
-                let fields: Vec<Rewording> = wording(old, before)
+                let fields: Vec<Rewording> = wording(old, &old_terms, before)
                     .into_iter()
-                    .zip(wording(new, step))
+                    .zip(wording(new, &new_terms, step))
                     .filter(|((_, a), (_, b))| a != b)
                     .map(|((field, before), (_, after))| Rewording {
                         field: field.to_owned(),
@@ -199,7 +202,7 @@ pub fn pack_changes(old: &FlatPack, new: &FlatPack) -> PackChanges {
                 if !fields.is_empty() {
                     reworded.push(RewordedStep {
                         step: step.id.clone(),
-                        title: crate::names::step_name(new, step),
+                        title: step_name_with(new, step, &new_terms),
                         place: place(&new_places, &step.id),
                         fields,
                     });
@@ -211,7 +214,7 @@ pub fn pack_changes(old: &FlatPack, new: &FlatPack) -> PackChanges {
         .filter(|s| !new_ids.contains(&now(&s.id)))
         .map(|s| ChangedStep {
             step: s.id.clone(),
-            title: crate::names::step_name(old, s),
+            title: step_name_with(old, s, &old_terms),
             place: place(&old_places, &s.id),
             was_ticked: false,
         })
