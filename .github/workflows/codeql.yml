@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+#
+# CodeQL code scanning (#165): the JavaScript and TypeScript (the interface, the web host, the
+# service worker and the build scripts) and the Rust crates, on every pull request, on main, and
+# weekly so new queries reach code that hasn't changed. Neither needs a build: CodeQL reads the
+# sources. Findings appear under Security › Code scanning, and on the pull request that adds them.
+# No secrets are available to this workflow.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Wednesdays at 05:23 UTC.
+    - cron: "23 5 * * 3"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, rust]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      # To upload the results.
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          # Generated and built files are not ours to fix.
+          config: |
+            paths-ignore:
+              - packages/bindings/src/generated
+              - schemas
+              - apps/web/dist
+              - target
+
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}
