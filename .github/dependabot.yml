@@ -1,0 +1,60 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: MIT
+#
+# Dependency updates (#165), once a week on Monday: per ecosystem, every minor and patch update in
+# one pull request, and each major update on its own, since those can need code changes. New
+# versions wait a day after release, as pnpm's minimumReleaseAge does. Security updates arrive as
+# soon as an advisory is published, whatever the schedule.
+version: 2
+
+updates:
+  # The Rust workspace and the fuzz workspace: fuzz/Cargo.lock must keep the root's version of
+  # every crate the two share (fuzz/seeds.mjs checks), so both directories are updated together.
+  - package-ecosystem: cargo
+    directories: ["/", "/fuzz"]
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:00"
+      timezone: Etc/UTC
+    cooldown:
+      default-days: 1
+    groups:
+      cargo-minor:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: chore
+      include: scope
+    open-pull-requests-limit: 5
+
+  # The pnpm workspace: versions live in the catalog in pnpm-workspace.yaml.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:00"
+      timezone: Etc/UTC
+    cooldown:
+      default-days: 1
+    groups:
+      npm-minor:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: chore
+      include: scope
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:00"
+      timezone: Etc/UTC
+    groups:
+      actions:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: ci
+    open-pull-requests-limit: 5
