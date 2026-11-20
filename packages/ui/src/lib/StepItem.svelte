@@ -902,6 +902,11 @@ row in place. A step that depends on the answer links back to it.
     min-height: calc(var(--font-size-panel-title) * var(--leading-tight));
     padding-top: var(--space-2);
   }
+  /* Names and values line up in every row (Roles board): the current row keeps the others' left
+     padding, its bar drawn over it. */
+  .it.pair.current {
+    padding-left: var(--space-4);
+  }
   /* The current step's name is centered in its 44 px target under 8 px; its caller's tag too. */
   .it.pair.current .calls {
     min-height: var(--size-touch-min);
@@ -910,37 +915,35 @@ row in place. A step that depends on the answer links back to it.
     grid-column: 2 / 6;
   }
   @media (max-width: 1439px) {
-    /* The current step's value sits under its title, the answerer's tag under the caller's. */
+    /* RolesDesk (desktop and tablet): the current step keeps every cell in its column, so its value
+       and the answerer's tag stay under Answers and Response; each tag level with its text. */
     .it.pair.current .tick {
-      grid-row: 1 / span 2;
+      grid-row: 1;
       grid-column: 1;
     }
-    .it.pair.current .calls {
+    .it.pair.current .calls,
+    .it.pair.current .answers {
       grid-row: 1;
+      min-height: calc((var(--font-size-body) + var(--border-thick)) * var(--leading-tight) + var(--space-2));
+      padding-top: var(--space-2);
+    }
+    .it.pair.current .calls {
       grid-column: 2;
     }
     .it.pair.current .namecol {
       grid-row: 1;
-      grid-column: 3 / 6;
+      grid-column: 3;
     }
     .it.pair.current .answers {
-      grid-row: 2;
-      grid-column: 2;
-      min-height: 0;
-      padding-top: 0;
+      grid-column: 4;
     }
     .it.pair.current .value {
-      grid-row: 2;
-      grid-column: 3 / 6;
-      padding-top: 0;
+      grid-row: 1;
+      grid-column: 5;
     }
     .it.pair.current .end {
+      grid-row: 1;
       grid-column: 6;
-    }
-    /* Level with the title, which keeps its 8 px above. */
-    .it.pair.current .calls {
-      min-height: calc((var(--font-size-body) + var(--border-thick)) * var(--leading-tight) + var(--space-2));
-      padding-top: var(--space-2);
     }
   }
   @media (max-width: 899px) {
@@ -950,10 +953,14 @@ row in place. A step that depends on the answer links back to it.
         calc(var(--space-8) * 2) 34% auto;
     }
   }
-  /* Phone (Roles board): the caller's tag on the name line, the answerer's on the value line. */
+  /* Phone (Roles board): the caller's tag on the name line, the answerer's on the value line. Every
+     row keeps the status column (empty on the current step) and a tag column of one width, so
+     names and values line up down the list; a tag longer than five characters widens its row's. */
   @media (max-width: 599px) {
-    .it.pair {
-      grid-template-columns: var(--size-icon) auto minmax(0, 1fr) auto;
+    .it.pair,
+    .it.pair.current {
+      grid-template-columns: var(--size-icon) minmax(calc(var(--space-8) + var(--space-4)), auto) minmax(0, 1fr) auto;
+      padding-left: calc(var(--space-3) + var(--border-thick));
     }
     .it.pair .tick {
       grid-row: 1;
@@ -982,26 +989,28 @@ row in place. A step that depends on the answer links back to it.
     .it.pair.skipped .answers {
       display: none;
     }
-    .it.pair.current {
-      grid-template-columns: auto minmax(0, 1fr) auto;
-    }
     .it.pair.current .calls {
-      grid-column: 1;
+      grid-column: 2;
     }
     .it.pair.current .namecol {
-      grid-column: 2;
-    }
-    .it.pair.current .end {
       grid-column: 3;
     }
+    .it.pair.current .end {
+      grid-column: 4;
+    }
     .it.pair.current .answers {
-      grid-column: 1;
+      grid-row: 2;
+      grid-column: 2;
+      min-height: 0;
+      padding-top: 0;
     }
     .it.pair.current .value {
-      grid-column: 2;
+      grid-row: 2;
+      grid-column: 3;
+      padding-top: 0;
     }
     .it.pair.current .value.asking {
-      grid-column: 2 / -1;
+      grid-column: 3 / -1;
     }
   }
 </style>
