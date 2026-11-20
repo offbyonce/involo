@@ -8,6 +8,7 @@ import type {
   Loaded,
   PackChanges,
   PhaseModel,
+  PracticeResult,
   Rail,
   RailPhase,
   SavedPlan,
@@ -2028,6 +2029,57 @@ describe("the Flight log (decision 0026)", () => {
     render(App, { context: hostContext(h) });
     await waitFor(() => expect(document.querySelector(".it.current")).toBeTruthy());
     expect(screen.queryByText("Flight complete. Log it and start new?")).toBeNull();
+  });
+
+  it("saves a finished practice test in the log as practiceResult builds it, with the open pack (#107)", async () => {
+    const asked: [string, unknown][] = [];
+    const saved: { practice: PracticeResult[] }[] = [];
+    window.location.hash = "#/practice";
+    const h = host({
+      // A pack with practice questions: the demo pack has none.
+      loadPack: async () => iflyPack(),
+      practiceResult: async (pack, r) => {
+        asked.push([pack, r]);
+        return {
+          id: `${pack}@${r.at}`,
+          pack,
+          packVersion: "0.1.0",
+          packName: "Demo",
+          aircraft: "Demo jet",
+          ...r,
+        };
+      },
+      saveLog: async (log) => {
+        saved.push(log as { practice: PracticeResult[] });
+        return true;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    // Check ride: every topic, so the demo pack has questions for it.
+    await fireEvent.click(await screen.findByRole("button", { name: /^Check ride/ }));
+    await fireEvent.click((await screen.findAllByRole("radio"))[0] as HTMLElement);
+    await fireEvent.click(screen.getByRole("button", { name: "End test" }));
+    // The interface hands Rust the finished test and the open pack; what it saves is what
+    // practiceResult made, with the pack's version, its name and the aircraft.
+    await waitFor(() => expect(saved).toHaveLength(1));
+    expect(asked).toHaveLength(1);
+    const [pack, finished] = asked[0] as [
+      string,
+      { title: string; score: number; total: number; at: number },
+    ];
+    expect(pack).toBe("demo");
+    expect(finished).toMatchObject({ total: 1 });
+    expect(Object.keys(finished).sort()).toEqual(["at", "score", "title", "total"]);
+    expect(saved[0]?.practice).toEqual([
+      {
+        id: `demo@${finished.at}`,
+        pack: "demo",
+        packVersion: "0.1.0",
+        packName: "Demo",
+        aircraft: "Demo jet",
+        ...finished,
+      },
+    ]);
   });
 
   it("shows on Practice home only this aircraft's latest saved result", async () => {
