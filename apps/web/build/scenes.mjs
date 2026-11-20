@@ -200,41 +200,83 @@ export const takeTour = (n = 0) => [
   `[...document.querySelectorAll("#drawer button")].find((b) => b.textContent.trim() === "Take the tour").click(); true`,
   `new Promise((done) => setTimeout(() => { for (let i = 0; i < ${n}; i++) window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })); setTimeout(() => done(true), 600); }, 400))`,
 ];
+/** Writes `log` (a JavaScript expression) to the app's IndexedDB as a logged log would be, then
+ * reloads the page to read it. */
+const writeLog = (log) => [
+  // At the version the app left the database (it installs its pack there first), not one of
+  // our own: an older version would never open.
+  `new Promise((done) => { const r = indexedDB.open("involo"); r.onupgradeneeded = () => r.result.createObjectStore("log");
+    r.onsuccess = () => { const db = r.result; const tx = db.transaction("log", "readwrite"); tx.objectStore("log").put(JSON.stringify(${log}), "log");
+      tx.oncomplete = () => { db.close(); window.seeding = true; setTimeout(() => location.reload(), 50); done(true); }; }; })`,
+  // Until the reloaded page (which has no "seeding" mark) is ready.
+  `new Promise((done) => { let n = 0; const t = setInterval(() => { if ((!window.seeding && document.querySelector("[data-app-ready]")) || ++n > 100) { clearInterval(t); setTimeout(() => done(true), 300); } }, 100); })`,
+];
+const IFLY = { id: "ifly-737-max8", name: "iFly 737 MAX 8", version: "0.1.0", aircraft: "737 MAX 8", total: 366 };
+const EXAMPLE = { id: "example-trainer", name: "Example trainer (format demo)", version: "0.1.0", aircraft: "Example trainer", total: 13 };
+const day = (d, h, m) => `new Date(2026, 10, ${d}, ${h}, ${m}).getTime()`;
+/** A logged flight of pack `p`, in log format 1 (no step names), 2 (step names; the pack's name
+ * still as `aircraft`) or 3. */
+const loggedFlight = (format, p, id, at, from, to, minutes, done, finished, skipped) => `(() => {
+  const off = ${at}; const mins = ${JSON.stringify(minutes)}; let t = off; const stages = [];
+  const names = ["Preflight", "Departure", "Enroute", "Arrival", "Post-flight"];
+  mins.forEach((m, i) => { stages.push({ ${format === 3 ? "id: names[i].toLowerCase(), " : ""}title: names[i], ms: m * 60000 }); t += m * 60000; });
+  return { id: "${p.id}@" + ${id}, loggedAt: t + 60000, pack: "${p.id}", packVersion: "${p.version}",
+    ${format === 3 ? `packName: "${p.name}", aircraft: "${p.aircraft}"` : `aircraft: "${p.name}"`},
+    origin: "${from}", destination: "${to}", offBlocks: off, onBlocks: t, stages, done: ${done}, total: ${p.total},
+    skipped: ${JSON.stringify(skipped)}, plan: "simbrief", finished: ${finished},
+    ticks: [{ at: off, step: "${p.id}.before-start.door-lights", text: "DOOR LIGHTS", ${format >= 2 ? `name: "Door lights", ` : ""}value: "ALL OUT" }, { at: t, step: "${p.id}.secure.parking-brake", text: "PARKING BRAKE", ${format >= 2 ? `name: "Parking brake", ` : ""}value: "SET" }] };
+})()`;
+/** A practice result of pack `p`, in log format 1, 2 (the same) or 3. */
+const loggedResult = (format, p, d, h, title, score, total) =>
+  `{ id: "${p.id}@" + ${day(d, h, 0)}, at: ${day(d, h, 0)}, pack: "${p.id}", ${format === 3 ? `packVersion: "${p.version}", packName: "${p.name}", aircraft: "${p.aircraft}", ` : ""}title: ${JSON.stringify(title)}, score: ${score}, total: ${total} }`;
+const terr = (format) => ({ step: `${IFLY.id}.before-start.terr-efis-control-panel`, text: "TERR (EFIS CONTROL PANEL)", ...(format >= 2 ? { name: "TERR (EFIS control panel)" } : {}), value: "ON", stage: "Departure", phase: "before-start", phaseTitle: "Before start" });
+const oxy = (format) => ({ step: `${IFLY.id}.preflight.crew-oxygen`, text: "CREW OXYGEN", ...(format >= 2 ? { name: "Crew oxygen" } : {}), value: "VERIFY", stage: "Preflight", phase: "preflight", phaseTitle: "Preflight" });
+/** The Log boards' three iFly flights and three practice results, in log format `format`. */
+const boardEntries = (format) => ({
+  flights: [
+    loggedFlight(format, IFLY, 1, day(15, 14, 10), "KSFO", "KSEA", [30, 35, 40, 15, 5], 366, true, []),
+    loggedFlight(format, IFLY, 2, day(14, 9, 48), "KSEA", "KSFO", [38, 41, 52, 24, 6], 359, true, [terr(format), oxy(format)]),
+    loggedFlight(format, IFLY, 3, day(12, 7, 30), "KPDX", "KSEA", [20, 28], 118, false, [oxy(format)]),
+  ],
+  practice: [
+    loggedResult(format, IFLY, 15, 18, "Lights of the flight deck", 17, 20),
+    loggedResult(format, IFLY, 15, 17, "Custom test · 5 topics", 16, 20),
+    loggedResult(format, IFLY, 13, 12, "Memory items", 9, 10),
+  ],
+});
 /**
  * The Log boards' stand-in log (LogDesk, LogPhone): three earlier flights and three practice
- * results, written to the app's IndexedDB as a logged log would be, then the page reloads to read
- * it. Times are the boards', in the browser's time zone.
+ * results, saved by an earlier version (log format 1), then the page reloads to read it. Times
+ * are the boards', in the browser's time zone.
  */
 export const seedLog = (() => {
-  const P = "ifly-737-max8";
-  const flight = (id, at, from, to, minutes, done, finished, skipped) => `(() => {
-    const off = ${at}; const mins = ${JSON.stringify(minutes)}; let t = off; const stages = [];
-    const names = ["Preflight", "Departure", "Enroute", "Arrival", "Post-flight"];
-    mins.forEach((m, i) => { stages.push({ title: names[i], ms: m * 60000 }); t += m * 60000; });
-    return { id: "${P}@" + ${id}, loggedAt: t + 60000, pack: "${P}", packVersion: "0.1.0", aircraft: "iFly 737 MAX 8",
-      origin: "${from}", destination: "${to}", offBlocks: off, onBlocks: t, stages, done: ${done}, total: 366,
-      skipped: ${JSON.stringify(skipped)}, plan: "simbrief", finished: ${finished},
-      ticks: [{ at: off, step: "${P}.before-start.door-lights", text: "DOOR LIGHTS", value: "ALL OUT" }, { at: t, step: "${P}.secure.parking-brake", text: "PARKING BRAKE", value: "SET" }] };
-  })()`;
-  const terr = { step: `${P}.before-start.terr-efis-control-panel`, text: "TERR (EFIS CONTROL PANEL)", value: "ON", stage: "Departure", phase: "before-start", phaseTitle: "Before start" };
-  const oxy = { step: `${P}.preflight.crew-oxygen`, text: "CREW OXYGEN", value: "VERIFY", stage: "Preflight", phase: "preflight", phaseTitle: "Preflight" };
-  const day = (d, h, m) => `new Date(2026, 10, ${d}, ${h}, ${m}).getTime()`;
-  const result = (d, h, title, score, total) => `{ id: "${P}@" + ${day(d, h, 0)}, at: ${day(d, h, 0)}, pack: "${P}", title: ${JSON.stringify(title)}, score: ${score}, total: ${total} }`;
-  const log = `{ format: 1, flights: [
-    ${flight(1, day(15, 14, 10), "KSFO", "KSEA", [30, 35, 40, 15, 5], 366, true, [])},
-    ${flight(2, day(14, 9, 48), "KSEA", "KSFO", [38, 41, 52, 24, 6], 359, true, [terr, oxy])},
-    ${flight(3, day(12, 7, 30), "KPDX", "KSEA", [20, 28], 118, false, [oxy])}],
-    practice: [${result(15, 18, "Lights of the flight deck", 17, 20)}, ${result(15, 17, "Custom test · 5 topics", 16, 20)}, ${result(13, 12, "Memory items", 9, 10)}] }`;
-  return [
-    // At the version the app left the database (it installs its pack there first), not one of
-    // our own: an older version would never open.
-    `new Promise((done) => { const r = indexedDB.open("involo"); r.onupgradeneeded = () => r.result.createObjectStore("log");
-      r.onsuccess = () => { const db = r.result; const tx = db.transaction("log", "readwrite"); tx.objectStore("log").put(JSON.stringify(${log}), "log");
-        tx.oncomplete = () => { db.close(); window.seeding = true; setTimeout(() => location.reload(), 50); done(true); }; }; })`,
-    // Until the reloaded page (which has no "seeding" mark) is ready.
-    `new Promise((done) => { let n = 0; const t = setInterval(() => { if ((!window.seeding && document.querySelector("[data-app-ready]")) || ++n > 100) { clearInterval(t); setTimeout(() => done(true), 300); } }, 100); })`,
-  ];
+  const { flights, practice } = boardEntries(1);
+  return writeLog(`{ format: 1, flights: [${flights.join(",")}], practice: [${practice.join(",")}] }`);
 })();
+/**
+ * The Flight log by pack (PacksLog, decision 0028): the Log boards' iFly entries and two flights
+ * and a practice result from the example pack, in today's log format (3), each with its pack's
+ * name and version.
+ */
+const byPack = (format) => {
+  const { flights, practice } = boardEntries(format);
+  const example = [
+    loggedFlight(format, EXAMPLE, 4, day(14, 16, 5), "XAAA", "XBBB", [12, 9], 13, true, []),
+    loggedFlight(format, EXAMPLE, 5, day(11, 10, 20), "XAAA", "XCCC", [15], 7, false, []),
+  ];
+  const all = [flights[0], flights[1], example[0], flights[2], example[1]];
+  const results = [...practice.slice(0, 2), loggedResult(format, EXAMPLE, 14, 17, "Memory items", 3, 4), practice[2]];
+  return writeLog(`{ format: ${format}, flights: [${all.join(",")}], practice: [${results.join(",")}] }`);
+};
+export const seedLogByPack = byPack(3);
+/**
+ * The same entries saved by the version before (log format 2): each flight's pack name as
+ * `aircraft`, no stage ids, and practice results with only the pack's id. The app migrates it to
+ * format 3 when it reads it.
+ */
+export const seedLogByPackFormat2 = byPack(2);
+/** The example pack's name, as the log names it. */
+export const EXAMPLE_PACK_NAME = EXAMPLE.name;
 /** The id of the stand-in flight the LogDesk board opens (Sat 14 Nov). */
 export const LOG_OPEN = "ifly-737-max8@2";
 

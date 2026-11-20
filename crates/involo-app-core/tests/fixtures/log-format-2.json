@@ -1,0 +1,149 @@
+{
+  "format": 2,
+  "flights": [
+    {
+      "id": "glider@1763200000000",
+      "loggedAt": 1763200000000,
+      "pack": "glider",
+      "packVersion": "2.3.0",
+      "aircraft": "Glider trainer",
+      "origin": "EDNY",
+      "destination": "EDNY",
+      "offBlocks": 1763196400000,
+      "onBlocks": 1763199400000,
+      "stages": [
+        {
+          "title": "Launch",
+          "ms": 600000
+        },
+        {
+          "title": "Soaring",
+          "ms": 2400000
+        }
+      ],
+      "done": 4,
+      "total": 4,
+      "skipped": [],
+      "plan": "manual",
+      "finished": true,
+      "ticks": [
+        {
+          "at": 1763196400000,
+          "step": "glider.launch.canopy",
+          "text": "CANOPY",
+          "name": "Canopy",
+          "value": "CLOSED AND LOCKED"
+        },
+        {
+          "at": 1763197000000,
+          "step": "glider.launch.brakes",
+          "text": "AIRBRAKES",
+          "name": "Airbrakes",
+          "value": "IN AND LOCKED"
+        },
+        {
+          "at": 1763199400000,
+          "step": "glider.landing.wheel",
+          "text": "WHEEL",
+          "name": "Wheel",
+          "value": "DOWN"
+        }
+      ]
+    },
+    {
+      "id": "trainer@1763120000000",
+      "loggedAt": 1763120000000,
+      "pack": "trainer",
+      "packVersion": "0.1.0",
+      "aircraft": "Trainer",
+      "origin": "KSEA",
+      "destination": "KSFO",
+      "offBlocks": 1763110080000,
+      "onBlocks": 1763119740000,
+      "stages": [
+        {
+          "title": "Preflight",
+          "ms": 2280000
+        },
+        {
+          "title": "Departure",
+          "ms": 7380000
+        }
+      ],
+      "done": 3,
+      "total": 10,
+      "skipped": [
+        {
+          "step": "trainer.before-start.terr",
+          "text": "TERR",
+          "name": "Terr",
+          "value": "ON",
+          "stage": "Departure",
+          "phase": "before-start",
+          "phaseTitle": "Before start"
+        }
+      ],
+      "plan": "simbrief",
+      "finished": false,
+      "ticks": [
+        {
+          "at": 1763110080000,
+          "step": "trainer.preflight.battery",
+          "text": "BATTERY SWITCH",
+          "name": "Battery switch",
+          "value": "ON"
+        },
+        {
+          "at": 1763112360000,
+          "step": "trainer.before-start.qnh",
+          "text": "ALTIMETERS",
+          "name": "Altimeters",
+          "value": "29.92"
+        },
+        {
+          "at": 1763119740000,
+          "step": "trainer.before-start.doors",
+          "text": "DOOR LIGHTS",
+          "name": "Door lights",
+          "value": "ALL OUT"
+        }
+      ]
+    },
+    {
+      "id": "trainer@1763000000000",
+      "loggedAt": 1763000000000,
+      "pack": "trainer",
+      "packVersion": "0.1.0",
+      "aircraft": "Trainer",
+      "origin": "",
+      "destination": "",
+      "offBlocks": null,
+      "onBlocks": null,
+      "stages": [],
+      "done": 0,
+      "total": 10,
+      "skipped": [],
+      "plan": "manual",
+      "finished": false,
+      "ticks": []
+    }
+  ],
+  "practice": [
+    {
+      "id": "glider@1763201000000",
+      "at": 1763201000000,
+      "pack": "glider",
+      "title": "Lights of the cockpit",
+      "score": 7,
+      "total": 8
+    },
+    {
+      "id": "trainer@1763100000000",
+      "at": 1763100000000,
+      "pack": "trainer",
+      "title": "Memory items",
+      "score": 9,
+      "total": 10
+    }
+  ]
+}

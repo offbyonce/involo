@@ -34,9 +34,9 @@ Never rewrite an accepted record; add a new one that supersedes it.
 | [0023](0023-side-and-seat-views.md) | Side and seat views from pack data | Accepted |
 | [0024](0024-outside-flight-data.md) | Outside flight data, starting with SayIntentions (Beta) | Accepted; a phase after step 7, not started |
 | [0025](0025-rename-to-involo.md) | The app is renamed Involo | Accepted |
-| [0026](0026-flight-log-on-the-device.md) | The flight log is saved on the device, never sent | Accepted; log format 2 by 0028 |
+| [0026](0026-flight-log-on-the-device.md) | The flight log is saved on the device, never sent | Accepted; log format 3 by 0028, because format 2 went to saved step names (#105) |
 | [0027](0027-decision-answers.md) | A value per answer, suggestion rules and saved answers | Accepted |
-| [0028](0028-multiple-packs.md) | Several packs, chosen and installed from the app | Accepted |
+| [0028](0028-multiple-packs.md) | Several packs, chosen and installed from the app | Accepted; its log format became 3, because format 2 went to saved step names (#105) |
 | [0029](0029-pack-format-6.md) | Pack format 6, the first public format | Accepted |
 | [0030](0030-pack-authoring-kit.md) | A pack authoring kit for people and agents | Accepted |
 | [0031](0031-desktop-app.md) | A desktop app beside the web app, for Windows and macOS | Accepted |

@@ -25,6 +25,7 @@ import type {
   PhaseModel,
   PlanSource,
   PlanValues,
+  PracticeResult,
   Rail,
   SavedPlan,
   Settings,
@@ -143,6 +144,9 @@ export interface Host {
     plan: PlanSource,
     at: number,
   ): Promise<LoggedFlight>;
+  /** A finished practice test as a log entry, with the pack it was taken in (its version, its
+   * name and the aircraft's). */
+  practiceResult(pack: string, result: FinishedTest): Promise<PracticeResult>;
   /** Applies an edit to the log: add a flight or a practice result, delete a flight, merge a file. */
   editLog(log: Log, edit: LogEdit): Promise<LogChange>;
   /** The log's flights as CSV, one row per flight. */
@@ -155,6 +159,8 @@ export interface Host {
 /** Where an installed pack came from: the Involo catalog, or a file the pilot chose, which is
  * shown as "Not from the Involo catalog" wherever the pack is named (decision 0028). */
 export type PackSource = "catalog" | "file";
+/** A practice test as it ended: its title, the right answers out of those answered, and when. */
+export type FinishedTest = { title: string; score: number; total: number; at: number };
 export type InstalledPack = { summary: PackSummary; source: PackSource; installedAt: number };
 /** What installing a pack did: installed (with what changed, when it replaced another version);
  * passed every check but this device didn't keep it

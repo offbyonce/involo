@@ -269,6 +269,9 @@ describe("PracticePage", () => {
       latest: {
         id: "r",
         pack: "demo",
+        packVersion: "0.1.0",
+        packName: "Demo",
+        aircraft: "Demo jet",
         at: new Date(2026, 10, 13, 12).getTime(),
         title: "Memory items",
         score: 9,
