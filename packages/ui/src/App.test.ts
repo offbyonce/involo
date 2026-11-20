@@ -19,6 +19,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App.svelte";
 import { type Host, hostContext, type InstalledPack } from "./host";
+import { visit } from "./lib/practice-visit.svelte";
 import Root from "./Root.svelte";
 import { appLabels, iflyPack } from "./test-pack";
 
@@ -287,6 +288,9 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  // A practice visit lasts for the module (practice-visit.svelte): each test starts with none.
+  visit.test = null;
+  visit.last = null;
 });
 
 /** A window `width` px wide, for the media queries the app reads (min-width, max-width). */
