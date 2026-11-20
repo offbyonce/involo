@@ -671,7 +671,7 @@ async function installIfly(browser, target) {
   const first = await browser.js(`!!document.querySelector(".packs.first")`);
   if (!first) return;
   await browser.until(`!!document.querySelector('button[aria-label="Download iFly 737 MAX 8"]')`, "the catalog");
-  await browser.js(click('button[aria-label="Download iFly 737 MAX 8"]'));
+  await browser.run(click('button[aria-label="Download iFly 737 MAX 8"]'));
   await browser.until(`!!document.querySelector("#drawer")`, "the iFly pack to open");
 }
 
@@ -681,23 +681,23 @@ async function visit(browser, url, ready) {
 }
 
 async function shoot(browser, url, ready, steps, file, full = false, tour = false) {
-  const { send, js, until, context } = browser;
+  const { send, js, call, run, until, context } = browser;
   await send("browsingContext.navigate", { context, url, wait: "complete" });
   await until(ready, "the page to be ready");
   await js("document.fonts.ready.then(() => true)");
   await sleep(300);
   for (const step of steps ?? []) {
     await js(closeWelcome).catch(() => true);
-    // A step is a script, or { keys } pressed as real keys (WebDriver BiDi input), so keyboard
-    // focus shows as it does for a pilot.
-    if (typeof step === "object") {
+    // A step is a scene step (a fixed script or a function with its data, scenes.mjs), or { keys }
+    // pressed as real keys (WebDriver BiDi input), so keyboard focus shows as it does for a pilot.
+    if (typeof step === "object" && "keys" in step) {
       // Each entry is one key, or a chord such as ["\uE008", "\uE004"] (Shift Tab).
       const actions = step.keys.flatMap((k) => {
         const chord = Array.isArray(k) ? k : [k];
         return [...chord.map((value) => ({ type: "keyDown", value })), ...chord.toReversed().map((value) => ({ type: "keyUp", value }))];
       });
       await send("input.performActions", { context, actions: [{ type: "key", id: "keyboard", actions }] });
-    } else await js(step);
+    } else await run(step);
     await sleep(350);
   }
   if (!tour) await js(closeWelcome).catch(() => true);
@@ -705,7 +705,7 @@ async function shoot(browser, url, ready, steps, file, full = false, tour = fals
   if (await js("!!document.getElementById('update-ready')")) process.stderr.write(`update offer showing: ${file}\n`);
   // SCREENSHOTS_IF: keep only the shots where this selector matches (a wide tile among several, say).
   const only = process.env.SCREENSHOTS_IF;
-  if (only && !(await js(`!!document.querySelector(${JSON.stringify(only)})`))) return;
+  if (only && !(await call((selector) => !!document.querySelector(selector), only))) return;
   const { data } = await send("browsingContext.captureScreenshot", { context });
   fs.writeFileSync(file, Buffer.from(data, "base64"));
   if (full) await shootWhole(browser, file);
@@ -717,7 +717,7 @@ async function shoot(browser, url, ready, steps, file, full = false, tour = fals
  * slice's scroll offset), so a drawing or legend below the fold shows up in review.
  */
 async function shootWhole(browser, file) {
-  const { send, js, context } = browser;
+  const { send, js, call, context } = browser;
   const base = file.replace(/\.png$/, "");
   // The whole page only when it is taller than the screen: otherwise it is the shot itself.
   if (await js("document.documentElement.scrollHeight > innerHeight + 1")) {
@@ -731,18 +731,26 @@ async function shootWhole(browser, file) {
     `["aside.pane", "main.fmain", ".flight .cols", ".how main.read", ".how main.page", ".log .body", ".log main.list", ".log main.page", ".refs .body"].find((s) => { const e = document.querySelector(s); return e && e.clientHeight > 0 && (s === "aside.pane" || e.scrollHeight > e.clientHeight + 1); }) ?? null`,
   );
   if (!sel) return;
-  const q = JSON.stringify(sel);
-  const box = await js(
-    `(() => { const p = document.querySelector(${q}); const r = p.getBoundingClientRect(); return JSON.stringify({ x: r.x, y: r.y, w: r.width, h: r.height, scroll: p.scrollHeight, view: p.clientHeight, top: p.scrollTop }); })()`,
-  );
+  const box = await call((sel) => {
+    const p = document.querySelector(sel);
+    const r = p.getBoundingClientRect();
+    return JSON.stringify({ x: r.x, y: r.y, w: r.width, h: r.height, scroll: p.scrollHeight, view: p.clientHeight, top: p.scrollTop });
+  }, sel);
+  /** Scrolls the pane to `top`, and answers where it ended up. */
+  const scrollTo = (top) =>
+    call(({ sel, top }) => {
+      const p = document.querySelector(sel);
+      p.scrollTop = top;
+      return p.scrollTop;
+    }, { sel, top });
   const pane = JSON.parse(box);
   if (!pane.w || !pane.h) return;
   const offsets = [];
   for (let at = 0; ; at += pane.view) {
     const top = Math.min(at, pane.scroll - pane.view);
-    await js(`document.querySelector(${q}).scrollTop = ${top}; true`);
+    await scrollTo(top);
     await sleep(250);
-    const real = await js(`document.querySelector(${q}).scrollTop`);
+    const real = await scrollTo(top);
     const shot = await send("browsingContext.captureScreenshot", {
       context,
       clip: { type: "box", x: pane.x, y: pane.y, width: pane.w, height: pane.h },
@@ -752,7 +760,7 @@ async function shootWhole(browser, file) {
     if (top >= pane.scroll - pane.view) break;
   }
   fs.writeFileSync(`${base}-pane.json`, JSON.stringify({ offsets, height: pane.scroll, view: pane.view, what: sel }));
-  await js(`document.querySelector(${q}).scrollTop = ${pane.top}; true`);
+  await scrollTo(pane.top);
 }
 
 /**
@@ -934,7 +942,11 @@ async function main() {
                   if (target.reset) {
                     await visit(browser, target.url(hash), target.ready);
                     await browser.js(target.reset);
-                    if (seen) await browser.js(`for (const [k, v] of ${seen}) localStorage.setItem(k, v); true`);
+                    if (seen)
+                      await browser.call((entries) => {
+                        for (const [k, v] of entries) localStorage.setItem(k, v);
+                        return true;
+                      }, JSON.parse(seen));
                   }
                   // A design gallery page (with the theme in its query) instead of the app.
                   const at = page ? `http://localhost:${target.port}/${page.replace("{theme}", theme)}` : target.url(hash);

@@ -77,7 +77,26 @@ export async function startFirefox(profile, port, prefs = {}, size = null, extra
   return firefox;
 }
 
-/** A minimal WebDriver BiDi session: `send(method, params)`, `js(expression)`, `until(...)`. */
+/**
+ * A value as a WebDriver BiDi argument (its "local value" form): text, numbers, booleans, null,
+ * lists and plain objects, nested.
+ */
+export function bidiValue(v) {
+  if (v === null) return { type: "null" };
+  if (v === undefined) return { type: "undefined" };
+  if (typeof v === "string") return { type: "string", value: v };
+  if (typeof v === "boolean") return { type: "boolean", value: v };
+  if (typeof v === "number") return { type: "number", value: Number.isFinite(v) ? v : String(v) };
+  if (Array.isArray(v)) return { type: "array", value: v.map(bidiValue) };
+  if (typeof v === "object") return { type: "object", value: Object.entries(v).map(([k, x]) => [k, bidiValue(x)]) };
+  throw new Error(`a page argument can't be a ${typeof v}`);
+}
+
+/**
+ * A minimal WebDriver BiDi session: `send(method, params)`, `js(expression)` for a fixed script,
+ * `call(fn, arg)` for a function run in the page with its data as an argument (never spliced into
+ * code), `run(step)` for either, and `until(...)`.
+ */
 export async function session(port) {
   const ws = new WebSocket(`ws://127.0.0.1:${port}/session`);
   await new Promise((resolve, reject) => {
@@ -86,10 +105,15 @@ export async function session(port) {
   });
   let nextId = 1;
   const pending = new Map();
+  // A reply settles only a command this session sent and is still waiting on: its id must be one
+  // of those (a whole number this session gave out), and what it finds a function. Events and
+  // anything else are ignored.
   ws.onmessage = (message) => {
     const reply = JSON.parse(message.data);
-    pending.get(reply.id)?.(reply);
+    if (!Number.isSafeInteger(reply?.id) || !pending.has(reply.id)) return;
+    const settle = pending.get(reply.id);
     pending.delete(reply.id);
+    if (typeof settle === "function") settle(reply);
   };
   // Every command gives up after `ms`, so a stuck page fails the run instead of hanging it.
   const send = (method, params, ms = 30000) =>
@@ -113,12 +137,25 @@ export async function session(port) {
     if (r.type === "exception") throw new Error(r.exceptionDetails.text);
     return r.result.value;
   };
-  const until = async (expression, what, ms = 20000) => {
+  const call = async (fn, arg) => {
+    const r = await send("script.callFunction", {
+      functionDeclaration: String(fn),
+      arguments: arg === undefined ? [] : [bidiValue(arg)],
+      target: { context },
+      awaitPromise: true,
+      resultOwnership: "none",
+    });
+    if (r.type === "exception") throw new Error(r.exceptionDetails.text);
+    return r.result.value;
+  };
+  /** A scene step (scenes.mjs): a fixed script, or `{ fn, arg }`. */
+  const run = (step) => (typeof step === "string" ? js(step) : call(step.fn, step.arg));
+  const until = async (step, what, ms = 20000) => {
     for (let t = 0; t < ms; t += 250) {
-      if (await js(expression).catch(() => false)) return;
+      if (await run(step).catch(() => false)) return;
       await sleep(250);
     }
     throw new Error(`timed out waiting for ${what}`);
   };
-  return { send, js, until, context };
+  return { send, js, call, run, until, context };
 }

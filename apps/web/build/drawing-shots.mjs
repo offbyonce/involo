@@ -80,12 +80,19 @@ async function main() {
           ),
         );
         for (const cell of cells) {
-          await browser.js(`[...document.querySelectorAll('[data-cell], [data-region]')].find((e) => (e.dataset.cell ?? 'Where is this: ' + e.dataset.region) === ${JSON.stringify(cell.name)}).scrollIntoView({ block: 'center' }); true`);
+          // The cell by its name, passed to the page as data: scrolled to the middle, then its box.
+          await browser.call((name) => {
+            const cell = [...document.querySelectorAll("[data-cell], [data-region]")].find((e) => (e.dataset.cell ?? `Where is this: ${e.dataset.region}`) === name);
+            cell.scrollIntoView({ block: "center" });
+            return true;
+          }, cell.name);
           await sleep(150);
           const box = JSON.parse(
-            await browser.js(
-              `JSON.stringify((({ x, y, width, height }) => ({ x, y, width, height }))([...document.querySelectorAll('[data-cell], [data-region]')].find((e) => (e.dataset.cell ?? 'Where is this: ' + e.dataset.region) === ${JSON.stringify(cell.name)}).getBoundingClientRect()))`,
-            ),
+            await browser.call((name) => {
+              const cell = [...document.querySelectorAll("[data-cell], [data-region]")].find((e) => (e.dataset.cell ?? `Where is this: ${e.dataset.region}`) === name);
+              const { x, y, width, height } = cell.getBoundingClientRect();
+              return JSON.stringify({ x, y, width, height });
+            }, cell.name),
           );
           const name = cell.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
           await shotOf(browser, path.join(out, "cells", `${name}-${theme}.png`), box);
