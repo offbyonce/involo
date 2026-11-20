@@ -53,6 +53,9 @@ export const REVIEW_BOARDS = {
   // The flight log and References.
   "board-log": { desktop: "LogDesk", phone: "LogPhoneFlight" },
   "board-log-list": { phone: "LogPhone" },
+  // The Flight log by pack (#107): PacksLog is drawn at desktop width; the phone shots go beside it too.
+  "board-log-packs": { desktop: "PacksLog", phone: "PacksLog" },
+  "board-log-pack": { desktop: "PacksLog", phone: "PacksLog" },
   "board-refs": { desktop: "RefsDesk", phone: "RefsPhone" },
   // Several packs (Packs.dc.html).
   "board-packs-two": { desktop: "PacksDesktop", phone: "PacksPhone" },

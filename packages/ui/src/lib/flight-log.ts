@@ -103,12 +103,63 @@ const html = (s: string) =>
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] ?? c,
   );
 
+/** A pack in the log, for its filter chip: its id, its name, and how many of its flights and
+ * practice results the log holds. */
+export type LogPack = { id: string; name: string; count: number };
+
+/**
+ * The packs the log's flights and practice results were saved with (decision 0028), most entries
+ * first, then by name. A pack's name is its newest entry's (entries are newest first), else the
+ * installed pack's (`installed`, by id), else its id: practice results saved before log format 3
+ * didn't record the pack's name.
+ */
+export function logPacks(log: Log, installed: Readonly<Record<string, string>> = {}): LogPack[] {
+  const packs = new Map<string, { names: (string | null)[]; count: number }>();
+  const add = (id: string, name: string | null) => {
+    const p = packs.get(id) ?? { names: [], count: 0 };
+    p.names.push(name);
+    p.count += 1;
+    packs.set(id, p);
+  };
+  for (const f of log.flights) add(f.pack, f.packName || null);
+  for (const r of log.practice) add(r.pack, r.packName || null);
+  return [...packs]
+    .map(([id, p]) => ({ id, name: p.names.find((n) => n !== null) ?? installed[id] ?? id, count: p.count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+}
+
+/** The log with only `pack`'s flights and practice results; the whole log when `pack` is null. */
+export function logOf(log: Log, pack: string | null): Log {
+  if (pack === null) return log;
+  return {
+    ...log,
+    flights: log.flights.filter((f) => f.pack === pack),
+    practice: log.practice.filter((r) => r.pack === pack),
+  };
+}
+
+/**
+ * The pack an entry was saved with, as its row shows it: "iFly 737 MAX 8 · 0.1.0", or only the
+ * version while the log shows one pack (`onePack`), since the name would repeat on every row.
+ * What an older entry didn't record is left out; `name` is the pack's name from `logPacks`.
+ */
+export function packLine(version: string | null, name: string, onePack: boolean): string {
+  return [onePack ? null : name, version].filter(Boolean).join(" · ");
+}
+
 /**
  * Save copy: the log as one HTML file that opens anywhere, with no app and no network. Plain
  * tables, so it prints and reads well; step names come as the page shows them (`name`).
  */
-export function htmlCopy(log: Log, savedAt: number, name: (name: string, step: string) => string): string {
+export function htmlCopy(
+  log: Log,
+  savedAt: number,
+  name: (name: string, step: string) => string,
+  installed: Readonly<Record<string, string>> = {},
+  only: string | null = null,
+): string {
   const e = html;
+  const packName = new Map(logPacks(log, installed).map((p) => [p.id, p.name]));
   const flights = log.flights
     .map((f) => {
       const t = flightTime(f);
@@ -124,7 +175,7 @@ export function htmlCopy(log: Log, savedAt: number, name: (name: string, step: s
         .join("");
       return `<section>
 <h2>${e(ends(f).join(" → "))}</h2>
-<p>${e([dayLabel(flightDay(f)), f.aircraft, t === null ? "" : duration(t), f.finished ? "Finished" : "Not finished"].filter(Boolean).join(" · "))}</p>
+<p>${e([dayLabel(flightDay(f)), packLine(f.packVersion, packName.get(f.pack) ?? f.pack, false), t === null ? "" : duration(t), f.finished ? "Finished" : "Not finished"].filter(Boolean).join(" · "))}</p>
 <table><tr><th>Off blocks</th><th>On blocks</th><th>Flight plan</th><th>Steps</th></tr>
 <tr><td>${f.offBlocks === null ? "—" : clock(f.offBlocks)}</td><td>${f.onBlocks === null ? "—" : clock(f.onBlocks)}</td><td>${planLabel(f)}</td><td>${f.done} of ${f.total}</td></tr></table>
 ${stages ? `<p>Time in each stage: ${stages}</p>` : ""}
@@ -134,7 +185,10 @@ ${ticks ? `<details><summary>Every tick · ${f.ticks.length}</summary><table>${t
     })
     .join("\n");
   const practice = log.practice
-    .map((r) => `<tr><td>${dayLabel(r.at)}</td><td>${e(r.title)}</td><td>${score(r)}</td></tr>`)
+    .map(
+      (r) =>
+        `<tr><td>${dayLabel(r.at)}</td><td>${e(r.title)}</td><td>${e(packLine(r.packVersion, packName.get(r.pack) ?? r.pack, false))}</td><td>${score(r)}</td></tr>`,
+    )
     .join("");
   return `<!doctype html>
 <html lang="en">
@@ -146,7 +200,7 @@ ${ticks ? `<details><summary>Every tick · ${f.ticks.length}</summary><table>${t
 </head>
 <body>
 <h1>Flight log</h1>
-<p>Saved from Involo on ${dayLabel(savedAt)} at ${clock(savedAt)}. Earlier flights · ${log.flights.length}, newest first.</p>
+<p>Saved from Involo on ${dayLabel(savedAt)} at ${clock(savedAt)}.${only ? ` Flights and practice results with ${e(only)} only.` : ""} Earlier flights · ${log.flights.length}, newest first.</p>
 ${flights || "<p>No flights logged.</p>"}
 <h2>Practice results</h2>
 ${practice ? `<table>${practice}</table>` : "<p>No practice results.</p>"}

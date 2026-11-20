@@ -35,7 +35,7 @@ pub use flight::{AnswerSource, FLIGHT_FORMAT, Flight, new_flight};
 pub use log::{
     LOG_FORMAT, LOG_LIMIT, Log, LogChange, LogEdit, LoggedFlight, LoggedStep, LoggedTick,
     PlanSource, PracticeResult, StageTime, edit_log, load_log, log_csv, log_entry, log_packs,
-    new_log,
+    new_log, practice_result,
 };
 pub use names::{Glossaries, pack_glossaries, pack_names};
 pub use open_steps::{OpenStep, open_steps};

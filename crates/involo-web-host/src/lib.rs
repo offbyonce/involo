@@ -289,6 +289,27 @@ pub fn log_entry(pack: &str, flight: &str, settings: &str, plan: &str, at: &str)
     })())
 }
 
+/// A finished practice test as a log entry, with the pack it was taken in: `result` is the JSON
+/// `{ title, score, total, at }`.
+#[wasm_bindgen]
+pub fn practice_result(pack: &str, result: &str) -> String {
+    #[derive(serde::Deserialize)]
+    struct Finished {
+        title: String,
+        score: usize,
+        total: usize,
+        at: u64,
+    }
+    reply((|| {
+        let r: Finished = read("practice result", result)?;
+        with_pack(pack, |p| {
+            Ok(involo_app_core::practice_result(
+                p, &r.title, r.score, r.total, r.at,
+            ))
+        })
+    })())
+}
+
 /// Applies an edit to the log: add, delete, or merge a log file. `packs` is a JSON array of the
 /// installed packs' texts that `log_packs` named for a merged file.
 #[wasm_bindgen]
@@ -478,6 +499,17 @@ mod tests {
             ))["ok"]
                 .is_null()
         );
+        let result = json(&practice_result(
+            "example-trainer",
+            r#"{"title":"Memory items","score":3,"total":4,"at":9}"#,
+        ));
+        assert_eq!(result["ok"]["id"], "example-trainer@9");
+        assert_eq!(
+            result["ok"]["packVersion"],
+            pack.manifest.version.to_string()
+        );
+        assert_eq!(result["ok"]["packName"], pack.manifest.name);
+        assert_eq!(result["ok"]["aircraft"], "Example trainer");
         let flight = json(&new_flight("example-trainer"))["ok"].to_string();
         let action = r#"{"type":"tick","step":"example-trainer.before-start.battery","at":7}"#;
         let ticked = json(&apply("example-trainer", &flight, action))["ok"].clone();
