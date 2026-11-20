@@ -427,9 +427,22 @@ test("a rewrite aimed at something that does not exist is reported", () => {
 });
 
 test("3.0's sources and links do not carry over", () => {
-  const text = JSON.stringify(result().files);
-  assert.ok(!text.includes("example.com"));
-  assert.ok(!text.includes("Some site"));
+  const [[name, link]] = input().data.SOURCES;
+  const source = new URL(link);
+  // Every string in the pack's files, and every link in them, parsed: none is on the source's
+  // host, and none is there at all (packs carry no links, decision 0007).
+  const strings = [];
+  const walk = (v) => {
+    if (typeof v === "string") strings.push(v);
+    else if (v && typeof v === "object") for (const x of Object.values(v)) walk(x);
+  };
+  walk(result().files);
+  const links = strings
+    .flatMap((s) => s.match(/[a-z][a-z0-9+.-]*:\/\/[^\s"'<>]+/gi) ?? [])
+    .map((u) => new URL(u));
+  assert.ok(!links.some((u) => u.hostname === source.hostname));
+  assert.deepEqual(links.map(String), []);
+  assert.ok(!strings.some((s) => s.includes(name)));
 });
 
 test("counts compare the source with the pack", () => {
