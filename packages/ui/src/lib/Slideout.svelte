@@ -18,6 +18,7 @@ label-free outline, the step's controls as a list (each opens its card) and "Tur
 sideways to see the panel with its labels."; held sideways it shows the labeled panel.
 -->
 <script lang="ts">
+  import { getSeatView } from "./seat-view";
   import type { ItemTarget, Step } from "@involo/bindings";
   import { labelOf, lowerFirst, type Decisions } from "./decision";
   import type { PackIndex } from "../pack-index";
@@ -57,6 +58,8 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
     /** For a control a decision set: where its position came from, and Change (decision 0022). */
     decisions?: Decisions | undefined;
   } = $props();
+  /** The seat frame for this step, as Rust picked it (seat-view.ts). */
+  const seat = getSeatView();
   let dependent = $derived(decisions?.dependent(step) ?? null);
 
   // svelte-ignore state_referenced_locally
@@ -382,8 +385,8 @@ sideways to see the panel with its labels."; held sideways it shows the labeled 
           {#if index.overview?.views?.side}
             <ViewDrawing frame={index.overview.views.side} region={region?.name ?? null} kind="side" title="From the side: how high, how far" />
           {/if}
-          {#if index.seatFrame}
-            <ViewDrawing frame={index.seatFrame} region={region?.name ?? null} kind="seat" title="From the captain seat: which side" />
+          {#if seat.frame}
+            <ViewDrawing frame={seat.frame} region={region?.name ?? null} kind="seat" title={index.labels.seatViewTitle} />
           {/if}
           {#if zone}
             <figure class="area-map">

@@ -32,6 +32,7 @@ in Rust. The host saves progress and settings on the device.
     type SavedPlan,
     type Suggestion,
     type Settings,
+    type ViewFrame,
   } from "@involo/bindings";
   import { getHost, type InstalledPack, type Kept, type PackInstall, type SavedItem } from "./host";
   import PacksPage, { type PackRow, type PacksNotice } from "./pages/PacksPage.svelte";
@@ -78,6 +79,7 @@ in Rust. The host saves progress and settings on the device.
   import { download, fileDate, htmlCopy, logOf, logPacks } from "./lib/flight-log";
   import Tour from "./lib/Tour.svelte";
   import { tour } from "./lib/tour-state.svelte";
+  import { setSeatView } from "./lib/seat-view";
   import { flowAreas, howCountsOf } from "./lib/how-content";
   import { currentRoute, flightHref, phaseHref } from "./route.svelte";
   import { applyPalette, applyScale } from "./theme/tokens";
@@ -546,7 +548,7 @@ in Rust. The host saves progress and settings on the device.
     let stale = false;
     const s = settings;
     if (!s) return;
-    if (s.essentials) {
+    if (s.essentials && index?.hasEssentials) {
       safely(
         host.phaseModel(packId, f, { ...s, essentials: false }, id),
         (v) => {
@@ -609,6 +611,9 @@ in Rust. The host saves progress and settings on the device.
     return () => query.removeEventListener("change", change);
   });
   let current = $derived(view?.lists.find((l) => l.current)?.current ?? null);
+  /** Essentials only: chosen, and the pack marks quick steps; a pack with none shows in Full and
+   * offers no Essentials (Rust reads the setting the same way). */
+  let essentials = $derived(!!settings?.essentials && !!index?.hasEssentials);
   /** The step the context panel shows, its row, and the steps after it. */
   let pane = $derived.by(() => {
     if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck" || screen === "messages" || screen === "practice" || screen === "how" || screen === "log" || screen === "references") return null;
@@ -625,6 +630,37 @@ in Rust. The host saves progress and settings on the device.
     const list = view.lists.find((l) => l.steps.some((r) => r.id === row.id));
     const previous = at > 0 ? index.step(rows[at - 1]?.id ?? "") : undefined;
     return { step, row, upcoming, total: list?.steps.length ?? rows.length, previous };
+  });
+
+  /**
+   * "Where is this?" from the right seat (decision 0029): Rust picks the frame for the step on
+   * screen from its role and the pilot's seat, asked again when either changes. An answer for a
+   * step no longer on screen is dropped.
+   */
+  let seatFrame = $state<ViewFrame | null>(null);
+  setSeatView({
+    get frame() {
+      return seatFrame;
+    },
+  });
+  $effect(() => {
+    const id = packId;
+    const role = pane?.step.role ?? null;
+    const chosen = settings?.seat ?? null;
+    if (!id) return;
+    let live = true;
+    safely(
+      host.seatFrame(id, role, chosen),
+      (frame) => {
+        if (live) seatFrame = frame;
+      },
+      () => {
+        if (live) seatFrame = null;
+      },
+    );
+    return () => {
+      live = false;
+    };
   });
 
   /**
@@ -1557,7 +1593,7 @@ in Rust. The host saves progress and settings on the device.
   {:else if !rail || !settings || !flight || !index}
     <p class="msg">Loading…</p>
   {:else}
-    <PhaseChips phases={stagePhases} current={phaseId} {detail} essentials={settings.essentials} {total} {savedAt} {saveFailed} open={openShown.map((o) => o.phase)} />
+    <PhaseChips phases={stagePhases} current={phaseId} {detail} {essentials} {total} {savedAt} {saveFailed} open={openShown.map((o) => o.phase)} />
     <Drawer
       open={menuOpen}
       aircraft={index.name}
@@ -1569,7 +1605,8 @@ in Rust. The host saves progress and settings on the device.
       {total}
       view={view && (screen === "phase" || screen === "start") ? listView : null}
       {detail}
-      essentials={settings.essentials}
+      {essentials}
+      hasEssentials={index.hasEssentials}
       onView={changeView}
       onDetail={(d) => void changeSettings({ ...settings!, detail: d })}
       onEssentials={(on) => void changeSettings({ ...settings!, essentials: on })}
@@ -1610,7 +1647,7 @@ in Rust. The host saves progress and settings on the device.
             </div>
           {/if}
           {#if screen === "settings"}
-            <SettingsPage {settings} version={info?.version ?? null} onChange={(s) => void changeSettings(s)} />
+            <SettingsPage {settings} version={info?.version ?? null} seats={index?.seats ?? []} hasEssentials={index?.hasEssentials ?? true} onChange={(s) => void changeSettings(s)} />
           {:else if screen === "open"}
             <OpenStepsPage
               {index}
@@ -1656,8 +1693,8 @@ in Rust. The host saves progress and settings on the device.
                 onClear={(list) => void clearTicks(list)}
                 open={openShown}
                 onGo={goToStep}
-                onEssentials={toggleEssentials}
-                full={!settings.essentials}
+                onEssentials={index.hasEssentials ? toggleEssentials : undefined}
+                full={!essentials}
                 {fullView}
                 onOption={(option, value) => act({ type: "setOption", option, value })}
                 onValue={(field, value) => act({ type: "setValue", field, value })}

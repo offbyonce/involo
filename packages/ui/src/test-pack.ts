@@ -49,8 +49,14 @@ export function examplePack(): FlatPack {
   return example;
 }
 
-/** The app's own words (decision 0029), as Rust gives a pack without a labels file: the example
- * pack's, which has none. For packs a test builds by hand. */
+/** The app's own words (decision 0029), as Rust gives a pack without a labels file. For packs a
+ * test builds by hand. The example pack's labels file sets only its seats, crew roles and seat
+ * view title, so those go back to the app's defaults (no seats, no roles, the captain seat). */
 export function appLabels(): Labels {
-  return structuredClone(examplePack().content.labels);
+  return {
+    ...structuredClone(examplePack().content.labels),
+    seats: [],
+    roles: [],
+    seatViewTitle: "From the captain seat: which side",
+  };
 }

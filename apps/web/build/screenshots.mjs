@@ -514,6 +514,46 @@ const SHOTS = [
     only: ["desktop", "phone"],
     app: { hash: "#/phase/before-start", before: [...BOARD_STATE, ...addExample, click('button[aria-label="Menu"]'), click("#drawer .packline")] },
   },
+  // Crew roles and list methods (#133, Roles.dc.html): the example pack (invented) sets list methods,
+  // crew roles and a view for each of two seats; the iFly pack sets none. Its Before start is a
+  // challenge-and-response checklist, its Start a read-and-do procedure; the first step is done,
+  // as on the boards.
+  {
+    name: "board-roles",
+    full: true,
+    fresh: true,
+    only: ["desktop", "tablet-landscape", "tablet", "phone"],
+    app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...addExample, go("#/phase/before-start"), click('[data-step="example-trainer.before-start.battery"] .tick')] },
+  },
+  {
+    name: "board-roles-procedure",
+    full: true,
+    fresh: true,
+    only: ["desktop", "phone"],
+    app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...addExample, go("#/phase/start"), click('[data-step="example-trainer.start.walkaround"] .tick')] },
+  },
+  // Step by step with roles (no board; agreed as on the phone's board): the caller's tag before
+  // the name, the answerer's before the value.
+  {
+    name: "roles-step-by-step",
+    fresh: true,
+    only: ["desktop", "phone"],
+    app: {
+      hash: "#/phase/before-start",
+      before: [
+        ...TOUR_STATE,
+        ...addExample,
+        go("#/phase/before-start"),
+        click('[data-step="example-trainer.before-start.battery"] .tick'),
+        click('button[aria-label="Menu"]'),
+        `[...document.querySelectorAll("#drawer .seg.view button")].find((b) => b.textContent.trim() === "Step by step").click(); true`,
+        click("#drawer .close"),
+        `new Promise((d) => setTimeout(() => d(true), 400))`,
+      ],
+    },
+  },
+  // Settings › Your seat (SeatSetting): offered for the example pack's two seat views.
+  { name: "board-seat", full: true, fresh: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...addExample, go("#/settings")] } },
   { name: "board-packs-remove", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go("#/packs"), click('button[aria-label^="Remove "]')] } },
   { name: "board-packs-first", full: true, fresh: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: noPacks } },
   // A pack update during a flight (PacksUpdate): What's new on the Packs page, then the note

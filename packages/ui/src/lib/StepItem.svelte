@@ -23,6 +23,7 @@ row in place. A step that depends on the answer links back to it.
   import type { PackIndex } from "../pack-index";
   import BlankFields from "./BlankFields.svelte";
   import Icon from "./Icon.svelte";
+  import RoleTag from "./RoleTag.svelte";
   import { stepTitle } from "./names";
   import { fillParts } from "./value-parts";
   import { SOURCE_WORDS, choices, labelOf, lowerFirst, shortLabel, type Decisions } from "./decision";
@@ -37,6 +38,7 @@ row in place. A step that depends on the answer links back to it.
     marked,
     large = false,
     full = true,
+    pair = false,
     onTick,
     onSkip,
     onUnskip,
@@ -56,6 +58,9 @@ row in place. A step that depends on the answer links back to it.
     marked: boolean;
     large?: boolean;
     full?: boolean;
+    /** A challenge-and-response list (Roles board): who calls and who answers, each in a column
+     * of its own. */
+    pair?: boolean;
     onTick: () => void;
     onSkip: () => void;
     onUnskip: () => void;
@@ -86,6 +91,9 @@ row in place. A step that depends on the answer links back to it.
   let place = $derived(index.place(step));
   let title = $derived(stepTitle(index, step));
   let current = $derived(row.state === "current");
+  /** Who does the step, and in a challenge-and-response list who answers (decision 0029). */
+  let role = $derived(index.role(step.role));
+  let responder = $derived(pair ? index.role(step.respond) : undefined);
   let time = $derived(
     doneAt === undefined ? "" : new Date(doneAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
   );
@@ -113,7 +121,7 @@ row in place. A step that depends on the answer links back to it.
 
 <svelte:document onpointerdown={outside} onkeydown={key} />
 
-<li class="it {row.state}" data-step={row.id} class:sel={selected} class:marked class:large class:current class:changing={decision?.changing}>
+<li class="it {row.state}" data-step={row.id} class:pair class:sel={selected} class:marked class:large class:current class:changing={decision?.changing}>
   <button class="tick" type="button" aria-label={tickLabel} aria-pressed={row.state === "done"} aria-disabled={decision && decision.answer === null && row.state !== "done" ? "true" : undefined} onclick={tickOrAsk}>
     {#if current && asking && !decision?.changing}
       <!-- A decision step to answer: a diamond, not the circle (Decision.dc.html). -->
@@ -124,12 +132,14 @@ row in place. A step that depends on the answer links back to it.
       </span>
     {/if}
   </button>
+  {#if pair}<span class="calls">{#if role}<RoleTag {role} /><span class="sr-only">, calls</span>{/if}</span>{/if}
   <!-- The whole row selects the step (a stretched target over the row); the controls in it sit
        above that target. -->
   <div class="namecol">
     <button class="row" type="button" onclick={onSelect} aria-current={selected ? "true" : undefined}>
       <span class="name">
         <span class="nm">{title}</span>
+        {#if !pair && role}<RoleTag {role} />{/if}
         {#if full && row.essential && !large}<span class="ebadge" title="Essentials step" aria-hidden="true">E</span><span class="sr-only">, in Essentials</span>{/if}
         <span class="sr-only">, {STATE_WORDS[row.state]}</span>
         {#if row.state === "skipped"}<span class="pill" aria-hidden="true">Skipped</span>{/if}
@@ -144,6 +154,7 @@ row in place. A step that depends on the answer links back to it.
     </button>
     {#if row.state === "skipped"}<button class="do-now" type="button" onclick={onSelect}>Do it now</button>{/if}
   </div>
+  {#if pair}<span class="answers">{#if responder}<RoleTag role={responder} /><span class="sr-only">, answers</span>{/if}</span>{/if}
   <div class="value" class:asking class:answered={!!decision && decision.answer !== null && !asking} class:dep={!!dependent}>
     {#if decision && asking}
       <span class="val">{step.expect}</span>
@@ -869,6 +880,128 @@ row in place. A step that depends on the answer links back to it.
     }
     .suggest.under {
       display: block;
+    }
+  }
+  /* Challenge and response (Roles board): who calls and who answers, each in a 64 px column of
+     its own before the challenge and the response, so the tags line up down the list. */
+  .it.pair {
+    grid-template-columns:
+      calc(var(--size-touch-min) - var(--space-1)) calc(var(--space-8) * 2) minmax(0, 1fr)
+      calc(var(--space-8) * 2) 34% var(--size-touch-min);
+  }
+  .calls,
+  .answers {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+  /* On the current step, each tag sits level with the first line of its text. */
+  .it.pair.current .calls,
+  .it.pair.current .answers {
+    align-self: start;
+    min-height: calc(var(--font-size-panel-title) * var(--leading-tight));
+    padding-top: var(--space-2);
+  }
+  /* The current step's name is centered in its 44 px target under 8 px; its caller's tag too. */
+  .it.pair.current .calls {
+    min-height: var(--size-touch-min);
+  }
+  .it.pair .actions {
+    grid-column: 2 / 6;
+  }
+  @media (max-width: 1439px) {
+    /* The current step's value sits under its title, the answerer's tag under the caller's. */
+    .it.pair.current .tick {
+      grid-row: 1 / span 2;
+      grid-column: 1;
+    }
+    .it.pair.current .calls {
+      grid-row: 1;
+      grid-column: 2;
+    }
+    .it.pair.current .namecol {
+      grid-row: 1;
+      grid-column: 3 / 6;
+    }
+    .it.pair.current .answers {
+      grid-row: 2;
+      grid-column: 2;
+      min-height: 0;
+      padding-top: 0;
+    }
+    .it.pair.current .value {
+      grid-row: 2;
+      grid-column: 3 / 6;
+      padding-top: 0;
+    }
+    .it.pair.current .end {
+      grid-column: 6;
+    }
+    /* Level with the title, which keeps its 8 px above. */
+    .it.pair.current .calls {
+      min-height: calc((var(--font-size-body) + var(--border-thick)) * var(--leading-tight) + var(--space-2));
+      padding-top: var(--space-2);
+    }
+  }
+  @media (max-width: 899px) {
+    .it.pair {
+      grid-template-columns:
+        calc(var(--size-touch-min) - var(--space-1)) calc(var(--space-8) * 2) minmax(0, 1fr)
+        calc(var(--space-8) * 2) 34% auto;
+    }
+  }
+  /* Phone (Roles board): the caller's tag on the name line, the answerer's on the value line. */
+  @media (max-width: 599px) {
+    .it.pair {
+      grid-template-columns: var(--size-icon) auto minmax(0, 1fr) auto;
+    }
+    .it.pair .tick {
+      grid-row: 1;
+      grid-column: 1;
+    }
+    .it.pair .calls {
+      grid-row: 1;
+      grid-column: 2;
+    }
+    .it.pair .namecol {
+      grid-row: 1;
+      grid-column: 3;
+    }
+    .it.pair .end {
+      grid-row: 1;
+      grid-column: 4;
+    }
+    .it.pair .answers {
+      grid-row: 2;
+      grid-column: 2;
+    }
+    .it.pair .value {
+      grid-row: 2;
+      grid-column: 3;
+    }
+    .it.pair.skipped .answers {
+      display: none;
+    }
+    .it.pair.current {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+    .it.pair.current .calls {
+      grid-column: 1;
+    }
+    .it.pair.current .namecol {
+      grid-column: 2;
+    }
+    .it.pair.current .end {
+      grid-column: 3;
+    }
+    .it.pair.current .answers {
+      grid-column: 1;
+    }
+    .it.pair.current .value {
+      grid-column: 2;
+    }
+    .it.pair.current .value.asking {
+      grid-column: 2 / -1;
     }
   }
 </style>

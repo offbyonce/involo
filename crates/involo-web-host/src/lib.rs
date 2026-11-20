@@ -310,6 +310,22 @@ pub fn practice_result(pack: &str, result: &str) -> String {
     })())
 }
 
+/// The seat frame "Where is this?" draws for a step done by `role`, with the pilot's `chosen`
+/// seat (decision 0029); an empty string for either means none. Null when the pack draws no seat
+/// view.
+#[wasm_bindgen]
+pub fn seat_frame(pack: &str, role: &str, chosen: &str) -> String {
+    let some = |s: &str| Some(s.to_owned()).filter(|s| !s.is_empty());
+    let (role, chosen) = (some(role), some(chosen));
+    reply(with_pack(pack, |p| {
+        Ok(involo_app_core::seat_frame(
+            p,
+            role.as_deref(),
+            chosen.as_deref(),
+        ))
+    }))
+}
+
 /// Applies an edit to the log: add, delete, or merge a log file. `packs` is a JSON array of the
 /// installed packs' texts that `log_packs` named for a merged file.
 #[wasm_bindgen]
@@ -510,6 +526,16 @@ mod tests {
         );
         assert_eq!(result["ok"]["packName"], pack.manifest.name);
         assert_eq!(result["ok"]["aircraft"], "Example trainer");
+        let seat = |role: &str, chosen: &str| {
+            json(&seat_frame("example-trainer", role, chosen))["ok"]["labels"][0]["text"].clone()
+        };
+        assert_eq!(seat("fo", "left"), "FROM THE RIGHT SEAT");
+        assert_eq!(seat("pf", "right"), "FROM THE RIGHT SEAT");
+        assert_eq!(seat("", ""), "FROM THE LEFT SEAT");
+        assert_eq!(
+            json(&seat_frame("nope", "", ""))["error"]["kind"],
+            "PackInvalid"
+        );
         let flight = json(&new_flight("example-trainer"))["ok"].to_string();
         let action = r#"{"type":"tick","step":"example-trainer.before-start.battery","at":7}"#;
         let ticked = json(&apply("example-trainer", &flight, action))["ok"].clone();

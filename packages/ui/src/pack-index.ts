@@ -16,12 +16,12 @@ import type {
   Panel,
   PanelSection,
   PanelState,
+  RoleLabel,
   Step,
   UserOption,
-  ViewFrame,
   Zone,
 } from "@involo/bindings";
-import { seatFrame } from "./lib/seat-frame";
+import { kindOf, methodOf } from "./lib/list-words";
 
 export type PackIndex = {
   name: string;
@@ -36,8 +36,6 @@ export type PackIndex = {
   /** A step's place in flight order (the phases' lists in turn), for sorting. */
   order(stepId: string): number;
   overview: Overview | null;
-  /** The seat view "Where is this?" draws (see `seatFrame`). */
-  seatFrame: ViewFrame | null;
   options: UserOption[];
   /** The panel states the pack offers (a simulator's saved starting points). */
   panelStates: PanelState[];
@@ -94,6 +92,19 @@ export type PackIndex = {
   list(id: string): { title: string; steps: Step[] } | undefined;
   /** The id of the list a step is in. */
   listOf(stepId: string): string | undefined;
+  /** A list's kind in the pack's words ("Checklist"), by id. */
+  listKind(id: string): string | undefined;
+  /** How a list is used in the pack's words ("Challenge and response"), or null when it sets no
+   * method (decision 0029). */
+  listMethod(id: string): string | null;
+  /** A crew role by id (decision 0029); none when the pack's labels don't list it. */
+  role(id: string | null | undefined): RoleLabel | undefined;
+  /** Settings › Your seat: the seats the labels list, each named with the role that sits there
+   * ("Left seat · Captain"); none unless the pack draws a view for more than one seat. */
+  seats: { id: string; label: string }[];
+  /** Whether the pack marks any step for Essentials (`quick`); without one there is no Essentials
+   * to choose (#133). */
+  hasEssentials: boolean;
 };
 
 export type MapRegion = { region: OverviewRegion | null; areas: OverviewArea[] };
@@ -152,10 +163,12 @@ export function indexPack(pack: FlatPack): PackIndex {
   };
   const phaseOfList = new Map<string, string>();
   const phaseIdOfList = new Map<string, string>();
+  const groupOfList = new Map<string, string>();
   for (const phase of pack.content.phases?.phases ?? []) {
     for (const list of phase.lists) {
       phaseOfList.set(list, phase.title);
       phaseIdOfList.set(list, phase.id);
+      if (phase.group) groupOfList.set(list, phase.group);
     }
   }
   // Lists in flight order: each phase's lists in turn, then any list no phase holds.
@@ -216,7 +229,6 @@ export function indexPack(pack: FlatPack): PackIndex {
     controls: [...controls.values()],
     order: (stepId) => stepOrder.get(stepId) ?? Number.MAX_SAFE_INTEGER,
     overview: pack.content.controls?.overview ?? null,
-    seatFrame: seatFrame(pack.content.controls?.overview?.views?.seat, pack.content.labels),
     options: pack.content.phases?.options ?? [],
     panelStates: pack.content.panelStates?.states ?? [],
     startPage: pack.content.phases?.startPage ?? [],
@@ -233,6 +245,14 @@ export function indexPack(pack: FlatPack): PackIndex {
     messagesFor: (stepId) => messages.filter((m) => (m.steps ?? []).includes(stepId)),
     messagesCalling: (listId) => messages.filter((m) => m.list === listId),
     listOf: (stepId) => listOfStep.get(stepId),
+    listKind: (id) => {
+      const list = listsById.get(id);
+      return list ? kindOf(pack.content.labels, list, groupOfList.get(id)) : undefined;
+    },
+    listMethod: (id) => methodOf(pack.content.labels, listsById.get(id)?.method),
+    role: (id) => (id ? pack.content.labels.roles.find((r) => r.id === id) : undefined),
+    seats: seatChoices(pack),
+    hasEssentials: pack.lists.some((l) => l.steps.some((st) => st.quick)),
     list: (id) => {
       const l = pack.lists.find((x) => x.id === id);
       return l ? { title: l.title, steps: l.steps } : undefined;
@@ -254,4 +274,17 @@ export function indexPack(pack: FlatPack): PackIndex {
       return { region: null, areas: overview.areas.filter(sameArea) };
     },
   };
+}
+
+/** The seat setting's choices: every seat the labels list, when the pack draws more than one seat
+ * frame; each named with the first role that sits in it. */
+function seatChoices(pack: FlatPack): { id: string; label: string }[] {
+  const seat = pack.content.controls?.overview?.views?.seat;
+  if (!seat || typeof (seat as { width?: unknown }).width === "number" || Object.keys(seat).length < 2)
+    return [];
+  const { seats, roles } = pack.content.labels;
+  return seats.map((s) => {
+    const role = roles.find((r) => r.seat === s.id);
+    return { id: s.id, label: role ? `${s.title} · ${role.title}` : s.title };
+  });
 }

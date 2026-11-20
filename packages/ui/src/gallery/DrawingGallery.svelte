@@ -8,11 +8,10 @@ invented one-control panels made here (not pack content), and the pack's side an
 each region. `?theme=dark|light` picks the theme.
 -->
 <script lang="ts">
-  import type { FlatPack, ItemTarget, Panel, PanelItem } from "@involo/bindings";
+  import type { FlatPack, ItemTarget, Panel, PanelItem, ViewFrame } from "@involo/bindings";
   import PanelSchematic from "../lib/PanelSchematic.svelte";
   import { safely } from "../lib/safely";
   import { indexPack } from "../pack-index";
-  import { seatFrame } from "../lib/seat-frame";
   import ViewDrawing from "../lib/ViewDrawing.svelte";
   import { applyPalette } from "../theme/tokens";
 
@@ -250,7 +249,15 @@ each region. `?theme=dark|light` picks the theme.
 
   let regions = $derived(pack?.content.controls?.overview?.regions ?? []);
   let views = $derived(pack?.content.controls?.overview?.views ?? null);
-  let seat = $derived(seatFrame(views?.seat, pack?.content.labels));
+  /** Every seat frame the pack draws, each with the seat it is from: one, or one per seat. */
+  let seats = $derived.by(() => {
+    const seat = views?.seat;
+    if (!seat) return [];
+    if (typeof (seat as ViewFrame).width === "number") return [{ id: "", frame: seat as ViewFrame }];
+    return Object.entries(seat as Record<string, ViewFrame>).map(([id, frame]) => ({ id, frame }));
+  });
+  const seatTitle = (id: string) =>
+    pack?.content.labels.seats.find((s) => s.id === id)?.title ?? pack?.content.labels.seatViewTitle ?? "";
 </script>
 
 <main class="gallery" data-gallery-ready={pack ? "" : undefined}>
@@ -295,10 +302,10 @@ each region. `?theme=dark|light` picks the theme.
     <section class="kind" data-kind="Where is this?">
       <h2>Where is this? side and seat views (from the pack)</h2>
       {#each regions as region (region.name)}
-        {#if views.side?.places?.some((p) => p.region === region.name) || seat?.places?.some((p) => p.region === region.name)}
+        {#if views.side?.places?.some((p) => p.region === region.name) || seats.some((s) => s.frame.places?.some((p) => p.region === region.name))}
           <div class="row views" data-region={region.name}>
             {#if views.side}<ViewDrawing frame={views.side} region={region.name} kind="side" title="{region.name}: from the side" />{/if}
-            {#if seat}<ViewDrawing frame={seat} region={region.name} kind="seat" title="{region.name}: from the captain seat" />{/if}
+            {#each seats as s (s.id)}<ViewDrawing frame={s.frame} region={region.name} kind="seat" title="{region.name}: {seatTitle(s.id)}" />{/each}
           </div>
         {/if}
       {/each}

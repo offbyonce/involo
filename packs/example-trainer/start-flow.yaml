@@ -6,11 +6,13 @@
 id: start-flow
 title: Start flow
 kind: flow
+method: read_and_do
 basis: [prior-release]
 steps:
   - id: example-trainer.start.walkaround
     text: Nose area
     expect: CLEAR
+    role: capt
     walkaround: {x: 160, y: 40}
     look_for: Nothing blocking the intake.
     location: At the nose, left side.
@@ -18,6 +20,7 @@ steps:
   - id: example-trainer.start.computer
     text: Flight computer
     expect: SET
+    role: fo
     opens: example-setup
     hint:
       - {prefix: 'SQUAWK ', field: squawk}
@@ -27,6 +30,7 @@ steps:
   - id: example-trainer.start.speeds
     text: Takeoff speeds
     expect: V1 ___, VR ___, NOTE ___
+    role: pf
     fill: [v1, vr, manual]
 
   - id: example-trainer.start.warm-up
@@ -43,6 +47,7 @@ steps:
   - id: example-trainer.start.altitude
     text: Altitude knob
     expect: PULL
+    role: capt
     controls: [altitude-knob]
     targets:
       - {at: "autoflight/autoflight/#alt", set: PULL}
@@ -50,6 +55,7 @@ steps:
   - id: example-trainer.start.seat-belts
     text: Seat belts
     expect: "ON"
+    role: fo
     controls: [seat-belts]
     targets:
       - {at: "autoflight/cabin/#seat-belts", set: "ON"}

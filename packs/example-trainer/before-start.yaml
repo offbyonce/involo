@@ -6,12 +6,15 @@
 id: before-start
 title: Before start
 kind: checklist
+method: challenge_response
 basis: [invented-example]
 steps:
   - id: example-trainer.before-start.battery
     number: 1
     text: Battery switch
     expect: 'ON'
+    role: pm
+    respond: capt
     controls: [battery]
     targets:
       - at: "overhead/electrical/BATTERY/1"
@@ -29,6 +32,8 @@ steps:
     number: 2
     text: Beacon light
     expect: 'ON'
+    role: pm
+    respond: pf
     note: Turn on before engine start.
     simulator_model: true
     callout: Beacon on.
@@ -39,6 +44,8 @@ steps:
     section: Cabin
     text: Doors
     expect: CLOSED
+    role: pm
+    respond: fo
     show_if:
       any_of:
         - {option: power, one_of: [external, internal]}

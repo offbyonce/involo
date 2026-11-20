@@ -91,6 +91,7 @@ export type { Reply } from "./generated/Reply";
 export type { ResolvedParent } from "./generated/ResolvedParent";
 export type { RewordedStep } from "./generated/RewordedStep";
 export type { Rewording } from "./generated/Rewording";
+export type { RoleLabel } from "./generated/RoleLabel";
 export type { SavedPlan } from "./generated/SavedPlan";
 export type { SeatViews } from "./generated/SeatViews";
 export type { Settings } from "./generated/Settings";

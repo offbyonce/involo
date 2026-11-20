@@ -54,3 +54,30 @@ overview:
   areas:
     - {zone: overhead-electrical, x: 10, y: 20, width: 60, height: 30}
     - {zone: overhead-electrical, x: 80, y: 20, width: 60, height: 30, label: ELEC 2}
+  # Invented seat views: one frame per seat the labels list, told apart by their labels.
+  views:
+    seat:
+      left:
+        width: 200
+        height: 100
+        shapes:
+          - role: glass
+            closed: true
+            points: [[20, 20], [96, 18], [96, 56], [24, 58]]
+          - role: glass
+            closed: true
+            points: [[104, 18], [180, 20], [176, 58], [104, 56]]
+        labels:
+          - {text: FROM THE LEFT SEAT, x: 100, "y": 84}
+      right:
+        width: 200
+        height: 100
+        shapes:
+          - role: glass
+            closed: true
+            points: [[20, 20], [96, 18], [96, 56], [24, 58]]
+          - role: glass
+            closed: true
+            points: [[104, 18], [180, 20], [176, 58], [104, 56]]
+        labels:
+          - {text: FROM THE RIGHT SEAT, x: 100, "y": 84}

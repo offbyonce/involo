@@ -570,15 +570,20 @@ steps:
     }
 
     #[test]
-    fn a_pack_without_labels_carries_the_app_s_words() {
+    fn words_a_labels_file_leaves_out_are_the_app_s() {
+        // The example pack's labels file names only its seats, crew roles and seat view title.
         let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
         let pack = load_pack_dir(&dir).unwrap();
-        assert!(pack.manifest.labels.is_none());
-        assert_eq!(
-            pack.content.labels,
-            involo_checklist_core::Labels::complete(None, &pack.manifest.basis_tags)
-        );
-        assert_eq!(pack.content.labels.reference.title, "Emergency");
+        assert!(pack.manifest.labels.is_some());
+        let labels = &pack.content.labels;
+        assert_eq!(labels.seats.len(), 2);
+        assert_eq!(labels.roles.len(), 4);
+        let mut app = involo_checklist_core::Labels::complete(None, &pack.manifest.basis_tags);
+        app.seats.clone_from(&labels.seats);
+        app.roles.clone_from(&labels.roles);
+        app.seat_view_title.clone_from(&labels.seat_view_title);
+        assert_eq!(labels, &app);
+        assert_eq!(labels.reference.title, "Emergency");
     }
 
     #[test]

@@ -5,7 +5,8 @@
 // kind of source its pack basis tag stands for, never a citation, title, page or link. Everything
 // is counted from the pack.
 
-import type { BasisTagLabel, Checklist, FlatPack, Labels, Rail } from "@involo/bindings";
+import type { BasisTagLabel, Checklist, FlatPack, Rail } from "@involo/bindings";
+import { kindOf } from "./list-words";
 
 /** A basis tag's id, as a list names it. */
 export type Basis = string;
@@ -44,17 +45,6 @@ export type References = {
   /** The steps marked as following the simulator's model, in flight order. */
   simulatorModel: string[];
 };
-
-/** The list's kind as the page names it, in the pack's words (labels): procedure, checklist,
- * memory items, quick reference or non-normal procedure. A reference list's kind comes from its
- * phase's group (decision 0029). */
-function kindOf(labels: Labels, list: Checklist, group: string | null | undefined): string {
-  const k = labels.listKinds;
-  if (list.kind === "flow") return k.flow;
-  if (list.kind === "checklist") return k.checklist;
-  if (list.memory) return k.memory;
-  return group === "quick" ? k.quick : k.nonNormal;
-}
 
 /**
  * The page's contents, from the pack: lists in flight order, then the reference lists. A phase

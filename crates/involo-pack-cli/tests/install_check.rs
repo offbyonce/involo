@@ -12,7 +12,8 @@ mod tests {
     use involo_app_core::{PackCheck, check_pack};
     use involo_pack::{FlatPack, load_pack_dir};
 
-    /// A copy of the example pack with `edits` made, each `(file, from, to)`, and `added` files.
+    /// A copy of the example pack with `edits` made, each `(file, from, to)`, and `added` files
+    /// (one of the pack's own is replaced).
     fn broken(name: &str, edits: &[Edit], added: &[(&str, &str)]) -> PathBuf {
         let dir = std::env::temp_dir().join(format!("pack-install-{}-{name}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
@@ -95,12 +96,6 @@ mod tests {
         "overhead/electrical/BATT LOW/1",
         "overhead/electrical/NOPE/1",
     );
-    const WITH_LABELS: Edit = (
-        "pack.json",
-        r#""flight": "flight.yaml","#,
-        r#""flight": "flight.yaml", "labels": "labels.yaml","#,
-    );
-
     const CASES: &[Case] = &[
         Case {
             name: "icao",
@@ -153,14 +148,15 @@ mod tests {
             )],
             added: &[],
         },
+        // The example pack's labels file, replaced by a broken one.
         Case {
             name: "labels",
-            edits: &[WITH_LABELS],
+            edits: &[],
             added: &[("labels.yaml", LABELS)],
         },
         Case {
             name: "several",
-            edits: &[WITH_LABELS, ICAO, CONTROL, LIGHT],
+            edits: &[ICAO, CONTROL, LIGHT],
             added: &[("labels.yaml", LABELS)],
         },
     ];
