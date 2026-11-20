@@ -15,7 +15,7 @@ bottom bar, and "···" opens the export and import actions as a sheet.
 With flights or practice results from more than one pack, chips above This flight show every pack
 or one (PacksLog board, decision 0028): the lists, the counts and the exports follow them, This
 flight shows under every pack and its own, and each entry names its pack and version (only the
-version under a pack's chip).
+version under a pack's chip, or when the log holds one pack).
 -->
 <script lang="ts">
   import { safely } from "../lib/safely";
@@ -115,10 +115,13 @@ version under a pack's chip).
   /** This flight is the open pack's: it shows under every pack and under its own. */
   let showsThis = $derived(pack === null || pack === openPack);
   let packName = $derived(new Map(packs.map((p) => [p.id, p.name])));
+  /** Rows name the pack only while there are packs to tell apart: under All packs with more than
+   * one. Under a pack's chip, or with one pack (no chips), the version alone. */
+  let onePack = $derived(pack !== null || packs.length <= 1);
   /** An entry's pack and version, as its row shows it: the pack's name from the chips, else the
    * entry's own, else its id. */
   const packOf = (id: string, version: string | null, own: string | null) =>
-    packLine(version, packName.get(id) ?? (own || id), pack !== null);
+    packLine(version, packName.get(id) ?? (own || id), onePack);
   let chosen = $derived(packs.find((p) => p.id === pack) ?? null);
   /** This flight's every tick, or only its latest. */
   let allTicks = $state(false);

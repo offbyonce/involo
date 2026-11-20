@@ -181,20 +181,10 @@ describe("Flight log, desktop (LogDesk)", () => {
       [...r.querySelectorAll(".date, .rte, .sum, .st")].map((s) => s.textContent),
     );
     expect(rows).toEqual([
-      // Each flight names the pack and version it was flown with (decision 0028).
-      ["Sun 15 Nov", "KSFO → KSEA", "Test Jet · 0.1.0 · 2 h 05 min · 366 of 366 steps", "Finished"],
-      [
-        "Sat 14 Nov",
-        "KSEA → KSFO",
-        "Test Jet · 0.1.0 · 2 h 41 min · 359 of 366 steps · 2 skipped",
-        "Finished",
-      ],
-      [
-        "Thu 12 Nov",
-        "KPDX → KSEA",
-        "Test Jet · 0.1.0 · 48 min · 118 of 366 steps · 1 skipped",
-        "Not finished",
-      ],
+      // Each flight names the version it was flown with (decision 0028); with one pack, not the pack.
+      ["Sun 15 Nov", "KSFO → KSEA", "0.1.0 · 2 h 05 min · 366 of 366 steps", "Finished"],
+      ["Sat 14 Nov", "KSEA → KSFO", "0.1.0 · 2 h 41 min · 359 of 366 steps · 2 skipped", "Finished"],
+      ["Thu 12 Nov", "KPDX → KSEA", "0.1.0 · 48 min · 118 of 366 steps · 1 skipped", "Not finished"],
     ]);
     expect(container.querySelector(".row .st.fin")?.textContent).toBe("Finished");
     expect(container.querySelectorAll(".row .st:not(.fin)")).toHaveLength(1);
@@ -356,10 +346,10 @@ describe("Flight log, desktop (LogDesk)", () => {
   it("lists practice results newest first with their date and score", () => {
     const { container } = render(LogPage, base);
     expect([...container.querySelectorAll(".result")].map(words)).toEqual([
-      // Each result names its pack and version; one saved before log format 3 recorded neither,
-      // so it shows its pack's id, the only name it has.
-      "Sun 15 NovLights of the flight deckTest Jet · 0.1.0 17 of 20",
-      "Fri 13 NovMemory itemsdemo 9 of 10",
+      // Each result names its version; one saved before log format 3 recorded none, so it shows
+      // nothing more.
+      "Sun 15 NovLights of the flight deck0.1.0 17 of 20",
+      "Fri 13 NovMemory items 9 of 10",
     ]);
     expect(screen.getByRole("link", { name: "Practice ›" }).getAttribute("href")).toBe("#/practice");
   });
@@ -444,6 +434,38 @@ describe("Flight log by pack (PacksLog, decision 0028)", () => {
     );
   });
 
+  it("with one pack (no chips): the version alone, and no pack name in practice result dates", () => {
+    const one = [{ id: "demo", name: "Test Jet", count: 5 }];
+    const { container } = render(LogPage, { ...base, packs: one, openPack: "demo" });
+    expect(container.querySelector(".chips")).toBeNull();
+    expect(words(container.querySelector(".row .sum"))).toBe("0.1.0 · 2 h 05 min · 366 of 366 steps");
+    expect([...container.querySelectorAll(".result")].map(words)).toEqual([
+      "Sun 15 NovLights of the flight deck0.1.0 17 of 20",
+      "Fri 13 NovMemory items 9 of 10",
+    ]);
+    expect(container.querySelector(".main")?.textContent).not.toContain("Test Jet");
+    // The opened flight's heading still names the aircraft, as LogDesk draws it.
+    cleanup();
+    const opened = render(LogPage, { ...base, packs: one, openPack: "demo", entry: "f2" });
+    const d = opened.container.querySelector(".detail") as HTMLElement;
+    expect(within(d).getByText("Sat 14 Nov · Test Jet · 0.1.0 · 2 h 41 min")).toBeTruthy();
+  });
+
+  it("on a phone with one pack: the version alone, in the rows and the practice result dates", () => {
+    phone();
+    const one = [{ id: "demo", name: "Test Jet", count: 5 }];
+    const { container } = render(LogPage, { ...base, packs: one, openPack: "demo" });
+    expect(container.querySelector(".pchips")).toBeNull();
+    expect(words(container.querySelectorAll(".prow .ps")[2])).toBe(
+      "0.1.0 · Sat 14 Nov · 2 h 41 min · 359 of 366 steps · 2 skipped",
+    );
+    expect([...container.querySelectorAll(".pad .result .rd")].map(words)).toEqual([
+      "Sun 15 Nov · 0.1.0",
+      "Fri 13 Nov",
+    ]);
+    expect(container.querySelector(".list")?.textContent).not.toContain("Test Jet");
+  });
+
   it("under the open pack's chip: This flight too", () => {
     const { container } = render(LogPage, { ...base, log: two, packs, pack: "demo", openPack: "demo" });
     expect(container.querySelector(".this")).toBeTruthy();
@@ -477,13 +499,13 @@ describe("Flight log, phone (LogPhone, LogPhoneFlight)", () => {
     expect(rows[0]?.getAttribute("href")).toBe("#/log/current");
     expect(words(rows[0])).toBe("This flightKSEA → KSFO41 of 366 steps · started 09:48");
     expect(words(rows[2])).toBe(
-      "KSEA → KSFOFinishedTest Jet · 0.1.0 · Sat 14 Nov · 2 h 41 min · 359 of 366 steps · 2 skipped",
+      "KSEA → KSFOFinished0.1.0 · Sat 14 Nov · 2 h 41 min · 359 of 366 steps · 2 skipped",
     );
     expect(rows[2]?.getAttribute("href")).toBe("#/log/f2");
     expect(container.querySelector(".plabel")?.textContent).toBe("Earlier flights · 3");
     expect([...container.querySelectorAll(".pad .result")].map(words)).toEqual([
-      "Lights of the flight deckSun 15 Nov · Test Jet · 0.1.0 17 of 20",
-      "Memory itemsFri 13 Nov · demo 9 of 10",
+      "Lights of the flight deckSun 15 Nov · 0.1.0 17 of 20",
+      "Memory itemsFri 13 Nov 9 of 10",
     ]);
     expect(screen.getByRole("button", { name: "Log flight and start new" })).toBeTruthy();
   });
