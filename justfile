@@ -117,11 +117,14 @@ e2e *args: site test-packs
 # target/fuzz-corpus. An input that crashes, hangs or runs out of memory is saved in
 # target/fuzz-artifacts/<target>/. Needs a nightly compiler and cargo-fuzz:
 # `rustup toolchain install nightly --profile minimal` and `cargo +nightly install cargo-fuzz`.
-# Not part of `just ci`.
+# Not part of `just ci`. The targets build for this machine's own target (rustc's host tuple):
+# cargo-fuzz otherwise builds for the target it was itself built for, and a prebuilt cargo-fuzz
+# (what CI installs) is built for musl, which the minimal nightly has no standard library for
+# and the sanitizer can't link.
 fuzz target seconds="300": test-packs
     node fuzz/seeds.mjs
     mkdir -p target/fuzz-artifacts/{{target}}
-    cd fuzz && cargo +nightly fuzz run {{target}} ../target/fuzz-corpus/{{target}} -- -max_total_time={{seconds}} -max_len=1048576 -timeout=10 -rss_limit_mb=1536 -artifact_prefix=../target/fuzz-artifacts/{{target}}/
+    cd fuzz && cargo +nightly fuzz run --target {{ `rustc +nightly --print host-tuple` }} {{target}} ../target/fuzz-corpus/{{target}} -- -max_total_time={{seconds}} -max_len=1048576 -timeout=10 -rss_limit_mb=1536 -artifact_prefix=../target/fuzz-artifacts/{{target}}/
 
 # Review shots of the named screens (phone, both tablets, 1440 and 2560 unless a screen names its
 # sizes; dark and light), each beside its approved board, into a folder outside the repo: for the
