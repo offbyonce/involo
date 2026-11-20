@@ -2035,7 +2035,9 @@ describe("the Flight log (decision 0026)", () => {
     expect(screen.queryByText("Flight complete. Log it and start new?")).toBeNull();
   });
 
-  it("saves a finished practice test in the log as practiceResult builds it, with the open pack (#107)", async () => {
+  it("saves a finished practice test in the log as practiceResult builds it, with the open pack (#107)", {
+    timeout: 15_000,
+  }, async () => {
     const asked: [string, unknown][] = [];
     const saved: { practice: PracticeResult[] }[] = [];
     window.location.hash = "#/practice";
@@ -2059,13 +2061,18 @@ describe("the Flight log (decision 0026)", () => {
       },
     });
     render(App, { context: hostContext(h) });
-    // Check ride: every topic, so the demo pack has questions for it.
-    await fireEvent.click(await screen.findByRole("button", { name: /^Check ride/ }));
-    await fireEvent.click((await screen.findAllByRole("radio"))[0] as HTMLElement);
+    // Lights of the flight deck deals only choice questions, whichever it draws. Check ride's
+    // random deal could start with a step order question, which has no answers to choose.
+    // Each wait has room for a busy machine (1 s by default); the test's own limit still ends it.
+    const slow = { timeout: 5_000 };
+    await fireEvent.click(await screen.findByRole("button", { name: /^Lights of the flight deck/ }, slow));
+    // The first question is on screen once its answers are.
+    const answers = await screen.findByRole("radiogroup", { name: "Answers" }, slow);
+    await fireEvent.click(within(answers).getAllByRole("radio")[0] as HTMLElement);
     await fireEvent.click(screen.getByRole("button", { name: "End test" }));
     // The interface hands Rust the finished test and the open pack; what it saves is what
     // practiceResult made, with the pack's version, its name and the aircraft.
-    await waitFor(() => expect(saved).toHaveLength(1));
+    await waitFor(() => expect(saved).toHaveLength(1), slow);
     expect(asked).toHaveLength(1);
     const [pack, finished] = asked[0] as [
       string,
