@@ -117,6 +117,7 @@ just test-packs     # the catalog tests and the dev server read, with the exampl
 just update-test  # service worker update test in headless Firefox (local; needs Firefox)
 just e2e       # end-to-end flows with layout and accessibility checks (Chromium, WebKit)
 just review-shots <dir> <screen>...  # review shots of named screens beside their boards
+just fuzz <target> [seconds]  # fuzz a pack loader target (nightly and cargo-fuzz; not in just ci)
 just ci        # everything; must pass before a push
 just overlap   # compare packs with local reference files
 ```

@@ -110,6 +110,17 @@ practice-diff base="main":
 e2e *args: site test-packs
     pnpm --filter @involo/web e2e {{args}}
 
+# Fuzz one pack loader target for a time in seconds (pack_file, pack_edits, data_file,
+# pack_folder; see fuzz/fuzz_targets), starting from a seed corpus of the packs and fixtures in
+# target/fuzz-corpus. An input that crashes, hangs or runs out of memory is saved in
+# target/fuzz-artifacts/<target>/. Needs a nightly compiler and cargo-fuzz:
+# `rustup toolchain install nightly --profile minimal` and `cargo +nightly install cargo-fuzz`.
+# Not part of `just ci`.
+fuzz target seconds="300": test-packs
+    node fuzz/seeds.mjs
+    mkdir -p target/fuzz-artifacts/{{target}}
+    cd fuzz && cargo +nightly fuzz run {{target}} ../target/fuzz-corpus/{{target}} -- -max_total_time={{seconds}} -max_len=1048576 -timeout=10 -rss_limit_mb=1536 -artifact_prefix=../target/fuzz-artifacts/{{target}}/
+
 # Review shots of the named screens (phone, both tablets, 1440 and 2560 unless a screen names its
 # sizes; dark and light), each beside its approved board, into a folder outside the repo: for the
 # screens a pull request adds or changes. The names are in SHOTS in apps/web/build/screenshots.mjs.
