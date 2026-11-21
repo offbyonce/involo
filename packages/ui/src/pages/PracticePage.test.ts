@@ -313,4 +313,12 @@ describe("PracticePage", () => {
     expect(screen.getByText("Memory items · 10 questions")).toBeTruthy();
     expect(screen.getByRole("button", { name: "End" })).toBeTruthy();
   });
+
+  it("phone: the header's title is the page's heading, at home and in a test (#198)", async () => {
+    width(390);
+    render(PracticePage, base);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Practice");
+    await fireEvent.click(screen.getByRole("button", { name: /every item, in order/ }));
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Practice");
+  });
 });

@@ -295,7 +295,7 @@ the latest; a test's questions and answers last only for this visit.
   {:else}
     <header class="top phone">
       <a class="icon" href={backHref} aria-label="Back to checklist"><Icon name="chevron-left" /></a>
-      <div class="ttl"><span class="h1" tabindex="-1" data-top>{title}</span><span>{line}</span></div>
+      <div class="ttl"><h1 class="h1" tabindex="-1" data-top>{title}</h1><span>{line}</span></div>
       {#if end}<button class="end" type="button" onclick={finish}>End</button>{/if}
     </header>
   {/if}

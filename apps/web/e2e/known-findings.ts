@@ -20,7 +20,6 @@ export type KnownFinding = {
   issue: string;
 };
 
-const ALL = ["Example Twin", "Example Sidestick Twin", "Example Twin LR"];
 const TWINS = ["Example Twin", "Example Twin LR"];
 
 export const KNOWN_FINDINGS: KnownFinding[] = [
@@ -30,13 +29,6 @@ export const KNOWN_FINDINGS: KnownFinding[] = [
     finding:
       /^label-content-name-mismatch \(serious\): .* at \.on \(<g role="button" tabindex="0" class="box /,
     packs: TWINS,
-    issue: "#198",
-  },
-  {
-    screen: "Practice",
-    check: "shown",
-    finding: /^getByRole\('heading', \{ level: 1 \}\)\.first\(\) doesn't show$/,
-    packs: ALL,
     issue: "#198",
   },
   {
