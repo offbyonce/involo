@@ -278,6 +278,33 @@ after shots in its pull request.
 The lists, roles and values on these boards are invented examples; the app builds everything from
 the pack.
 
+**Back up and restore (2026-11-20).** `Backup.dc.html` draws #47's backup file and restore, dark
+and light: `BackupSetting` and `BackupSettingPhone` (Settings › Back up and restore),
+`RestoreReview` and `RestorePhone` (what a restore will change, before it changes anything) and
+`RestoreRefused` (a file that can't be restored). The build may improve on these boards but never
+be worse; each difference from a board is listed in its pull request.
+
+- **One file** holds every pack's flight and plan, the settings and the flight log.
+- **Settings card** after Your seat (after Panel preview when there is no seat card). "Save a
+  backup file" writes the file at once; "Restore from a file…" opens the file picker, then the
+  review. "Last backup: <date> at <time>", or "Last backup: never", is the only new setting. On a
+  phone the two buttons stack, full width.
+- **The review** changes nothing until Restore; Cancel and Esc change nothing. Under the title: when
+  the backup was saved and by which Involo version. One ticked row per pack's flight, saying where
+  it was (phase › stage, ticks done of total, as on the Packs page) and what it replaces here, or
+  that nothing is replaced. A flight from another pack version goes through the same reconcile as
+  loading, and the update note shows after the restore. A pack that isn't installed is marked Not
+  installed and its flight is kept until the pack is added; a catalog pack also offers Download.
+  "Also in the file": Settings (replaces this device's) and the Flight log (merges as Load log
+  file does: adds, never removes). Unticked rows stay as they are; with every row unticked,
+  Restore is disabled. On a phone it is the Remove dialog's phone form.
+- **Refusals:** one dialog, "This backup can't be restored", with Close and "Nothing on this device
+  was changed.", after one of three first lines: a newer version of Involo, not a backup or
+  damaged, or a flight log file.
+
+The same canvas sets the light theme's done green to `#1a7a4b` on every board, as `tokens.json`
+has it, and SeatSetting's description to "Panel views show what you see from this seat.".
+
 ## Read in this order
 
 1. `rules.md`: what the tokens mean and the rules every screen follows.
