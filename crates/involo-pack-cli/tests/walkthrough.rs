@@ -30,8 +30,10 @@ mod tests {
             .collect()
     }
 
-    /// Asserts the page shows `output` as one of its blocks.
+    /// Asserts the page shows `output` as one of its blocks. The page shows paths with `/`, as
+    /// macOS and Linux print them; Windows prints its own separator, which the page notes.
     fn shown(page: &str, output: &str, what: &str) {
+        let output = output.replace(std::path::MAIN_SEPARATOR, "/");
         let block = format!("```\n{output}```");
         assert!(
             page.contains(&block),
@@ -63,7 +65,7 @@ mod tests {
             "first `check`",
         );
 
-        let list = dir.join("my-twin/lists/before-start.yaml");
+        let list = dir.join("my-twin").join("lists").join("before-start.yaml");
         let text = std::fs::read_to_string(&list).unwrap();
         std::fs::write(&list, format!("{}\n{step}", text.trim_end())).unwrap();
         let failing = run(&dir, &["check", "my-twin"]);
@@ -90,10 +92,10 @@ mod tests {
             ),
         )
         .unwrap();
-        let aliases = dir.join("my-twin/aliases.yaml");
+        let aliases = dir.join("my-twin").join("aliases.yaml");
         let text = std::fs::read_to_string(&aliases).unwrap();
         std::fs::write(&aliases, format!("{}\n{alias}", text.trim_end())).unwrap();
-        let manifest = dir.join("my-twin/pack.json");
+        let manifest = dir.join("my-twin").join("pack.json");
         let text = std::fs::read_to_string(&manifest).unwrap();
         std::fs::write(
             &manifest,
@@ -107,10 +109,7 @@ mod tests {
             stdout(&updated)
         );
         assert!(run(&dir, &["build", "my-twin", "dist"]).status.success());
-        assert!(
-            dir.join("my-twin/../dist/my-twin-0.2.0.involo-pack")
-                .is_file()
-        );
+        assert!(dir.join("dist").join("my-twin-0.2.0.involo-pack").is_file());
         let _ = std::fs::remove_dir_all(dir);
     }
 }

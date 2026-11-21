@@ -146,7 +146,8 @@ built dist/my-twin-0.1.0.involo-pack (19091 bytes)
 wrote dist/index.json (1 packs)
 ```
 
-`dist/my-twin-0.1.0.involo-pack` is the whole pack in one file.
+`dist/my-twin-0.1.0.involo-pack` is the whole pack in one file. (On Windows, the command prints
+paths with `\`: `dist\my-twin-0.1.0.involo-pack`.)
 
 ## 6. Install it
 
