@@ -391,10 +391,10 @@ mod tests {
     use crate::flight::new_flight;
     use crate::test_support::example_pack;
 
-    const BATTERY: &str = "example-trainer.before-start.battery";
-    const BEACON: &str = "example-trainer.before-start.beacon";
-    const DOORS: &str = "example-trainer.before-start.doors";
-    const MAIN_POWER: &str = "example-trainer.before-start.main-power";
+    const BATTERY: &str = "example-twin.before-start.battery";
+    const BEACON: &str = "example-twin.before-start.beacon";
+    const DOORS: &str = "example-twin.before-start.doors";
+    const MAIN_POWER: &str = "example-twin.before-start.main-power";
 
     fn id(s: &str) -> StepId {
         StepId::new(s)
@@ -417,7 +417,7 @@ mod tests {
         beacon.expect = "ON, CHECK".into();
         beacon.check = Some("Beacon flashing".into());
         let mut added = list.steps[0].clone();
-        added.id = id("example-trainer.before-start.seat-belts");
+        added.id = id("example-twin.before-start.seat-belts");
         added.text = "Seat belt sign".into();
         list.steps.push(added);
         let aliases = p
@@ -462,7 +462,7 @@ mod tests {
         // The renamed step is the same step, through its alias: not added, not removed.
         assert_eq!(
             ids(&changes.added),
-            ["example-trainer.before-start.seat-belts"]
+            ["example-twin.before-start.seat-belts"]
         );
         assert_eq!(ids(&changes.removed), [DOORS]);
         assert_eq!(changes.added[0].title, "Seat belt sign");

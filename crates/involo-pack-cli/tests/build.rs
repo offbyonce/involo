@@ -41,14 +41,18 @@ mod tests {
     #[test]
     fn writes_the_catalog_with_each_file_s_size_and_sha256() {
         let out = temp_dir("ok");
-        let packs = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs");
+        // The example packs' folder: three packs, one of them built over another beside it.
+        let packs = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/examples");
         let output = build(&packs, &out);
         assert!(output.status.success(), "{output:?}");
         let index: Vec<CatalogEntry> =
             serde_json::from_str(&std::fs::read_to_string(out.join("index.json")).unwrap())
                 .unwrap();
         let ids: Vec<&str> = index.iter().map(|p| p.id.as_str()).collect();
-        assert_eq!(ids, ["example-trainer", "ifly-737-max8"]);
+        assert_eq!(
+            ids,
+            ["example-sidestick", "example-twin", "example-twin-lr"]
+        );
         let mut files = Vec::new();
         for entry in &index {
             let file = format!("{}-{}.involo-pack", entry.id, entry.version);
@@ -84,10 +88,10 @@ mod tests {
         let packs = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs");
         // A pack file from an earlier build, of a version no longer published.
         std::fs::create_dir_all(&out).unwrap();
-        std::fs::write(out.join("example-trainer-0.0.9.involo-pack"), "{}").unwrap();
+        std::fs::write(out.join("example-twin-0.0.9.involo-pack"), "{}").unwrap();
         let output = build_with(&[
             packs.join("ifly-737-max8").as_os_str(),
-            packs.join("example-trainer").as_os_str(),
+            packs.join("examples/example-twin").as_os_str(),
             out.as_os_str(),
         ]);
         assert!(output.status.success(), "{output:?}");
@@ -95,11 +99,11 @@ mod tests {
             serde_json::from_str(&std::fs::read_to_string(out.join("index.json")).unwrap())
                 .unwrap();
         let ids: Vec<&str> = index.iter().map(|p| p.id.as_str()).collect();
-        assert_eq!(ids, ["ifly-737-max8", "example-trainer"]);
+        assert_eq!(ids, ["ifly-737-max8", "example-twin"]);
         assert_eq!(
             pack_files(&out),
             [
-                "example-trainer-0.1.0.involo-pack",
+                "example-twin-0.1.0.involo-pack",
                 "ifly-737-max8-0.1.0.involo-pack"
             ],
             "the earlier build's file is gone"
@@ -139,34 +143,45 @@ mod tests {
             .unwrap()
     }
 
-    fn fixtures() -> PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../involo-pack/tests/fixtures/extend")
+    fn examples() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/examples")
     }
 
     #[test]
     fn a_child_builds_over_its_parent_and_records_its_version_and_content_hash() {
         let out = temp_dir("child");
-        let packs = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs");
+        let parents = temp_dir("child-parents");
+        // The variant on its own, its parent found through --parents.
+        let child = parents.join("lone").join("example-twin-lr");
+        std::fs::create_dir_all(&child).unwrap();
+        for name in ["pack.json", "patches.yaml"] {
+            std::fs::copy(
+                examples().join("example-twin-lr").join(name),
+                child.join(name),
+            )
+            .unwrap();
+        }
         let output = build_with(&[
-            fixtures().as_os_str(),
+            child.as_os_str(),
             out.as_os_str(),
             "--parents".as_ref(),
-            packs.as_os_str(),
+            examples().as_os_str(),
         ]);
         assert!(output.status.success(), "{output:?}");
         let flat: FlatPack = serde_json::from_str(
-            &std::fs::read_to_string(out.join("example-variant-0.1.0.involo-pack")).unwrap(),
+            &std::fs::read_to_string(out.join("example-twin-lr-0.1.0.involo-pack")).unwrap(),
         )
         .unwrap();
-        assert_eq!(flat.manifest.resolved[0].id, "example-trainer");
+        assert_eq!(flat.manifest.resolved[0].id, "example-twin");
         assert_eq!(flat.manifest.resolved[0].version.to_string(), "0.1.0");
         assert_eq!(
             flat.manifest.content_hash.as_deref(),
             Some(involo_pack::resolve::content_hash(&flat.lists, &flat.content).as_str())
         );
         // The parent is only read, never written beside its child.
-        assert_eq!(pack_files(&out), ["example-variant-0.1.0.involo-pack"]);
+        assert_eq!(pack_files(&out), ["example-twin-lr-0.1.0.involo-pack"]);
         std::fs::remove_dir_all(out).unwrap();
+        std::fs::remove_dir_all(parents).unwrap();
     }
 
     #[test]
@@ -206,7 +221,7 @@ mod tests {
         std::fs::write(
             pack.join("pack.json"),
             r#"{"id":"child","name":"Child","version":"0.1.0","schemaVersion":6,"kind":"aircraft",
-               "engine":">=0.1.0","extends":{"example-trainer":">=0.1"},"patches":"patches.yaml",
+               "engine":">=0.1.0","extends":{"example-twin":">=0.1"},"patches":"patches.yaml",
                "license":"CC-BY-NC-SA-4.0","checklists":[]}"#,
         )
         .unwrap();
@@ -216,7 +231,7 @@ mod tests {
         )
         .unwrap();
         let out = dir.join("out");
-        let packs = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs");
+        let packs = examples();
         let output = build_with(&[
             pack.as_os_str(),
             out.as_os_str(),

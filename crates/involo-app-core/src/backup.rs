@@ -364,13 +364,41 @@ mod tests {
 
     #[test]
     fn the_first_format_is_frozen() {
-        // Frozen: a format 1 backup as the app saves it. Reading it gives the same parts, and
-        // saving those again writes the same JSON.
+        // Frozen: a format 1 backup as the app saved it, for the example pack of the time
+        // (example-trainer, since replaced by packs/examples; the file is data and needs no
+        // pack). It reads with what it held, and saving its parts again writes the same JSON.
         let backup = ready(FROZEN);
-        let parts = parts();
-        assert_eq!(backup.flights, parts.flights);
-        assert_eq!(backup.settings, parts.settings);
-        assert_eq!(backup.log, parts.log);
+        let flight = &backup.flights[0];
+        assert_eq!(
+            (
+                flight.pack.as_str(),
+                flight.flight.pack.as_str(),
+                flight.version.as_str()
+            ),
+            ("example-trainer", "example-trainer", "0.1.0")
+        );
+        assert_eq!(flight.source, PackSource::File);
+        assert_eq!(
+            flight.place.as_ref().map(|p| (p.done, p.total)),
+            Some((1, 10))
+        );
+        assert_eq!(
+            flight.plan.as_ref().map(|p| p.loaded_at),
+            Some(1_763_390_000_000)
+        );
+        assert_eq!(
+            (
+                backup.settings.theme,
+                backup.settings.seat.as_deref(),
+                backup.settings.last_backup
+            ),
+            (crate::Theme::Light, Some("right"), Some(1_763_000_000_000))
+        );
+        assert_eq!(backup.log.format, LOG_FORMAT);
+        assert_eq!(
+            (backup.log.flights.len(), backup.log.practice.len()),
+            (3, 2)
+        );
         let again = BackupParts {
             saved_at: backup.saved_at,
             flights: backup.flights,

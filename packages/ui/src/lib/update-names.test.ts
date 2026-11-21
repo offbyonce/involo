@@ -13,8 +13,10 @@ import { indexPack } from "../pack-index";
 import { packAsReceived, testPackText } from "../test-pack";
 import { stepTitle } from "./names";
 
-/** Every pack in the repo's packs/ folder, by id (its folder's name). */
-const PACKS = Object.keys(import.meta.glob("../../../../packs/*/pack.json"))
+/** Every pack in the repo's packs/ folder and its examples, by id (its folder's name). */
+const PACKS = Object.keys(
+  import.meta.glob(["../../../../packs/*/pack.json", "../../../../packs/examples/*/pack.json"]),
+)
   .map((path) => path.split("/").at(-2) ?? "")
   .sort();
 
@@ -33,7 +35,9 @@ const changes = (old: string, next: string) => {
 
 describe("step names in the update note and What's new", () => {
   it("covers every pack in the repo", () => {
-    expect(PACKS).toEqual(expect.arrayContaining(["ifly-737-max8", "example-trainer"]));
+    expect(PACKS).toEqual(
+      expect.arrayContaining(["ifly-737-max8", "example-twin", "example-sidestick", "example-twin-lr"]),
+    );
   });
 
   for (const id of PACKS) {

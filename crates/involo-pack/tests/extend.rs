@@ -15,8 +15,9 @@ mod tests {
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
     }
 
+    /// The folder of example packs the children here extend (decision 0030).
     fn packs() -> PathBuf {
-        root().join("packs")
+        root().join("packs/examples")
     }
 
     /// A fresh folder of packs for one test.
@@ -39,7 +40,7 @@ mod tests {
         std::fs::create_dir_all(&dir).unwrap();
         let mut m = serde_json::json!({
             "id": id, "name": "Child", "version": "0.1.0", "schemaVersion": 6, "kind": "aircraft",
-            "engine": ">=0.1.0", "extends": {"example-trainer": ">=0.1.0, <1.0.0"},
+            "engine": ">=0.1.0", "extends": {"example-twin": ">=0.1.0, <1.0.0"},
             "license": "CC-BY-NC-SA-4.0", "checklists": []
         });
         for (k, v) in manifest.as_object().unwrap() {
@@ -77,7 +78,8 @@ mod tests {
 
     #[test]
     fn a_child_that_patches_removes_inserts_and_relabels_builds_to_the_expected_flat_pack() {
-        let dir = root().join("crates/involo-pack/tests/fixtures/extend/example-variant");
+        // The variant example pack: it patches its parent with every kind of patch.
+        let dir = packs().join("example-twin-lr");
         let built = resolve(&dir, &[packs()]).unwrap();
         let errors: Vec<_> = validate_pack(&built.pack)
             .into_iter()
@@ -92,12 +94,14 @@ mod tests {
                 m.resolved[0].id.as_str(),
                 m.resolved[0].version.to_string().as_str()
             ),
-            ("example-trainer", "0.1.0")
+            ("example-twin", "0.1.0")
         );
         // Attribution and basis tags: the parent's first, then the child's, each once.
         assert_eq!(
             m.attribution.last().map(String::as_str),
-            Some("Invented variant of the example trainer, for tests.")
+            Some(
+                "Invented example content: a longer-range version of the Example Twin. Not for real-world or simulator use."
+            )
         );
         assert_eq!(m.basis_tags, ["invented-example", "prior-release"]);
         // The hash is checked on its own (it changes with any content); the snapshot holds the rest.
@@ -106,7 +110,7 @@ mod tests {
             hash.len() == 64 && hash.chars().all(|c| c.is_ascii_hexdigit()),
             "{hash}"
         );
-        insta::assert_json_snapshot!("example-variant", flat);
+        insta::assert_json_snapshot!("example-twin-lr", flat);
     }
 
     #[test]
@@ -116,10 +120,10 @@ mod tests {
             "patches:
       - {op: set, stage: departure, to: {title: 'Departure, variant'}}
       - {op: set, list: smoke, to: {title: 'Smoke, variant'}}
-      - {op: set, step: example-trainer.smoke.masks, to: {expect: ON AND 100%}}
+      - {op: set, step: example-twin.smoke.masks, to: {expect: ON AND 100%}}
       - {op: set, panel: overhead, to: {title: 'Overhead, variant'}}
       - {op: set, section: overhead/electrical, to: {title: Power}}
-      - {op: set, item: autoflight/autoflight/alt, to: {description: 'Altitude, variant.'}}
+      - {op: set, item: pedestal/displays/display, to: {description: 'Display, variant.'}}
       - {op: set, flight_field: runway, to: {label: Departure runway}}
       - {op: set, panel_state: ready, to: {title: 'Ready, variant'}}
       - {op: set, glossary_term: CDU, to: {meaning: The variant's computer.}}
@@ -142,19 +146,19 @@ mod tests {
             "Smoke, variant"
         );
         assert_eq!(
-            step(&pack, "example-trainer.smoke.masks").unwrap().expect,
+            step(&pack, "example-twin.smoke.masks").unwrap().expect,
             "ON AND 100%"
         );
         let overhead = c.panels.iter().find(|p| p.id == "overhead").unwrap();
         assert_eq!(overhead.title, "Overhead, variant");
         assert_eq!(overhead.sections[0].title, "Power");
-        let af = c.panels.iter().find(|p| p.id == "autoflight").unwrap();
-        let alt = af.sections[0]
+        let pedestal = c.panels.iter().find(|p| p.id == "pedestal").unwrap();
+        let display = pedestal.sections[0]
             .items
             .iter()
-            .find(|i| i.id.as_deref() == Some("alt"))
+            .find(|i| i.id.as_deref() == Some("display"))
             .unwrap();
-        assert_eq!(alt.description, "Altitude, variant.");
+        assert_eq!(display.description, "Display, variant.");
         let runway = c
             .flight
             .as_ref()
@@ -256,14 +260,14 @@ mod tests {
     fn an_item_without_an_id_cannot_be_patched_and_the_error_says_to_add_one() {
         let e = err(child(
             "noid",
-            "patches:\n  - {op: set, item: overhead/electrical/battery, to: {description: X}}\n",
+            "patches:\n  - {op: set, item: overhead/electrical/volts, to: {description: X}}\n",
         ));
         assert!(
-            e.contains("patches.yaml patch 1 (set item `overhead/electrical/battery`)"),
+            e.contains("patches.yaml patch 1 (set item `overhead/electrical/volts`)"),
             "{e}"
         );
         assert!(
-            e.contains("add the id `battery` to the item in the parent"),
+            e.contains("add the id `volts` to the item in the parent"),
             "{e}"
         );
     }
@@ -272,9 +276,9 @@ mod tests {
     fn an_unmatched_patch_and_two_patches_on_one_target_fail_naming_the_file_and_patch() {
         let e = err(child(
             "unmatched",
-            "patches:\n  - {op: remove, step: example-trainer.nope.x}\n",
+            "patches:\n  - {op: remove, step: example-twin.nope.x}\n",
         ));
-        assert!(e.contains("example-child: patches.yaml patch 1 (remove step `example-trainer.nope.x`): matches no step"), "{e}");
+        assert!(e.contains("example-child: patches.yaml patch 1 (remove step `example-twin.nope.x`): matches no step"), "{e}");
         let e = err(child(
             "conflict",
             "patches:
@@ -333,12 +337,12 @@ mod tests {
         let dir = write_pack(
             &place,
             "old",
-            &serde_json::json!({"extends": {"example-trainer": ">=2.0"}}),
+            &serde_json::json!({"extends": {"example-twin": ">=2.0"}}),
             None,
         );
         let e = resolve(&dir, &[packs()]).unwrap_err().to_string();
         assert!(
-            e.contains("extends `example-trainer` >=2.0, but the parent found is version 0.1.0"),
+            e.contains("extends `example-twin` >=2.0, but the parent found is version 0.1.0"),
             "{e}"
         );
         let dir = write_pack(
@@ -380,9 +384,7 @@ mod tests {
         std::fs::write(dir.join("glossary.yaml"), "terms: []\n").unwrap();
         let e = resolve(&dir, &[packs()]).unwrap_err().to_string();
         assert!(
-            e.contains(
-                "its parent `example-trainer` already has `glossary`; change it with patches"
-            ),
+            e.contains("its parent `example-twin` already has `glossary`; change it with patches"),
             "{e}"
         );
         let dir = write_pack(
@@ -427,7 +429,7 @@ mod tests {
         .unwrap();
         let pack = resolve(&dir, &[packs()]).unwrap().pack;
         assert_eq!(pack.checklists.last().map(|l| l.id.as_str()), Some("extra"));
-        assert_eq!(pack.checklists.len(), 4);
+        assert_eq!(pack.checklists.len(), 5);
     }
 
     #[test]
@@ -488,7 +490,7 @@ mod tests {
             "example-child",
             &serde_json::json!({}),
             Some(
-                "patches:\n  - op: insert_after\n    step: example-trainer.before-start.doors\n    with: {id: example-trainer.before-start.battery, text: Again, expect: 'ON'}\n",
+                "patches:\n  - op: insert_after\n    step: example-twin.before-start.doors\n    with: {id: example-twin.before-start.battery, text: Again, expect: 'ON'}\n",
             ),
         );
         let built = resolve(&dir, &[packs()]).unwrap();
@@ -499,14 +501,14 @@ mod tests {
             .expect("a duplicate step id");
         assert!(
             twice.message.contains(
-                "(after patches.yaml patch 1 (insert_after step `example-trainer.before-start.doors`))"
+                "(after patches.yaml patch 1 (insert_after step `example-twin.before-start.doors`))"
             ),
             "{twice}"
         );
     }
 
     fn example() -> FlatPack {
-        FlatPack::from(resolve(&packs().join("example-trainer"), &[]).unwrap().pack)
+        FlatPack::from(resolve(&packs().join("example-twin"), &[]).unwrap().pack)
     }
 
     proptest! {

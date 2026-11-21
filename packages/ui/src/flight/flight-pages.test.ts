@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import type { FieldId, FlatPack, FlightFile, Plan } from "@involo/bindings";
 import { beforeAll, describe, expect, it } from "vitest";
 import { initSync, parse_plan } from "../../../../apps/web/src/wasm/involo_web_host.js";
-import { examplePack, iflyPack } from "../test-pack";
+import { iflyPack, twinPack } from "../test-pack";
 import fixture from "./fixtures/flight-pages-ifly.json";
 import { contexts, dumpRanges, dumpSections, SAMPLE_VALUES } from "./flight-dump";
 import { blankLinks, home, needed, rangeMessage, sections, toEnter, unitOf, useFlightPack } from "./sections";
@@ -79,12 +79,12 @@ describe("the Flight pages for any pack", () => {
 
   it("give a pack with only ids, labels and kinds a usable page", () => {
     // The example pack names no pages, groups or presentation: its fields go on the first page.
-    useFlightPack(examplePack());
+    useFlightPack(twinPack());
     const pages = sections();
     expect(pages.map((p) => p.id)).toEqual(["route"]);
     const rows = pages[0]?.groups.flatMap((g) => g.rows) ?? [];
     expect(pages[0]?.groups.map((g) => g.title)).toEqual(["Flight values"]);
-    expect(rows.map((r) => r.field)).toEqual(examplePack().content.flight?.fields.map((f) => f.id));
+    expect(rows.map((r) => r.field)).toEqual(twinPack().content.flight?.fields.map((f) => f.id));
     expect(rows.find((r) => r.field === "takeoff_flaps")?.choices).toEqual(["1", "5"]);
     expect(rows.every((r) => r.ofp.title && r.desc !== undefined)).toBe(true);
     // A range without words of its own says "Enter {min} to {max}".
@@ -94,7 +94,7 @@ describe("the Flight pages for any pack", () => {
 
   it("show a test pack's own rows and accept its own range limits", () => {
     // Invented: a heavier aircraft, its weights up to 600,000, and flaps it names in degrees.
-    const pack = structuredClone(examplePack()) as FlatPack;
+    const pack = structuredClone(twinPack()) as FlatPack;
     const flight: FlightFile = {
       pages: [
         {

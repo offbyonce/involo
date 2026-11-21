@@ -100,7 +100,7 @@ engine never names an aircraft. **The app never connects to the simulator** (dec
 | `packages/ui` | The shared Svelte 5 interface and its host interface (`src/host.ts`) |
 | `packages/bindings` | TypeScript types generated from Rust (`src/generated`), and `isAppError` |
 | `tools/import-3x` | One-way converter from the 3.0 checklist to pack YAML (retired, kept for reference) |
-| `packs/` | Content packs (CC BY-NC-SA 4.0) |
+| `packs/` | Content packs (CC BY-NC-SA 4.0); `packs/examples` holds invented example packs, checked and tested but never published (decision 0030) |
 | `schemas/` | Generated JSON Schemas |
 | `docs/` | Plan, phase briefs, setup guide, brand, design boards, decision records |
 
@@ -113,7 +113,7 @@ just test      # Rust and interface tests
 just packs     # validate every pack
 just site      # build the web site into apps/web/dist (WebAssembly, app, then the pack catalog in packs/)
 just catalog <out>  # build the published packs' catalog into <out>
-just test-packs     # the catalog tests and the dev server read, with the example pack, in target/test-packs
+just test-packs     # the catalog tests and the dev server read, with the example packs, in target/test-packs
 just update-test  # service worker update test in headless Firefox (local; needs Firefox)
 just e2e       # end-to-end flows with layout and accessibility checks (Chromium, WebKit)
 just review-shots <dir> <screen>...  # review shots of named screens beside their boards

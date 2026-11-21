@@ -1,0 +1,1724 @@
+---
+source: crates/involo-pack/tests/extend.rs
+expression: flat
+---
+{
+  "manifest": {
+    "$schema": "../../../schemas/pack.schema.json",
+    "id": "example-twin-lr",
+    "name": "Example Twin LR",
+    "version": "0.1.0",
+    "schemaVersion": 6,
+    "kind": "aircraft",
+    "engine": ">=0.1.0, <1.0.0",
+    "aircraft": {
+      "family": "Example Twin",
+      "name": "Example Twin",
+      "icaoTypes": [
+        "ZZZT"
+      ],
+      "simulator": "None: an invented example",
+      "developer": "Involo examples"
+    },
+    "extends": {
+      "example-twin": ">=0.1.0, <1.0.0"
+    },
+    "patches": "patches.yaml",
+    "resolved": [
+      {
+        "id": "example-twin",
+        "version": "0.1.0"
+      }
+    ],
+    "license": "CC-BY-NC-SA-4.0",
+    "attribution": [
+      "Invented example content to show the pack format. Not for real-world or simulator use.",
+      "Invented example content: a longer-range version of the Example Twin. Not for real-world or simulator use."
+    ],
+    "basisTags": [
+      "invented-example",
+      "prior-release"
+    ],
+    "checklists": []
+  },
+  "lists": [
+    {
+      "id": "before-start",
+      "title": "Before start",
+      "kind": "checklist",
+      "basis": [
+        "invented-example"
+      ],
+      "steps": [
+        {
+          "id": "example-twin.before-start.battery",
+          "number": 1,
+          "text": "Battery switch",
+          "expect": "ON",
+          "controls": [
+            "battery"
+          ],
+          "targets": [
+            {
+              "at": "overhead/electrical/BATTERY/1",
+              "set": "ON"
+            },
+            {
+              "at": "overhead/electrical/BATT LOW/1",
+              "light": "out"
+            }
+          ],
+          "quick": "always",
+          "why": "Gives the aircraft its first electrical power.",
+          "check": "Voltage above 24 on the gauge",
+          "check_detail": "About 24 volts, steady",
+          "if_not": "No voltage",
+          "if_not_detail": "Check the battery is connected",
+          "confirmed_by": [
+            {
+              "kind": "vendor-docs",
+              "date": "2026-11-08"
+            }
+          ]
+        },
+        {
+          "id": "example-twin.before-start.doors",
+          "number": 3,
+          "section": "Cabin",
+          "text": "Doors",
+          "expect": "CLOSED",
+          "show_if": {
+            "any_of": [
+              {
+                "option": "power",
+                "one_of": [
+                  "external",
+                  "internal"
+                ]
+              },
+              {
+                "option": "start",
+                "equals": "turnaround"
+              }
+            ]
+          },
+          "panel_lights": {
+            "battery": [
+              "BATT LOW"
+            ]
+          },
+          "sim_simplified": true
+        },
+        {
+          "id": "example-twin-lr.before-start.signs",
+          "number": 4,
+          "section": "Cabin",
+          "text": "Cabin signs",
+          "expect": "ON"
+        },
+        {
+          "id": "example-twin-lr.before-start.center-tank",
+          "section": "Fuel",
+          "text": "Center tank quantity",
+          "expect": "CHECK"
+        },
+        {
+          "id": "example-twin.before-start.fuel-balance",
+          "number": 4,
+          "section": "Fuel",
+          "text": "Fuel balance",
+          "expect": "CHECK THE TWO TANK QUANTITIES",
+          "decide": "crossfeed",
+          "terms": [
+            "CDU"
+          ]
+        },
+        {
+          "id": "example-twin.before-start.crossfeed",
+          "number": 5,
+          "section": "Fuel",
+          "text": "Crossfeed switch",
+          "expect": "ON IF THE TANKS ARE UNEVEN, ELSE OFF",
+          "controls": [
+            "crossfeed"
+          ],
+          "targets": [
+            {
+              "at": "overhead/fuel/CROSSFEED/1",
+              "open": true
+            },
+            {
+              "at": "overhead/fuel/CROSSFEED/1",
+              "set": "ON",
+              "when": {
+                "option": "crossfeed",
+                "equals": "uneven"
+              }
+            },
+            {
+              "at": "overhead/fuel/CROSSFEED/1",
+              "set": "OFF",
+              "when": {
+                "option": "crossfeed",
+                "equals": "balanced"
+              }
+            }
+          ],
+          "expect_when": [
+            {
+              "option": "crossfeed",
+              "equals": "uneven",
+              "expect": "ON"
+            },
+            {
+              "option": "crossfeed",
+              "equals": "balanced",
+              "expect": "OFF"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "start-flow",
+      "title": "Start flow",
+      "kind": "flow",
+      "basis": [
+        "prior-release"
+      ],
+      "steps": [
+        {
+          "id": "example-twin.start.walkaround",
+          "text": "Nose area",
+          "expect": "CLEAR",
+          "walkaround": {
+            "x": 160,
+            "y": 40
+          },
+          "look_for": "Nothing blocking the intake.",
+          "location": "At the nose, left side."
+        },
+        {
+          "id": "example-twin.start.computer",
+          "text": "Flight computer",
+          "expect": "SET",
+          "hint": [
+            {
+              "prefix": "SQUAWK ",
+              "field": "squawk"
+            }
+          ],
+          "opens": "example-setup",
+          "how": "computer",
+          "explain": "computer-test"
+        },
+        {
+          "id": "example-twin.start.speeds",
+          "text": "Takeoff speeds",
+          "expect": "V1 ___, VR ___, NOTE ___",
+          "fill": [
+            "v1",
+            "vr",
+            "manual"
+          ]
+        },
+        {
+          "id": "example-twin.start.warm-up",
+          "text": "Engine warm-up",
+          "expect": "COMPLETE",
+          "timer": {
+            "seconds": 120,
+            "label": "Warm-up",
+            "note": "A typical time.",
+            "auto_start": {
+              "from": [
+                "example-twin.start.computer"
+              ],
+              "pick": "latest"
+            }
+          }
+        },
+        {
+          "id": "example-twin.start.display",
+          "text": "Display selector",
+          "expect": "ENGINE",
+          "controls": [
+            "display-selector"
+          ],
+          "targets": [
+            {
+              "at": "pedestal/displays/#display",
+              "set": "ENGINE"
+            }
+          ]
+        },
+        {
+          "id": "example-twin.start.seat-belts",
+          "text": "Seat belts",
+          "expect": "ON",
+          "controls": [
+            "seat-belts"
+          ],
+          "targets": [
+            {
+              "at": "pedestal/cabin/#seat-belts",
+              "set": "ON"
+            }
+          ]
+        },
+        {
+          "id": "example-twin.start.radio",
+          "text": "Radio frequency",
+          "expect": "ENT",
+          "controls": [
+            "radio-keypad"
+          ],
+          "targets": [
+            {
+              "at": "pedestal/cabin/#radio",
+              "set": "ENT"
+            }
+          ]
+        },
+        {
+          "id": "example-twin.start.parking-brake",
+          "text": "Parking brake",
+          "expect": "SET",
+          "controls": [
+            "parking-brake"
+          ],
+          "targets": [
+            {
+              "at": "pedestal/brakes/#brake",
+              "set": "SET"
+            }
+          ]
+        },
+        {
+          "id": "example-twin.start.radar",
+          "text": "Weather radar",
+          "expect": "OFF",
+          "show_if": {
+            "all_of": [
+              {
+                "option": "power",
+                "equals": "external"
+              },
+              {
+                "option": "start",
+                "one_of": [
+                  "normal",
+                  "turnaround"
+                ]
+              }
+            ]
+          },
+          "not_simulated": true
+        }
+      ]
+    },
+    {
+      "id": "smoke",
+      "title": "Smoke or fumes in the cabin",
+      "kind": "non-normal",
+      "basis": [
+        "invented-example"
+      ],
+      "memory": true,
+      "when": "Smoke is seen or smelled.",
+      "why": "Smoke can quickly make the crew unable to work.",
+      "steps": [
+        {
+          "id": "example-twin.smoke.masks",
+          "text": "Oxygen masks",
+          "expect": "ON"
+        },
+        {
+          "id": "example-twin.smoke.checklist",
+          "text": "Reference checklist",
+          "expect": "OPEN",
+          "non_recall": true
+        }
+      ]
+    },
+    {
+      "id": "battery-low",
+      "title": "Battery low",
+      "kind": "non-normal",
+      "basis": [
+        "invented-example"
+      ],
+      "when": "The BATT LOW light is on.",
+      "why": "A flat battery leaves nothing to start the engines with.",
+      "steps": [
+        {
+          "id": "example-twin.battery-low.external",
+          "number": 1,
+          "text": "External power",
+          "expect": "CONNECT"
+        },
+        {
+          "id": "example-twin-lr.battery-low.if-unavailable",
+          "number": 2,
+          "text": "IF EXTERNAL POWER IS NOT AVAILABLE",
+          "expect": "START THE AUXILIARY POWER UNIT",
+          "branch": true
+        },
+        {
+          "id": "example-twin.battery-low.battery",
+          "number": 3,
+          "text": "Battery switch",
+          "expect": "OFF",
+          "controls": [
+            "battery"
+          ],
+          "targets": [
+            {
+              "at": "overhead/electrical/BATTERY/1",
+              "set": "OFF"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "content": {
+    "phases": {
+      "options": [
+        {
+          "id": "power",
+          "title": "Power source",
+          "values": [
+            "external",
+            "internal"
+          ],
+          "default": "external"
+        },
+        {
+          "id": "start",
+          "title": "Start type",
+          "values": [
+            "normal",
+            "turnaround"
+          ],
+          "default": "normal"
+        },
+        {
+          "id": "crossfeed",
+          "title": "Fuel balance",
+          "values": [
+            "balanced",
+            "uneven"
+          ],
+          "default": "balanced"
+        }
+      ],
+      "stages": [
+        {
+          "id": "departure",
+          "title": "Ground",
+          "phases": [
+            {
+              "phase": "start",
+              "show_if": {
+                "option": "start",
+                "equals": "normal"
+              }
+            },
+            {
+              "phase": "before-start"
+            }
+          ]
+        }
+      ],
+      "phases": [
+        {
+          "id": "start",
+          "title": "Start",
+          "engine_start": true,
+          "lists": [
+            "start-flow"
+          ]
+        },
+        {
+          "id": "before-start",
+          "title": "Before start",
+          "lists": [
+            "before-start"
+          ]
+        },
+        {
+          "id": "memory",
+          "title": "Memory items",
+          "reference": true,
+          "group": "memory",
+          "intro": [
+            {
+              "text": "Steps to know by heart."
+            },
+            {
+              "heading": "When to use them",
+              "text": "As soon as you recognize the event."
+            }
+          ],
+          "lists": [
+            "smoke"
+          ]
+        },
+        {
+          "id": "quick",
+          "title": "Quick reference",
+          "reference": true,
+          "group": "quick",
+          "lists": [
+            "battery-low"
+          ]
+        }
+      ]
+    },
+    "controls": {
+      "zones": [
+        {
+          "id": "overhead-electrical",
+          "area": "Overhead",
+          "title": "Electrical panel",
+          "short_title": "ELEC",
+          "position": "Captain side, middle row"
+        },
+        {
+          "id": "overhead-fuel",
+          "area": "Overhead",
+          "title": "Fuel panel",
+          "short_title": "FUEL",
+          "position": "Center, middle row"
+        },
+        {
+          "id": "pedestal-cabin",
+          "area": "Pedestal",
+          "title": "Cabin panel",
+          "short_title": "CABIN",
+          "position": "Center, forward"
+        }
+      ],
+      "controls": [
+        {
+          "id": "battery",
+          "name": "Battery switch",
+          "zone": "overhead-electrical",
+          "location": "Left side of the electrical panel.",
+          "function": "Connects the battery."
+        },
+        {
+          "id": "crossfeed",
+          "name": "Crossfeed switch",
+          "zone": "overhead-fuel",
+          "location": "Middle of the fuel panel.",
+          "function": "Lets one tank feed both engines."
+        },
+        {
+          "id": "display-selector",
+          "name": "Display selector",
+          "location": "Left of the pedestal.",
+          "function": "Chooses what the lower display shows."
+        },
+        {
+          "id": "seat-belts",
+          "name": "Seat belts switch",
+          "zone": "pedestal-cabin",
+          "location": "Cabin panel, left.",
+          "function": "Turns the seat belt signs on."
+        },
+        {
+          "id": "radio-keypad",
+          "name": "Radio keypad",
+          "zone": "pedestal-cabin",
+          "location": "Cabin panel, right.",
+          "function": "Enters a frequency."
+        },
+        {
+          "id": "parking-brake",
+          "name": "Parking brake lever",
+          "location": "Brake panel, on the pedestal.",
+          "function": "Holds the airplane still."
+        },
+        {
+          "id": "brake-pedals",
+          "name": "Brake pedals",
+          "location": "At your feet.",
+          "function": "Slow the airplane on the ground.",
+          "plural": true
+        },
+        {
+          "id": "briefing",
+          "name": "Briefing",
+          "location": "Between the crew.",
+          "function": "A spoken review of the plan."
+        }
+      ],
+      "overview": {
+        "width": 200.0,
+        "height": 120.0,
+        "captions": [
+          {
+            "text": "OVERHEAD",
+            "x": 10.0,
+            "y": 10.0
+          },
+          {
+            "text": "PEDESTAL",
+            "x": 10.0,
+            "y": 70.0
+          }
+        ],
+        "areas": [
+          {
+            "zone": "overhead-electrical",
+            "x": 10.0,
+            "y": 20.0,
+            "width": 60.0,
+            "height": 30.0
+          },
+          {
+            "zone": "overhead-fuel",
+            "x": 80.0,
+            "y": 20.0,
+            "width": 60.0,
+            "height": 30.0,
+            "label": "FUEL"
+          },
+          {
+            "zone": "pedestal-cabin",
+            "x": 10.0,
+            "y": 80.0,
+            "width": 80.0,
+            "height": 30.0
+          }
+        ],
+        "regions": [
+          {
+            "name": "Overhead",
+            "short": "Overhead",
+            "code": "OH",
+            "x": 6.0,
+            "y": 14.0,
+            "width": 140.0,
+            "height": 40.0,
+            "top": "AFT, TOWARD THE CABIN",
+            "bottom": "FORWARD, TOWARD THE WINDSHIELD",
+            "left": "CAPTAIN SIDE",
+            "right": "F/O SIDE",
+            "top_short": "AFT",
+            "bottom_short": "FORWARD",
+            "left_short": "CAPT",
+            "right_short": "F/O",
+            "locate": "Above your head. Look up from the seat.",
+            "title": "Where is the overhead panel?",
+            "short_title": "Where is the overhead?"
+          },
+          {
+            "name": "Pedestal",
+            "short": "Pedestal",
+            "x": 6.0,
+            "y": 74.0,
+            "width": 90.0,
+            "height": 40.0,
+            "locate": "Between the two seats, by your knee.",
+            "title": "Where is the pedestal?"
+          }
+        ],
+        "views": {
+          "side": {
+            "width": 200.0,
+            "height": 100.0,
+            "shapes": [
+              {
+                "points": [
+                  [
+                    200.0,
+                    20.0
+                  ],
+                  [
+                    60.0,
+                    20.0
+                  ],
+                  [
+                    20.0,
+                    60.0
+                  ],
+                  [
+                    20.0,
+                    90.0
+                  ],
+                  [
+                    200.0,
+                    90.0
+                  ]
+                ],
+                "role": "structure"
+              },
+              {
+                "points": [
+                  [
+                    40.0,
+                    44.0
+                  ],
+                  [
+                    62.0,
+                    26.0
+                  ],
+                  [
+                    68.0,
+                    30.0
+                  ],
+                  [
+                    46.0,
+                    48.0
+                  ]
+                ],
+                "closed": true,
+                "role": "glass"
+              },
+              {
+                "points": [
+                  [
+                    140.0,
+                    60.0
+                  ],
+                  [
+                    160.0,
+                    60.0
+                  ],
+                  [
+                    160.0,
+                    80.0
+                  ],
+                  [
+                    140.0,
+                    80.0
+                  ]
+                ],
+                "closed": true,
+                "role": "seat"
+              },
+              {
+                "points": [
+                  [
+                    150.0,
+                    50.0
+                  ]
+                ],
+                "role": "eye"
+              }
+            ],
+            "places": [
+              {
+                "region": "Overhead",
+                "shapes": [
+                  [
+                    [
+                      70.0,
+                      22.0
+                    ],
+                    [
+                      120.0,
+                      22.0
+                    ],
+                    [
+                      120.0,
+                      28.0
+                    ],
+                    [
+                      70.0,
+                      28.0
+                    ]
+                  ]
+                ],
+                "label_at": [
+                  95.0,
+                  16.0
+                ]
+              },
+              {
+                "region": "Pedestal",
+                "shapes": [
+                  [
+                    [
+                      80.0,
+                      70.0
+                    ],
+                    [
+                      100.0,
+                      70.0
+                    ],
+                    [
+                      100.0,
+                      88.0
+                    ],
+                    [
+                      80.0,
+                      88.0
+                    ]
+                  ],
+                  [
+                    [
+                      100.0,
+                      70.0
+                    ],
+                    [
+                      120.0,
+                      70.0
+                    ],
+                    [
+                      120.0,
+                      88.0
+                    ],
+                    [
+                      100.0,
+                      88.0
+                    ]
+                  ]
+                ],
+                "names": [
+                  "Forward pedestal",
+                  "Aft pedestal"
+                ]
+              }
+            ],
+            "labels": [
+              {
+                "text": "WINDSHIELD",
+                "x": 4.0,
+                "y": 16.0,
+                "anchor": "start"
+              },
+              {
+                "text": "CABIN →",
+                "x": 196.0,
+                "y": 98.0,
+                "anchor": "end"
+              }
+            ]
+          },
+          "seat": {
+            "width": 200.0,
+            "height": 100.0,
+            "shapes": [
+              {
+                "points": [
+                  [
+                    20.0,
+                    20.0
+                  ],
+                  [
+                    96.0,
+                    18.0
+                  ],
+                  [
+                    96.0,
+                    56.0
+                  ],
+                  [
+                    24.0,
+                    58.0
+                  ]
+                ],
+                "closed": true,
+                "role": "glass"
+              },
+              {
+                "points": [
+                  [
+                    104.0,
+                    18.0
+                  ],
+                  [
+                    180.0,
+                    20.0
+                  ],
+                  [
+                    176.0,
+                    58.0
+                  ],
+                  [
+                    104.0,
+                    56.0
+                  ]
+                ],
+                "closed": true,
+                "role": "glass"
+              }
+            ],
+            "places": [
+              {
+                "region": "Overhead",
+                "shapes": [
+                  [
+                    [
+                      40.0,
+                      2.0
+                    ],
+                    [
+                      160.0,
+                      2.0
+                    ],
+                    [
+                      150.0,
+                      14.0
+                    ],
+                    [
+                      50.0,
+                      14.0
+                    ]
+                  ]
+                ],
+                "label_at": [
+                  100.0,
+                  9.0
+                ]
+              },
+              {
+                "region": "Pedestal",
+                "shapes": [
+                  [
+                    [
+                      80.0,
+                      70.0
+                    ],
+                    [
+                      120.0,
+                      70.0
+                    ],
+                    [
+                      124.0,
+                      98.0
+                    ],
+                    [
+                      76.0,
+                      98.0
+                    ]
+                  ]
+                ]
+              }
+            ],
+            "labels": [
+              {
+                "text": "FROM THE CAPTAIN SEAT",
+                "x": 100.0,
+                "y": 64.0,
+                "anchor": "middle"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "notes": {
+      "how": [
+        {
+          "id": "computer",
+          "steps": [
+            "Open the first page.",
+            "Enter each value."
+          ]
+        }
+      ],
+      "explain": [
+        {
+          "id": "computer-test",
+          "what": "A self test of the flight computer.",
+          "why": "A failed computer cannot be trusted.",
+          "success": "The word PASS appears.",
+          "failure": "A fault in the computer.",
+          "check": "PASS shown",
+          "check_detail": "The test takes about ten seconds",
+          "if_not": "FAIL shown",
+          "if_not_detail": "Restart the computer"
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": "overhead",
+        "title": "Overhead panel",
+        "width": 400.0,
+        "height": 200.0,
+        "sections": [
+          {
+            "id": "electrical",
+            "title": "Electrical",
+            "x": 10.0,
+            "y": 10.0,
+            "width": 185.0,
+            "height": 90.0,
+            "items": [
+              {
+                "id": "battery",
+                "kind": "toggle_switch",
+                "label": "BATTERY",
+                "guarded": true,
+                "x": 20.0,
+                "y": 30.0,
+                "controls": [
+                  "battery"
+                ],
+                "positions": [
+                  "OFF",
+                  "ON"
+                ],
+                "description": "Connects the battery."
+              },
+              {
+                "kind": "light",
+                "label": "BATT LOW",
+                "color": "amber",
+                "x": 80.0,
+                "y": 30.0,
+                "controls": [
+                  "battery"
+                ],
+                "description": "The battery is running low."
+              },
+              {
+                "kind": "display_unit",
+                "label": "VOLTS",
+                "x": 145.0,
+                "y": 30.0,
+                "description": "Shows battery voltage.",
+                "width": 50.0,
+                "height": 20.0
+              }
+            ]
+          },
+          {
+            "id": "fuel",
+            "title": "Fuel",
+            "name": "Fuel panel",
+            "x": 200.0,
+            "y": 10.0,
+            "width": 190.0,
+            "height": 90.0,
+            "items": [
+              {
+                "id": "crossfeed",
+                "kind": "toggle_switch",
+                "label": "CROSSFEED",
+                "x": 60.0,
+                "y": 40.0,
+                "controls": [
+                  "crossfeed"
+                ],
+                "positions": [
+                  "OFF",
+                  "ON"
+                ],
+                "rest": "OFF",
+                "description": "Lets one tank, or the center tank, feed both engines."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pedestal",
+        "title": "Center pedestal",
+        "width": 560.0,
+        "height": 240.0,
+        "outline": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            560.0,
+            0.0
+          ],
+          [
+            560.0,
+            200.0
+          ],
+          [
+            520.0,
+            240.0
+          ],
+          [
+            40.0,
+            240.0
+          ],
+          [
+            0.0,
+            200.0
+          ]
+        ],
+        "sections": [
+          {
+            "id": "displays",
+            "title": "Displays",
+            "x": 10.0,
+            "y": 10.0,
+            "width": 160.0,
+            "height": 110.0,
+            "items": [
+              {
+                "id": "display",
+                "kind": "selector",
+                "label": "DISPLAY",
+                "x": 80.0,
+                "y": 56.0,
+                "controls": [
+                  "display-selector"
+                ],
+                "positions": [
+                  "OFF",
+                  "ENGINE",
+                  "SYSTEMS",
+                  "MAP"
+                ],
+                "rest": "OFF",
+                "angles": [
+                  -90.0,
+                  -30.0,
+                  30.0,
+                  90.0
+                ],
+                "description": "Chooses what the lower display shows."
+              }
+            ]
+          },
+          {
+            "id": "cabin",
+            "title": "Cabin signs",
+            "x": 180.0,
+            "y": 10.0,
+            "width": 260.0,
+            "height": 108.0,
+            "items": [
+              {
+                "id": "seat-belts",
+                "kind": "rocker",
+                "label": "SEAT BELTS",
+                "x": 50.0,
+                "y": 46.0,
+                "controls": [
+                  "seat-belts"
+                ],
+                "positions": [
+                  "ON",
+                  "OFF"
+                ],
+                "rest": "OFF",
+                "description": "Turns the seat belt signs on."
+              },
+              {
+                "id": "radio",
+                "kind": "keypad",
+                "label": "RADIO",
+                "x": 170.0,
+                "y": 46.0,
+                "controls": [
+                  "radio-keypad"
+                ],
+                "positions": [
+                  "1",
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6",
+                  "7",
+                  "8",
+                  "9",
+                  "CLR",
+                  "0",
+                  "ENT"
+                ],
+                "columns": 3,
+                "description": "Enters a frequency."
+              }
+            ]
+          },
+          {
+            "id": "brakes",
+            "title": "Brakes",
+            "name": "Brake panel",
+            "x": 60.0,
+            "y": 130.0,
+            "width": 200.0,
+            "height": 90.0,
+            "items": [
+              {
+                "id": "brake",
+                "kind": "lever",
+                "label": "PARKING BRAKE",
+                "x": 60.0,
+                "y": 44.0,
+                "controls": [
+                  "parking-brake"
+                ],
+                "positions": [
+                  "RELEASED",
+                  "SET"
+                ],
+                "rest": "RELEASED",
+                "description": "Holds the airplane still."
+              },
+              {
+                "id": "brake-light",
+                "kind": "light",
+                "label": "PARK BRAKE",
+                "color": "red",
+                "x": 140.0,
+                "y": 44.0,
+                "controls": [
+                  "parking-brake"
+                ],
+                "lit_at": "SET",
+                "description": "The parking brake is holding the airplane."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "lights": {
+      "lights": [
+        {
+          "locator": "overhead/electrical/BATT LOW/1",
+          "which": "battery",
+          "meaning": "The battery is running low.",
+          "when": "Abnormal at any time.",
+          "action": "Connect external power.",
+          "normal": false,
+          "confirmed_by": [
+            {
+              "kind": "vendor-docs",
+              "date": "2026-11-08"
+            }
+          ]
+        },
+        {
+          "locator": "pedestal/brakes/PARK BRAKE/1",
+          "meaning": "The parking brake is set.",
+          "when": "Normal on the ground, before taxi.",
+          "action": "Release it before you taxi.",
+          "normal": true
+        }
+      ]
+    },
+    "faults": {
+      "faults": [
+        {
+          "steps": [
+            "example-twin.before-start.battery"
+          ],
+          "causes": [
+            "The battery is flat"
+          ],
+          "action": "Connect external power and try again"
+        }
+      ]
+    },
+    "glossary": {
+      "terms": [
+        {
+          "term": "CDU",
+          "meaning": "Control display unit. The keypad and screen for the long-range flight computer."
+        },
+        {
+          "term": "F/O",
+          "meaning": "First officer.",
+          "step_term": false
+        }
+      ]
+    },
+    "briefings": {
+      "briefings": [
+        {
+          "id": "departure",
+          "title": "Departure briefing",
+          "mnemonic": "RW",
+          "phase": "before-start",
+          "items": [
+            {
+              "id": "departure.runway",
+              "lead": "R",
+              "rest": "UNWAY",
+              "detail": "Which runway and which intersection."
+            },
+            {
+              "id": "departure.weather",
+              "lead": "W",
+              "rest": "EATHER"
+            }
+          ]
+        }
+      ]
+    },
+    "panel_states": {
+      "states": [
+        {
+          "id": "ready",
+          "title": "Ready to start, center tank checked",
+          "description": "Power is on and the flow is finished.",
+          "set": {
+            "power": "external"
+          },
+          "phase": "before-start",
+          "done": [
+            "example-twin.start.walkaround"
+          ],
+          "skip": [
+            "example-twin.start.radar"
+          ]
+        }
+      ]
+    },
+    "cdu": {
+      "walkthroughs": [
+        {
+          "id": "example-setup",
+          "title": "Example set-up",
+          "pages": [
+            {
+              "page": "PERF",
+              "key": "INIT",
+              "title": "Enter the fuel",
+              "action": [
+                "Type ",
+                {
+                  "field": "fuel_thousands",
+                  "empty": "the planned fuel"
+                },
+                " and press 1L."
+              ],
+              "check": [
+                {
+                  "when_known": [
+                    "zfw"
+                  ],
+                  "show": [
+                    "Your weight is shown."
+                  ],
+                  "otherwise": [
+                    "Enter your weight."
+                  ]
+                }
+              ],
+              "note": [
+                "Weights are in thousands of",
+                {
+                  "field": "weight_unit",
+                  "before": " ",
+                  "after": ".",
+                  "empty": " pounds."
+                },
+                {
+                  "route_legs": "overflow",
+                  "per_page": 5,
+                  "before": " ",
+                  "after": " more route rows follow."
+                }
+              ],
+              "screen": {
+                "title": [
+                  "PERF"
+                ],
+                "page": [
+                  "1/",
+                  {
+                    "route_legs": "pages",
+                    "per_page": 5
+                  }
+                ],
+                "rows": [
+                  {
+                    "left_label": [
+                      "FUEL"
+                    ],
+                    "left": [
+                      {
+                        "field": "fuel_thousands",
+                        "style": "user",
+                        "empty": "□□□.□",
+                        "empty_style": "data"
+                      }
+                    ],
+                    "right_label": [
+                      "RUNWAY"
+                    ],
+                    "right": [
+                      {
+                        "when_known": [
+                          "runway"
+                        ],
+                        "show": [
+                          "<SEL> ",
+                          {
+                            "field": "runway",
+                            "style": "user",
+                            "before": "RW"
+                          }
+                        ],
+                        "otherwise": [
+                          {
+                            "text": "(list of runways)",
+                            "style": "data"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "left_label": [
+                      "VIA"
+                    ],
+                    "left": [
+                      {
+                        "field": "route_leg",
+                        "index": 1,
+                        "part": "via",
+                        "style": "user",
+                        "empty": "------"
+                      }
+                    ],
+                    "right_label": [
+                      "TO"
+                    ],
+                    "right": [
+                      {
+                        "field": "route_leg",
+                        "index": 1,
+                        "part": "to",
+                        "style": "user",
+                        "empty": "------"
+                      }
+                    ]
+                  },
+                  {},
+                  {
+                    "separator": "",
+                    "left": [
+                      "<INDEX"
+                    ],
+                    "right": [
+                      {
+                        "text": "DONE>",
+                        "style": "accent"
+                      }
+                    ]
+                  }
+                ],
+                "highlight": [
+                  "1L"
+                ],
+                "scratchpad": [
+                  {
+                    "field": "fuel_thousands"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "aliases": {
+      "aliases": [
+        {
+          "kind": "step",
+          "from": "before-start-0-1",
+          "to": "example-twin.before-start.battery"
+        },
+        {
+          "kind": "briefing_item",
+          "from": "b-0-0",
+          "to": "departure.runway"
+        },
+        {
+          "kind": "blank",
+          "from": "start-0-2-v0",
+          "to": "example-twin.start.speeds#0"
+        },
+        {
+          "kind": "panel_state",
+          "from": "bes",
+          "to": "ready"
+        },
+        {
+          "kind": "option_value",
+          "from": "power:gpu",
+          "to": "power:external"
+        },
+        {
+          "kind": "fill_field",
+          "from": "toflaps",
+          "to": "takeoff_flaps"
+        },
+        {
+          "kind": "list",
+          "from": "m:Smoke",
+          "to": "smoke"
+        },
+        {
+          "kind": "phase",
+          "from": "f:start",
+          "to": "start"
+        },
+        {
+          "kind": "zone",
+          "from": "c:Overhead",
+          "to": "overhead-electrical"
+        }
+      ]
+    },
+    "flight": {
+      "fields": [
+        {
+          "id": "runway",
+          "label": "Runway",
+          "kind": "text",
+          "show_in": [
+            "strip"
+          ],
+          "strip": {
+            "prefix": "RWY "
+          },
+          "simbrief": [
+            "runway"
+          ]
+        },
+        {
+          "id": "squawk",
+          "label": "Squawk",
+          "kind": "text",
+          "show_in": [
+            "strip"
+          ],
+          "strip": {
+            "prefix": "SQK "
+          }
+        },
+        {
+          "id": "takeoff_flaps",
+          "label": "Takeoff flaps",
+          "kind": "choice",
+          "choices": [
+            {
+              "value": "1"
+            },
+            {
+              "value": "5"
+            }
+          ]
+        },
+        {
+          "id": "v1",
+          "label": "V1",
+          "kind": "number",
+          "ranges": [
+            {
+              "min": 80.0,
+              "max": 250.0
+            }
+          ]
+        },
+        {
+          "id": "vr",
+          "label": "VR",
+          "kind": "number",
+          "ranges": [
+            {
+              "min": 80.0,
+              "max": 250.0
+            }
+          ]
+        },
+        {
+          "id": "weight_unit",
+          "label": "Weight unit",
+          "kind": "choice",
+          "choices": [
+            {
+              "value": "LB"
+            },
+            {
+              "value": "KG"
+            }
+          ],
+          "simbrief": [
+            "weight_unit"
+          ]
+        },
+        {
+          "id": "zfw",
+          "label": "Zero fuel weight (LR)",
+          "kind": "number",
+          "unit": "weight_unit",
+          "ranges": [
+            {
+              "min": 0.0,
+              "max": 100.0
+            }
+          ],
+          "display": {
+            "scale": 1000.0,
+            "round": "up",
+            "step": 0.1
+          },
+          "simbrief": [
+            "zero_fuel_weight"
+          ]
+        },
+        {
+          "id": "fuel_thousands",
+          "label": "Fuel in thousands",
+          "kind": "number",
+          "unit": "weight_unit",
+          "display": {
+            "scale": 1000.0,
+            "round": "nearest",
+            "step": 0.1
+          },
+          "simbrief": [
+            "block_fuel"
+          ]
+        }
+      ]
+    },
+    "messages": {
+      "messages": [
+        {
+          "id": "batt-low",
+          "text": "BATT LOW",
+          "level": "caution",
+          "meaning": "The battery charge is low; the LR's larger battery lasts longer.",
+          "list": "battery-low",
+          "steps": [
+            "example-twin.battery-low.external"
+          ]
+        },
+        {
+          "id": "park-brake",
+          "text": "PARKING BRAKE SET",
+          "level": "memo",
+          "meaning": "The parking brake is holding the airplane.",
+          "no_list": "A reminder only; release it before taxi."
+        }
+      ]
+    },
+    "labels": {
+      "list_kinds": {
+        "flow": "Procedure",
+        "checklist": "Check",
+        "non_normal": "Non-normal procedure",
+        "memory": "Memory items",
+        "quick": "Quick reference"
+      },
+      "methods": {
+        "do": "Do",
+        "read_and_do": "Read and do",
+        "challenge_response": "Challenge and response",
+        "from_memory": "From memory"
+      },
+      "seats": [],
+      "roles": [],
+      "reference": {
+        "title": "Emergency",
+        "groups": [
+          {
+            "id": "memory",
+            "title": "Memory items"
+          },
+          {
+            "id": "quick",
+            "title": "Quick reference"
+          },
+          {
+            "id": "procedures",
+            "title": "Non-normal procedures"
+          }
+        ]
+      },
+      "seat_view_title": "From the captain seat: which side",
+      "panel_states": {
+        "title": "Panel state",
+        "description": "Loaded a saved panel state in the simulator? Pick it to tick the steps it has already set and start where the airplane is. Steps it can't set stay open.",
+        "placeholder": "Choose a panel state"
+      },
+      "position_words": {
+        "ARMED": [
+          "ARM"
+        ],
+        "CUT OUT": [
+          "CUTOUT"
+        ],
+        "DN": [
+          "DOWN"
+        ],
+        "MAN": [
+          "MANUAL"
+        ],
+        "RELEASED": [
+          "RELEASE"
+        ]
+      },
+      "find_examples": [
+        "Fuel panel",
+        "Parking brake",
+        "MCP",
+        "Transponder"
+      ],
+      "glossary_exceptions": [
+        "IGN L",
+        "IGN R",
+        "PERF INIT",
+        "MA"
+      ],
+      "side_words": [
+        "LEFT",
+        "RIGHT",
+        "L",
+        "R",
+        "CAPTAIN",
+        "CAPT",
+        "FIRST OFFICER",
+        "F/O",
+        "FO"
+      ],
+      "plain_words": [
+        "AND",
+        "THE",
+        "OF",
+        "FOR",
+        "WITH",
+        "ON",
+        "IN",
+        "TO",
+        "PANEL",
+        "PANELS",
+        "SWITCH",
+        "SWITCHES",
+        "SELECTOR",
+        "SELECTORS",
+        "LIGHT",
+        "LIGHTS",
+        "CONTROL",
+        "CONTROLS",
+        "INDICATOR",
+        "INDICATORS",
+        "DISPLAY",
+        "DISPLAYS",
+        "UNIT",
+        "UNITS",
+        "LEVER",
+        "LEVERS"
+      ],
+      "basis_tags": [
+        {
+          "id": "prior-release",
+          "label": "Source being confirmed",
+          "pending": true
+        }
+      ]
+    }
+  }
+}

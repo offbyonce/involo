@@ -15,13 +15,12 @@ steps:
     expect: COMPLETE
     role: pm
     respond: pf
-  - id: example-sidestick.before-start.speeds
+  - id: example-sidestick.before-start.beacon
     number: 2
-    text: Takeoff speeds
-    expect: V1 ___, VR ___
+    text: Beacon
+    expect: 'ON'
     role: pm
-    respond: capt
-    fill: [v1, vr]
+    respond: pf
   - id: example-sidestick.before-start.trim-tank
     number: 3
     text: Trim tank fuel
@@ -29,9 +28,10 @@ steps:
     role: pm
     respond: fo
     decide: trim_tank
-  - id: example-sidestick.before-start.beacon
+  - id: example-sidestick.before-start.speeds
     number: 4
-    text: Beacon
-    expect: 'ON'
+    text: Takeoff speeds
+    expect: V1 ___, VR ___
     role: pm
-    respond: pf
+    respond: capt
+    fill: [v1, vr]

@@ -497,7 +497,7 @@ const SHOTS = [
   { name: "board-log-list", full: true, only: ["phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLog, go("#/log")] } },
   // The Flight log by pack (PacksLog, #107): every pack, then the example pack's chip chosen.
   { name: "board-log-packs", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLogByPack, go("#/log")] } },
-  { name: "board-log-pack", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLogByPack, go("#/log"), `new Promise((done) => setTimeout(() => { [...document.querySelectorAll(".chip")].find((b) => b.textContent.startsWith("Example trainer")).click(); setTimeout(() => done(true), 300); }, 300))`] } },
+  { name: "board-log-pack", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...seedLogByPack, go("#/log"), `new Promise((done) => setTimeout(() => { [...document.querySelectorAll(".chip")].find((b) => b.textContent.startsWith("Example Sidestick Twin")).click(); setTimeout(() => done(true), 300); }, 300))`] } },
   // References (RefsDesk, RefsPhone): the whole page, and Find opened on its simulator
   // model steps.
   { name: "board-refs", full: true, only: ["desktop", "phone", "tablet", "tablet-landscape"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/references")] } },
@@ -529,14 +529,14 @@ const SHOTS = [
     full: true,
     fresh: true,
     only: ["desktop", "tablet-landscape", "tablet", "phone"],
-    app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...addExample, go("#/phase/before-start"), click('[data-step="example-trainer.before-start.battery"] .tick')] },
+    app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...addExample, go("#/phase/before-start"), click('[data-step="example-sidestick.before-start.briefing"] .tick')] },
   },
   {
     name: "board-roles-procedure",
     full: true,
     fresh: true,
     only: ["desktop", "phone"],
-    app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...addExample, go("#/phase/start"), click('[data-step="example-trainer.start.walkaround"] .tick')] },
+    app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...addExample, go("#/phase/cockpit-prep"), click('[data-step="example-sidestick.cockpit-prep.batteries"] .tick')] },
   },
   // Step by step with roles (no board; agreed as on the phone's board): the caller's tag before
   // the name, the answerer's before the value.
@@ -550,7 +550,7 @@ const SHOTS = [
         ...TOUR_STATE,
         ...addExample,
         go("#/phase/before-start"),
-        click('[data-step="example-trainer.before-start.battery"] .tick'),
+        click('[data-step="example-sidestick.before-start.briefing"] .tick'),
         click('button[aria-label="Menu"]'),
         `[...document.querySelectorAll("#drawer .seg.view button")].find((b) => b.textContent.trim() === "Step by step").click(); true`,
         click("#drawer .close"),

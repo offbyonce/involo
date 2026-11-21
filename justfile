@@ -66,7 +66,7 @@ examples := "packs/examples/example-twin packs/examples/example-sidestick packs/
 # The catalog the interface tests and the dev server read, built the same way into
 # target/test-packs, with the example packs after it.
 test-packs:
-    just catalog target/test-packs packs/example-trainer {{examples}}
+    just catalog target/test-packs {{examples}}
 
 # Build the deployable web site into apps/web/dist (published to GitHub Pages): the placeholder
 # front page, the work-in-progress app at app/ and the SimBrief probe page, with the WebAssembly

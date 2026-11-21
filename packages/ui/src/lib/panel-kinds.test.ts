@@ -9,7 +9,7 @@ import type { ItemTarget, PanelItem, PanelSection as Section } from "@involo/bin
 import { cleanup, render } from "@testing-library/svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
-import { examplePack } from "../test-pack";
+import { sidestickPack, twinPack } from "../test-pack";
 import PanelSchematic from "./PanelSchematic.svelte";
 import PanelSection from "./PanelSection.svelte";
 import { outline, positionsOf } from "./panel-layout";
@@ -175,11 +175,11 @@ describe("a keypad", () => {
   });
 });
 
-describe("a panel in the example pack (invented)", () => {
-  const pack = examplePack();
-  const panel = pack.content.panels.find((p) => p.id === "autoflight");
-  if (!panel) throw new Error("autoflight");
-  const section = panel.sections.find((s) => s.id === "autoflight") as Section;
+describe("a panel in the Airbus-style example pack (invented)", () => {
+  const pack = sidestickPack();
+  const panel = pack.content.panels.find((p) => p.id === "glareshield");
+  if (!panel) throw new Error("glareshield");
+  const section = panel.sections.find((s) => s.id === "fcu") as Section;
 
   /** Whether a point lies inside a closed outline or on its edge. */
   function inside(points: [number, number][], [x, y]: [number, number]) {
@@ -196,7 +196,7 @@ describe("a panel in the example pack (invented)", () => {
   }
 
   it("draws its section's angled outline, and every control stays inside it", () => {
-    const { container } = render(PanelSchematic, { panel, focus: ["autoflight"], targets: [] });
+    const { container } = render(PanelSchematic, { panel, focus: ["fcu"], targets: [] });
     const points = (section.outline ?? []) as [number, number][];
     expect(points.length).toBeGreaterThan(4);
     const frame = container.querySelector("path.frame");
@@ -217,11 +217,22 @@ describe("a panel in the example pack (invented)", () => {
       }
     }
   });
+});
+
+describe("a panel in the Boeing-style example pack (invented)", () => {
+  const pack = twinPack();
+  const panel = pack.content.panels.find((p) => p.id === "pedestal");
+  if (!panel) throw new Error("pedestal");
 
   it("puts every control in the tab order, named, the step's first, even with no current step", () => {
     const index = indexPack(pack);
     const hits = (targets: ItemTarget[]) => {
-      const { container } = render(PanelSchematic, { panel, focus: ["autoflight", "cabin"], targets, index });
+      const { container } = render(PanelSchematic, {
+        panel,
+        focus: ["displays", "cabin", "brakes"],
+        targets,
+        index,
+      });
       const all = [...container.querySelectorAll("svg.schematic [role=button]")];
       cleanup();
       return all;
@@ -234,7 +245,7 @@ describe("a panel in the example pack (invented)", () => {
       expect(hit.getAttribute("tabindex")).toBe("0");
       expect(hit.getAttribute("aria-label")).toMatch(/^\S.*: what it is$/);
     }
-    expect(none.map((h) => h.getAttribute("aria-label"))).toContain("HDG: what it is");
+    expect(none.map((h) => h.getAttribute("aria-label"))).toContain("DISPLAY: what it is");
     // The step sets SEAT BELTS, in the second section: it comes first, marked as the step's.
     const seatBelts = panel.sections[1]?.items.findIndex((i) => i.label === "SEAT BELTS") ?? -1;
     const step = hits([

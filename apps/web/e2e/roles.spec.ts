@@ -6,7 +6,8 @@ import { expect, test } from "./fixtures";
 
 // Crew roles (#133, Roles boards): in a challenge-and-response list, every row's step name and
 // value start at the same place, whatever its state and whichever tags it has, at each size.
-// The example pack's Before start is that list; its first step done, its second is current.
+// The Airbus-style example pack's Before start is that list; its first step done, its second is
+// current.
 
 const SIZES = [
   { name: "phone", width: 390, height: 844 },
@@ -41,7 +42,7 @@ test("crew roles: names, values and tags line up in every row of a challenge-and
   await app.scene(addExample);
   await app.ready();
   await app.scene(go("#/phase/before-start"));
-  await page.locator('[data-step="example-trainer.before-start.battery"] .tick').click();
+  await page.locator('[data-step="example-sidestick.before-start.briefing"] .tick').click();
   await expect(page.locator("li.it.pair.current")).toBeVisible();
   for (const size of SIZES) {
     await page.setViewportSize({ width: size.width, height: size.height });
@@ -52,7 +53,8 @@ test("crew roles: names, values and tags line up in every row of a challenge-and
       size.name,
     ).toEqual(expect.arrayContaining(["done", "current"]));
     for (const key of ["name", "value", "calls", "answers"] as const) {
-      const at = new Set(rows.map((r) => r[key]));
+      // A row whose value is blanks to fill shows no value text; the rest line up.
+      const at = new Set(rows.map((r) => r[key]).filter((x) => x !== null));
       expect(at.size, `${size.name}: every row's ${key} starts at one place (${JSON.stringify(rows)})`).toBe(
         1,
       );

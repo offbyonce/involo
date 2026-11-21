@@ -11,7 +11,7 @@ mod tests {
     const PHRASE: &str = "alpha bravo charlie delta echo foxtrot golf hotel";
 
     fn example_pack() -> PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer")
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/examples/example-twin")
     }
 
     fn temp_dir(name: &str) -> PathBuf {

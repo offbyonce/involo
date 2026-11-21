@@ -444,7 +444,7 @@ mod tests {
     use crate::test_support::{example_pack, ifly_pack};
 
     fn step() -> StepId {
-        StepId::new("example-trainer.before-start.battery")
+        StepId::new("example-twin.before-start.battery")
     }
 
     #[test]
@@ -549,7 +549,7 @@ mod tests {
             Err(AppError::InvalidAction(_))
         ));
         let bad_step = Action::Tick {
-            step: StepId::new("example-trainer.x.y"),
+            step: StepId::new("example-twin.x.y"),
             at: 1,
         };
         assert!(matches!(

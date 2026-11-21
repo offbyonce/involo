@@ -41,22 +41,35 @@ export function iflyPack(): FlatPack {
   return ifly;
 }
 
-let example: FlatPack | undefined;
+const examples = new Map<string, FlatPack>();
 
-/** The built example pack (invented, in the test catalog only), read once. */
-export function examplePack(): FlatPack {
-  example ??= packAsReceived(testPackText("example-trainer"));
-  return example;
+/** A built example pack (packs/examples, decision 0030; in the test catalog only), read once. */
+function example(id: string): FlatPack {
+  let pack = examples.get(id);
+  if (!pack) {
+    pack = packAsReceived(testPackText(id));
+    examples.set(id, pack);
+  }
+  return pack;
 }
 
-/** The app's own words (decision 0029), as Rust gives a pack without a labels file. For packs a
- * test builds by hand. The example pack's labels file sets only its seats, crew roles and seat
- * view title, so those go back to the app's defaults (no seats, no roles, the captain seat). */
+/** The invented Boeing-style example pack: checklists and flows, one seat frame, quick reference,
+ * every control kind but the Airbus-style ones, and no labels file. */
+export const twinPack = () => example("example-twin");
+
+/** The invented Airbus-style example pack: its own stages, crew roles and list methods, legend
+ * pushbuttons and push-pull knobs, alert messages, flight pages and labels. */
+export const sidestickPack = () => example("example-sidestick");
+
+/** The variant of the Example Twin, built over it with patches. */
+export const twinLrPack = () => example("example-twin-lr");
+
+/** Every example pack, by id, for tests that run against each. */
+export const EXAMPLE_PACKS = ["example-twin", "example-sidestick", "example-twin-lr"] as const;
+export const examplePackById = (id: (typeof EXAMPLE_PACKS)[number]) => example(id);
+
+/** The app's own words (decision 0029), as Rust gives a pack without a labels file: the Example
+ * Twin has none. For packs a test builds by hand. */
 export function appLabels(): Labels {
-  return {
-    ...structuredClone(examplePack().content.labels),
-    seats: [],
-    roles: [],
-    seatViewTitle: "From the captain seat: which side",
-  };
+  return structuredClone(twinPack().content.labels);
 }

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-//! A valid built pack (the example pack) with fuzzer-chosen edits: a value set, removed, copied
+//! A valid built pack (the Airbus-style example pack) with fuzzer-chosen edits: a value set, removed, copied
 //! from elsewhere in the pack or made deep, so the install check and opening the pack see packs
 //! that read as JSON and are wrong in every other way. Neither may panic, hang or run out of
 //! memory.
@@ -20,7 +20,8 @@ use serde_json::Value;
 fn example() -> &'static Value {
     static PACK: OnceLock<Value> = OnceLock::new();
     PACK.get_or_init(|| {
-        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../packs/example-trainer");
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../packs/examples/example-sidestick");
         serde_json::to_value(FlatPack::built(
             load_pack_dir(&dir).expect("the example pack loads"),
         ))

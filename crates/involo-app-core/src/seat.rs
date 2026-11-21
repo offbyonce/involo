@@ -24,7 +24,7 @@ pub fn seat_frame(pack: &FlatPack, role: Option<&str>, chosen: Option<&str>) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_support::{example_pack, ifly_pack};
+    use crate::test_support::{ifly_pack, sidestick_pack};
 
     /// The text of the frame's first label, which tells the example pack's frames apart.
     fn seat_of(frame: Option<ViewFrame>) -> Option<String> {
@@ -33,7 +33,7 @@ mod tests {
 
     #[test]
     fn a_role_that_sits_in_a_seat_shows_that_seat_whatever_was_chosen() {
-        let pack = example_pack();
+        let pack = sidestick_pack();
         assert_eq!(
             seat_of(seat_frame(&pack, Some("fo"), Some("left"))).as_deref(),
             Some("FROM THE RIGHT SEAT")
@@ -46,7 +46,7 @@ mod tests {
 
     #[test]
     fn a_duty_role_or_no_role_shows_the_chosen_seat_then_the_first() {
-        let pack = example_pack();
+        let pack = sidestick_pack();
         assert_eq!(
             seat_of(seat_frame(&pack, Some("pf"), Some("right"))).as_deref(),
             Some("FROM THE RIGHT SEAT")

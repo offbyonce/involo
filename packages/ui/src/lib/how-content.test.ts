@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from "vitest";
-import { examplePack, iflyPack } from "../test-pack";
+import { iflyPack, sidestickPack, twinPack } from "../test-pack";
 import { fill, flowAreas, flowLabelOf, HOW, runs } from "./how-content";
 
 describe("How procedures work's text", () => {
@@ -44,8 +44,10 @@ describe("How procedures work's text", () => {
     expect(flowLabelOf(areas)).toBe(
       "A flow sweeps across the panels in a fixed pattern: overhead, glareshield, main panel, then pedestal",
     );
-    // A pack with no regions (the example pack) names none: the fallback.
-    expect(flowAreas(examplePack())).toEqual(["AREA 1", "AREA 2", "AREA 3", "AREA 4"]);
+    // A pack with two regions on its map names those, then the fallback for the rest.
+    expect(flowAreas(twinPack())).toEqual(["OVERHEAD", "PEDESTAL", "AREA 3", "AREA 4"]);
+    // A pack with no regions (the Airbus-style example) names none: the fallback.
+    expect(flowAreas(sidestickPack())).toEqual(["AREA 1", "AREA 2", "AREA 3", "AREA 4"]);
     // A region without a short name gives its name; only regions with panels on the map count.
     const p = structuredClone(iflyPack());
     const regions = p.content.controls?.overview?.regions ?? [];

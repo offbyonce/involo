@@ -12,7 +12,7 @@ sections:
     title: Electrical
     x: 10
     y: 10
-    width: 180.5
+    width: 185
     height: 90
     items:
       - id: battery
@@ -27,13 +27,13 @@ sections:
       - kind: light
         label: BATT LOW
         color: amber
-        x: 66.25
+        x: 80
         y: 30
         controls: [battery]
         description: The battery is running low.
       - kind: display_unit
         label: VOLTS
-        x: 110
+        x: 145
         y: 30
         description: Shows battery voltage.
         width: 50

@@ -10,7 +10,7 @@ import { cleanup, render, screen, within } from "@testing-library/svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { default_settings, new_flight, phase_model } from "../../../../apps/web/src/wasm/involo_web_host.js";
 import { indexPack } from "../pack-index";
-import { examplePack, iflyPack } from "../test-pack";
+import { iflyPack, sidestickPack, twinPack } from "../test-pack";
 import FlowView from "./FlowView.svelte";
 import ListCard from "./ListCard.svelte";
 
@@ -64,7 +64,7 @@ afterEach(() => cleanup());
 
 describe("crew roles and list methods (#133)", () => {
   it("a challenge-and-response list: its method under the title, column headings, who calls and who answers", () => {
-    card(examplePack(), "before-start");
+    card(sidestickPack(), "before-start");
     expect(screen.getByText("Checklist · Challenge and response")).toBeTruthy();
     const heads = document.querySelector(".heads") as HTMLElement;
     expect([...heads.children].map((c) => c.textContent)).toEqual([
@@ -74,17 +74,17 @@ describe("crew roles and list methods (#133)", () => {
       "Answers",
       "Response",
     ]);
-    const battery = row("example-trainer.before-start.battery");
-    expect(battery.classList.contains("pair")).toBe(true);
-    expect(tags(battery.querySelector(".calls") as Element)).toEqual([["PM", "Pilot monitoring"]]);
-    expect(tags(battery.querySelector(".answers") as Element)).toEqual([["CAPT", "Captain"]]);
+    const briefing = row("example-sidestick.before-start.briefing");
+    expect(briefing.classList.contains("pair")).toBe(true);
+    expect(tags(briefing.querySelector(".calls") as Element)).toEqual([["PM", "Pilot monitoring"]]);
+    expect(tags(briefing.querySelector(".answers") as Element)).toEqual([["PF", "Pilot flying"]]);
     // A screen reader hears the full name and what the role does.
-    expect(battery.querySelector(".calls")?.textContent).toBe("PMPilot monitoring, calls");
-    expect(battery.querySelector(".answers")?.textContent).toBe("CAPTCaptain, answers");
+    expect(briefing.querySelector(".calls")?.textContent).toBe("PMPilot monitoring, calls");
+    expect(briefing.querySelector(".answers")?.textContent).toBe("PFPilot flying, answers");
   });
 
   it("tablet and phone: the strip names the method and the count", () => {
-    const list = card(examplePack(), "before-start");
+    const list = card(sidestickPack(), "before-start");
     const strip = document.querySelector(".strip") as HTMLElement;
     expect(strip.getAttribute("aria-hidden")).toBe("true");
     expect(strip.textContent).toBe(
@@ -94,24 +94,25 @@ describe("crew roles and list methods (#133)", () => {
   });
 
   it("another list: the step's role tag after its name, inside the row's button", () => {
-    card(examplePack(), "start");
-    expect(screen.getByText("Procedure · Read and do")).toBeTruthy();
+    // The pack's own words for a flow and its method.
+    card(sidestickPack(), "cockpit-prep");
+    expect(screen.getByText("Flow · Read and do")).toBeTruthy();
     expect(document.querySelector(".heads")).toBeNull();
-    const nose = row("example-trainer.start.walkaround");
-    expect(nose.classList.contains("pair")).toBe(false);
-    const name = nose.querySelector(".row .name") as HTMLElement;
+    const batteries = row("example-sidestick.cockpit-prep.batteries");
+    expect(batteries.classList.contains("pair")).toBe(false);
+    const name = batteries.querySelector(".row .name") as HTMLElement;
     expect(tags(name)).toEqual([["CAPT", "Captain"]]);
     expect(name.querySelector(".nm + abbr.role")).toBeTruthy();
-    expect(within(nose).getByRole("button", { name: /Nose area.*Captain/ })).toBeTruthy();
+    expect(within(batteries).getByRole("button", { name: /Batteries.*Captain/ })).toBeTruthy();
   });
 
   it("a step with no role has no tag", () => {
-    card(examplePack(), "start");
-    expect(tags(row("example-trainer.start.radio"))).toEqual([]);
+    card(sidestickPack(), "memory");
+    expect(tags(row("example-sidestick.smoke.checklist"))).toEqual([]);
   });
 
   it("folded until the procedure is done: the method, then when it opens", () => {
-    card(examplePack(), "before-start", true);
+    card(sidestickPack(), "before-start", true);
     expect(screen.getByText("Challenge and response · opens when the procedure is done")).toBeTruthy();
   });
 
@@ -128,7 +129,7 @@ describe("crew roles and list methods (#133)", () => {
   });
 
   it("Step by step: the caller's tag before the name, the answerer's before the value", () => {
-    const pack = examplePack();
+    const pack = sidestickPack();
     const { model, index } = phase(pack, "before-start");
     render(FlowView, {
       index,
@@ -143,13 +144,13 @@ describe("crew roles and list methods (#133)", () => {
     const [name, value] = [...document.querySelectorAll(".box .line")] as HTMLElement[];
     expect(tags(name as HTMLElement)).toEqual([["PM", "Pilot monitoring"]]);
     expect(name?.querySelector("abbr.role + .sr-only + h1")).toBeTruthy();
-    expect(tags(value as HTMLElement)).toEqual([["CAPT", "Captain"]]);
-    expect(value?.querySelector(".value")?.textContent).toBe("ON");
+    expect(tags(value as HTMLElement)).toEqual([["PF", "Pilot flying"]]);
+    expect(value?.querySelector(".value")?.textContent).toBe("COMPLETE");
   });
 
   it("Step by step, another list: the role's tag before the name only", () => {
-    const pack = examplePack();
-    const { model, index } = phase(pack, "start");
+    const pack = sidestickPack();
+    const { model, index } = phase(pack, "cockpit-prep");
     render(FlowView, {
       index,
       view: model,
@@ -187,17 +188,20 @@ describe("crew roles and list methods (#133)", () => {
 
 describe("the pack index (#133)", () => {
   it("names each list's method and kind in the pack's words; none without a method", () => {
-    const index = indexPack(examplePack());
+    const index = indexPack(sidestickPack());
     expect(index.listMethod("before-start")).toBe("Challenge and response");
-    expect(index.listMethod("start-flow")).toBe("Read and do");
+    expect(index.listMethod("cockpit-prep")).toBe("Read and do");
+    expect(index.listMethod("after-takeoff")).toBe("Do");
     expect(index.listMethod("smoke")).toBe("From memory");
+    expect(index.listMethod("taxi")).toBeNull();
     expect(index.listKind("before-start")).toBe("Checklist");
+    expect(index.listKind("cockpit-prep")).toBe("Flow");
     const ifly = indexPack(iflyPack());
     expect(iflyPack().lists.every((l) => ifly.listMethod(l.id) === null)).toBe(true);
   });
 
   it("offers a seat for each seat the labels list when the pack draws more than one seat view", () => {
-    expect(indexPack(examplePack()).seats).toEqual([
+    expect(indexPack(sidestickPack()).seats).toEqual([
       { id: "left", label: "Left seat · Captain" },
       { id: "right", label: "Right seat · First officer" },
     ]);
@@ -206,9 +210,10 @@ describe("the pack index (#133)", () => {
   });
 
   it("offers Essentials only for a pack that marks quick steps", () => {
-    expect(indexPack(examplePack()).hasEssentials).toBe(true);
+    expect(indexPack(twinPack()).hasEssentials).toBe(true);
     expect(indexPack(iflyPack()).hasEssentials).toBe(true);
-    const none = structuredClone(examplePack());
+    expect(indexPack(sidestickPack()).hasEssentials).toBe(false);
+    const none = structuredClone(twinPack());
     for (const list of none.lists) for (const step of list.steps) step.quick = null;
     expect(indexPack(none).hasEssentials).toBe(false);
   });

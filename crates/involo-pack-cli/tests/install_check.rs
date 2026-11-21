@@ -17,7 +17,7 @@ mod tests {
     fn broken(name: &str, edits: &[Edit], added: &[(&str, &str)]) -> PathBuf {
         let dir = std::env::temp_dir().join(format!("pack-install-{}-{name}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
-        let from = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
+        let from = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/examples/example-twin");
         copy(&from, &dir);
         for (file, old, new) in edits {
             let path = dir.join(file);
@@ -85,11 +85,17 @@ mod tests {
         added: &'static [(&'static str, &'static str)],
     }
 
-    const ICAO: Edit = ("pack.json", r#"["ZZZZ"]"#, r#"["zz"]"#);
+    const ICAO: Edit = ("pack.json", r#"["ZZZT"]"#, r#"["zz"]"#);
     const CONTROL: Edit = (
-        "before-start.yaml",
+        "lists/before-start.yaml",
         "controls: [battery]",
         "controls: [no-such]",
+    );
+    /// The example pack names a labels file, for the cases that add a broken one.
+    const WITH_LABELS: Edit = (
+        "pack.json",
+        r#""messages": "messages.yaml""#,
+        r#""messages": "messages.yaml", "labels": "labels.yaml""#,
     );
     const LIGHT: Edit = (
         "lights.yaml",
@@ -110,7 +116,7 @@ mod tests {
         Case {
             name: "target",
             edits: &[(
-                "before-start.yaml",
+                "lists/before-start.yaml",
                 "overhead/electrical/BATTERY/1",
                 "overhead/electrical/NOPE/1",
             )],
@@ -124,7 +130,7 @@ mod tests {
         Case {
             name: "link",
             edits: &[(
-                "before-start.yaml",
+                "lists/before-start.yaml",
                 "note: Turn on before engine start.",
                 "note: See https://www.brainscape.com/x",
             )],
@@ -133,30 +139,30 @@ mod tests {
         Case {
             name: "duplicate",
             edits: &[(
-                "before-start.yaml",
-                "id: example-trainer.before-start.beacon",
-                "id: example-trainer.before-start.battery",
+                "lists/before-start.yaml",
+                "id: example-twin.before-start.beacon",
+                "id: example-twin.before-start.battery",
             )],
             added: &[],
         },
         Case {
             name: "basis",
             edits: &[(
-                "before-start.yaml",
+                "lists/before-start.yaml",
                 "basis: [invented-example]",
                 "basis: [not-listed]",
             )],
             added: &[],
         },
-        // The example pack's labels file, replaced by a broken one.
+        // A broken labels file.
         Case {
             name: "labels",
-            edits: &[],
+            edits: &[WITH_LABELS],
             added: &[("labels.yaml", LABELS)],
         },
         Case {
             name: "several",
-            edits: &[ICAO, CONTROL, LIGHT],
+            edits: &[ICAO, CONTROL, LIGHT, WITH_LABELS],
             added: &[("labels.yaml", LABELS)],
         },
     ];

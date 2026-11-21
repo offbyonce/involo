@@ -12,7 +12,7 @@ import { packAsReceived } from "../test-pack";
 import { sectionName } from "./panel-name";
 
 /** The published packs in the test catalog, by file, as the interface receives them. The example
- * pack is a format demo that is never published, so it is left out. */
+ * packs (packs/examples) are invented and never published, so they are left out. */
 const packs: Record<string, FlatPack> = Object.fromEntries(
   Object.entries(
     import.meta.glob<string>("../../../../target/test-packs/*.involo-pack", {
@@ -21,7 +21,7 @@ const packs: Record<string, FlatPack> = Object.fromEntries(
       import: "default",
     }),
   )
-    .filter(([file]) => !file.includes("/example-trainer-"))
+    .filter(([file]) => !file.includes("/example-"))
     .map(([file, text]) => [file, packAsReceived(text)]),
 );
 

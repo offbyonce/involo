@@ -571,24 +571,64 @@ steps:
 
     #[test]
     fn words_a_labels_file_leaves_out_are_the_app_s() {
-        // The example pack's labels file names only its seats, crew roles and seat view title.
-        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
-        let pack = load_pack_dir(&dir).unwrap();
+        let examples = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/examples");
+        // No labels file: every word is the app's.
+        let twin = load_pack_dir(&examples.join("example-twin")).unwrap();
+        assert!(twin.manifest.labels.is_none());
+        assert_eq!(
+            twin.content.labels,
+            involo_checklist_core::Labels::complete(None, &twin.manifest.basis_tags)
+        );
+        // A labels file: its words, and the app's for what it leaves out of the lists merged by
+        // key (reference groups, basis tags, position words).
+        let pack = load_pack_dir(&examples.join("example-sidestick")).unwrap();
         assert!(pack.manifest.labels.is_some());
         let labels = &pack.content.labels;
-        assert_eq!(labels.seats.len(), 2);
-        assert_eq!(labels.roles.len(), 4);
-        let mut app = involo_checklist_core::Labels::complete(None, &pack.manifest.basis_tags);
-        app.seats.clone_from(&labels.seats);
-        app.roles.clone_from(&labels.roles);
-        app.seat_view_title.clone_from(&labels.seat_view_title);
-        assert_eq!(labels, &app);
-        assert_eq!(labels.reference.title, "Emergency");
+        let app = involo_checklist_core::Labels::complete(None, &pack.manifest.basis_tags);
+        assert_eq!((labels.seats.len(), labels.roles.len()), (2, 4));
+        assert_eq!(labels.reference.title, "Abnormal");
+        let groups: Vec<(&str, &str)> = labels
+            .reference
+            .groups
+            .iter()
+            .map(|g| (g.id.as_str(), g.title.as_str()))
+            .collect();
+        assert_eq!(
+            groups,
+            [
+                ("memory", "Memory items"),
+                ("quick", "Quick reference card"),
+                ("procedures", "Non-normal procedures")
+            ]
+        );
+        for tag in &app.basis_tags {
+            assert!(
+                labels.basis_tags.iter().any(|t| t.id == tag.id),
+                "{}",
+                tag.id
+            );
+        }
+        assert!(
+            labels
+                .basis_tags
+                .iter()
+                .any(|t| t.id == "being-checked" && t.pending)
+        );
+        for (position, words) in &app.position_words {
+            if position != "ON" {
+                assert_eq!(
+                    labels.position_words.get(position),
+                    Some(words),
+                    "{position}"
+                );
+            }
+        }
+        assert_eq!(labels.position_words["ON"], ["ENGAGED"]);
     }
 
     #[test]
     fn example_pack_uses_every_content_file_and_passes() {
-        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/examples/example-twin");
         let pack = load_pack_dir(&dir).unwrap();
         let c = &pack.content;
         assert!(
@@ -624,12 +664,15 @@ steps:
     fn a_link_back_up_the_pack_folder_does_not_loop() {
         let place = std::env::temp_dir().join(format!("involo-link-loop-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&place);
-        let dir = place.join("example-trainer");
-        let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
+        let dir = place.join("example-twin");
+        let source =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/examples/example-twin");
         std::fs::create_dir_all(dir.join("panels")).unwrap();
+        std::fs::create_dir_all(dir.join("lists")).unwrap();
         for entry in std::fs::read_dir(&source)
             .unwrap()
             .chain(std::fs::read_dir(source.join("panels")).unwrap())
+            .chain(std::fs::read_dir(source.join("lists")).unwrap())
         {
             let path = entry.unwrap().path();
             if path.is_file() {

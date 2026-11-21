@@ -451,14 +451,14 @@ mod tests {
 
     #[test]
     fn a_pack_file_is_checked_against_the_catalog_s_hash() {
-        let dir =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../packs/examples/example-twin");
         let text =
             serde_json::to_string(&FlatPack::built(involo_pack::load_pack_dir(&dir).unwrap()))
                 .unwrap();
         let ready = json(&check_pack(text.as_bytes(), ""));
         assert_eq!(ready["ok"]["state"], "ready");
-        assert_eq!(ready["ok"]["summary"]["id"], "example-trainer");
+        assert_eq!(ready["ok"]["summary"]["id"], "example-twin");
         let hash = involo_pack::sha256_hex(text.as_bytes());
         assert_eq!(
             json(&check_pack(text.as_bytes(), &hash))["ok"]["state"],
@@ -479,8 +479,8 @@ mod tests {
 
     #[test]
     fn two_versions_of_a_pack_compare_and_a_flight_is_brought_in_line() {
-        let dir =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../packs/examples/example-twin");
         let old = FlatPack::from(involo_pack::load_pack_dir(&dir).unwrap());
         let mut new = old.clone();
         new.manifest.version = semver::Version::new(0, 2, 0);
@@ -493,18 +493,15 @@ mod tests {
         assert_eq!(changes["toVersion"], "0.2.0");
         assert_eq!(
             changes["removed"][0]["step"],
-            "example-trainer.before-start.beacon"
+            "example-twin.before-start.beacon"
         );
         // A flight saved with 0.1.0, loaded with 0.2.0: brought in line, the version recorded.
         json(&parse_pack(&new_json));
-        let flight = json(&new_flight("example-trainer"))["ok"].clone();
+        let flight = json(&new_flight("example-twin"))["ok"].clone();
         let mut old_flight = flight.clone();
         old_flight["packVersion"] = "0.1.0".into();
-        let brought = json(&reconcile_flight(
-            "example-trainer",
-            &old_flight.to_string(),
-        ))["ok"]
-            .clone();
+        let brought =
+            json(&reconcile_flight("example-twin", &old_flight.to_string()))["ok"].clone();
         assert_eq!(brought["packVersion"], "0.2.0");
         assert_eq!(
             json(&compare_packs("{}", &new_json))["error"]["kind"],
@@ -514,45 +511,45 @@ mod tests {
 
     #[test]
     fn a_loaded_pack_gives_flights_actions_and_a_rail() {
-        let dir =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../packs/examples/example-sidestick");
         let pack = FlatPack::from(involo_pack::load_pack_dir(&dir).unwrap());
         assert!(json(&parse_pack(&serde_json::to_string(&pack).unwrap()))["ok"].is_object());
         assert_eq!(
             json(&plan_values(
-                "example-trainer",
+                "example-sidestick",
                 r#"{"origin":{"icao":"EGLL"}}"#
             ))["error"]["kind"],
             "FlightPlan",
             "a plan with no destination fills nothing"
         );
         let other = json(&other_aircraft(
-            "example-trainer",
+            "example-sidestick",
             r#"{"general":{"aircraft":"B38M","aircraftName":"737 MAX 8"}}"#,
         ));
         assert_eq!(other["ok"]["planType"], "B38M");
         assert_eq!(other["ok"]["planName"], "737 MAX 8");
-        assert_eq!(other["ok"]["packTypes"][0], "ZZZZ");
+        assert_eq!(other["ok"]["packTypes"][0], "ZZZS");
         assert!(
             json(&other_aircraft(
-                "example-trainer",
-                r#"{"general":{"aircraft":"zzzz"}}"#
+                "example-sidestick",
+                r#"{"general":{"aircraft":"zzzs"}}"#
             ))["ok"]
                 .is_null()
         );
         let result = json(&practice_result(
-            "example-trainer",
+            "example-sidestick",
             r#"{"title":"Memory items","score":3,"total":4,"at":9}"#,
         ));
-        assert_eq!(result["ok"]["id"], "example-trainer@9");
+        assert_eq!(result["ok"]["id"], "example-sidestick@9");
         assert_eq!(
             result["ok"]["packVersion"],
             pack.manifest.version.to_string()
         );
         assert_eq!(result["ok"]["packName"], pack.manifest.name);
-        assert_eq!(result["ok"]["aircraft"], "Example trainer");
+        assert_eq!(result["ok"]["aircraft"], "Example Sidestick Twin");
         let seat = |role: &str, chosen: &str| {
-            json(&seat_frame("example-trainer", role, chosen))["ok"]["labels"][0]["text"].clone()
+            json(&seat_frame("example-sidestick", role, chosen))["ok"]["labels"][0]["text"].clone()
         };
         assert_eq!(seat("fo", "left"), "FROM THE RIGHT SEAT");
         assert_eq!(seat("pf", "right"), "FROM THE RIGHT SEAT");
@@ -561,33 +558,40 @@ mod tests {
             json(&seat_frame("nope", "", ""))["error"]["kind"],
             "PackInvalid"
         );
-        let flight = json(&new_flight("example-trainer"))["ok"].to_string();
-        let action = r#"{"type":"tick","step":"example-trainer.before-start.battery","at":7}"#;
-        let ticked = json(&apply("example-trainer", &flight, action))["ok"].clone();
+        let flight = json(&new_flight("example-sidestick"))["ok"].to_string();
+        let action = r#"{"type":"tick","step":"example-sidestick.before-start.briefing","at":7}"#;
+        let ticked = json(&apply("example-sidestick", &flight, action))["ok"].clone();
         assert_eq!(
-            ticked["session"]["done"]["example-trainer.before-start.battery"],
+            ticked["session"]["done"]["example-sidestick.before-start.briefing"],
             7
         );
         let settings = default_settings();
         let settings = json(&settings)["ok"].to_string();
         assert!(
-            json(&rail("example-trainer", &ticked.to_string(), &settings))["ok"]["stages"]
+            json(&rail("example-sidestick", &ticked.to_string(), &settings))["ok"]["stages"]
                 .is_array()
         );
         assert!(
             json(&open_steps(
-                "example-trainer",
+                "example-sidestick",
                 &ticked.to_string(),
                 &settings,
                 ""
             ))["ok"]
                 .is_array()
         );
-        // No suggestion rule in the example pack: null, not an error.
-        assert!(json(&suggestion("example-trainer", &ticked.to_string(), "power"))["ok"].is_null());
-        assert!(json(&suggestion("example-trainer", "{", "power"))["error"].is_object());
+        // No suggestion rule for this option: null, not an error.
+        assert!(
+            json(&suggestion(
+                "example-sidestick",
+                &ticked.to_string(),
+                "power"
+            ))["ok"]
+                .is_null()
+        );
+        assert!(json(&suggestion("example-sidestick", "{", "power"))["error"].is_object());
         let view = json(&phase_model(
-            "example-trainer",
+            "example-sidestick",
             &ticked.to_string(),
             &settings,
             "before-start",
@@ -595,7 +599,12 @@ mod tests {
             .clone();
         assert_eq!(view["lists"][0]["steps"][0]["state"], "done");
         assert_eq!(
-            json(&phase_model("example-trainer", &flight, &settings, "nope"))["error"]["kind"],
+            json(&phase_model(
+                "example-sidestick",
+                &flight,
+                &settings,
+                "nope"
+            ))["error"]["kind"],
             "InvalidAction"
         );
     }

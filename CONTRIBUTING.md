@@ -166,15 +166,15 @@ first), a `legend_pushbutton` (its `positions`, and one or two `legends`, each w
 shows lit when a step expects the button's light on) or a `keypad` (its keys as `positions`,
 `columns` to a row; a step has one target per key it presses). A panel or section may give an
 `outline`, three points or more, in place of its rectangle; it must hold everything drawn in it.
-Packs name light roles (amber, red, green, blue, white), never colors. See the example pack's
-`panels/autoflight.yaml`.
+Packs name light roles (amber, red, green, blue, white), never colors. See the example packs'
+panels (`packs/examples/example-sidestick/panels/glareshield.yaml`, for one).
 
 **Alert messages.** An aircraft with an alert display (EICAS or ECAM) lists its messages in
 `messages.yaml` (manifest `messages`): each with an `id`, its `text` as the display shows it, a
 `level` (`warning`, `caution`, `advisory`, `memo`, `status`), what it means (`meaning`), the `list`
 that deals with it or, without one, why none is needed (`no_list`), and the `steps` that deal with
 it. A pack never sets their colors. Without `messages.yaml` the app shows no Alert messages tab and
-no message rows. See the example pack.
+no message rows. See `packs/examples/example-sidestick/messages.yaml`.
 
 **Extending a pack.** A pack may build on one parent (another pack or a `kind: library` pack):
 `extends` names it with the versions it accepts, and `patches` (`patches.yaml`) changes it by id.
@@ -221,12 +221,12 @@ optional `short` name ("Overhead", shared by both overhead regions) names that a
 page's flow figure.
 
 **Publishing a pack.** The catalog is built by `just catalog <out>`: each pack in the justfile's
-`published` list (the example pack is a format demo and is not published), checked, as one
+`published` list (the invented example packs in `packs/examples` are not published), checked, as one
 `<id>-<version>.involo-pack`, and `index.json` with each pack's id, name, version, aircraft,
 `engine`, size and SHA-256. `just site` writes it into the site's `packs/`, as separate files the
 service worker never precaches; a release attaches the same files. Interface tests and the dev
 server read `target/test-packs`, which `just test-packs` builds with the same recipe and the
-example pack. Raise a pack's `version` for each change you publish.
+example packs. Raise a pack's `version` for each change you publish.
 
 **Installing a pack.** The app checks every pack before it keeps it on the device (decision 0028),
 with the checks `involo-pack check` makes, run on the built file. The file must be at most 16 MB

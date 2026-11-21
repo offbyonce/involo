@@ -19,7 +19,8 @@ mod tests {
 
     /// The example pack, every file of it in memory.
     fn example() -> InMemory {
-        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
+        let dir =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/examples/example-sidestick");
         let mut files = BTreeMap::new();
         let mut stack = vec![dir.clone()];
         while let Some(d) = stack.pop() {
@@ -38,15 +39,18 @@ mod tests {
             }
         }
         InMemory {
-            name: PathBuf::from("example-trainer"),
+            name: PathBuf::from("example-sidestick"),
             files,
         }
     }
 
     /// How a message names the example pack's file `rel`: as a path, with the system's separator
-    /// (`example-trainer\smoke.yaml` on Windows), as the loader joins it.
+    /// (`example-sidestick\lists\smoke.yaml` on Windows), as the loader joins it.
     fn file(rel: &str) -> String {
-        Path::new("example-trainer").join(rel).display().to_string()
+        Path::new("example-sidestick")
+            .join(rel)
+            .display()
+            .to_string()
     }
 
     fn text(pack: &InMemory, rel: &str) -> String {
@@ -116,11 +120,11 @@ mod tests {
             &format!("{}: EOF while parsing", file("pack.json")),
         );
         let mut pack = example();
-        let yaml = text(&pack, "smoke.yaml");
+        let yaml = text(&pack, "lists/smoke.yaml");
         // Cut inside the second step's quoted value.
         let cut = yaml.find("'ON").unwrap() + 2;
-        put(&mut pack, "smoke.yaml", &yaml[..cut]);
-        refused_with(&pack, &[], &format!("{}:", file("smoke.yaml")));
+        put(&mut pack, "lists/smoke.yaml", &yaml[..cut]);
+        refused_with(&pack, &[], &format!("{}:", file("lists/smoke.yaml")));
         assert!(
             refusal(&pack, &[]).contains("line 17"),
             "{}",
@@ -131,15 +135,15 @@ mod tests {
     #[test]
     fn a_file_that_is_not_utf8_is_refused() {
         let mut pack = example();
-        let mut bytes = pack.files["smoke.yaml"].clone();
+        let mut bytes = pack.files["lists/smoke.yaml"].clone();
         bytes.splice(200..200, [0xff, 0xfe]);
-        put(&mut pack, "smoke.yaml", bytes);
+        put(&mut pack, "lists/smoke.yaml", bytes);
         refused_with(
             &pack,
             &[],
             &format!(
                 "{}: the file is not UTF-8 text (an invalid byte at 200)",
-                file("smoke.yaml")
+                file("lists/smoke.yaml")
             ),
         );
     }
@@ -167,14 +171,14 @@ mod tests {
         for depth in [100, 100_000] {
             let mut pack = example();
             let deep = format!("{}x{}", "[".repeat(depth), "]".repeat(depth));
-            let yaml = text(&pack, "smoke.yaml").replace(
+            let yaml = text(&pack, "lists/smoke.yaml").replace(
                 "    expect: 'ON'",
                 &format!("    expect: 'ON'\n    show_if: {deep}"),
             );
-            put(&mut pack, "smoke.yaml", yaml);
+            put(&mut pack, "lists/smoke.yaml", yaml);
             let said = refusal(&pack, &[]);
             assert!(
-                said.starts_with(&format!("{}:", file("smoke.yaml"))),
+                said.starts_with(&format!("{}:", file("lists/smoke.yaml"))),
                 "{said}"
             );
             assert!(
@@ -194,14 +198,14 @@ mod tests {
         }
         bomb.push(']');
         let mut pack = example();
-        let yaml = text(&pack, "smoke.yaml").replace(
+        let yaml = text(&pack, "lists/smoke.yaml").replace(
             "    expect: 'ON'",
             &format!("    expect: 'ON'\n    show_if: {bomb}"),
         );
-        put(&mut pack, "smoke.yaml", yaml);
+        put(&mut pack, "lists/smoke.yaml", yaml);
         let said = refusal(&pack, &[]);
         assert!(
-            said.starts_with(&format!("{}:", file("smoke.yaml"))),
+            said.starts_with(&format!("{}:", file("lists/smoke.yaml"))),
             "{said}"
         );
         assert!(
@@ -261,24 +265,24 @@ mod tests {
     #[test]
     fn duplicate_and_malformed_ids_are_refused() {
         let mut pack = example();
-        let yaml = text(&pack, "smoke.yaml").replace(
-            "example-trainer.smoke.checklist",
-            "example-trainer.smoke.masks",
+        let yaml = text(&pack, "lists/smoke.yaml").replace(
+            "example-sidestick.smoke.checklist",
+            "example-sidestick.smoke.masks",
         );
-        put(&mut pack, "smoke.yaml", yaml);
+        put(&mut pack, "lists/smoke.yaml", yaml);
         refused_with(
             &pack,
             &[],
-            "example-trainer.smoke.masks: step id is used twice",
+            "example-sidestick.smoke.masks: step id is used twice",
         );
 
         let mut pack = example();
-        let yaml = text(&pack, "smoke.yaml").replace(
-            "example-trainer.smoke.masks",
-            "example-trainer.smoke.Oxygen Masks",
+        let yaml = text(&pack, "lists/smoke.yaml").replace(
+            "example-sidestick.smoke.masks",
+            "example-sidestick.smoke.Oxygen Masks",
         );
-        put(&mut pack, "smoke.yaml", yaml);
-        refused_with(&pack, &[], "example-trainer.smoke.Oxygen Masks:");
+        put(&mut pack, "lists/smoke.yaml", yaml);
+        refused_with(&pack, &[], "example-sidestick.smoke.Oxygen Masks:");
     }
 
     #[test]
@@ -351,22 +355,22 @@ mod tests {
 
     #[test]
     fn a_pack_over_an_item_limit_is_refused_for_that_alone() {
-        // Steps: one list made long enough to pass the limit.
+        // Steps: one list made long enough to pass the limit (the pack has 15 already).
         let mut pack = example();
-        let mut yaml = text(&pack, "smoke.yaml");
+        let mut yaml = text(&pack, "lists/smoke.yaml");
         for n in 0..MAX_STEPS {
             write!(
                 yaml,
-                "  - id: example-trainer.smoke.step-{n}\n    text: Step\n    expect: SET\n"
+                "  - id: example-sidestick.smoke.step-{n}\n    text: Step\n    expect: SET\n"
             )
             .unwrap();
         }
-        put(&mut pack, "smoke.yaml", yaml);
+        put(&mut pack, "lists/smoke.yaml", yaml);
         assert_eq!(
             refusal(&pack, &[]),
             format!(
                 "lists: the pack has {} steps; the most a pack may have is {MAX_STEPS}",
-                MAX_STEPS + 13
+                MAX_STEPS + 15
             )
         );
 
@@ -384,13 +388,13 @@ mod tests {
 
         let mut pack = example();
         let long = "Oxygen masks ".repeat(30);
-        let yaml = text(&pack, "smoke.yaml")
+        let yaml = text(&pack, "lists/smoke.yaml")
             .replace("text: Oxygen masks", &format!("text: {}", long.trim()));
-        put(&mut pack, "smoke.yaml", yaml);
+        put(&mut pack, "lists/smoke.yaml", yaml);
         assert_eq!(
             refusal(&pack, &[]),
             format!(
-                "example-trainer.smoke.masks: its text is {} characters; the most is {MAX_NAME_CHARS}",
+                "example-sidestick.smoke.masks: its text is {} characters; the most is {MAX_NAME_CHARS}",
                 long.trim().len()
             )
         );

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// Alert messages (Alert messages boards), from the invented example pack: the Flight deck page's
+// Alert messages (Alert messages boards), from the invented Airbus-style example pack: the Flight deck page's
 // tab, the list and its details, the step's and the list's rows, and nothing of it for a pack
 // without messages (the iFly pack).
 
@@ -10,12 +10,12 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/sve
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { indexPack } from "../pack-index";
 import FlightDeckPage from "../pages/FlightDeckPage.svelte";
-import { examplePack, iflyPack } from "../test-pack";
+import { iflyPack, sidestickPack } from "../test-pack";
 import ListCard from "./ListCard.svelte";
 import MessagesView from "./MessagesView.svelte";
 import StepPane from "./StepPane.svelte";
 
-const example = indexPack(examplePack());
+const example = indexPack(sidestickPack());
 const ifly = indexPack(iflyPack());
 
 afterEach(() => {
@@ -44,8 +44,9 @@ describe("the Alert messages tab", () => {
     const rows = document.querySelectorAll(".row");
     expect([...rows].map((r) => r.querySelector(".msg")?.textContent)).toEqual([
       "SMOKE CABIN",
-      "BATT LOW",
-      "RADIO FAULT",
+      "ENG FIRE",
+      "FUEL PUMP FAULT",
+      "A/THR OFF",
       "SEAT BELTS",
       "RADAR INOP",
     ]);
@@ -67,7 +68,7 @@ describe("the Alert messages tab", () => {
       onStep: (id: string) => opened.push(id),
     });
     await fireEvent.click(screen.getByRole("button", { name: /Smoke in the cabin/ }));
-    expect(opened).toEqual(["example-trainer.smoke.masks"]);
+    expect(opened).toEqual(["example-sidestick.smoke.masks"]);
     cleanup();
     render(MessagesView, { index: example, selected: "seat-belts", onStep: () => {} });
     const details = screen.getByRole("complementary", { name: "Message details" });
@@ -77,7 +78,7 @@ describe("the Alert messages tab", () => {
 
   it("has a filter for each level the pack uses, after All, with counts", async () => {
     // A pack using only warning and memo has those two filters.
-    const pack = structuredClone(examplePack()) as FlatPack;
+    const pack = structuredClone(sidestickPack()) as FlatPack;
     const messages = pack.content.messages?.messages ?? [];
     if (pack.content.messages)
       pack.content.messages.messages = messages.filter((m) => m.level === "warning" || m.level === "memo");
@@ -87,7 +88,7 @@ describe("the Alert messages tab", () => {
       within(filters)
         .getAllByRole("button")
         .map((b) => b.textContent?.replace(/\s+/g, " ").trim()),
-    ).toEqual(["All 2", "Warning 1", "Memo 1"]);
+    ).toEqual(["All 3", "Warning 2", "Memo 1"]);
     await fireEvent.click(within(filters).getByRole("button", { name: /Memo/ }));
     expect([...document.querySelectorAll(".row .msg")].map((m) => m.textContent)).toEqual(["SEAT BELTS"]);
   });
@@ -99,16 +100,18 @@ describe("the Alert messages tab", () => {
     });
     expect([...document.querySelectorAll(".row .msg")].map((m) => m.textContent)).toEqual(["RADAR INOP"]);
     await fireEvent.input(screen.getByPlaceholderText("Message text or meaning"), {
-      target: { value: "charge" },
+      target: { value: "pressure" },
     });
-    expect([...document.querySelectorAll(".row .msg")].map((m) => m.textContent)).toEqual(["BATT LOW"]);
+    expect([...document.querySelectorAll(".row .msg")].map((m) => m.textContent)).toEqual([
+      "FUEL PUMP FAULT",
+    ]);
   });
 
   it("on a phone, a tapped message opens in place", () => {
-    render(MessagesView, { index: example, selected: "batt-low", phone: true, onStep: () => {} });
+    render(MessagesView, { index: example, selected: "eng-fire", phone: true, onStep: () => {} });
     const open = screen.getByRole("button", { expanded: true });
-    expect(open.textContent).toContain("BATT LOW");
-    expect(screen.getAllByRole("button", { expanded: false })).toHaveLength(4);
+    expect(open.textContent).toContain("ENG FIRE");
+    expect(screen.getAllByRole("button", { expanded: false })).toHaveLength(5);
     expect(screen.getByText("Mentioned in 1 step")).toBeTruthy();
   });
 });
@@ -127,7 +130,7 @@ describe("the Flight deck page", () => {
       cleanup();
     }
     width(1440);
-    render(FlightDeckPage, deck(example, { messages: true, message: "batt-low" }));
+    render(FlightDeckPage, deck(example, { messages: true, message: "fuel-pump-fault" }));
     expect(screen.getByText("Every area, panel, light and alert message")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Alert messages" }).getAttribute("aria-pressed")).toBe("true");
     expect(screen.queryByText("Name every panel")).toBeNull();
@@ -149,7 +152,7 @@ describe("the Flight deck page", () => {
 
 describe("rows linking messages and steps", () => {
   it("a step a message calls for shows the message, linking to it; others show none", () => {
-    const masks = example.step("example-trainer.smoke.masks");
+    const masks = example.step("example-sidestick.smoke.masks");
     if (!masks) throw new Error("masks");
     render(StepPane, { index: example, step: masks, targets: [], number: 1, total: 2, onOpen: () => {} });
     const row = screen.getByRole("link", { name: /The message that calls for this step/ });
@@ -190,7 +193,7 @@ describe("rows linking messages and steps", () => {
       "#/messages/smoke-cabin",
     );
     cleanup();
-    render(ListCard, { ...props, list: { ...list, id: "start-flow", title: "Start flow" } });
+    render(ListCard, { ...props, list: { ...list, id: "cockpit-prep", title: "Cockpit preparation" } });
     expect(screen.queryByText("Called for by")).toBeNull();
   });
 });
