@@ -315,7 +315,9 @@ What the step asks for, never the simulator's state (decision 0006).
              pulled out at the bottom. -->
         {@const at = on && t != null ? t : r >= 0 ? r : -1}
         {@const gy = at >= 0 ? leverY(at, positions.length) : 0}
-        <rect class="body stem" class:changed={on && !open} class:conditional={open} x="-2" y="-12" width="4" height={gy + 8} rx="1" />
+        <!-- The stem runs from 12 above the center into the grip; pushed fully in, the grip covers
+             where it would be, so it has no length (never a negative one). -->
+        <rect class="body stem" class:changed={on && !open} class:conditional={open} x="-2" y="-12" width="4" height={Math.max(0, gy + 8)} rx="1" />
         <rect class="body grip" class:changed={on && !open} class:conditional={open} x="-13" y={gy - 5} width="26" height="10" rx="4" />
         {#each layout.items.get(i)?.positions ?? [] as l (l.n)}
           <text class="pos" class:target={on && l.n === t} class:at-rest={l.n === r} x={l.x} y={l.y} text-anchor={l.anchor} style:font-size={fs(PX.pos * layout.scale)}>{on && l.n === t && byItem.get(i)?.resolved ? "◆ " : ""}{positions[l.n]}</text>

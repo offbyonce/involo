@@ -95,7 +95,7 @@ export function bidiValue(v) {
 /**
  * A minimal WebDriver BiDi session: `send(method, params)`, `js(expression)` for a fixed script,
  * `call(fn, arg)` for a function run in the page with its data as an argument (never spliced into
- * code), `run(step)` for either, and `until(...)`.
+ * code), `run(step)` for either, `until(...)`, and `logs()` for the page's console messages.
  */
 export async function session(port) {
   const ws = new WebSocket(`ws://127.0.0.1:${port}/session`);
@@ -108,8 +108,14 @@ export async function session(port) {
   // A reply settles only a command this session sent and is still waiting on: its id must be one
   // of those (a whole number this session gave out), and what it finds a function. Events and
   // anything else are ignored.
+  // Console messages the page logs, once `logs()` has subscribed to them.
+  const logged = [];
   ws.onmessage = (message) => {
     const reply = JSON.parse(message.data);
+    if (reply?.type === "event" && reply.method === "log.entryAdded") {
+      logged.push({ level: String(reply.params?.level), text: String(reply.params?.text) });
+      return;
+    }
     if (!Number.isSafeInteger(reply?.id) || !pending.has(reply.id)) return;
     const settle = pending.get(reply.id);
     pending.delete(reply.id);
@@ -157,5 +163,10 @@ export async function session(port) {
     }
     throw new Error(`timed out waiting for ${what}`);
   };
-  return { send, js, call, run, until, context };
+  /** Starts collecting the page's console messages; returns the list, which fills as they come. */
+  const logs = async () => {
+    await send("session.subscribe", { events: ["log.entryAdded"] });
+    return logged;
+  };
+  return { send, js, call, run, until, logs, context };
 }
