@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../../schemas/panel.schema.json
+# Invented content that shows the pack format (a Boeing-style example). Not a real aircraft panel.
+id: overhead
+title: Overhead panel
+width: 400
+height: 200
+sections:
+  - id: electrical
+    title: Electrical
+    x: 10
+    y: 10
+    width: 180.5
+    height: 90
+    items:
+      - id: battery
+        kind: toggle_switch
+        label: BATTERY
+        guarded: true
+        x: 20
+        y: 30
+        controls: [battery]
+        positions: ["OFF", "ON"]
+        description: Connects the battery.
+      - kind: light
+        label: BATT LOW
+        color: amber
+        x: 66.25
+        y: 30
+        controls: [battery]
+        description: The battery is running low.
+      - kind: display_unit
+        label: VOLTS
+        x: 110
+        y: 30
+        description: Shows battery voltage.
+        width: 50
+        height: 20
+  - id: fuel
+    title: Fuel
+    name: Fuel panel
+    x: 200
+    y: 10
+    width: 190
+    height: 90
+    items:
+      - id: crossfeed
+        kind: toggle_switch
+        label: CROSSFEED
+        x: 60
+        y: 40
+        controls: [crossfeed]
+        positions: ["OFF", "ON"]
+        rest: "OFF"
+        description: Lets one tank feed both engines.

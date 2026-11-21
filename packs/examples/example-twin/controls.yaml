@@ -1,0 +1,145 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../schemas/controls.schema.json
+# Invented content that shows the pack format (a Boeing-style example). Not a real aircraft.
+zones:
+  - id: overhead-electrical
+    area: Overhead
+    title: Electrical panel
+    short_title: ELEC
+    position: Captain side, middle row
+  - id: overhead-fuel
+    area: Overhead
+    title: Fuel panel
+    short_title: FUEL
+    position: Center, middle row
+  - id: pedestal-cabin
+    area: Pedestal
+    title: Cabin panel
+    short_title: CABIN
+    position: Center, forward
+controls:
+  - id: battery
+    name: Battery switch
+    zone: overhead-electrical
+    location: Left side of the electrical panel.
+    function: Connects the battery.
+  - id: crossfeed
+    name: Crossfeed switch
+    zone: overhead-fuel
+    location: Middle of the fuel panel.
+    function: Lets one tank feed both engines.
+  - id: display-selector
+    name: Display selector
+    location: Left of the pedestal.
+    function: Chooses what the lower display shows.
+  - id: seat-belts
+    name: Seat belts switch
+    zone: pedestal-cabin
+    location: Cabin panel, left.
+    function: Turns the seat belt signs on.
+  - id: radio-keypad
+    name: Radio keypad
+    zone: pedestal-cabin
+    location: Cabin panel, right.
+    function: Enters a frequency.
+  - id: parking-brake
+    name: Parking brake lever
+    location: Brake panel, on the pedestal.
+    function: Holds the airplane still.
+  - id: brake-pedals
+    name: Brake pedals
+    plural: true
+    location: At your feet.
+    function: Slow the airplane on the ground.
+  - id: briefing
+    name: Briefing
+    location: Between the crew.
+    function: A spoken review of the plan.
+overview:
+  width: 200
+  height: 120
+  captions:
+    - {text: OVERHEAD, x: 10, y: 10}
+    - {text: PEDESTAL, x: 10, y: 70}
+  areas:
+    - {zone: overhead-electrical, x: 10, y: 20, width: 60, height: 30}
+    - {zone: overhead-fuel, x: 80, y: 20, width: 60, height: 30, label: FUEL}
+    - {zone: pedestal-cabin, x: 10, y: 80, width: 80, height: 30}
+  regions:
+    - name: Overhead
+      short: Overhead
+      code: OH
+      x: 6
+      "y": 14
+      width: 140
+      height: 40
+      top: AFT, TOWARD THE CABIN
+      top_short: AFT
+      bottom: FORWARD, TOWARD THE WINDSHIELD
+      bottom_short: FORWARD
+      left: CAPTAIN SIDE
+      left_short: CAPT
+      right: F/O SIDE
+      right_short: F/O
+      locate: Above your head. Look up from the seat.
+      title: Where is the overhead panel?
+      short_title: Where is the overhead?
+    - name: Pedestal
+      short: Pedestal
+      x: 6
+      "y": 74
+      width: 90
+      height: 40
+      locate: Between the two seats, by your knee.
+      title: Where is the pedestal?
+  # Invented views: from the side, and one frame from the seat (the pack lists no seats).
+  views:
+    side:
+      width: 200
+      height: 100
+      shapes:
+        - role: structure
+          points: [[200, 20], [60, 20], [20, 60], [20, 90], [200, 90]]
+        - role: glass
+          closed: true
+          points: [[40, 44], [62, 26], [68, 30], [46, 48]]
+        - role: seat
+          closed: true
+          points: [[140, 60], [160, 60], [160, 80], [140, 80]]
+        - role: eye
+          points: [[150, 50]]
+      places:
+        - region: Overhead
+          shapes:
+            - [[70, 22], [120, 22], [120, 28], [70, 28]]
+          label_at: [95, 16]
+        - region: Pedestal
+          shapes:
+            - [[80, 70], [100, 70], [100, 88], [80, 88]]
+            - [[100, 70], [120, 70], [120, 88], [100, 88]]
+          names: [Forward pedestal, Aft pedestal]
+      labels:
+        - {text: WINDSHIELD, x: 4, "y": 16, anchor: start}
+        - {text: CABIN →, x: 196, "y": 98, anchor: end}
+    seat:
+      width: 200
+      height: 100
+      shapes:
+        - role: glass
+          closed: true
+          points: [[20, 20], [96, 18], [96, 56], [24, 58]]
+        - role: glass
+          closed: true
+          points: [[104, 18], [180, 20], [176, 58], [104, 56]]
+      places:
+        - region: Overhead
+          shapes:
+            - [[40, 2], [160, 2], [150, 14], [50, 14]]
+          label_at: [100, 9]
+        - region: Pedestal
+          shapes:
+            - [[80, 70], [120, 70], [124, 98], [76, 98]]
+      labels:
+        - {text: FROM THE CAPTAIN SEAT, x: 100, "y": 64}

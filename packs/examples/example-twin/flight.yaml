@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../schemas/flight.schema.json
+# Invented content that shows the pack format (a Boeing-style example). Not a real aircraft procedure.
+fields:
+- id: runway
+  label: Runway
+  kind: text
+  show_in:
+  - strip
+  strip:
+    prefix: 'RWY '
+  simbrief:
+  - runway
+- id: squawk
+  label: Squawk
+  kind: text
+  show_in:
+  - strip
+  strip:
+    prefix: 'SQK '
+- id: takeoff_flaps
+  label: Takeoff flaps
+  kind: choice
+  choices:
+  - value: '1'
+  - value: '5'
+- id: v1
+  label: V1
+  kind: number
+  ranges:
+  - min: 80
+    max: 250
+- id: vr
+  label: VR
+  kind: number
+  ranges:
+  - min: 80
+    max: 250
+- id: weight_unit
+  label: Weight unit
+  kind: choice
+  choices:
+  - value: LB
+  - value: KG
+  simbrief:
+  - weight_unit
+- id: zfw
+  label: Zero fuel weight
+  kind: number
+  unit: weight_unit
+  ranges:
+  - min: 0
+    max: 100
+  display:
+    scale: 1000
+    round: up
+    step: 0.1
+  simbrief:
+  - zero_fuel_weight
+- id: fuel_thousands
+  label: Fuel in thousands
+  kind: number
+  unit: weight_unit
+  display:
+    scale: 1000
+    round: nearest
+    step: 0.1
+  simbrief:
+  - block_fuel

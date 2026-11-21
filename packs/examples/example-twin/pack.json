@@ -1,0 +1,38 @@
+{
+  "$schema": "../../../schemas/pack.schema.json",
+  "id": "example-twin",
+  "name": "Example Twin",
+  "version": "0.1.0",
+  "schemaVersion": 6,
+  "kind": "aircraft",
+  "engine": ">=0.1.0, <1.0.0",
+  "aircraft": {
+    "family": "Example Twin",
+    "name": "Example Twin",
+    "icaoTypes": ["ZZZT"],
+    "simulator": "None: an invented example",
+    "developer": "Involo examples"
+  },
+  "license": "CC-BY-NC-SA-4.0",
+  "attribution": ["Invented example content to show the pack format. Not for real-world or simulator use."],
+  "basisTags": ["invented-example", "prior-release"],
+  "checklists": [
+    "lists/before-start.yaml",
+    "lists/start-flow.yaml",
+    "lists/smoke.yaml",
+    "lists/battery-low.yaml"
+  ],
+  "phases": "phases.yaml",
+  "controls": "controls.yaml",
+  "notes": "notes.yaml",
+  "panels": ["panels/overhead.yaml", "panels/pedestal.yaml"],
+  "lights": "lights.yaml",
+  "faults": "faults.yaml",
+  "glossary": "glossary.yaml",
+  "briefings": "briefings.yaml",
+  "panelStates": "panel-states.yaml",
+  "cdu": "cdu.yaml",
+  "aliases": "aliases.yaml",
+  "flight": "flight.yaml",
+  "messages": "messages.yaml"
+}

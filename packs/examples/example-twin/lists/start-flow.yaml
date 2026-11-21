@@ -1,0 +1,70 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../../schemas/checklist.schema.json
+# Invented content that shows the pack format (a Boeing-style example). Not a real aircraft procedure.
+id: start-flow
+title: Start flow
+kind: flow
+basis: [prior-release]
+steps:
+  - id: example-twin.start.walkaround
+    text: Nose area
+    expect: CLEAR
+    walkaround: {x: 160, y: 40}
+    look_for: Nothing blocking the intake.
+    location: At the nose, left side.
+  - id: example-twin.start.computer
+    text: Flight computer
+    expect: SET
+    opens: example-setup
+    hint:
+      - {prefix: 'SQUAWK ', field: squawk}
+    how: computer
+    explain: computer-test
+  - id: example-twin.start.speeds
+    text: Takeoff speeds
+    expect: V1 ___, VR ___, NOTE ___
+    fill: [v1, vr, manual]
+  - id: example-twin.start.warm-up
+    text: Engine warm-up
+    expect: COMPLETE
+    timer:
+      seconds: 120
+      label: Warm-up
+      note: A typical time.
+      auto_start:
+        from: [example-twin.start.computer]
+        pick: latest
+  - id: example-twin.start.display
+    text: Display selector
+    expect: ENGINE
+    controls: [display-selector]
+    targets:
+      - {at: "pedestal/displays/#display", set: ENGINE}
+  - id: example-twin.start.seat-belts
+    text: Seat belts
+    expect: "ON"
+    controls: [seat-belts]
+    targets:
+      - {at: "pedestal/cabin/#seat-belts", set: "ON"}
+  - id: example-twin.start.radio
+    text: Radio frequency
+    expect: ENT
+    controls: [radio-keypad]
+    targets:
+      - {at: "pedestal/cabin/#radio", set: ENT}
+  - id: example-twin.start.parking-brake
+    text: Parking brake
+    expect: SET
+    controls: [parking-brake]
+    targets:
+      - {at: "pedestal/brakes/#brake", set: SET}
+  - id: example-twin.start.radar
+    text: Weather radar
+    expect: 'OFF'
+    not_simulated: true
+    show_if:
+      all_of:
+        - {option: power, equals: external}
+        - {option: start, one_of: [normal, turnaround]}
