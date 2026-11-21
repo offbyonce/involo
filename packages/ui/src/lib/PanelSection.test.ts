@@ -47,14 +47,14 @@ const targets: ItemTarget[] = [
 ];
 const K = 2;
 
-function draw(selected: number) {
+function draw(selected: number, drawn: Section = section, set: ItemTarget[] = targets) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   document.body.append(svg);
   render(PanelSection, {
     target: svg,
     props: {
-      section,
-      targets,
+      section: drawn,
+      targets: set,
       guardClosed: false,
       band: { y0: 0, y1: 120, x0: 0, x1: 1500 },
       k: K,
@@ -125,5 +125,37 @@ describe("the selected control's ring (one ring, following the control)", () => 
     expect(hits).toHaveLength(items.length);
     for (const hit of hits) expect(hit.nextElementSibling?.classList.contains("focusring")).toBe(true);
     expect(svg.querySelectorAll(".focusring")).toHaveLength(items.length);
+  });
+});
+
+describe("sizes (#192)", () => {
+  // A handle in at rest drew its stem with a height of -1.5, which browsers report as an error.
+  const handles: Section = {
+    id: "h",
+    title: "Handles",
+    x: 0,
+    y: 0,
+    width: 600,
+    height: 120,
+    items: [
+      item("handle", 0, { positions: ["IN", "OUT"], rest: "IN" }),
+      item("handle", 1, { positions: ["IN", "OUT"], rest: "OUT" }),
+      item("handle", 2, { positions: ["IN", "OUT"], rest: "OUT" }),
+      item("handle", 3, { positions: ["IN", "MID", "OUT"] }),
+    ],
+  };
+  const handleTargets: ItemTarget[] = [
+    { section: "h", item: 2, position: 0, lit: false, open: false, resolved: false },
+  ];
+
+  it.each([
+    ["every kind of control", section, targets],
+    ["handles in and out, at rest and set", handles, handleTargets],
+  ] as const)("draws %s with no negative width or height", (_, drawn, set) => {
+    const svg = draw(0, drawn, [...set]);
+    const negative = [...svg.querySelectorAll("[width], [height]")].filter(
+      (el) => num(el, "width") < 0 || num(el, "height") < 0,
+    );
+    expect(negative.map((el) => el.outerHTML)).toEqual([]);
   });
 });
