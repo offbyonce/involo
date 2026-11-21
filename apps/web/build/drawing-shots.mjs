@@ -11,7 +11,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import { serve, session, sleep, startFirefox } from "./browser.mjs";
-import { click } from "./scenes.mjs";
 
 const web = path.resolve(import.meta.dirname, "..");
 const root = path.resolve(web, "../..");
@@ -51,11 +50,14 @@ async function openAt(profile, prefs, firstUrl) {
 
 /** The gallery draws the iFly pack's views from the packs installed on this device (decision
  * 0028): a fresh profile has none, so the app downloads it from the site's catalog first, as a
- * pilot does. */
+ * pilot does. (Not with scenes.mjs, which needs the example pack built, as this recipe isn't.) */
 async function installIfly(browser) {
   await browser.send("browsingContext.navigate", { context: browser.context, url: `http://localhost:${PORT}/app/`, wait: "complete" });
   await browser.until(`!!document.querySelector('button[aria-label="Download iFly 737 MAX 8"]')`, "the catalog");
-  await browser.run(click('button[aria-label="Download iFly 737 MAX 8"]'));
+  await browser.call((selector) => {
+    document.querySelector(selector).click();
+    return true;
+  }, 'button[aria-label="Download iFly 737 MAX 8"]');
   await browser.until(`!!document.querySelector("#drawer")`, "the iFly pack to open");
 }
 
