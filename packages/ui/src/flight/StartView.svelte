@@ -54,7 +54,7 @@ link, and the panel-state picker in the pack's words, in the order the pack's `s
 {#each entries as entry (entry)}
   {#if entry === PICKER}
     {#if states.length}
-      <section class="card">
+      <section class="card stack">
         <div class="text">
           <span class="t">{labels.title}</span>
           <span class="d">{labels.description}</span>
@@ -80,7 +80,7 @@ link, and the panel-state picker in the pack's words, in the order the pack's `s
         <Toggle on={value(o) === on} labelledby="st-{o.id}" onToggle={() => onOption(o.id, value(o) === on ? other(o, on) : on)} />
       </section>
     {:else if o?.start?.style === "row"}
-      <section class="card">
+      <section class="card stack">
         {@render text(o)}
         <span class="seg" role="group" aria-labelledby="st-{o.id}">
           {#each o.values as v (v)}
@@ -190,6 +190,27 @@ link, and the panel-state picker in the pack's words, in the order the pack's `s
     color: var(--color-text);
     font: inherit;
     font-size: var(--font-size-secondary);
+  }
+  /* Phone: a card with choices or the panel-state menu puts its words on top and the control
+     under them, across the card, as the choice cards are; the choices share the width, their
+     words wrapping when they must. */
+  @media (max-width: 599px) {
+    .card.stack {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .card.stack .text {
+      flex: none;
+    }
+    .card.stack .seg button {
+      flex: 1 1 0;
+      height: auto;
+      min-height: var(--size-touch-min);
+    }
+    .card.stack select {
+      width: 100%;
+      min-width: 0;
+    }
   }
   .sel :global(.icon) {
     position: absolute;

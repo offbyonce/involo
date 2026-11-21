@@ -152,6 +152,14 @@ export function layoutProblems(phone: boolean): string[] {
       // A link inside running text is exempt (WCAG 2.5.5), and a box inside its label is as big
       // as the label.
       if (el.tagName === "A" && getComputedStyle(el).display === "inline") continue;
+      // A control drawn smaller on purpose, with a full-size control on the page that does the
+      // same, named by its id in `data-equivalent` (WCAG 2.5.5 and 2.5.8): the Flight deck map's
+      // boxes, with the list of the area's panels. The equivalent must show and be big enough.
+      const equivalent = document.getElementById(el.getAttribute("data-equivalent") ?? "");
+      if (equivalent && shown.includes(equivalent)) {
+        const e = tapBox(equivalent);
+        if (e.width >= TAP_MIN - 0.5 && e.height >= TAP_MIN - 0.5) continue;
+      }
       const target =
         el instanceof HTMLInputElement && el.closest("label") ? (el.closest("label") as Element) : el;
       const r = tapBox(target);

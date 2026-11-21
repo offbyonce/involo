@@ -61,11 +61,16 @@ describe("References, desktop (RefsDesk)", () => {
     ]);
     expect(chips[0]?.getAttribute("aria-pressed")).toBe("true");
     const rows = () => [...container.querySelectorAll("a.row")];
-    // Each row is a link to its list's phase, named in full for screen readers.
+    // Each row is a link to its list's phase, named in full for screen readers, with its visible
+    // text in the order the row shows it (axe's label-content-name-mismatch, #198).
     expect(rows()[0]?.getAttribute("href")).toBe(`#/phase/${refs.rows[0]?.phase}`);
     expect(rows()[0]?.getAttribute("aria-label")).toBe(
-      `${refs.rows[0]?.title}, Preflight, Procedure, based on: Simulator documentation`,
+      `${refs.rows[0]?.title}, Preflight, Procedure, Simulator documentation`,
     );
+    for (const row of rows()) {
+      const words = (row.getAttribute("aria-label") ?? "").replace(/,/g, "");
+      expect(words, "a row's name holds its visible text").toBe(cells(row));
+    }
     expect(screen.getByRole("list", { name: "Lists" })).toBeTruthy();
     expect(rows()).toHaveLength(6);
     expect(cells(rows()[0])).toBe(`${refs.rows[0]?.title} Preflight Procedure Simulator documentation`);

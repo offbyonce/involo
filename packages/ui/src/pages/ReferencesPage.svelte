@@ -150,7 +150,9 @@ status, not a source; once a list is re-tagged with its basis, the status goes a
       <main class="main">
         {@render sources()}
         <div class="table">
-          <!-- The column heads, for sight; each row's link names its list, stage, kind and source. -->
+          <!-- The column heads, for sight; each row's link names its list, stage, kind and source, in the
+               order the row shows them, so its name holds its visible text (the spaces between the cells,
+               which the grid doesn't draw, keep the words apart). -->
           <div class="row th" aria-hidden="true"><span>List</span><span>Stage</span><span>Kind</span><span>Based on</span></div>
           <ul class="rows" aria-label="Lists">
             {#each shown as r (r.id)}
@@ -158,12 +160,12 @@ status, not a source; once a list is re-tagged with its basis, the status goes a
                 <a
                   class="row"
                   href={phaseHref(r.phase)}
-                  aria-label="{r.title}, {r.stage}, {r.kind}, based on: {basisName(r.basis)}"
+                  aria-label="{r.title}, {r.stage}, {r.kind}, {basisName(r.basis)}"
                   onclick={(e) => {
                     if (!r.first) return;
                     e.preventDefault();
                     onList(r.first);
-                  }}><span class="name">{r.title}</span><span>{r.stage}</span><span>{r.kind}</span><span>{@render tag(r.basis)}</span></a
+                  }}><span class="name">{r.title}</span> <span>{r.stage}</span> <span>{r.kind}</span> <span>{@render tag(r.basis)}</span></a
                 >
               </li>
             {/each}
@@ -393,6 +395,16 @@ status, not a source; once a list is re-tagged with its basis, the status goes a
     font: inherit;
     font-size: var(--font-size-secondary);
     cursor: pointer;
+  }
+  /* Each 36 px chip's tap area reaches the 44 px touch size, 4 px above and below, with nothing
+     drawn: half the 8 px gap between two rows of chips each. */
+  .chips button {
+    position: relative;
+  }
+  .chips button::before {
+    position: absolute;
+    inset: calc((100% - var(--size-touch-min)) / 2) 0;
+    content: "";
   }
   .chips button[aria-pressed="true"] {
     border: var(--size-focus-ring) solid var(--color-accent);

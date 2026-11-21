@@ -199,10 +199,10 @@ before, with no control.
 {#snippet areaBody(a: DeckArea, phone: boolean)}
   {#if a.region}
     <figure class="map">
-      <DeckMap boxes={a.boxes} zones={a.zones} region={a.region} selected={selected?.id ?? null} {names} compact={phone} onPick={pickZone} />
+      <DeckMap boxes={a.boxes} zones={a.zones} region={a.region} selected={selected?.id ?? null} {names} compact={phone} equivalent="deck-list" onPick={pickZone} />
       {#if !phone}<figcaption>Select a panel to open it. Turn on Name every panel to label them all.</figcaption>{/if}
     </figure>
-    <button class="disclose" type="button" aria-expanded={listOpen} onclick={() => (listOpen = !listOpen)}
+    <button id="deck-list" class="disclose" type="button" aria-expanded={listOpen} onclick={() => (listOpen = !listOpen)}
       >Panels in this area, as a list<span class="count">{a.zones.length} {listOpen ? "⌃" : "⌄"}</span></button
     >
     {#if listOpen}

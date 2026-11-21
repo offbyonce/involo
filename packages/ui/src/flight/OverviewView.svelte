@@ -136,6 +136,25 @@ each linking to its section.
     font-size: var(--font-size-secondary);
     text-decoration: none;
   }
+  /* Each link's tap area reaches the 44 px touch size with nothing drawn: "— enter" upward over
+     its row's label, the page link downward over the row's padding, so in a row with both, the two
+     areas never meet. */
+  .enter,
+  .go {
+    position: relative;
+  }
+  .enter::before,
+  .go::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+  }
+  .enter::before {
+    top: min(0px, calc(100% - var(--size-touch-min)));
+  }
+  .go::before {
+    bottom: min(0px, calc(100% - var(--size-touch-min)));
+  }
   @media (max-width: 599px) {
     .orow {
       grid-template-columns: minmax(0, 1fr);

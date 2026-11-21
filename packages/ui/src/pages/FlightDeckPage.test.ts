@@ -56,9 +56,9 @@ describe("FlightDeckPage", () => {
     expect(screen.getAllByRole("listitem").length).toBeGreaterThanOrEqual(20);
     await fireEvent.click(screen.getByRole("button", { name: /^Light meanings for this area/ }));
     expect(screen.getAllByText(/LOW PRESSURE/).length).toBeGreaterThan(0);
-    await fireEvent.keyDown(screen.getAllByRole("button", { name: "Hydraulic panel" })[0] as Element, {
-      key: "Enter",
-    });
+    // The map's box leads its name with the short name it shows (#198).
+    const map = within(screen.getByRole("group", { name: /layout$/ }));
+    await fireEvent.keyDown(map.getByRole("button", { name: "HYD, Hydraulic panel" }), { key: "Enter" });
     expect(location.hash).toBe("#/deck/forward-overhead/hyd");
   });
 

@@ -38,6 +38,7 @@ import {
   chooseFile,
   CLEARANCE,
   click,
+  exampleFile,
   closeWelcome,
   finishPhase,
   finishSkippingLast,
@@ -62,6 +63,7 @@ import {
   pressText,
   refuseSaves,
   reopenWelcome,
+  restarted,
   rowMenu,
   savedAs,
   seedLog,
@@ -361,6 +363,32 @@ const SHOTS = [
     only: ["desktop", "wide", "tablet-landscape"],
     app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go(`#/flight/${section}`)] },
   })),
+  // Start options on a phone (#198): a card with choices or the panel-state menu puts its words on
+  // top and the control under them. The iFly pack's Power source, in the boards' state; and the
+  // Example Twin LR's panel-state menu with its longest state picked.
+  {
+    name: "board-flight-start-phone",
+    full: true,
+    only: ["phone"],
+    app: { hash: "#/phase/before-start", before: [...BOARD_FLIGHT, go("#/flight/start")] },
+  },
+  {
+    name: "board-flight-start-panel-state",
+    full: true,
+    only: ["phone"],
+    app: {
+      hash: "#/phase/before-start",
+      before: [
+        ...BOARD_STATE,
+        go("#/packs"),
+        `new Promise((d) => setTimeout(() => d(true), 300))`,
+        chooseFile('input[type="file"]', exampleFile("example-twin-lr"), "example-twin-lr.involo-pack"),
+        restarted,
+        go("#/flight/start"),
+        `(() => { const select = document.querySelector(".pick select"); const longest = [...select.options].sort((a, b) => b.text.length - a.text.length)[0]; select.value = longest.value; select.dispatchEvent(new Event("change", { bubbles: true })); return true; })()`,
+      ],
+    },
+  },
   // Every placeholder fits at the narrow sizes too.
   ...["takeoff", "approach"].map((section) => ({
     name: `flight-${section}`,

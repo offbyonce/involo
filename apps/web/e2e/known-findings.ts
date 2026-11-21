@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// Layout and accessibility findings the main screens have today with the example packs open
-// (examples.spec.ts, #108). Each is tracked by the issue that fixes it. The check fails on any
+// Layout and accessibility findings the main screens have today with a pack open
+// (screens.spec.ts, #108). Each is tracked by the issue that fixes it. The check fails on any
 // finding not listed here, and on a listed one that no longer happens, so this list only shrinks:
 // remove an entry when its fix lands. It must be empty before the v0.1.0 release.
 
@@ -14,81 +14,13 @@ export type KnownFinding = {
   check: "layout" | "shown" | "label-content-name-mismatch";
   /** What the check says, without the pack, width or theme. */
   finding: RegExp;
-  /** The example packs it happens with. */
+  /** The packs it happens with, by name. */
   packs: string[];
   /** The issue that fixes it. */
   issue: string;
 };
 
-const ALL = ["Example Twin", "Example Sidestick Twin", "Example Twin LR"];
-const TWINS = ["Example Twin", "Example Twin LR"];
-
-export const KNOWN_FINDINGS: KnownFinding[] = [
-  {
-    screen: "Flight",
-    check: "layout",
-    finding: /^the ".+ ›" link is \d+ px tall$/,
-    packs: ALL,
-    issue: "#198",
-  },
-  {
-    screen: "Flight",
-    check: "layout",
-    finding: /^the "— enter" link is \d+ px tall$/,
-    packs: ALL,
-    issue: "#198",
-  },
-  {
-    screen: "Flight deck",
-    check: "label-content-name-mismatch",
-    finding:
-      /^label-content-name-mismatch \(serious\): .* at \.on \(<g role="button" tabindex="0" class="box /,
-    packs: TWINS,
-    issue: "#198",
-  },
-  {
-    screen: "How",
-    check: "layout",
-    finding: /^the "Start ›" link is \d+ px wide$/,
-    packs: TWINS,
-    issue: "#198",
-  },
-  {
-    screen: "Practice",
-    check: "shown",
-    finding: /^getByRole\('heading', \{ level: 1 \}\)\.first\(\) doesn't show$/,
-    packs: ALL,
-    issue: "#198",
-  },
-  {
-    screen: "References",
-    check: "label-content-name-mismatch",
-    finding: /^label-content-name-mismatch \(serious\): .* at a\[href\$="#\/phase\//,
-    packs: ALL,
-    issue: "#198",
-  },
-  {
-    screen: "References",
-    check: "layout",
-    finding: /^the ".+" button is 36 px tall$/,
-    packs: ALL,
-    issue: "#198",
-  },
-  {
-    screen: "Start",
-    check: "layout",
-    finding: /^the "Choose a panel state.*" select sits outside the screen \(\d+ to \d+ px of 390\)$/,
-    packs: ["Example Twin LR"],
-    issue: "#198",
-  },
-  {
-    screen: "Start",
-    check: "layout",
-    finding: /^the ".+" button sits outside the screen \(\d+ to \d+ px of 390\)$/,
-    packs: ["Example Sidestick Twin"],
-    issue: "#198",
-  },
-];
+export const KNOWN_FINDINGS: KnownFinding[] = [];
 
 /**
  * Sorts a pack's screen problems (`<screen>, <width> px, <theme>: <finding>`) into the known ones

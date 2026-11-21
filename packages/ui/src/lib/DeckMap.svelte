@@ -21,6 +21,7 @@ readers (its first box); the others still select it with a tap.
     selected,
     names = false,
     compact = false,
+    equivalent = null,
     onPick,
   }: {
     boxes: OverviewArea[];
@@ -31,6 +32,10 @@ readers (its first box); the others still select it with a tap.
     names?: boolean;
     /** Phone (PhoneDeck): the edges take the region's short captions. */
     compact?: boolean;
+    /** The id of the full-size control that selects the same places (the page's "Panels in this
+     * area, as a list"): the boxes are drawn at the map's scale, smaller than the touch size on a
+     * phone, as the boards draw them (WCAG 2.5.8's equivalent). */
+    equivalent?: string | null;
     onPick: (zone: string) => void;
   } = $props();
 
@@ -78,6 +83,16 @@ readers (its first box); the others still select it with a tap.
     const fs = Math.min(NAME, (box.w - 2 * SIDE) / em(text), box.h - 2 * SIDE);
     return fs >= MIN ? { text, fs } : null;
   };
+  const words = (text: string) => text.toUpperCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  /** A box's name: its place's title, led by the name the box shows when the title doesn't hold
+   * its words in order ("ELEC, Electrical panel"), so the name always holds the box's visible
+   * text (WCAG 2.5.3). */
+  const nameOf = (a: OverviewArea) => {
+    const title = byId.get(a.zone)?.title ?? a.zone;
+    const shown = (a.label ?? byId.get(a.zone)?.shortTitle ?? "").toUpperCase();
+    const inTitle = ` ${words(title).join(" ")} `.includes(` ${words(shown).join(" ")} `);
+    return shown && !inTitle ? `${shown}, ${title}` : title;
+  };
   function key(e: KeyboardEvent, zone: string) {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
@@ -96,7 +111,6 @@ readers (its first box); the others still select it with a tap.
       {#each boxes as a, n (a.zone + a.x + a.y)}
         {@const box = at(a)}
         {@const first = boxes.findIndex((b) => b.zone === a.zone) === n}
-        {@const z = byId.get(a.zone)}
         {@const on = a.zone === selected}
         {@const name = on || names ? label(a, box) : null}
         {#snippet drawn()}
@@ -104,7 +118,7 @@ readers (its first box); the others still select it with a tap.
           {#if name}<text class="name" x={box.x + box.w / 2} y={box.y + box.h / 2} style:font-size="{name.fs}px">{name.text}</text>{/if}
         {/snippet}
         {#if first}
-          <g class="box" class:on role="button" tabindex="0" aria-pressed={on} aria-label={z?.title ?? a.zone} onclick={() => onPick(a.zone)} onkeydown={(e) => key(e, a.zone)}>
+          <g class="box" class:on role="button" tabindex="0" aria-pressed={on} aria-label={nameOf(a)} data-equivalent={equivalent} onclick={() => onPick(a.zone)} onkeydown={(e) => key(e, a.zone)}>
             {@render drawn()}
           </g>
         {:else}
