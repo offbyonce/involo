@@ -33,12 +33,15 @@ as data. The app never connects to the simulator.
 - `involo-pack import-panel <drawing.svg>` turns a drawn panel into a panel file.
 - With an MCP client, run `involo-pack mcp` on this folder or the folder that holds it: the same
   commands as tools, plus the format, the schemas, the guide and the example packs.
-- The guide: the server's `involo://guide/` resources, or `docs/packs/` in the Involo repository.
+- The guide: `README.md` to start, `content-rules.md` before writing content, and `agents.md`
+  for working through the MCP server. It is `docs/packs/` in the Involo repository, and the
+  server's `involo://guide/` resources; its `reference/` lists every field and problem code.
 
 ## Content rules
 
-- Facts are checked against the vendor's documentation, then written in your own words from your
-  own flow structure. Never copy or closely paraphrase text, tables, diagrams or layout.
+- Facts are checked against the aircraft's documentation and written in your own words, from
+  your own flow structure. Manuals are never downloaded into, stored in, linked from or cited by
+  this pack, and no manual text, tables or diagrams are copied or closely paraphrased.
 - No citations and no links to third-party material. Each list's `basis` names only the kind of
   material it was checked against.
 - Never add images, screenshots, PDFs or other files from an aircraft developer, manufacturer or
