@@ -4,4 +4,22 @@
  * A crew role, e.g. `capt`. `seat` names the seat it sits in; a duty role such as `pf` or
  * `pm` names none.
  */
-export type RoleLabel = { id: string, title: string, short: string, seat?: string | null, };
+export type RoleLabel = { 
+/**
+ * Lower-case letters, digits and dashes, unique among roles; a step's `role` and
+ * `respond` name it.
+ */
+id: string, 
+/**
+ * Its full name, e.g. `Captain`: the short tag's tooltip, and what screen readers say.
+ */
+title: string, 
+/**
+ * Its short tag beside a step, e.g. `CA`.
+ */
+short: string, 
+/**
+ * The seat it sits in, one of the seats. A seated role's `title` and `short` also count
+ * as side words.
+ */
+seat?: string | null, };

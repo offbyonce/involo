@@ -4,4 +4,13 @@ import type { GroupLabel } from "./GroupLabel";
 /**
  * `reference` as a pack writes it. Groups are merged with the built-in ones by id.
  */
-export type ReferenceLabelsFile = { title?: string | null, groups?: Array<GroupLabel>, };
+export type ReferenceLabelsFile = { 
+/**
+ * The reference area's title, on its button and its page (the app's word: Emergency).
+ */
+title?: string | null, 
+/**
+ * Group titles. One with a built-in id (`memory`, `quick`, `procedures`) renames it;
+ * any other adds a group after them.
+ */
+groups?: Array<GroupLabel>, };

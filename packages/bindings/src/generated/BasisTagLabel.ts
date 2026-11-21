@@ -4,4 +4,21 @@
  * What a basis tag reads: its label, what kind of material it is, and whether it is a status
  * (a list still being checked) rather than a source.
  */
-export type BasisTagLabel = { id: string, label: string, about?: string | null, pending?: boolean, };
+export type BasisTagLabel = { 
+/**
+ * The basis tag it labels, as the manifest's `basisTags` lists it.
+ */
+id: string, 
+/**
+ * The tag's name on the References page.
+ */
+label: string, 
+/**
+ * What kind of material it is, shown with its name on the References page.
+ */
+about?: string | null, 
+/**
+ * `true` for a status rather than a source: the lists that carry it are still being
+ * checked, and the References page shows them apart.
+ */
+pending?: boolean, };

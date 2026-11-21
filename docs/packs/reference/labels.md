@@ -15,19 +15,19 @@ Schema: `schemas/labels.schema.json`. [All files](index.md).
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `basis_tags` | list of [BasisTagLabel](#basistaglabel) |  |  |  |
-| `find_examples` | list of text |  |  |  |
-| `glossary_exceptions` | list of text |  |  |  |
-| `list_kinds` | [ListKindLabelsFile](#listkindlabelsfile) |  |  |  |
-| `methods` | [MethodLabelsFile](#methodlabelsfile) |  |  |  |
-| `panel_states` | [PanelStateLabelsFile](#panelstatelabelsfile) |  |  |  |
-| `plain_words` | list of text |  |  |  |
-| `position_words` | map of list of text |  |  |  |
-| `reference` | [ReferenceLabelsFile](#referencelabelsfile) |  |  |  |
-| `roles` | list of [RoleLabel](#rolelabel) |  |  |  |
-| `seat_view_title` | text |  |  |  |
-| `seats` | list of [SeatLabel](#seatlabel) |  |  |  |
-| `side_words` | list of text |  |  |  |
+| `basis_tags` | list of [BasisTagLabel](#basistaglabel) |  |  | Words for the manifest's basis tags, by tag. A tag the manifest doesn't list is left out of the built pack. |
+| `find_examples` | list of text |  |  | Find's example searches; the first two are also the examples in its no-match hint. |
+| `glossary_exceptions` | list of text |  |  | Glossary terms whose first sentence reads as a description, so no expansion is shown. |
+| `list_kinds` | [ListKindLabelsFile](#listkindlabelsfile) |  |  | The names of the kinds of list. |
+| `methods` | [MethodLabelsFile](#methodlabelsfile) |  |  | The names of the ways a list is used (its `method`). |
+| `panel_states` | [PanelStateLabelsFile](#panelstatelabelsfile) |  |  | The Start page's panel-state picker words. |
+| `plain_words` | list of text |  |  | Words that say nothing about where a control is (`AND`, `PANEL`, `SWITCH`). |
+| `position_words` | map of list of text |  |  | Other words a step's wording uses for a position, by position: `DN: [DOWN]`. `check` and `suggest-targets` read steps with them. |
+| `reference` | [ReferenceLabelsFile](#referencelabelsfile) |  |  | The reference area's title and group tabs. |
+| `roles` | list of [RoleLabel](#rolelabel) |  |  | The crew roles steps name. The app has none by default. |
+| `seat_view_title` | text |  |  | The title over the seat view in "Where is this?". |
+| `seats` | list of [SeatLabel](#seatlabel) |  |  | The flight deck's seats. The app has none by default. |
+| `side_words` | list of text |  |  | Words that tell one of a pair from the other, by side or seat (`LEFT`, `CAPTAIN`). |
 
 ## BasisTagLabel
 
@@ -35,10 +35,10 @@ What a basis tag reads: its label, what kind of material it is, and whether it i
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `about` | text |  |  |  |
-| `id` | text | yes |  |  |
-| `label` | text | yes |  |  |
-| `pending` | true or false |  |  |  |
+| `about` | text |  |  | What kind of material it is, shown with its name on the References page. |
+| `id` | text | yes |  | The basis tag it labels, as the manifest's `basisTags` lists it. |
+| `label` | text | yes |  | The tag's name on the References page. |
+| `pending` | true or false |  |  | `true` for a status rather than a source: the lists that carry it are still being checked, and the References page shows them apart. |
 
 ## ListKindLabelsFile
 
@@ -46,11 +46,11 @@ What a basis tag reads: its label, what kind of material it is, and whether it i
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `checklist` | text |  |  |  |
-| `flow` | text |  |  |  |
-| `memory` | text |  |  |  |
-| `non_normal` | text |  |  |  |
-| `quick` | text |  |  |  |
+| `checklist` | text |  |  | A list of `kind: checklist` (Checklist). |
+| `flow` | text |  |  | A list of `kind: flow` (the app's word: Procedure). |
+| `memory` | text |  |  | A list with `memory` set (Memory items). |
+| `non_normal` | text |  |  | Any other list (Non-normal procedure), unless it is memory items or quick reference. |
+| `quick` | text |  |  | A list in a phase whose `group` is `quick` (Quick reference). |
 
 ## MethodLabelsFile
 
@@ -58,10 +58,10 @@ What a basis tag reads: its label, what kind of material it is, and whether it i
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `challenge_response` | text |  |  |  |
-| `do` | text |  |  |  |
-| `from_memory` | text |  |  |  |
-| `read_and_do` | text |  |  |  |
+| `challenge_response` | text |  |  | `method: challenge_response` (Challenge and response). |
+| `do` | text |  |  | A list with `method: do` (the app's word: Do). |
+| `from_memory` | text |  |  | `method: from_memory` (From memory). |
+| `read_and_do` | text |  |  | `method: read_and_do` (Read and do). |
 
 ## PanelStateLabelsFile
 
@@ -69,9 +69,9 @@ What a basis tag reads: its label, what kind of material it is, and whether it i
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `description` | text |  |  |  |
-| `placeholder` | text |  |  |  |
-| `title` | text |  |  |  |
+| `description` | text |  |  | The sentence under the heading. |
+| `placeholder` | text |  |  | What the picker shows before a panel state is chosen. |
+| `title` | text |  |  | The picker's heading on the Start page. |
 
 ## ReferenceLabelsFile
 
@@ -79,8 +79,8 @@ What a basis tag reads: its label, what kind of material it is, and whether it i
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `groups` | list of [GroupLabel](#grouplabel) |  |  |  |
-| `title` | text |  |  |  |
+| `groups` | list of [GroupLabel](#grouplabel) |  |  | Group titles. One with a built-in id (`memory`, `quick`, `procedures`) renames it; any other adds a group after them. |
+| `title` | text |  |  | The reference area's title, on its button and its page (the app's word: Emergency). |
 
 ## RoleLabel
 
@@ -88,10 +88,10 @@ A crew role, e.g. `capt`. `seat` names the seat it sits in; a duty role such as 
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `id` | text | yes |  |  |
-| `seat` | text |  |  |  |
-| `short` | text | yes |  |  |
-| `title` | text | yes |  |  |
+| `id` | text | yes |  | Lower-case letters, digits and dashes, unique among roles; a step's `role` and `respond` name it. |
+| `seat` | text |  |  | The seat it sits in, one of the seats. A seated role's `title` and `short` also count as side words. |
+| `short` | text | yes |  | Its short tag beside a step, e.g. `CA`. |
+| `title` | text | yes |  | Its full name, e.g. `Captain`: the short tag's tooltip, and what screen readers say. |
 
 ## SeatLabel
 
@@ -99,8 +99,8 @@ A seat in the flight deck, e.g. `left`. Seat frames in the overview are keyed by
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `id` | text | yes |  |  |
-| `title` | text | yes |  |  |
+| `id` | text | yes |  | Lower-case letters, digits and dashes, unique among seats; a role's `seat` names it. |
+| `title` | text | yes |  | The seat's name, e.g. `Left seat`. |
 
 ## GroupLabel
 
@@ -108,6 +108,6 @@ A reference group, e.g. `memory`, and how its tab is titled.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `id` | text | yes |  |  |
-| `title` | text | yes |  |  |
+| `id` | text | yes |  | The group's id, lower-case letters, digits and dashes, e.g. `memory`; a reference phase's `group` names it. |
+| `title` | text | yes |  | Its tab's title. |
 

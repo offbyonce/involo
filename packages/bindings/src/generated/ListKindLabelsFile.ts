@@ -3,4 +3,24 @@
 /**
  * `list_kinds` as a pack writes it: any of the names.
  */
-export type ListKindLabelsFile = { flow?: string | null, checklist?: string | null, nonNormal?: string | null, memory?: string | null, quick?: string | null, };
+export type ListKindLabelsFile = { 
+/**
+ * A list of `kind: flow` (the app's word: Procedure).
+ */
+flow?: string | null, 
+/**
+ * A list of `kind: checklist` (Checklist).
+ */
+checklist?: string | null, 
+/**
+ * Any other list (Non-normal procedure), unless it is memory items or quick reference.
+ */
+nonNormal?: string | null, 
+/**
+ * A list with `memory` set (Memory items).
+ */
+memory?: string | null, 
+/**
+ * A list in a phase whose `group` is `quick` (Quick reference).
+ */
+quick?: string | null, };

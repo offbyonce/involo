@@ -3,4 +3,20 @@
 /**
  * `methods` as a pack writes it: any of the names.
  */
-export type MethodLabelsFile = { do?: string | null, readAndDo?: string | null, challengeResponse?: string | null, fromMemory?: string | null, };
+export type MethodLabelsFile = { 
+/**
+ * A list with `method: do` (the app's word: Do).
+ */
+do?: string | null, 
+/**
+ * `method: read_and_do` (Read and do).
+ */
+readAndDo?: string | null, 
+/**
+ * `method: challenge_response` (Challenge and response).
+ */
+challengeResponse?: string | null, 
+/**
+ * `method: from_memory` (From memory).
+ */
+fromMemory?: string | null, };

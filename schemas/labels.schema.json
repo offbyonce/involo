@@ -5,12 +5,14 @@
   "type": "object",
   "properties": {
     "basis_tags": {
+      "description": "Words for the manifest's basis tags, by tag. A tag the manifest doesn't list is\nleft out of the built pack.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/BasisTagLabel"
       }
     },
     "find_examples": {
+      "description": "Find's example searches; the first two are also the examples in its no-match hint.",
       "type": [
         "array",
         "null"
@@ -20,6 +22,7 @@
       }
     },
     "glossary_exceptions": {
+      "description": "Glossary terms whose first sentence reads as a description, so no expansion is shown.",
       "type": [
         "array",
         "null"
@@ -29,6 +32,7 @@
       }
     },
     "list_kinds": {
+      "description": "The names of the kinds of list.",
       "anyOf": [
         {
           "$ref": "#/$defs/ListKindLabelsFile"
@@ -39,6 +43,7 @@
       ]
     },
     "methods": {
+      "description": "The names of the ways a list is used (its `method`).",
       "anyOf": [
         {
           "$ref": "#/$defs/MethodLabelsFile"
@@ -49,6 +54,7 @@
       ]
     },
     "panel_states": {
+      "description": "The Start page's panel-state picker words.",
       "anyOf": [
         {
           "$ref": "#/$defs/PanelStateLabelsFile"
@@ -59,6 +65,7 @@
       ]
     },
     "plain_words": {
+      "description": "Words that say nothing about where a control is (`AND`, `PANEL`, `SWITCH`).",
       "type": [
         "array",
         "null"
@@ -68,6 +75,7 @@
       }
     },
     "position_words": {
+      "description": "Other words a step's wording uses for a position, by position: `DN: [DOWN]`.\n`check` and `suggest-targets` read steps with them.",
       "type": [
         "object",
         "null"
@@ -80,6 +88,7 @@
       }
     },
     "reference": {
+      "description": "The reference area's title and group tabs.",
       "anyOf": [
         {
           "$ref": "#/$defs/ReferenceLabelsFile"
@@ -90,6 +99,7 @@
       ]
     },
     "roles": {
+      "description": "The crew roles steps name. The app has none by default.",
       "type": [
         "array",
         "null"
@@ -99,12 +109,14 @@
       }
     },
     "seat_view_title": {
+      "description": "The title over the seat view in \"Where is this?\".",
       "type": [
         "string",
         "null"
       ]
     },
     "seats": {
+      "description": "The flight deck's seats. The app has none by default.",
       "type": [
         "array",
         "null"
@@ -114,6 +126,7 @@
       }
     },
     "side_words": {
+      "description": "Words that tell one of a pair from the other, by side or seat (`LEFT`, `CAPTAIN`).",
       "type": [
         "array",
         "null"
@@ -130,18 +143,22 @@
       "type": "object",
       "properties": {
         "about": {
+          "description": "What kind of material it is, shown with its name on the References page.",
           "type": [
             "string",
             "null"
           ]
         },
         "id": {
+          "description": "The basis tag it labels, as the manifest's `basisTags` lists it.",
           "type": "string"
         },
         "label": {
+          "description": "The tag's name on the References page.",
           "type": "string"
         },
         "pending": {
+          "description": "`true` for a status rather than a source: the lists that carry it are still being\nchecked, and the References page shows them apart.",
           "type": "boolean"
         }
       },
@@ -156,9 +173,11 @@
       "type": "object",
       "properties": {
         "id": {
+          "description": "The group's id, lower-case letters, digits and dashes, e.g. `memory`; a reference\nphase's `group` names it.",
           "type": "string"
         },
         "title": {
+          "description": "Its tab's title.",
           "type": "string"
         }
       },
@@ -173,30 +192,35 @@
       "type": "object",
       "properties": {
         "checklist": {
+          "description": "A list of `kind: checklist` (Checklist).",
           "type": [
             "string",
             "null"
           ]
         },
         "flow": {
+          "description": "A list of `kind: flow` (the app's word: Procedure).",
           "type": [
             "string",
             "null"
           ]
         },
         "memory": {
+          "description": "A list with `memory` set (Memory items).",
           "type": [
             "string",
             "null"
           ]
         },
         "non_normal": {
+          "description": "Any other list (Non-normal procedure), unless it is memory items or quick reference.",
           "type": [
             "string",
             "null"
           ]
         },
         "quick": {
+          "description": "A list in a phase whose `group` is `quick` (Quick reference).",
           "type": [
             "string",
             "null"
@@ -210,24 +234,28 @@
       "type": "object",
       "properties": {
         "challenge_response": {
+          "description": "`method: challenge_response` (Challenge and response).",
           "type": [
             "string",
             "null"
           ]
         },
         "do": {
+          "description": "A list with `method: do` (the app's word: Do).",
           "type": [
             "string",
             "null"
           ]
         },
         "from_memory": {
+          "description": "`method: from_memory` (From memory).",
           "type": [
             "string",
             "null"
           ]
         },
         "read_and_do": {
+          "description": "`method: read_and_do` (Read and do).",
           "type": [
             "string",
             "null"
@@ -241,18 +269,21 @@
       "type": "object",
       "properties": {
         "description": {
+          "description": "The sentence under the heading.",
           "type": [
             "string",
             "null"
           ]
         },
         "placeholder": {
+          "description": "What the picker shows before a panel state is chosen.",
           "type": [
             "string",
             "null"
           ]
         },
         "title": {
+          "description": "The picker's heading on the Start page.",
           "type": [
             "string",
             "null"
@@ -266,12 +297,14 @@
       "type": "object",
       "properties": {
         "groups": {
+          "description": "Group titles. One with a built-in id (`memory`, `quick`, `procedures`) renames it;\nany other adds a group after them.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/GroupLabel"
           }
         },
         "title": {
+          "description": "The reference area's title, on its button and its page (the app's word: Emergency).",
           "type": [
             "string",
             "null"
@@ -285,18 +318,22 @@
       "type": "object",
       "properties": {
         "id": {
+          "description": "Lower-case letters, digits and dashes, unique among roles; a step's `role` and\n`respond` name it.",
           "type": "string"
         },
         "seat": {
+          "description": "The seat it sits in, one of the seats. A seated role's `title` and `short` also count\nas side words.",
           "type": [
             "string",
             "null"
           ]
         },
         "short": {
+          "description": "Its short tag beside a step, e.g. `CA`.",
           "type": "string"
         },
         "title": {
+          "description": "Its full name, e.g. `Captain`: the short tag's tooltip, and what screen readers say.",
           "type": "string"
         }
       },
@@ -312,9 +349,11 @@
       "type": "object",
       "properties": {
         "id": {
+          "description": "Lower-case letters, digits and dashes, unique among seats; a role's `seat` names it.",
           "type": "string"
         },
         "title": {
+          "description": "The seat's name, e.g. `Left seat`.",
           "type": "string"
         }
       },
