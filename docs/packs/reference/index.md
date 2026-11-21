@@ -27,7 +27,7 @@ the JSON Schemas in `schemas/` give editors autocomplete. The guide that explain
 | [`messages.yaml`](messages.md) | `messages.schema.json` | `messages.yaml`, in the order the app lists them. |
 | [`notes.yaml`](notes.md) | `notes.schema.json` | `notes.yaml`. |
 | [`panel-states.yaml`](panel-states.md) | `panel-states.schema.json` | `panel-states.yaml`. |
-| [`patches.yaml`](patches.md) | `patches.schema.json` | `patches.yaml`. |
+| [`patches.yaml`](patches.md) | `patches.schema.json` | A child pack's changes to its parent's content, by id, applied in order when the child is built (decision 0029). |
 | [`phases.yaml`](phases.md) | `phases.schema.json` | `phases.yaml`. |
 | [`lists/<name>.yaml`](lists.md) | `checklist.schema.json` | An ordered list of steps: a checklist, a flow or a non-normal procedure. |
 | [`panels/<name>.yaml`](panels.md) | `panel.schema.json` | One `panels/*.yaml` file. |

@@ -11,11 +11,11 @@ Schema: `schemas/patches.schema.json`. [All files](index.md).
 
 ## The file
 
-`patches.yaml`.
+`patches.yaml`: a child pack's changes to its parent's content, by id, applied in order when the child is built (decision 0029). Only in a pack that `extends` another.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `patches` | list of [Patch](#patch) | yes |  |  |
+| `patches` | list of [Patch](#patch) | yes |  | The changes, applied one after another to the parent's built content. |
 
 ## Patch
 
@@ -23,18 +23,18 @@ One change to the parent. It names exactly one target, by id: - `stage`, `list`,
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `flight_field` | text |  |  |  |
-| `glossary_term` | text |  |  |  |
-| `item` | text |  |  |  |
-| `label` | text |  |  |  |
-| `list` | text |  |  |  |
-| `message` | text |  |  |  |
-| `op` | [PatchOp](#patchop) | yes |  |  |
-| `panel` | text |  |  |  |
-| `panel_state` | text |  |  |  |
-| `section` | text |  |  |  |
-| `stage` | text |  |  |  |
-| `step` | text |  |  |  |
+| `flight_field` | text |  |  | Targets a flight field in `flight.yaml`, by its `id`. |
+| `glossary_term` | text |  |  | Targets a glossary entry, by its `term`. |
+| `item` | text |  |  | Targets a panel item, as `panel/section/item`, by the item's `id`. |
+| `label` | text |  |  | Targets a label in `labels.yaml`, by its dotted path, e.g. `roles.pf.title`. |
+| `list` | text |  |  | Targets a list, by its `id`. |
+| `message` | text |  |  | Targets an alert message in `messages.yaml`, by its `id`. |
+| `op` | [PatchOp](#patchop) | yes |  | What the patch does to its target: `set`, `replace`, `remove`, `insert_before` or `insert_after`. |
+| `panel` | text |  |  | Targets a panel, by its `id`. |
+| `panel_state` | text |  |  | Targets a panel state in `panel-states.yaml`, by its `id`. |
+| `section` | text |  |  | Targets a panel section, as `panel/section`. |
+| `stage` | text |  |  | Targets a stage in `phases.yaml`, by its `id`. |
+| `step` | text |  |  | Targets a step in any list, by its `id`. |
 | `to` | any value |  |  | `set`: the fields to change. |
 | `with` | any value |  |  | `replace`, `insert_before`, `insert_after`: the new entry, or entries. |
 

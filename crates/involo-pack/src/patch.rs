@@ -41,27 +41,40 @@ pub enum PatchOp {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Patch {
+    /// What the patch does to its target: `set`, `replace`, `remove`, `insert_before` or
+    /// `insert_after`.
     pub op: PatchOp,
+    /// Targets a stage in `phases.yaml`, by its `id`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stage: Option<String>,
+    /// Targets a list, by its `id`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub list: Option<String>,
+    /// Targets a step in any list, by its `id`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub step: Option<String>,
+    /// Targets a panel, by its `id`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub panel: Option<String>,
+    /// Targets a panel section, as `panel/section`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub section: Option<String>,
+    /// Targets a panel item, as `panel/section/item`, by the item's `id`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub item: Option<String>,
+    /// Targets a flight field in `flight.yaml`, by its `id`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flight_field: Option<String>,
+    /// Targets a panel state in `panel-states.yaml`, by its `id`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub panel_state: Option<String>,
+    /// Targets an alert message in `messages.yaml`, by its `id`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
+    /// Targets a glossary entry, by its `term`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub glossary_term: Option<String>,
+    /// Targets a label in `labels.yaml`, by its dotted path, e.g. `roles.pf.title`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
     /// `set`: the fields to change.
@@ -72,10 +85,12 @@ pub struct Patch {
     pub with: Option<Value>,
 }
 
-/// `patches.yaml`.
+/// `patches.yaml`: a child pack's changes to its parent's content, by id, applied in order when
+/// the child is built (decision 0029). Only in a pack that `extends` another.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct PatchesFile {
+    /// The changes, applied one after another to the parent's built content.
     pub patches: Vec<Patch>,
 }
 

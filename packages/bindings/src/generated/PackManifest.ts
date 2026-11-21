@@ -101,7 +101,7 @@ notes?: string | null,
  */
 panels?: Array<string>, 
 /**
- * What the panel lights mean and what to do when one is on (`lights.yaml`).
+ * What each panel light means (`lights.yaml`).
  */
 lights?: string | null, 
 /**
@@ -113,15 +113,17 @@ faults?: string | null,
  */
 glossary?: string | null, 
 /**
- * Briefings, each with its items, for the phases that have one (`briefings.yaml`).
+ * Briefings, each with its items (`briefings.yaml`). The app doesn't show them yet;
+ * Practice asks about their mnemonics.
  */
 briefings?: string | null, 
 /**
- * Panel states a pilot can start from, and the steps each counts as done or skips (`panel-states.yaml`).
+ * Panel states a pilot can start from, and the steps each counts as done or skips
+ * (`panel-states.yaml`).
  */
 panelStates?: string | null, 
 /**
- * CDU walkthroughs: the pages to type into, screen by screen (`cdu.yaml`).
+ * CDU walkthroughs, screen by screen (`cdu.yaml`). The app doesn't show them yet.
  */
 cdu?: string | null, 
 /**
