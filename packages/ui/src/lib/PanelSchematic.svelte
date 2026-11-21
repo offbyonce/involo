@@ -194,6 +194,29 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
   const TILE_RADIUS = 8;
   let wrap = $state<HTMLDivElement | null>(null);
   let height = $state(0);
+  // The room's size, read when it changes and applied in the next frame. The drawing's height
+  // follows the room's width, and the room holds the drawing, so rescaling it while the browser
+  // is still reporting sizes would resize the room again in the same report: a ResizeObserver
+  // loop, which WebKit logs as an error (issue 199).
+  $effect(() => {
+    if (!wrap) return;
+    const el = wrap;
+    const read = () => {
+      width = el.clientWidth;
+      height = el.clientHeight;
+    };
+    read();
+    let frame = 0;
+    const watch = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(read);
+    });
+    watch.observe(el);
+    return () => {
+      watch.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  });
   $effect(() => {
     extent = { w: view.box.w, h: view.box.h };
   });
@@ -304,7 +327,7 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
   class="wrap"
   style:height={room ? `${Math.ceil(view.box.h * scale.k)}px` : undefined}
   class:across={!!room}
-  class:more={scale.overflow} class:more-y={moreY} bind:clientWidth={width} bind:clientHeight={height} bind:this={wrap}>
+  class:more={scale.overflow} class:more-y={moreY} bind:this={wrap}>
   <svg
     class="schematic"
     viewBox="{view.box.x} {view.box.y} {view.box.w} {view.box.h}"
