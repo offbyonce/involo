@@ -25,20 +25,6 @@ const TWINS = ["Example Twin", "Example Twin LR"];
 
 export const KNOWN_FINDINGS: KnownFinding[] = [
   {
-    screen: "Flight",
-    check: "layout",
-    finding: /^the ".+ ›" link is \d+ px tall$/,
-    packs: ALL,
-    issue: "#198",
-  },
-  {
-    screen: "Flight",
-    check: "layout",
-    finding: /^the "— enter" link is \d+ px tall$/,
-    packs: ALL,
-    issue: "#198",
-  },
-  {
     screen: "Flight deck",
     check: "label-content-name-mismatch",
     finding:
