@@ -10,7 +10,7 @@ use involo_checklist_core::{PanelItem, PanelItemKind, named_position};
 use super::confirmations::check_confirmations;
 use super::ids::unique;
 use super::index::Index;
-use super::{Issue, error, warning};
+use super::{Code, Issue, error, warning};
 use crate::Pack;
 
 pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
@@ -21,6 +21,7 @@ pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec
                 && !idx.zones.contains(zone.as_str())
             {
                 issues.push(error(
+                    Code::UnknownZone,
                     &control.id,
                     format!("refers to unknown zone `{zone}`"),
                 ));
@@ -31,6 +32,7 @@ pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec
         for area in &overview.areas {
             if !idx.zones.contains(area.zone.as_str()) {
                 issues.push(error(
+                    Code::UnknownZone,
                     "overview",
                     format!("refers to unknown zone `{}`", area.zone),
                 ));
@@ -50,6 +52,7 @@ pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec
                 && region.y + region.height <= overview.height;
             if !inside {
                 issues.push(error(
+                    Code::RegionBounds,
                     &region.name,
                     "region must have a size and lie inside the overview",
                 ));
@@ -75,7 +78,7 @@ pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec
                 .as_ref()
                 .is_some_and(|n| n.trim().is_empty() || n.trim() == section.title.trim())
             {
-                issues.push(error(
+                issues.push(error(Code::SectionNameSame,
                     &section.id,
                     "a section's `name` is for a name other than its title; leave it out to use the title",
                 ));
@@ -100,7 +103,11 @@ pub(super) fn check_panels_and_lights(pack: &Pack, idx: &Index, issues: &mut Vec
     );
     for light in &file.lights {
         if involo_checklist_core::locate(&c.panels, &light.locator).is_none() {
-            issues.push(error(&light.locator, "does not match any panel item"));
+            issues.push(error(
+                Code::UnknownPanelItem,
+                &light.locator,
+                "does not match any panel item",
+            ));
         }
         check_confirmations(&light.locator, &light.confirmed_by, issues);
     }
@@ -123,10 +130,12 @@ fn check_light_names(lights: &[involo_checklist_core::LightNote], issues: &mut V
         for light in group {
             match light.which.as_deref().map(str::trim) {
                 None | Some("") => issues.push(error(
+                    Code::LightWhich,
                     &light.locator,
                     "another light shares its label on this section, so it needs `which`",
                 )),
                 Some(w) if !seen.insert(w) => issues.push(error(
+                    Code::LightWhich,
                     &light.locator,
                     format!("`which: {w}` is the same as another light with its label"),
                 )),
@@ -147,6 +156,7 @@ fn check_panel_item(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
         .collect();
     if !lower.is_empty() {
         issues.push(warning(
+            Code::PositionCase,
             at,
             format!(
                 "`{label}`: positions `{}` are not in capitals; drawings print them as the placard",
@@ -156,15 +166,24 @@ fn check_panel_item(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
     }
     let is_light = item.kind == PanelItemKind::Light;
     if is_light && item.color.is_none() {
-        issues.push(error(at, format!("light `{label}` needs a `color`")));
+        issues.push(error(
+            Code::LightColor,
+            at,
+            format!("light `{label}` needs a `color`"),
+        ));
     }
     if !is_light && item.color.is_some() {
-        issues.push(error(at, format!("`{label}`: only a light has a `color`")));
+        issues.push(error(
+            Code::LightColor,
+            at,
+            format!("`{label}`: only a light has a `color`"),
+        ));
     }
     if let Some(rest) = &item.rest {
         let named = item.positions.iter().any(|x| x.trim() == rest);
         if !named {
             issues.push(error(
+                Code::UnknownPosition,
                 at,
                 format!("`{label}`: rest `{rest}` is not one of its positions"),
             ));
@@ -180,7 +199,7 @@ fn check_panel_item(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
             PanelItemKind::DisplayUnit | PanelItemKind::Readout
         )
     {
-        issues.push(error(
+        issues.push(error(Code::SizeOnlyDisplay,
             at,
             format!("`{label}`: only a display unit or readout has a `width` or `height`; every other control is drawn at its standard size"),
         ));
@@ -192,6 +211,7 @@ fn check_panel_item(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
         )
     {
         issues.push(error(
+            Code::GuardedKind,
             at,
             format!("`{label}`: only a toggle switch or push button can be `guarded`"),
         ));
@@ -204,12 +224,14 @@ fn check_item_ids(section: &involo_checklist_core::PanelSection, issues: &mut Ve
     for id in section.items.iter().filter_map(|i| i.id.as_deref()) {
         if !super::ids::valid_segment(id) {
             issues.push(error(
+                Code::IdFormat,
                 &section.id,
                 format!("item id `{id}` must be lower-case letters, digits and dashes"),
             ));
         }
         if !ids.insert(id) {
             issues.push(error(
+                Code::DuplicateId,
                 id,
                 format!("item id is used twice in section `{}`", section.id),
             ));
@@ -225,6 +247,7 @@ fn check_selector(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
     let positions: Vec<&str> = item.positions.iter().map(|p| p.trim()).collect();
     if is_selector && positions.len() > 1 && positions.iter().any(|p| p.is_empty()) {
         issues.push(error(
+            Code::SelectorPosition,
             at,
             format!("selector `{label}` has a position without a name"),
         ));
@@ -234,6 +257,7 @@ fn check_selector(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
     };
     if !is_selector {
         issues.push(error(
+            Code::SelectorAngles,
             at,
             format!("`{label}`: only a selector has `angles`"),
         ));
@@ -241,6 +265,7 @@ fn check_selector(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
     }
     if angles.len() != positions.len() {
         issues.push(error(
+            Code::SelectorAngles,
             at,
             format!(
                 "`{label}`: {} angles for {} positions",
@@ -251,12 +276,14 @@ fn check_selector(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
     }
     if angles.iter().any(|a| !(-180.0..=180.0).contains(a)) {
         issues.push(error(
+            Code::SelectorAngles,
             at,
             format!("`{label}`: angles run from -180 to 180 degrees"),
         ));
     }
     if angles.windows(2).any(|w| w[1] <= w[0]) {
         issues.push(error(
+            Code::SelectorAngles,
             at,
             format!("`{label}`: angles must sweep clockwise, each larger than the last"),
         ));
@@ -306,7 +333,7 @@ fn check_rest_against_cold_start(pack: &Pack, issues: &mut Vec<Issue>) {
                 };
                 let target = positions.get(target).map_or("", |p| p.trim());
                 if target != rest {
-                    issues.push(error(
+                    issues.push(error(Code::PanelStateRest,
                         &section.id,
                         format!(
                             "`{}` rests at `{rest}`, but panel state `{}` counts `{}` as done, which sets it to `{target}`",
@@ -332,6 +359,7 @@ fn check_lit_at(pack: &Pack, issues: &mut Vec<Issue>) {
         let Some(lit_at) = &item.lit_at else { continue };
         if item.kind != PanelItemKind::Light {
             issues.push(error(
+                Code::LitAt,
                 *at,
                 format!("`{}`: only a light has `lit_at`", item.label),
             ));
@@ -344,6 +372,7 @@ fn check_lit_at(pack: &Pack, issues: &mut Vec<Issue>) {
         });
         if !named {
             issues.push(error(
+                Code::LitAt,
                 *at,
                 format!(
                     "`{}`: no item sharing its control has the position `{lit_at}`",
@@ -366,7 +395,7 @@ fn check_short_captions(overview: &involo_checklist_core::Overview, issues: &mut
         ];
         for (edge, long, short) in pairs {
             if long.is_some() && short.is_none() {
-                issues.push(warning(
+                issues.push(warning(Code::ShortCaption,
                     &region.name,
                     format!("has a {edge} caption but no `{edge}_short`; the step map falls back to the long one"),
                 ));
@@ -394,7 +423,7 @@ fn check_views(
         Some(involo_checklist_core::SeatViews::BySeat(frames)) => {
             for (seat, frame) in frames {
                 if !labels.seats.iter().any(|s| &s.id == seat) {
-                    issues.push(error(
+                    issues.push(error(Code::SeatView,
                         "overview seat view",
                         format!(
                             "`{seat}` is not a seat the pack's labels list, so its frame is never shown"
@@ -421,17 +450,22 @@ fn check_view(
     let inside =
         |p: &[f64; 2]| p[0] >= 0.0 && p[1] >= 0.0 && p[0] <= frame.width && p[1] <= frame.height;
     if frame.width <= 0.0 || frame.height <= 0.0 {
-        issues.push(error(&at, "the view must have a size"));
+        issues.push(error(Code::ViewShape, &at, "the view must have a size"));
     }
     for shape in &frame.shapes {
         if shape.points.is_empty() || !shape.points.iter().all(inside) {
-            issues.push(error(&at, "every shape needs points, all inside the view"));
+            issues.push(error(
+                Code::ViewShape,
+                &at,
+                "every shape needs points, all inside the view",
+            ));
         }
     }
     unique(&at, frame.places.iter().map(|p| p.region.as_str()), issues);
     for place in &frame.places {
         if !place.names.is_empty() && place.names.len() != place.shapes.len() {
             issues.push(error(
+                Code::ViewShape,
                 &at,
                 format!(
                     "place `{}` has {} names for {} outlines",
@@ -443,6 +477,7 @@ fn check_view(
         }
         if !regions.contains(place.region.as_str()) {
             issues.push(error(
+                Code::UnknownRegion,
                 &at,
                 format!("place names no overview region `{}`", place.region),
             ));
@@ -455,6 +490,7 @@ fn check_view(
             && place.label_at.as_ref().is_none_or(inside);
         if !fits {
             issues.push(error(
+                Code::ViewShape,
                 &at,
                 format!(
                     "`{}` needs outlines of three points or more, inside the view",
@@ -466,6 +502,7 @@ fn check_view(
     for label in &frame.labels {
         if label.text.trim().is_empty() || !inside(&[label.x, label.y]) {
             issues.push(error(
+                Code::ViewShape,
                 &at,
                 "every label needs text and a point inside the view",
             ));
@@ -478,6 +515,7 @@ fn check_view(
         .count();
     if name == "side" && !frame.places.is_empty() && eyes != 1 {
         issues.push(error(
+            Code::ViewShape,
             &at,
             "a side view with places needs exactly one `eye` point for its sight lines",
         ));
@@ -1011,7 +1049,7 @@ pub(super) mod tests {
         }
         let joined = messages(&p);
         assert!(
-            joined.contains("warning: Overhead: has a bottom caption but no `bottom_short`"),
+            joined.contains("warning P0812: Overhead: has a bottom caption but no `bottom_short`"),
             "{joined}"
         );
         assert!(!joined.contains("top caption"), "{joined}");

@@ -90,7 +90,7 @@ engine never names an aircraft. **The app never connects to the simulator** (dec
 | `crates/involo-app-core` | App operations that do not depend on where the app runs; `AppError`, `AppInfo` |
 | `crates/involo-checklist-core` | Domain: checklists, steps, sessions. No I/O. |
 | `crates/involo-pack` | Pack manifest, strict YAML loading (`serde-saphyr`), validation, schemas |
-| `crates/involo-pack-cli` | `involo-pack check <dir>`, `involo-pack schema <dir>`, `involo-pack build <dir>... <out>` (the pack catalog: one `<id>-<version>.involo-pack` per pack and `index.json`), `involo-pack overlap <dir>`, `involo-pack suggest-targets <dir>` (drafts step targets) |
+| `crates/involo-pack-cli` | `involo-pack new <folder>` (a starter pack from an example), `involo-pack check <dir>` (each problem with a code, file, line and hint; `--json` for tools), `involo-pack explain <code>`, `involo-pack describe <file>` (a file's fields from its schema), `involo-pack schema <dir>`, `involo-pack build <dir>... <out>` (the pack catalog: one `<id>-<version>.involo-pack` per pack and `index.json`), `involo-pack overlap <dir>`, `involo-pack suggest-targets <dir>` (drafts step targets) |
 | `crates/involo-pack-overlap` | Text-overlap check against private references, with its allow list (`allow.txt`) |
 | `crates/involo-simbrief` | SimBrief OFP parsing |
 | `crates/store` | SQLite saved data and migrations. Parked: not in the workspace (0010) |

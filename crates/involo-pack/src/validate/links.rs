@@ -7,7 +7,7 @@
 use serde::Serialize;
 use serde_json::Value;
 
-use super::{Issue, error};
+use super::{Code, Issue, error};
 use crate::Pack;
 
 /// Domains that must never be linked (non-public or redistributed manuals, and second-hand
@@ -92,11 +92,16 @@ pub fn find_links(text: &str) -> Vec<&str> {
 /// Check one link: banned links are always errors; others need to be on the allow-list.
 fn link_issue(at: &str, link: &str, allow: &[&str]) -> Option<Issue> {
     if is_blocked_link(link) {
-        Some(error(at, format!("link `{link}` is on the blocked list")))
+        Some(error(
+            Code::BlockedLink,
+            at,
+            format!("link `{link}` is on the blocked list"),
+        ))
     } else if is_allowed_link(link, allow) {
         None
     } else {
         Some(error(
+            Code::LinkNotAllowed,
             at,
             format!("link `{link}` is not allowed; packs carry no third-party URLs"),
         ))
@@ -129,7 +134,11 @@ fn scan_value(at: &str, value: &Value, allow: &[&str], issues: &mut Vec<Issue>) 
 fn scan_links(at: &str, data: &impl Serialize, allow: &[&str], issues: &mut Vec<Issue>) {
     match serde_json::to_value(data) {
         Ok(value) => scan_value(at, &value, allow, issues),
-        Err(e) => issues.push(error(at, format!("cannot scan for links: {e}"))),
+        Err(e) => issues.push(error(
+            Code::LinkScan,
+            at,
+            format!("cannot scan for links: {e}"),
+        )),
     }
 }
 

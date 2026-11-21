@@ -7,7 +7,7 @@ use involo_checklist_core::{Checklist, FieldId, Step};
 
 use super::confirmations::check_confirmations;
 use super::index::Index;
-use super::{BLANK, Issue, error, valid_step_id};
+use super::{BLANK, Code, Issue, error, valid_step_id};
 
 const ROUTE_LEG_ONLY_IN_CDU: &str =
     "`route_leg` is only valid in CDU text, with `index` and `part`";
@@ -22,6 +22,7 @@ fn check_roles(list: &Checklist, idx: &Index, issues: &mut Vec<Issue>) {
                 && !idx.roles.contains(role.as_str())
             {
                 issues.push(error(
+                    Code::UnknownRole,
                     at,
                     format!("`{field}` names `{role}`, which is not a role in the pack's labels"),
                 ));
@@ -31,6 +32,7 @@ fn check_roles(list: &Checklist, idx: &Index, issues: &mut Vec<Issue>) {
             && list.method != Some(involo_checklist_core::ListMethod::ChallengeResponse)
         {
             issues.push(error(
+                Code::RespondWithoutChallenge,
                 at,
                 "`respond` belongs in a list with `method: challenge_response`",
             ));
@@ -38,10 +40,13 @@ fn check_roles(list: &Checklist, idx: &Index, issues: &mut Vec<Issue>) {
     }
 }
 
+// One check per rule, in order; each one's code makes the calls longer than one line.
+#[allow(clippy::too_many_lines)]
 fn check_step(step: &Step, idx: &Index, issues: &mut Vec<Issue>) {
     let at = step.id.as_str();
     if !idx.step_prefixes.iter().any(|p| valid_step_id(p, at)) {
         issues.push(error(
+            Code::StepIdShape,
             at,
             format!(
                 "step id must be `<prefix>.<phase>.<short-name>`, where the prefix is {}",
@@ -55,6 +60,7 @@ fn check_step(step: &Step, idx: &Index, issues: &mut Vec<Issue>) {
     }
     if step.text.trim().is_empty() || step.expect.trim().is_empty() {
         issues.push(error(
+            Code::EmptyStepText,
             at,
             "step text and expected response must not be empty",
         ));
@@ -64,11 +70,16 @@ fn check_step(step: &Step, idx: &Index, issues: &mut Vec<Issue>) {
     }
     check_confirmations(at, &step.confirmed_by, issues);
     if step.simulator_model && step.note.is_none() {
-        issues.push(error(at, "`simulator_model` needs a `note` to apply to"));
+        issues.push(error(
+            Code::SimulatorModelNoNote,
+            at,
+            "`simulator_model` needs a `note` to apply to",
+        ));
     }
     let blanks = step.expect.matches(BLANK).count();
     if !step.fill.is_empty() && step.fill.len() != blanks {
         issues.push(error(
+            Code::FillCount,
             at,
             format!(
                 "`fill` has {} entries but `expect` has {blanks} blanks",
@@ -84,7 +95,11 @@ fn check_step(step: &Step, idx: &Index, issues: &mut Vec<Issue>) {
         .iter()
         .any(|h| h.field.as_str() == FieldId::MANUAL)
     {
-        issues.push(error(at, "`manual` is only valid in a step's `fill`"));
+        issues.push(error(
+            Code::ManualOutsideFill,
+            at,
+            "`manual` is only valid in a step's `fill`",
+        ));
     }
     let hint_fields = step.hint.iter().map(|h| &h.field);
     if step
@@ -93,22 +108,34 @@ fn check_step(step: &Step, idx: &Index, issues: &mut Vec<Issue>) {
         .chain(hint_fields)
         .any(|f| f.as_str() == FieldId::ROUTE_LEG)
     {
-        issues.push(error(at, ROUTE_LEG_ONLY_IN_CDU));
+        issues.push(error(Code::RouteLegOnlyInCdu, at, ROUTE_LEG_ONLY_IN_CDU));
     }
     if let Some(id) = &step.opens
         && !idx.walkthroughs.contains(id.as_str())
     {
-        issues.push(error(at, format!("opens unknown walkthrough `{id}`")));
+        issues.push(error(
+            Code::UnknownWalkthrough,
+            at,
+            format!("opens unknown walkthrough `{id}`"),
+        ));
     }
     if let Some(id) = &step.how
         && !idx.how.contains(id.as_str())
     {
-        issues.push(error(at, format!("refers to unknown how note `{id}`")));
+        issues.push(error(
+            Code::UnknownHowNote,
+            at,
+            format!("refers to unknown how note `{id}`"),
+        ));
     }
     if let Some(id) = &step.explain
         && !idx.explain.contains(id.as_str())
     {
-        issues.push(error(at, format!("refers to unknown explanation `{id}`")));
+        issues.push(error(
+            Code::UnknownExplanation,
+            at,
+            format!("refers to unknown explanation `{id}`"),
+        ));
     }
     if let Some(show_if) = &step.show_if {
         idx.check_show_if(at, show_if, issues);
@@ -122,11 +149,11 @@ fn check_step(step: &Step, idx: &Index, issues: &mut Vec<Issue>) {
 
 pub(super) fn check_list(list: &Checklist, idx: &Index, issues: &mut Vec<Issue>) {
     if list.steps.is_empty() {
-        issues.push(error(&list.id, "checklist has no steps"));
+        issues.push(error(Code::EmptyList, &list.id, "checklist has no steps"));
     }
     check_roles(list, idx, issues);
     if list.basis.is_empty() {
-        issues.push(error(&list.id, "list has no `basis`"));
+        issues.push(error(Code::NoBasis, &list.id, "list has no `basis`"));
     }
     // The app shows the training notice itself; a copy in a list's text reads as part of it.
     if list
@@ -135,6 +162,7 @@ pub(super) fn check_list(list: &Checklist, idx: &Index, issues: &mut Vec<Issue>)
         .is_some_and(|w| w.contains("Simulator training only"))
     {
         issues.push(error(
+            Code::WhyRepeatsNotice,
             &list.id,
             "the list's `why` repeats the training notice",
         ));
@@ -142,6 +170,7 @@ pub(super) fn check_list(list: &Checklist, idx: &Index, issues: &mut Vec<Issue>)
     for tag in &list.basis {
         if !idx.tags.contains(tag.as_str()) {
             issues.push(error(
+                Code::UndeclaredBasis,
                 &list.id,
                 format!("basis `{tag}` is not declared in pack.json"),
             ));
@@ -152,6 +181,7 @@ pub(super) fn check_list(list: &Checklist, idx: &Index, issues: &mut Vec<Issue>)
     }
     if let Some(first) = list.steps.first().filter(|s| s.branch) {
         issues.push(error(
+            Code::FirstStepBranch,
             first.id.as_str(),
             "a list's first step cannot open a branch (`branch: true`)",
         ));
@@ -191,6 +221,7 @@ pub(super) fn check_notes_repeat_how(pack: &crate::Pack, issues: &mut Vec<Issue>
         let shared = note_words.intersection(&how_words).count();
         if !note_words.is_empty() && shared * 10 >= note_words.len() * 7 {
             issues.push(error(
+                Code::NoteRepeatsHow,
                 step.id.as_str(),
                 "the note repeats its \"How to do it\" steps; say it once",
             ));

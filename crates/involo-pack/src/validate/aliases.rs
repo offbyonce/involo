@@ -8,13 +8,19 @@ use std::collections::BTreeSet;
 use involo_checklist_core::{Alias, AliasKind};
 
 use super::index::Index;
-use super::{Issue, error};
+use super::{Code, Issue, error};
 
 pub(super) fn check_alias(alias: &Alias, idx: &Index, issues: &mut Vec<Issue>) {
     let at = alias.from.as_str();
     let to = alias.to.as_str();
     let found = |set: &BTreeSet<&str>| set.contains(to);
-    let unknown = |what: &str| error(at, format!("refers to unknown {what} `{to}`"));
+    let unknown = |what: &str| {
+        error(
+            Code::UnknownAliasTarget,
+            at,
+            format!("refers to unknown {what} `{to}`"),
+        )
+    };
     match alias.kind {
         AliasKind::Step if !found(&idx.steps) => issues.push(unknown("step")),
         AliasKind::BriefingItem if !found(&idx.briefing_items) => {
@@ -35,7 +41,11 @@ pub(super) fn check_alias(alias: &Alias, idx: &Index, issues: &mut Vec<Issue>) {
         }
         AliasKind::OptionValue => match to.split_once(':') {
             Some((option, value)) => idx.check_option_value(at, option, value, issues),
-            None => issues.push(error(at, "option alias must be `<option>:<value>`")),
+            None => issues.push(error(
+                Code::OptionAlias,
+                at,
+                "option alias must be `<option>:<value>`",
+            )),
         },
         AliasKind::FillField if !idx.fields.contains(to) => {
             issues.push(unknown("fill field"));
