@@ -186,8 +186,7 @@ impl PackReport {
 
 /// Where the command looks for a pack's parent: beside it, then in each `--parents` folder.
 pub fn places(dir: &Path, parents: &[PathBuf]) -> Vec<PathBuf> {
-    dir.parent()
-        .map(Path::to_path_buf)
+    involo_pack::resolve::beside(dir)
         .into_iter()
         .chain(parents.iter().cloned())
         .collect()

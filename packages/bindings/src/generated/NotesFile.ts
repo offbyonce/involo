@@ -3,6 +3,15 @@ import type { ExplainNote } from "./ExplainNote";
 import type { HowNote } from "./HowNote";
 
 /**
- * `notes.yaml`.
+ * `notes.yaml`: how-to instructions and explanations that several steps share, each named
+ * by the steps that use it.
  */
-export type NotesFile = { how?: Array<HowNote>, explain?: Array<ExplainNote>, };
+export type NotesFile = { 
+/**
+ * Shared "How to do it" instructions, named by a step's `how`.
+ */
+how?: Array<HowNote>, 
+/**
+ * Shared explanations, named by a step's `explain`.
+ */
+explain?: Array<ExplainNote>, };

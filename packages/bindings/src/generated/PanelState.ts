@@ -4,7 +4,19 @@ import type { StepId } from "./StepId";
 /**
  * A ready-made point to start from, with earlier steps already accounted for.
  */
-export type PanelState = { id: string, title: string, description: string, 
+export type PanelState = { 
+/**
+ * The state's id, which a flight records and aliases can rename.
+ */
+id: string, 
+/**
+ * Its name in the Start page's panel-state picker.
+ */
+title: string, 
+/**
+ * What it starts from, in words. The app does not show it today.
+ */
+description: string, 
 /**
  * Options this start selects.
  */
@@ -12,4 +24,14 @@ set?: { [key in string]: string },
 /**
  * The phase to open.
  */
-phase: string, done?: Array<StepId>, skip?: Array<StepId>, };
+phase: string, 
+/**
+ * Steps ticked when this state is chosen, unless already ticked or skipped; choosing
+ * another state takes those ticks back.
+ */
+done?: Array<StepId>, 
+/**
+ * Steps skipped when this state is chosen, unless already ticked or skipped; choosing
+ * another state takes those skips back.
+ */
+skip?: Array<StepId>, };

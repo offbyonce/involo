@@ -3,4 +3,20 @@
 /**
  * One test against a pilot-chosen option. The options are declared by the pack.
  */
-export type OptionTest = { option: string, equals: string, } | { option: string, oneOf: Array<string>, };
+export type OptionTest = { 
+/**
+ * The option's id.
+ */
+option: string, 
+/**
+ * The value it must have.
+ */
+equals: string, } | { 
+/**
+ * The option's id.
+ */
+option: string, 
+/**
+ * The values, any one of which passes.
+ */
+oneOf: Array<string>, };

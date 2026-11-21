@@ -23,6 +23,7 @@
       ]
     },
     "aliases": {
+      "description": "Old ids and the ids they became, so an update keeps a pilot's flight (`aliases.yaml`).",
       "type": [
         "string",
         "null"
@@ -45,12 +46,14 @@
       }
     },
     "briefings": {
+      "description": "Briefings, each with its items (`briefings.yaml`). The app doesn't show them yet;\nPractice asks about their mnemonics.",
       "type": [
         "string",
         "null"
       ]
     },
     "cdu": {
+      "description": "CDU walkthroughs, screen by screen (`cdu.yaml`). The app doesn't show them yet.",
       "type": [
         "string",
         "null"
@@ -71,6 +74,7 @@
       ]
     },
     "controls": {
+      "description": "The controls steps name, where they are, and the flight deck overview (`controls.yaml`).",
       "type": [
         "string",
         "null"
@@ -88,6 +92,7 @@
       }
     },
     "faults": {
+      "description": "Faults: their causes, what to do and the steps that deal with them (`faults.yaml`).",
       "type": [
         "string",
         "null"
@@ -101,6 +106,7 @@
       ]
     },
     "glossary": {
+      "description": "The terms and abbreviations steps use, and what each means (`glossary.yaml`).",
       "type": [
         "string",
         "null"
@@ -111,6 +117,7 @@
       "type": "string"
     },
     "kind": {
+      "description": "`aircraft`, a pack a pilot opens, or `library`, shared content other packs extend.",
       "$ref": "#/$defs/PackKind"
     },
     "labels": {
@@ -125,6 +132,7 @@
       "type": "string"
     },
     "lights": {
+      "description": "What each panel light means (`lights.yaml`).",
       "type": [
         "string",
         "null"
@@ -138,15 +146,18 @@
       ]
     },
     "name": {
+      "description": "The pack's name as the app shows it, e.g. on the Packs page and in the catalog.",
       "type": "string"
     },
     "notes": {
+      "description": "Longer explanations for steps (What, Why, Check, If not) and How notes (`notes.yaml`).",
       "type": [
         "string",
         "null"
       ]
     },
     "panelStates": {
+      "description": "Panel states a pilot can start from, and the steps each counts as done or skips\n(`panel-states.yaml`).",
       "type": [
         "string",
         "null"
@@ -187,6 +198,7 @@
       "minimum": 0
     },
     "version": {
+      "description": "The pack's version, e.g. `1.2.0`. The app keeps one version of each pack and offers a\nnewer one as an update; raise it for each change you publish.",
       "type": "string"
     }
   },
@@ -240,6 +252,7 @@
       ]
     },
     "PackKind": {
+      "description": "What a pack is: an aircraft a pilot opens, or a library other packs extend.",
       "oneOf": [
         {
           "description": "A flyable aircraft (e.g. `ifly-737-max8`).",
@@ -258,9 +271,11 @@
       "type": "object",
       "properties": {
         "id": {
+          "description": "The parent pack's id.",
           "type": "string"
         },
         "version": {
+          "description": "The parent's exact version the pack was built over.",
           "type": "string"
         }
       },

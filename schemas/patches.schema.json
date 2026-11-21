@@ -1,10 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "PatchesFile",
-  "description": "`patches.yaml`.",
+  "description": "`patches.yaml`: a child pack's changes to its parent's content, by id, applied in order when\nthe child is built (decision 0029). Only in a pack that `extends` another.",
   "type": "object",
   "properties": {
     "patches": {
+      "description": "The changes, applied one after another to the parent's built content.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/Patch"
@@ -21,69 +22,81 @@
       "type": "object",
       "properties": {
         "flight_field": {
+          "description": "Targets a flight field in `flight.yaml`, by its `id`.",
           "type": [
             "string",
             "null"
           ]
         },
         "glossary_term": {
+          "description": "Targets a glossary entry, by its `term`.",
           "type": [
             "string",
             "null"
           ]
         },
         "item": {
+          "description": "Targets a panel item, as `panel/section/item`, by the item's `id`.",
           "type": [
             "string",
             "null"
           ]
         },
         "label": {
+          "description": "Targets a label in `labels.yaml`, by its dotted path, e.g. `roles.pf.title`.",
           "type": [
             "string",
             "null"
           ]
         },
         "list": {
+          "description": "Targets a list, by its `id`.",
           "type": [
             "string",
             "null"
           ]
         },
         "message": {
+          "description": "Targets an alert message in `messages.yaml`, by its `id`.",
           "type": [
             "string",
             "null"
           ]
         },
         "op": {
+          "description": "What the patch does to its target: `set`, `replace`, `remove`, `insert_before` or\n`insert_after`.",
           "$ref": "#/$defs/PatchOp"
         },
         "panel": {
+          "description": "Targets a panel, by its `id`.",
           "type": [
             "string",
             "null"
           ]
         },
         "panel_state": {
+          "description": "Targets a panel state in `panel-states.yaml`, by its `id`.",
           "type": [
             "string",
             "null"
           ]
         },
         "section": {
+          "description": "Targets a panel section, as `panel/section`.",
           "type": [
             "string",
             "null"
           ]
         },
         "stage": {
+          "description": "Targets a stage in `phases.yaml`, by its `id`.",
           "type": [
             "string",
             "null"
           ]
         },
         "step": {
+          "description": "Targets a step in any list, by its `id`.",
           "type": [
             "string",
             "null"

@@ -134,6 +134,35 @@ mod tests {
         assert!(run(&["check", side.to_str().unwrap()]).status.success());
         let manifest = std::fs::read_to_string(side.join("pack.json")).unwrap();
         assert!(manifest.contains("\"name\": \"My Side\""), "{manifest}");
+        assert_the_authors_own(&demo);
+        assert_the_authors_own(&side);
+    }
+
+    /// A new pack is the author's work: no file keeps the example's copyright or license lines,
+    /// and no comment says its content is invented.
+    fn assert_the_authors_own(pack: &Path) {
+        let mut stack = vec![pack.to_path_buf()];
+        let mut files = 0;
+        while let Some(d) = stack.pop() {
+            for entry in std::fs::read_dir(&d).unwrap() {
+                let path = entry.unwrap().path();
+                if path.is_dir() {
+                    stack.push(path);
+                    continue;
+                }
+                files += 1;
+                let text = std::fs::read_to_string(&path).unwrap();
+                assert!(!text.contains("SPDX-"), "{}: an SPDX line", path.display());
+                for line in text.lines().filter(|l| l.trim_start().starts_with('#')) {
+                    assert!(
+                        !line.to_lowercase().contains("invented"),
+                        "{}: {line}",
+                        path.display()
+                    );
+                }
+            }
+        }
+        assert!(files > 10, "{} has the starter's files", pack.display());
     }
 
     #[test]

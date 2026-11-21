@@ -5,7 +5,12 @@
  * region shows the areas whose centers fall inside its rectangle (the first region that
  * holds them), with its captions around the edges.
  */
-export type OverviewRegion = { name: string, 
+export type OverviewRegion = { 
+/**
+ * The region's name, unique among regions; side and seat view places name it as their
+ * `region`, and the maps use it as their name.
+ */
+name: string, 
 /**
  * The area's short name, e.g. "Overhead", where a picture of a flow names the areas;
  * regions may share one. Without it, the name.
@@ -14,16 +19,57 @@ short?: string | null,
 /**
  * A short reference shown after the name, e.g. "P5".
  */
-code?: string | null, x: number, y: number, width: number, height: number, 
+code?: string | null, 
+/**
+ * The region's left edge, in the overview's units. Its rectangle lies inside the overview
+ * and holds the areas whose centers fall in it.
+ */
+x: number, 
+/**
+ * The region's top edge, in the overview's units.
+ */
+y: number, 
+/**
+ * The region's width, in the overview's units; more than 0.
+ */
+width: number, 
+/**
+ * The region's height, in the overview's units; more than 0.
+ */
+height: number, 
 /**
  * Captions for the edges, saying which way each faces.
  */
-top?: string | null, bottom?: string | null, left?: string | null, right?: string | null, 
+top?: string | null, 
+/**
+ * The caption for the bottom edge.
+ */
+bottom?: string | null, 
+/**
+ * The caption for the left edge.
+ */
+left?: string | null, 
+/**
+ * The caption for the right edge.
+ */
+right?: string | null, 
 /**
  * Short edge captions for the small step map ("AFT", "FORWARD", "CAPT", "F/O"); the
  * long ones stay for the Flight deck page.
  */
-topShort?: string | null, bottomShort?: string | null, leftShort?: string | null, rightShort?: string | null, 
+topShort?: string | null, 
+/**
+ * The short caption for the bottom edge; the long one when left out.
+ */
+bottomShort?: string | null, 
+/**
+ * The short caption for the left edge; the long one when left out.
+ */
+leftShort?: string | null, 
+/**
+ * The short caption for the right edge; the long one when left out.
+ */
+rightShort?: string | null, 
 /**
  * Where to look from the seat, for "Where is this?".
  */
@@ -32,4 +78,8 @@ locate?: string | null,
  * The Where is this? title, as a whole question ("Where is the forward overhead
  * panel?"), and the shorter one phones use ("Where is the forward overhead?").
  */
-title?: string | null, shortTitle?: string | null, };
+title?: string | null, 
+/**
+ * The shorter Where is this? title, for phones; the whole one when left out.
+ */
+shortTitle?: string | null, };

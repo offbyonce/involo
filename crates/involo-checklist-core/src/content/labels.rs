@@ -32,23 +32,34 @@ data_types! {
 
     /// A seat in the flight deck, e.g. `left`. Seat frames in the overview are keyed by its id.
     pub struct SeatLabel {
+        /// Lower-case letters, digits and dashes, unique among seats; a role's `seat` names it.
         pub id: String,
+        /// The seat's name, e.g. `Left seat`.
         pub title: String,
     }
 
     /// A crew role, e.g. `capt`. `seat` names the seat it sits in; a duty role such as `pf` or
     /// `pm` names none.
     pub struct RoleLabel {
+        /// Lower-case letters, digits and dashes, unique among roles; a step's `role` and
+        /// `respond` name it.
         pub id: String,
+        /// Its full name, e.g. `Captain`: the short tag's tooltip, and what screen readers say.
         pub title: String,
+        /// Its short tag beside a step, e.g. `CA`.
         pub short: String,
+        /// The seat it sits in, one of the seats. A seated role's `title` and `short` also count
+        /// as side words.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub seat: Option<String>,
     }
 
     /// A reference group, e.g. `memory`, and how its tab is titled.
     pub struct GroupLabel {
+        /// The group's id, lower-case letters, digits and dashes, e.g. `memory`; a reference
+        /// phase's `group` names it.
         pub id: String,
+        /// Its tab's title.
         pub title: String,
     }
 
@@ -68,10 +79,15 @@ data_types! {
     /// What a basis tag reads: its label, what kind of material it is, and whether it is a status
     /// (a list still being checked) rather than a source.
     pub struct BasisTagLabel {
+        /// The basis tag it labels, as the manifest's `basisTags` lists it.
         pub id: String,
+        /// The tag's name on the References page.
         pub label: String,
+        /// What kind of material it is, shown with its name on the References page.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub about: Option<String>,
+        /// `true` for a status rather than a source: the lists that carry it are still being
+        /// checked, and the References page shows them apart.
         #[serde(default, skip_serializing_if = "std::ops::Not::not")]
         pub pending: bool,
     }
@@ -105,14 +121,19 @@ data_types! {
     /// `list_kinds` as a pack writes it: any of the names.
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct ListKindLabelsFile {
+        /// A list of `kind: flow` (the app's word: Procedure).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub flow: Option<String>,
+        /// A list of `kind: checklist` (Checklist).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub checklist: Option<String>,
+        /// Any other list (Non-normal procedure), unless it is memory items or quick reference.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub non_normal: Option<String>,
+        /// A list with `memory` set (Memory items).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub memory: Option<String>,
+        /// A list in a phase whose `group` is `quick` (Quick reference).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub quick: Option<String>,
     }
@@ -120,30 +141,40 @@ data_types! {
     /// `methods` as a pack writes it: any of the names.
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct MethodLabelsFile {
+        /// A list with `method: do` (the app's word: Do).
         #[serde(rename = "do", default, skip_serializing_if = "Option::is_none")]
         pub do_it: Option<String>,
+        /// `method: read_and_do` (Read and do).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub read_and_do: Option<String>,
+        /// `method: challenge_response` (Challenge and response).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub challenge_response: Option<String>,
+        /// `method: from_memory` (From memory).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub from_memory: Option<String>,
     }
 
     /// `reference` as a pack writes it. Groups are merged with the built-in ones by id.
     pub struct ReferenceLabelsFile {
+        /// The reference area's title, on its button and its page (the app's word: Emergency).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub title: Option<String>,
+        /// Group titles. One with a built-in id (`memory`, `quick`, `procedures`) renames it;
+        /// any other adds a group after them.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub groups: Vec<GroupLabel>,
     }
 
     /// `panel_states` as a pack writes it.
     pub struct PanelStateLabelsFile {
+        /// The picker's heading on the Start page.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub title: Option<String>,
+        /// The sentence under the heading.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub description: Option<String>,
+        /// What the picker shows before a panel state is chosen.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub placeholder: Option<String>,
     }
@@ -154,30 +185,45 @@ data_types! {
     /// `position_words`, reference `groups` and `basis_tags` are merged with the defaults by key.
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct LabelsFile {
+        /// The names of the kinds of list.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub list_kinds: Option<ListKindLabelsFile>,
+        /// The names of the ways a list is used (its `method`).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub methods: Option<MethodLabelsFile>,
+        /// The flight deck's seats. The app has none by default.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub seats: Option<Vec<SeatLabel>>,
+        /// The crew roles steps name. The app has none by default.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub roles: Option<Vec<RoleLabel>>,
+        /// The reference area's title and group tabs.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub reference: Option<ReferenceLabelsFile>,
+        /// The title over the seat view in "Where is this?".
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub seat_view_title: Option<String>,
+        /// The Start page's panel-state picker words.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub panel_states: Option<PanelStateLabelsFile>,
+        /// Other words a step's wording uses for a position, by position: `DN: [DOWN]`.
+        /// `check` and `suggest-targets` read steps with them.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub position_words: Option<BTreeMap<String, Vec<String>>>,
+        /// Find's example searches; the first two are also the examples in its no-match hint.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub find_examples: Option<Vec<String>>,
+        /// Glossary terms whose first sentence reads as a description, so no expansion is shown.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub glossary_exceptions: Option<Vec<String>>,
+        /// Words that tell one of a pair from the other, by side or seat (`LEFT`, `CAPTAIN`).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub side_words: Option<Vec<String>>,
+        /// Words that say nothing about where a control is (`AND`, `PANEL`, `SWITCH`).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub plain_words: Option<Vec<String>>,
+        /// Words for the manifest's basis tags, by tag. A tag the manifest doesn't list is
+        /// left out of the built pack.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub basis_tags: Vec<BasisTagLabel>,
     }

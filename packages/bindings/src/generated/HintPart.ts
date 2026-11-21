@@ -8,4 +8,8 @@ export type HintPart = {
 /**
  * Literal text before the value, including any space, e.g. `SQUAWK `.
  */
-prefix: string, field: FieldId, };
+prefix: string, 
+/**
+ * The flight field whose value follows the prefix.
+ */
+field: FieldId, };

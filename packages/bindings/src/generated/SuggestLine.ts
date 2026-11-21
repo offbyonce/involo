@@ -3,4 +3,12 @@
 /**
  * A suggestion rule's line and margin in the other unit.
  */
-export type SuggestLine = { moreThan: number, near: number, };
+export type SuggestLine = { 
+/**
+ * The line, in the other unit.
+ */
+moreThan: number, 
+/**
+ * How close to the line counts as close, in the other unit.
+ */
+near: number, };

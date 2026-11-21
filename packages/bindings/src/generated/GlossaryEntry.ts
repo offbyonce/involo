@@ -3,7 +3,18 @@
 /**
  * One term and its meaning.
  */
-export type GlossaryEntry = { term: string, meaning: string, 
+export type GlossaryEntry = { 
+/**
+ * The term as steps and panels write it, e.g. `APU`. Each term is listed once; a step's
+ * `terms` name it.
+ */
+term: string, 
+/**
+ * What it means. When the term is in capitals and the first sentence is a short name
+ * for it, the Glossary shows that sentence as its expansion and the rest as its
+ * meaning, unless `labels.yaml` lists the term in `glossary_exceptions`.
+ */
+meaning: string, 
 /**
  * `false` for a unit or a plain abbreviation (LB, FT, ENG): it stays in the glossary but is
  * never one of a step's terms, which name what a learner needs (panels and systems).

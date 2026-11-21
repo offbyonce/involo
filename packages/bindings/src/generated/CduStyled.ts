@@ -4,4 +4,12 @@ import type { CduStyle } from "./CduStyle";
 /**
  * Fixed text in a style.
  */
-export type CduStyled = { text: string, style: CduStyle, };
+export type CduStyled = { 
+/**
+ * The text.
+ */
+text: string, 
+/**
+ * The style it is drawn in.
+ */
+style: CduStyle, };

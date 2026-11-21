@@ -4,4 +4,17 @@ import type { StepId } from "./StepId";
 /**
  * The likely causes when a step does not give the expected result.
  */
-export type Fault = { steps: Array<StepId>, causes: Array<string>, action: string, };
+export type Fault = { 
+/**
+ * The steps it is about; each must be a step of the pack. Practice asks about the first
+ * one, when that step has an `if_not`, alongside faults in the same flight deck area.
+ */
+steps: Array<StepId>, 
+/**
+ * The likely causes, each a short sentence. Practice asks for one of them.
+ */
+causes: Array<string>, 
+/**
+ * What to do about it. Practice asks for it.
+ */
+action: string, };

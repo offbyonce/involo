@@ -5,4 +5,12 @@ import type { ViewFrame } from "./ViewFrame";
 /**
  * The side and seat views for "Where is this?".
  */
-export type OverviewViews = { side?: ViewFrame | null, seat?: SeatViews | null, };
+export type OverviewViews = { 
+/**
+ * The view from the side, with the sight line from the eye.
+ */
+side?: ViewFrame | null, 
+/**
+ * The view from the seat: one frame, or one per seat.
+ */
+seat?: SeatViews | null, };

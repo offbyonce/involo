@@ -7,7 +7,27 @@ import type { OverviewViews } from "./OverviewViews";
 /**
  * A schematic of the whole cockpit, in our own layout.
  */
-export type Overview = { width: number, height: number, captions?: Array<OverviewCaption>, areas: Array<OverviewArea>, regions?: Array<OverviewRegion>, 
+export type Overview = { 
+/**
+ * The overview's width in its own units; every region lies inside it.
+ */
+width: number, 
+/**
+ * The overview's height in its own units.
+ */
+height: number, 
+/**
+ * Free captions on the map. The app does not draw them today.
+ */
+captions?: Array<OverviewCaption>, 
+/**
+ * The zones' rectangles.
+ */
+areas: Array<OverviewArea>, 
+/**
+ * The parts of the cockpit a step map shows one at a time.
+ */
+regions?: Array<OverviewRegion>, 
 /**
  * The side and seat views (decision 0023).
  */

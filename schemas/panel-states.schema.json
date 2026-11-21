@@ -1,10 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "PanelStatesFile",
-  "description": "`panel-states.yaml`.",
+  "description": "`panel-states.yaml`: the starting points a pilot can pick on the Start page, each with\nthe steps it counts as already done or skipped.",
   "type": "object",
   "properties": {
     "states": {
+      "description": "The states, in the picker's order.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/PanelState"
@@ -21,15 +22,18 @@
       "type": "object",
       "properties": {
         "description": {
+          "description": "What it starts from, in words. The app does not show it today.",
           "type": "string"
         },
         "done": {
+          "description": "Steps ticked when this state is chosen, unless already ticked or skipped; choosing\nanother state takes those ticks back.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/StepId"
           }
         },
         "id": {
+          "description": "The state's id, which a flight records and aliases can rename.",
           "type": "string"
         },
         "phase": {
@@ -44,12 +48,14 @@
           }
         },
         "skip": {
+          "description": "Steps skipped when this state is chosen, unless already ticked or skipped; choosing\nanother state takes those skips back.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/StepId"
           }
         },
         "title": {
+          "description": "Its name in the Start page's panel-state picker.",
           "type": "string"
         }
       },

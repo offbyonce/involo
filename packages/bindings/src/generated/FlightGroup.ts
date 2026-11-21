@@ -6,7 +6,11 @@ import type { NotesRow } from "./NotesRow";
  * One titled card of a Flight page. Its rows are the fields naming this page and group,
  * in `flight.yaml`'s order.
  */
-export type FlightGroup = { title: string, 
+export type FlightGroup = { 
+/**
+ * The card's title. Fields name it as their `group`, and `also` copies as theirs.
+ */
+title: string, 
 /**
  * A short note in the card's header, e.g. "Same unit as fuel".
  */

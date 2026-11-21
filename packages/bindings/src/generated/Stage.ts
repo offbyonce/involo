@@ -9,4 +9,12 @@ export type Stage = {
  * Unique in the pack, and never changes once published: the rail, Find and a pack
  * extending this one name the stage by it (decision 0029). The title is display text.
  */
-id: string, title: string, phases: Array<StagePhase>, };
+id: string, 
+/**
+ * The stage's name in the rail.
+ */
+title: string, 
+/**
+ * Its phases, in the rail's order.
+ */
+phases: Array<StagePhase>, };

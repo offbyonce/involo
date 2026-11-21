@@ -3,4 +3,12 @@
 /**
  * One pack a built pack was built from: its id and exact version (decision 0029).
  */
-export type ResolvedParent = { id: string, version: string, };
+export type ResolvedParent = { 
+/**
+ * The parent pack's id.
+ */
+id: string, 
+/**
+ * The parent's exact version the pack was built over.
+ */
+version: string, };

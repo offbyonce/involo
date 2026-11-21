@@ -2,6 +2,10 @@
 import type { LightNote } from "./LightNote";
 
 /**
- * `lights.yaml`.
+ * `lights.yaml`: what the panel lights mean, each found by its place on a panel.
  */
-export type LightsFile = { lights: Array<LightNote>, };
+export type LightsFile = { 
+/**
+ * One note per light.
+ */
+lights: Array<LightNote>, };

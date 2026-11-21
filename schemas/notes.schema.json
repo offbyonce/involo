@@ -1,16 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "NotesFile",
-  "description": "`notes.yaml`.",
+  "description": "`notes.yaml`: how-to instructions and explanations that several steps share, each named\nby the steps that use it.",
   "type": "object",
   "properties": {
     "explain": {
+      "description": "Shared explanations, named by a step's `explain`.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/ExplainNote"
       }
     },
     "how": {
+      "description": "Shared \"How to do it\" instructions, named by a step's `how`.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/HowNote"
@@ -24,12 +26,14 @@
       "type": "object",
       "properties": {
         "check": {
+          "description": "What to check: the step's Check, when the step has no `check` of its own.",
           "type": [
             "string",
             "null"
           ]
         },
         "check_detail": {
+          "description": "More on the check, shown below it when the step has no `check` of its own.",
           "type": [
             "string",
             "null"
@@ -43,15 +47,18 @@
           ]
         },
         "id": {
+          "description": "Unique in the pack; a step's `explain` names it.",
           "type": "string"
         },
         "if_not": {
+          "description": "What to do when the check fails: the step's If not, when the step has no `if_not` of\nits own.",
           "type": [
             "string",
             "null"
           ]
         },
         "if_not_detail": {
+          "description": "More on the If not, shown below it when the step has no `if_not` of its own.",
           "type": [
             "string",
             "null"
@@ -62,9 +69,11 @@
           "type": "string"
         },
         "what": {
+          "description": "What the test or action is: the \"What it is\" line under the step's \"How to do it\".",
           "type": "string"
         },
         "why": {
+          "description": "Why it is done: the step's Why, when the step has no `why` of its own.",
           "type": "string"
         }
       },
@@ -81,9 +90,11 @@
       "type": "object",
       "properties": {
         "id": {
+          "description": "Unique in the pack; a step's `how` names it.",
           "type": "string"
         },
         "steps": {
+          "description": "The instructions, in order: a numbered list under the step's \"How to do it\".",
           "type": "array",
           "items": {
             "type": "string"

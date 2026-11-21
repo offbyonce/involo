@@ -3,4 +3,16 @@
 /**
  * How one value of an option is shown, e.g. "Ground power at the gate".
  */
-export type OptionChoice = { value: string, label: string, description?: string | null, };
+export type OptionChoice = { 
+/**
+ * The option value it shows: one of the option's `values`.
+ */
+value: string, 
+/**
+ * The text shown for the value.
+ */
+label: string, 
+/**
+ * A line shown under the label.
+ */
+description?: string | null, };

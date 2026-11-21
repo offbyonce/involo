@@ -19,12 +19,29 @@ export type FlightField = {
  * Lower-case letters, digits and underscores, e.g. `zfw`. Steps name it in `fill`,
  * `hint` and CDU text, and saved flights key its value by it.
  */
-id: string, label: string, description?: string | null, kind: FieldKind, 
+id: string, 
+/**
+ * The row's name on the Flight pages.
+ */
+label: string, 
+/**
+ * The text under the row's name.
+ */
+description?: string | null, 
+/**
+ * What it holds: a number, any text, or one of its `choices`.
+ */
+kind: FieldKind, 
 /**
  * For a number: the choice field that holds its unit (`weight_unit`), whose values its
  * `ranges` name.
  */
-unit?: string | null, ranges?: Array<FieldRange>, 
+unit?: string | null, 
+/**
+ * For a number: the values in range, per unit or for every unit. A value outside is
+ * flagged on the Flight pages.
+ */
+ranges?: Array<FieldRange>, 
 /**
  * For a choice field: its values, in order.
  */
@@ -36,7 +53,16 @@ location?: string | null,
 /**
  * The Flight page and group it shows in.
  */
-page?: string | null, group?: string | null, showIn?: Array<ShowIn>, 
+page?: string | null, 
+/**
+ * The card on its page it shows in: a `pages` card by its title, or, without `pages`,
+ * the title of the card it makes.
+ */
+group?: string | null, 
+/**
+ * Where else its value shows: the flight strip, the Arrival data box.
+ */
+showIn?: Array<ShowIn>, 
 /**
  * How it reads in the flight strip, when `show_in` names the strip.
  */

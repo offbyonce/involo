@@ -14,7 +14,11 @@ id: string,
 /**
  * The message as the alert display shows it, e.g. `ENGINE FIRE L`.
  */
-text: string, level: MessageLevel, 
+text: string, 
+/**
+ * How serious it is, which sets its badge, its colors and the level filter it is under.
+ */
+level: MessageLevel, 
 /**
  * What it means.
  */

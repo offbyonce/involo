@@ -11,7 +11,19 @@ export type FieldOfp = {
 /**
  * Show where the plan prints this source (the plan's close-up of it).
  */
-from?: SimbriefSource | null, title?: string | null, body?: string | null, note?: string | null, 
+from?: SimbriefSource | null, 
+/**
+ * The panel's heading, in place of the app's.
+ */
+title?: string | null, 
+/**
+ * The text under the heading, in place of the app's.
+ */
+body?: string | null, 
+/**
+ * The note under the plan's close-up, in place of the app's.
+ */
+note?: string | null, 
 /**
  * The value is not set from the plan (a clearance, a value from the aircraft's own
  * computer), which the panel says.

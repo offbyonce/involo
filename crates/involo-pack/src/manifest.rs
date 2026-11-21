@@ -9,6 +9,7 @@ use schemars::JsonSchema;
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 
+/// What a pack is: an aircraft a pilot opens, or a library other packs extend.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "snake_case")]
@@ -44,7 +45,9 @@ pub struct AircraftInfo {
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(deny_unknown_fields)]
 pub struct ResolvedParent {
+    /// The parent pack's id.
     pub id: String,
+    /// The parent's exact version the pack was built over.
     #[schemars(with = "String")]
     #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub version: Version,
@@ -63,13 +66,17 @@ pub struct PackManifest {
     pub json_schema: Option<String>,
     /// Lower-case id with dots and dashes, e.g. `ifly-737-max8` or `lib.boeing-cdu`.
     pub id: String,
+    /// The pack's name as the app shows it, e.g. on the Packs page and in the catalog.
     pub name: String,
+    /// The pack's version, e.g. `1.2.0`. The app keeps one version of each pack and offers a
+    /// newer one as an update; raise it for each change you publish.
     #[schemars(with = "String")]
     #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub version: Version,
     /// Pack format. The app reads every format from 6 (the first public one) up to its own and
     /// refuses an older or newer pack with the reason. From 6 on, a later format only adds.
     pub schema_version: u32,
+    /// `aircraft`, a pack a pilot opens, or `library`, shared content other packs extend.
     pub kind: PackKind,
     /// App versions this pack works with, e.g. `>=0.1, <1`.
     #[schemars(with = "String")]
@@ -113,25 +120,36 @@ pub struct PackManifest {
     /// Phases, stages and options. Required for an aircraft pack.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub phases: Option<String>,
+    /// The controls steps name, where they are, and the flight deck overview (`controls.yaml`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub controls: Option<String>,
+    /// Longer explanations for steps (What, Why, Check, If not) and How notes (`notes.yaml`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub notes: Option<String>,
     /// Panel files, in display order.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub panels: Vec<String>,
+    /// What each panel light means (`lights.yaml`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lights: Option<String>,
+    /// Faults: their causes, what to do and the steps that deal with them (`faults.yaml`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub faults: Option<String>,
+    /// The terms and abbreviations steps use, and what each means (`glossary.yaml`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub glossary: Option<String>,
+    /// Briefings, each with its items (`briefings.yaml`). The app doesn't show them yet;
+    /// Practice asks about their mnemonics.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub briefings: Option<String>,
+    /// Panel states a pilot can start from, and the steps each counts as done or skips
+    /// (`panel-states.yaml`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub panel_states: Option<String>,
+    /// CDU walkthroughs, screen by screen (`cdu.yaml`). The app doesn't show them yet.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cdu: Option<String>,
+    /// Old ids and the ids they became, so an update keeps a pilot's flight (`aliases.yaml`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub aliases: Option<String>,
     /// The pack's flight fields (`flight.yaml`): what steps fill and what a SimBrief plan fills.

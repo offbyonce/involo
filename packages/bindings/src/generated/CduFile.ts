@@ -2,6 +2,12 @@
 import type { CduWalkthrough } from "./CduWalkthrough";
 
 /**
- * `cdu.yaml`.
+ * `cdu.yaml`: page-by-page CDU walkthroughs, each with the text and live flight values the
+ * screen shows at every step. The app doesn't show walkthroughs yet; `involo-pack check`
+ * checks them.
  */
-export type CduFile = { walkthroughs: Array<CduWalkthrough>, };
+export type CduFile = { 
+/**
+ * Every walkthrough.
+ */
+walkthroughs: Array<CduWalkthrough>, };

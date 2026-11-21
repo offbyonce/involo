@@ -3,4 +3,16 @@
 /**
  * `panel_states` as a pack writes it.
  */
-export type PanelStateLabelsFile = { title?: string | null, description?: string | null, placeholder?: string | null, };
+export type PanelStateLabelsFile = { 
+/**
+ * The picker's heading on the Start page.
+ */
+title?: string | null, 
+/**
+ * The sentence under the heading.
+ */
+description?: string | null, 
+/**
+ * What the picker shows before a panel state is chosen.
+ */
+placeholder?: string | null, };

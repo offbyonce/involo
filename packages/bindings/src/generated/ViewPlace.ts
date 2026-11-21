@@ -7,7 +7,11 @@ export type ViewPlace = {
 /**
  * The region's `name` on the overview.
  */
-region: string, shapes: Array<Array<[number, number]>>, 
+region: string, 
+/**
+ * The region's closed outlines, each a list of `[x, y]` points in the view's units.
+ */
+shapes: Array<Array<[number, number]>>, 
 /**
  * Where the region's name goes when it is the one shown, if the view names it.
  */

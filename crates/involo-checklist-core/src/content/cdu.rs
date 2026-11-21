@@ -20,7 +20,9 @@ data_types! {
 
     /// Fixed text in a style.
     pub struct CduStyled {
+        /// The text.
         pub text: String,
+        /// The style it is drawn in.
         pub style: CduStyle,
     }
 
@@ -28,13 +30,17 @@ data_types! {
     #[derive(Copy, Eq)]
     #[serde(rename_all = "snake_case")]
     pub enum RouteLegPart {
+        /// The left half: the way the leg is flown.
         Via,
+        /// The right half: where the leg ends.
         To,
     }
 
     /// A live flight value. Calculations happen in the app, never in the pack.
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct CduField {
+        /// The flight field whose value is shown, which the pack must define. `route_leg` shows
+        /// one route row and needs `index` and `part`; `manual` is not allowed here.
         pub field: FieldId,
         /// For `route_leg`: the row, from 1 to `MAX_ROUTE_LEG`.
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -42,6 +48,7 @@ data_types! {
         /// For `route_leg`: which half of the row.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub part: Option<RouteLegPart>,
+        /// The style the value is drawn in.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub style: Option<CduStyle>,
         /// Literal text before the value, e.g. `RW`.
@@ -53,6 +60,7 @@ data_types! {
         /// Shown when the value is not known.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub empty: Option<String>,
+        /// The style `empty` is drawn in.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub empty_style: Option<CduStyle>,
     }
@@ -71,8 +79,11 @@ data_types! {
     /// come from the pack.
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct CduRouteCount {
+        /// Which count: the pages, or the rows past the first page.
         pub route_legs: RouteLegCount,
+        /// How many route rows one page holds; at least 1.
         pub per_page: u32,
+        /// The style the number is drawn in.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub style: Option<CduStyle>,
         /// Literal text before the number.
@@ -101,7 +112,9 @@ data_types! {
     pub struct CduWhen {
         /// Every one of these must be known for `show` to appear.
         pub when_known: Vec<FieldId>,
+        /// The parts shown when every field in `when_known` is known.
         pub show: Vec<CduInline>,
+        /// The parts shown when any of them is not; nothing when left out.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub otherwise: Vec<CduInline>,
     }
@@ -127,24 +140,32 @@ data_types! {
         /// Draws a divider instead of the labels; empty text means a plain line.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub separator: Option<String>,
+        /// The small label above the left value.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub left_label: CduText,
+        /// The value on the left, beside its line select key.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub left: CduText,
+        /// The small label above the right value.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub right_label: CduText,
+        /// The value on the right, beside its line select key.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub right: CduText,
     }
 
     /// What the CDU shows on one walkthrough page.
     pub struct CduScreen {
+        /// The title line at the top of the screen.
         pub title: CduText,
+        /// The page count beside the title, e.g. `1/2`.
         pub page: CduText,
+        /// The line select rows, top to bottom.
         pub rows: Vec<CduRow>,
         /// Line select keys to highlight, e.g. `2L`.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub highlight: Vec<String>,
+        /// The scratchpad line below the rows.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub scratchpad: CduText,
     }
@@ -156,23 +177,34 @@ data_types! {
         /// The function key to highlight.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub key: Option<String>,
+        /// This step's heading.
         pub title: String,
+        /// What to do on this page.
         pub action: CduText,
+        /// What to check once it is done.
         pub check: CduText,
+        /// A further note for this page.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub note: CduText,
+        /// What the CDU screen shows at this step.
         pub screen: CduScreen,
     }
 
     /// A page-by-page guide a step can open.
     pub struct CduWalkthrough {
+        /// Unique in the pack; a step's `opens` names it.
         pub id: String,
+        /// Its name.
         pub title: String,
+        /// Its steps, in order.
         pub pages: Vec<CduPage>,
     }
 
-    /// `cdu.yaml`.
+    /// `cdu.yaml`: page-by-page CDU walkthroughs, each with the text and live flight values the
+    /// screen shows at every step. The app doesn't show walkthroughs yet; `involo-pack check`
+    /// checks them.
     pub struct CduFile {
+        /// Every walkthrough.
         pub walkthroughs: Vec<CduWalkthrough>,
     }
 }

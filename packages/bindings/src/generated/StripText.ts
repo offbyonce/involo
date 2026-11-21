@@ -5,4 +5,17 @@
  * `join` follows the strip part before it, after that text (the destination after the
  * departure with " → ", a transition after its SID with ".").
  */
-export type StripText = { prefix?: string, suffix?: string, join?: string | null, };
+export type StripText = { 
+/**
+ * Text written before the value, e.g. "FL".
+ */
+prefix?: string, 
+/**
+ * Text written after the value.
+ */
+suffix?: string, 
+/**
+ * The text that joins this value to the strip part before it (" → ", "."); without it,
+ * the value starts a part of its own.
+ */
+join?: string | null, };

@@ -6,7 +6,19 @@ import type { Step } from "./Step";
 /**
  * An ordered list of steps: a checklist, a flow or a non-normal procedure.
  */
-export type Checklist = { id: string, title: string, kind: ListKind, 
+export type Checklist = { 
+/**
+ * The list's id, unique in the pack; other files and patches name the list by it.
+ */
+id: string, 
+/**
+ * The list's title, as the app shows it.
+ */
+title: string, 
+/**
+ * `checklist`, `flow` or `non-normal`.
+ */
+kind: ListKind, 
 /**
  * Kinds of material this list was checked against, from the tags the pack declares.
  * Never a document name or a link.
@@ -27,4 +39,8 @@ why?: string | null,
 /**
  * How the list is used. Optional.
  */
-method?: ListMethod | null, steps: Array<Step>, };
+method?: ListMethod | null, 
+/**
+ * The steps, in order.
+ */
+steps: Array<Step>, };

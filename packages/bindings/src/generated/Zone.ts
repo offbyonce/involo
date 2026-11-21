@@ -3,7 +3,24 @@
 /**
  * An area of the cockpit.
  */
-export type Zone = { id: string, area: string, title: string, shortTitle: string, 
+export type Zone = { 
+/**
+ * The zone's id, which controls name as their `zone` and overview areas as theirs.
+ */
+id: string, 
+/**
+ * The part of the cockpit the zone is in ("Overhead"), shown before its title ("Overhead
+ * · Fuel"); without overview regions, the step map shows the zones of the same area.
+ */
+area: string, 
+/**
+ * The zone's name, shown where a control's place is given and on the Flight deck page.
+ */
+title: string, 
+/**
+ * The zone's label on the overview map's boxes, in capitals, unless an area gives its own.
+ */
+shortTitle: string, 
 /**
  * Where the zone sits in its area, for the step map's position line ("Captain side,
  * row nearest the windshield").

@@ -2,6 +2,22 @@
 import type { AutoStart } from "./AutoStart";
 
 /**
- * A wait attached to a step.
+ * A wait attached to a step. The app doesn't show timers yet.
  */
-export type Timer = { seconds: number, label: string, note?: string | null, autoStart?: AutoStart | null, };
+export type Timer = { 
+/**
+ * How long the wait is, in seconds. Not shown yet.
+ */
+seconds: number, 
+/**
+ * The timer's name, e.g. `Warm-up`. Not shown yet.
+ */
+label: string, 
+/**
+ * A note about the wait. Not shown yet.
+ */
+note?: string | null, 
+/**
+ * The earlier steps whose ticks would start the timer.
+ */
+autoStart?: AutoStart | null, };

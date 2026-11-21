@@ -13,7 +13,12 @@ import type { WalkaroundPoint } from "./WalkaroundPoint";
 /**
  * One challenge and response line.
  */
-export type Step = { id: StepId, 
+export type Step = { 
+/**
+ * The step's id, `<prefix>.<phase>.<short-name>`, unique in the pack. It never changes
+ * once published; a renamed id gets a `step` alias in `aliases.yaml`.
+ */
+id: StepId, 
 /**
  * Printed number; absent for steps that are not numbered.
  */
@@ -49,13 +54,23 @@ fill?: Array<FieldId>,
  */
 hint?: Array<HintPart>, 
 /**
- * Id of a CDU walkthrough this step can open.
+ * The id of the CDU walkthrough for this step; `check` makes sure it exists. The app
+ * doesn't show walkthroughs yet.
  */
 opens?: string | null, 
 /**
  * In a memory list: read this step rather than recalling it.
  */
-nonRecall?: boolean, quick?: Quick | null, showIf?: ShowIf | null, 
+nonRecall?: boolean, 
+/**
+ * Puts the step in Essentials: `always`, or `turnaround`. Without it, the step shows only
+ * when the pilot sees every step.
+ */
+quick?: Quick | null, 
+/**
+ * Shows the step only when the pilot's option choices pass this test.
+ */
+showIf?: ShowIf | null, 
 /**
  * A decision step: it asks the pilot this option (by id), and the answer sets it for the
  * flight. Targets elsewhere may depend on the answer (decision 0022).
@@ -91,7 +106,29 @@ branch?: boolean,
 /**
  * Glossary terms the step uses, shown under Why (each must be in the glossary).
  */
-terms?: Array<string>, why?: string | null, check?: string | null, checkDetail?: string | null, ifNot?: string | null, ifNotDetail?: string | null, 
+terms?: Array<string>, 
+/**
+ * Why the step matters, shown under Why. Takes the place of the shared explanation's.
+ */
+why?: string | null, 
+/**
+ * How to tell the step worked, shown under Check. Takes the place of the shared
+ * explanation's.
+ */
+check?: string | null, 
+/**
+ * More on Check, shown after it. Used only with the step's own `check`.
+ */
+checkDetail?: string | null, 
+/**
+ * What to do when Check fails, shown under If not. Takes the place of the shared
+ * explanation's.
+ */
+ifNot?: string | null, 
+/**
+ * More on If not, shown after it. Used only with the step's own `if_not`.
+ */
+ifNotDetail?: string | null, 
 /**
  * Id of a shared "how to do it" note.
  */
@@ -99,7 +136,15 @@ how?: string | null,
 /**
  * Id of a shared explanation.
  */
-explain?: string | null, walkaround?: WalkaroundPoint | null, lookFor?: string | null, 
+explain?: string | null, 
+/**
+ * The step's point on a walkaround drawing. The app doesn't read it yet.
+ */
+walkaround?: WalkaroundPoint | null, 
+/**
+ * What to look for, shown as "Look for" when the step is open.
+ */
+lookFor?: string | null, 
 /**
  * Overrides the location text of the step's first control.
  */
@@ -107,7 +152,11 @@ location?: string | null,
 /**
  * What the crew says.
  */
-callout?: string | null, timer?: Timer | null, 
+callout?: string | null, 
+/**
+ * A wait attached to the step. The app doesn't show timers yet.
+ */
+timer?: Timer | null, 
 /**
  * Panel lights this step refers to: control id, then light labels.
  */

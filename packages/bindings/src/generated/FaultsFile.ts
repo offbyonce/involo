@@ -2,6 +2,11 @@
 import type { Fault } from "./Fault";
 
 /**
- * `faults.yaml`.
+ * `faults.yaml`: what most likely went wrong when a step does not give its expected result,
+ * and what to do, for Practice's Faults questions.
  */
-export type FaultsFile = { faults: Array<Fault>, };
+export type FaultsFile = { 
+/**
+ * Every fault.
+ */
+faults: Array<Fault>, };

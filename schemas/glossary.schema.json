@@ -1,10 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "GlossaryFile",
-  "description": "`glossary.yaml`.",
+  "description": "`glossary.yaml`: the abbreviations and terms the pack uses, for the Glossary page, Find\nand Practice, and the terms a step can name.",
   "type": "object",
   "properties": {
     "terms": {
+      "description": "Every term, in any order: the Glossary sorts them A to Z.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/GlossaryEntry"
@@ -21,6 +22,7 @@
       "type": "object",
       "properties": {
         "meaning": {
+          "description": "What it means. When the term is in capitals and the first sentence is a short name\nfor it, the Glossary shows that sentence as its expansion and the rest as its\nmeaning, unless `labels.yaml` lists the term in `glossary_exceptions`.",
           "type": "string"
         },
         "step_term": {
@@ -31,6 +33,7 @@
           ]
         },
         "term": {
+          "description": "The term as steps and panels write it, e.g. `APU`. Each term is listed once; a step's\n`terms` name it.",
           "type": "string"
         }
       },

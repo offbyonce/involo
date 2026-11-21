@@ -4,7 +4,15 @@ import type { IntroParagraph } from "./IntroParagraph";
 /**
  * One part of the flight, holding its lists in order.
  */
-export type Phase = { id: string, title: string, 
+export type Phase = { 
+/**
+ * Unique in the pack: stages, `ask_in`, links and other files name the phase by it.
+ */
+id: string, 
+/**
+ * The phase's name in the rail and at its top.
+ */
+title: string, 
 /**
  * Reference material, outside the normal flow of a flight.
  */

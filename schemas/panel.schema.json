@@ -1,14 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Panel",
-  "description": "One `panels/*.yaml` file.",
+  "description": "One `panels/*.yaml` file: a drawing of one panel, its sections and the items in them, in\nour own layout. `pack.json` lists each panel file under `panels`.",
   "type": "object",
   "properties": {
     "height": {
+      "description": "The panel's height in panel units.",
       "type": "number",
       "format": "double"
     },
     "id": {
+      "description": "The panel's id, unique in the pack; the first part of a locator or step target.",
       "type": "string"
     },
     "outline": {
@@ -25,15 +27,18 @@
       }
     },
     "sections": {
+      "description": "The panel's sections, each a labeled box of items.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/PanelSection"
       }
     },
     "title": {
+      "description": "The panel's name. The app names what it shows by its sections and zones, and does not\nshow this today.",
       "type": "string"
     },
     "width": {
+      "description": "The panel's width in panel units; its outline, when it has one, lies inside.",
       "type": "number",
       "format": "double"
     }
@@ -63,6 +68,7 @@
           }
         },
         "text": {
+          "description": "The legend's words, as the button shows them (`FAULT`, `OFF`).",
           "type": "string"
         }
       },
@@ -74,13 +80,32 @@
     },
     "LightColor": {
       "description": "A light's role: which light it is, never a color value. The app draws each role in its\ntheme's lit color (decision 0021); white has no lit color of its own and is drawn in the\npanel's text color.",
-      "type": "string",
-      "enum": [
-        "amber",
-        "red",
-        "green",
-        "blue",
-        "white"
+      "oneOf": [
+        {
+          "description": "Drawn in the theme's amber lit color.",
+          "type": "string",
+          "const": "amber"
+        },
+        {
+          "description": "Drawn in the theme's red lit color.",
+          "type": "string",
+          "const": "red"
+        },
+        {
+          "description": "Drawn in the theme's green lit color.",
+          "type": "string",
+          "const": "green"
+        },
+        {
+          "description": "Drawn in the theme's blue lit color.",
+          "type": "string",
+          "const": "blue"
+        },
+        {
+          "description": "Drawn in the panel's text color.",
+          "type": "string",
+          "const": "white"
+        }
       ]
     },
     "PanelItem": {
@@ -126,6 +151,7 @@
           }
         },
         "description": {
+          "description": "What the item does, shown in its card; the control's `function` when empty.",
           "type": "string"
         },
         "guarded": {
@@ -133,6 +159,7 @@
           "type": "boolean"
         },
         "height": {
+          "description": "Only on a display unit or readout: its drawn height in panel units, 30 when left out.",
           "type": [
             "number",
             "null"
@@ -147,9 +174,11 @@
           ]
         },
         "kind": {
+          "description": "What the item is, which decides how it is drawn and the fields it takes.",
           "$ref": "#/$defs/PanelItemKind"
         },
         "label": {
+          "description": "The item's name, drawn on the panel and used in its locator,\n`panel/section/LABEL/n`.",
           "type": "string"
         },
         "legends": {
@@ -181,6 +210,7 @@
           ]
         },
         "width": {
+          "description": "Only on a display unit or readout: its drawn width in panel units, 60 when left out.",
           "type": [
             "number",
             "null"
@@ -188,10 +218,12 @@
           "format": "double"
         },
         "x": {
+          "description": "The item's center across, in panel units from its section's left edge.",
           "type": "number",
           "format": "double"
         },
         "y": {
+          "description": "The item's center down, in panel units from its section's top edge.",
           "type": "number",
           "format": "double"
         }
@@ -209,16 +241,39 @@
       "description": "What a panel item is, which decides how it is drawn.",
       "oneOf": [
         {
+          "description": "A lever switch flipped between its positions, such as the battery switch; may be\nguarded.",
           "type": "string",
-          "enum": [
-            "toggle_switch",
-            "selector",
-            "push_button",
-            "light",
-            "gauge",
-            "readout",
-            "display_unit"
-          ]
+          "const": "toggle_switch"
+        },
+        {
+          "description": "A rotary knob turned to one of its named positions, drawn on a dial (`angles`).",
+          "type": "string",
+          "const": "selector"
+        },
+        {
+          "description": "A button pressed and released; may be guarded.",
+          "type": "string",
+          "const": "push_button"
+        },
+        {
+          "description": "An annunciator light in one of the light roles (`color`).",
+          "type": "string",
+          "const": "light"
+        },
+        {
+          "description": "A round dial with a pointer, such as a pressure or quantity gauge.",
+          "type": "string",
+          "const": "gauge"
+        },
+        {
+          "description": "A small digital window showing a value, such as a frequency or a meter display;\ndrawn at its `width` and `height`.",
+          "type": "string",
+          "const": "readout"
+        },
+        {
+          "description": "A screen, such as a flight or engine display; drawn at its `width` and `height`.",
+          "type": "string",
+          "const": "display_unit"
         },
         {
           "description": "A lever moved along a slot, such as the start, speedbrake, gear and flap levers.",
@@ -257,13 +312,16 @@
       "type": "object",
       "properties": {
         "height": {
+          "description": "The section box's height, in panel units.",
           "type": "number",
           "format": "double"
         },
         "id": {
+          "description": "The section's id, unique on its panel; locators and step targets name it.",
           "type": "string"
         },
         "items": {
+          "description": "The controls, lights and displays drawn in the section.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/PanelItem"
@@ -294,14 +352,17 @@
           "type": "string"
         },
         "width": {
+          "description": "The section box's width, in panel units.",
           "type": "number",
           "format": "double"
         },
         "x": {
+          "description": "The section box's left edge, in panel units from the panel's left edge.",
           "type": "number",
           "format": "double"
         },
         "y": {
+          "description": "The section box's top edge, in panel units from the panel's top edge.",
           "type": "number",
           "format": "double"
         }

@@ -1,10 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "FaultsFile",
-  "description": "`faults.yaml`.",
+  "description": "`faults.yaml`: what most likely went wrong when a step does not give its expected result,\nand what to do, for Practice's Faults questions.",
   "type": "object",
   "properties": {
     "faults": {
+      "description": "Every fault.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/Fault"
@@ -21,15 +22,18 @@
       "type": "object",
       "properties": {
         "action": {
+          "description": "What to do about it. Practice asks for it.",
           "type": "string"
         },
         "causes": {
+          "description": "The likely causes, each a short sentence. Practice asks for one of them.",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "steps": {
+          "description": "The steps it is about; each must be a step of the pack. Practice asks about the first\none, when that step has an `if_not`, alongside faults in the same flight deck area.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/StepId"

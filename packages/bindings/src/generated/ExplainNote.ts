@@ -3,7 +3,19 @@
 /**
  * A shared explanation of a test or action.
  */
-export type ExplainNote = { id: string, what: string, why: string, 
+export type ExplainNote = { 
+/**
+ * Unique in the pack; a step's `explain` names it.
+ */
+id: string, 
+/**
+ * What the test or action is: the "What it is" line under the step's "How to do it".
+ */
+what: string, 
+/**
+ * Why it is done: the step's Why, when the step has no `why` of its own.
+ */
+why: string, 
 /**
  * What a good result looks like.
  */
@@ -11,4 +23,21 @@ success: string,
 /**
  * What a bad result can mean.
  */
-failure?: string | null, check?: string | null, checkDetail?: string | null, ifNot?: string | null, ifNotDetail?: string | null, };
+failure?: string | null, 
+/**
+ * What to check: the step's Check, when the step has no `check` of its own.
+ */
+check?: string | null, 
+/**
+ * More on the check, shown below it when the step has no `check` of its own.
+ */
+checkDetail?: string | null, 
+/**
+ * What to do when the check fails: the step's If not, when the step has no `if_not` of
+ * its own.
+ */
+ifNot?: string | null, 
+/**
+ * More on the If not, shown below it when the step has no `if_not` of its own.
+ */
+ifNotDetail?: string | null, };

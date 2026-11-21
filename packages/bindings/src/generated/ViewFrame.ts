@@ -6,4 +6,24 @@ import type { ViewShape } from "./ViewShape";
 /**
  * A side or seat view of the flight deck, in its own units (decision 0023).
  */
-export type ViewFrame = { width: number, height: number, shapes?: Array<ViewShape>, places?: Array<ViewPlace>, labels?: Array<ViewLabel>, };
+export type ViewFrame = { 
+/**
+ * The view's width in its own units; every point in it is inside.
+ */
+width: number, 
+/**
+ * The view's height in its own units.
+ */
+height: number, 
+/**
+ * The airplane's shapes: structure, glass, seat and eye.
+ */
+shapes?: Array<ViewShape>, 
+/**
+ * Where each overview region sits in the view.
+ */
+places?: Array<ViewPlace>, 
+/**
+ * Fixed labels drawn in the view.
+ */
+labels?: Array<ViewLabel>, };

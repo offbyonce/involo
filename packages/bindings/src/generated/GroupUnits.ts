@@ -4,4 +4,12 @@
  * A field whose group toggles a unit: the choice field it sets, and the words before the
  * toggle ("Weights in"); the field's label otherwise.
  */
-export type GroupUnits = { field: string, label?: string | null, };
+export type GroupUnits = { 
+/**
+ * The id of the choice field the toggle sets, e.g. `weight_unit`.
+ */
+field: string, 
+/**
+ * The words before the toggle; the field's label otherwise.
+ */
+label?: string | null, };

@@ -4,4 +4,17 @@ import type { AliasKind } from "./AliasKind";
 /**
  * An old saved id and what replaced it. Lets saved progress carry over.
  */
-export type Alias = { kind: AliasKind, from: string, to: string, };
+export type Alias = { 
+/**
+ * What kind of id it renames, which says what `from` and `to` are.
+ */
+kind: AliasKind, 
+/**
+ * The old id, as an earlier version of the pack saved it. Each old id is listed once per
+ * kind.
+ */
+from: string, 
+/**
+ * The id that replaced it, which must exist in this version of the pack.
+ */
+to: string, };

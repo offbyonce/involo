@@ -6,7 +6,12 @@ import type { RouteLegPart } from "./RouteLegPart";
 /**
  * A live flight value. Calculations happen in the app, never in the pack.
  */
-export type CduField = { field: FieldId, 
+export type CduField = { 
+/**
+ * The flight field whose value is shown, which the pack must define. `route_leg` shows
+ * one route row and needs `index` and `part`; `manual` is not allowed here.
+ */
+field: FieldId, 
 /**
  * For `route_leg`: the row, from 1 to `MAX_ROUTE_LEG`.
  */
@@ -14,7 +19,11 @@ index?: number | null,
 /**
  * For `route_leg`: which half of the row.
  */
-part?: RouteLegPart | null, style?: CduStyle | null, 
+part?: RouteLegPart | null, 
+/**
+ * The style the value is drawn in.
+ */
+style?: CduStyle | null, 
 /**
  * Literal text before the value, e.g. `RW`.
  */
@@ -26,4 +35,8 @@ after?: string | null,
 /**
  * Shown when the value is not known.
  */
-empty?: string | null, emptyStyle?: CduStyle | null, };
+empty?: string | null, 
+/**
+ * The style `empty` is drawn in.
+ */
+emptyStyle?: CduStyle | null, };

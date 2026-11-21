@@ -3,4 +3,13 @@
 /**
  * A reference group, e.g. `memory`, and how its tab is titled.
  */
-export type GroupLabel = { id: string, title: string, };
+export type GroupLabel = { 
+/**
+ * The group's id, lower-case letters, digits and dashes, e.g. `memory`; a reference
+ * phase's `group` names it.
+ */
+id: string, 
+/**
+ * Its tab's title.
+ */
+title: string, };

@@ -14,6 +14,7 @@ pub mod load;
 pub mod locate;
 pub mod manifest;
 pub mod patch;
+pub mod reference;
 pub mod resolve;
 pub mod schema;
 pub mod terms;

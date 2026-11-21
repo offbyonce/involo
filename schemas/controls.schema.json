@@ -1,16 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ControlsFile",
-  "description": "`controls.yaml`.",
+  "description": "`controls.yaml`: the cockpit's zones, the controls steps refer to, and the overview map\nthat shows where each zone is.",
   "type": "object",
   "properties": {
     "controls": {
+      "description": "Every control a step or panel item names.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/Control"
       }
     },
     "overview": {
+      "description": "The cockpit overview: the step map and the Flight deck page. Without it, neither shows a map.",
       "anyOf": [
         {
           "$ref": "#/$defs/Overview"
@@ -21,6 +23,7 @@
       ]
     },
     "zones": {
+      "description": "The areas of the cockpit.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/Zone"
@@ -38,15 +41,19 @@
       "type": "object",
       "properties": {
         "function": {
+          "description": "What the control does; shown in a step's context, and for a panel item with no\n`description` of its own.",
           "type": "string"
         },
         "id": {
+          "description": "The control's id, which steps list in `controls` and panel items in theirs.",
           "type": "string"
         },
         "location": {
+          "description": "Where the control is, in words; shown with it in Find and in a step's context, and in\nPractice's answers.",
           "type": "string"
         },
         "name": {
+          "description": "What the control is called (\"Fuel pump switches\"), as Find and a panel item's card\nshow it.",
           "type": "string"
         },
         "plural": {
@@ -71,11 +78,22 @@
     },
     "LabelAnchor": {
       "description": "Which way a label runs from its point.",
-      "type": "string",
-      "enum": [
-        "start",
-        "middle",
-        "end"
+      "oneOf": [
+        {
+          "description": "The label starts at its point.",
+          "type": "string",
+          "const": "start"
+        },
+        {
+          "description": "The label is centered on its point; the default.",
+          "type": "string",
+          "const": "middle"
+        },
+        {
+          "description": "The label ends at its point.",
+          "type": "string",
+          "const": "end"
+        }
       ]
     },
     "Overview": {
@@ -83,22 +101,26 @@
       "type": "object",
       "properties": {
         "areas": {
+          "description": "The zones' rectangles.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/OverviewArea"
           }
         },
         "captions": {
+          "description": "Free captions on the map. The app does not draw them today.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/OverviewCaption"
           }
         },
         "height": {
+          "description": "The overview's height in its own units.",
           "type": "number",
           "format": "double"
         },
         "regions": {
+          "description": "The parts of the cockpit a step map shows one at a time.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/OverviewRegion"
@@ -116,6 +138,7 @@
           ]
         },
         "width": {
+          "description": "The overview's width in its own units; every region lies inside it.",
           "type": "number",
           "format": "double"
         }
@@ -132,6 +155,7 @@
       "type": "object",
       "properties": {
         "height": {
+          "description": "The rectangle's height, in the overview's units.",
           "type": "number",
           "format": "double"
         },
@@ -143,18 +167,22 @@
           ]
         },
         "width": {
+          "description": "The rectangle's width, in the overview's units.",
           "type": "number",
           "format": "double"
         },
         "x": {
+          "description": "The rectangle's left edge, in the overview's units. Its center decides which region it\nbelongs to.",
           "type": "number",
           "format": "double"
         },
         "y": {
+          "description": "The rectangle's top edge, in the overview's units.",
           "type": "number",
           "format": "double"
         },
         "zone": {
+          "description": "The zone this rectangle stands for.",
           "type": "string"
         }
       },
@@ -172,13 +200,16 @@
       "type": "object",
       "properties": {
         "text": {
+          "description": "The caption's text. The app does not draw overview captions today.",
           "type": "string"
         },
         "x": {
+          "description": "Its point across, in the overview's units.",
           "type": "number",
           "format": "double"
         },
         "y": {
+          "description": "Its point down, in the overview's units.",
           "type": "number",
           "format": "double"
         }
@@ -195,12 +226,14 @@
       "type": "object",
       "properties": {
         "bottom": {
+          "description": "The caption for the bottom edge.",
           "type": [
             "string",
             "null"
           ]
         },
         "bottom_short": {
+          "description": "The short caption for the bottom edge; the long one when left out.",
           "type": [
             "string",
             "null"
@@ -214,16 +247,19 @@
           ]
         },
         "height": {
+          "description": "The region's height, in the overview's units; more than 0.",
           "type": "number",
           "format": "double"
         },
         "left": {
+          "description": "The caption for the left edge.",
           "type": [
             "string",
             "null"
           ]
         },
         "left_short": {
+          "description": "The short caption for the left edge; the long one when left out.",
           "type": [
             "string",
             "null"
@@ -237,15 +273,18 @@
           ]
         },
         "name": {
+          "description": "The region's name, unique among regions; side and seat view places name it as their\n`region`, and the maps use it as their name.",
           "type": "string"
         },
         "right": {
+          "description": "The caption for the right edge.",
           "type": [
             "string",
             "null"
           ]
         },
         "right_short": {
+          "description": "The short caption for the right edge; the long one when left out.",
           "type": [
             "string",
             "null"
@@ -259,6 +298,7 @@
           ]
         },
         "short_title": {
+          "description": "The shorter Where is this? title, for phones; the whole one when left out.",
           "type": [
             "string",
             "null"
@@ -286,14 +326,17 @@
           ]
         },
         "width": {
+          "description": "The region's width, in the overview's units; more than 0.",
           "type": "number",
           "format": "double"
         },
         "x": {
+          "description": "The region's left edge, in the overview's units. Its rectangle lies inside the overview\nand holds the areas whose centers fall in it.",
           "type": "number",
           "format": "double"
         },
         "y": {
+          "description": "The region's top edge, in the overview's units.",
           "type": "number",
           "format": "double"
         }
@@ -312,6 +355,7 @@
       "type": "object",
       "properties": {
         "seat": {
+          "description": "The view from the seat: one frame, or one per seat.",
           "anyOf": [
             {
               "$ref": "#/$defs/SeatViews"
@@ -322,6 +366,7 @@
           ]
         },
         "side": {
+          "description": "The view from the side, with the sight line from the eye.",
           "anyOf": [
             {
               "$ref": "#/$defs/ViewFrame"
@@ -338,9 +383,11 @@
       "description": "The seat view: one frame, or one per seat, keyed by the seat ids the pack's labels list\n(decision 0029).",
       "anyOf": [
         {
+          "description": "One frame, whichever seat the pilot is in.",
           "$ref": "#/$defs/ViewFrame"
         },
         {
+          "description": "A frame per seat, keyed by seat id.",
           "type": "object",
           "additionalProperties": {
             "$ref": "#/$defs/ViewFrame"
@@ -353,28 +400,33 @@
       "type": "object",
       "properties": {
         "height": {
+          "description": "The view's height in its own units.",
           "type": "number",
           "format": "double"
         },
         "labels": {
+          "description": "Fixed labels drawn in the view.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/ViewLabel"
           }
         },
         "places": {
+          "description": "Where each overview region sits in the view.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/ViewPlace"
           }
         },
         "shapes": {
+          "description": "The airplane's shapes: structure, glass, seat and eye.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/ViewShape"
           }
         },
         "width": {
+          "description": "The view's width in its own units; every point in it is inside.",
           "type": "number",
           "format": "double"
         }
@@ -390,17 +442,21 @@
       "type": "object",
       "properties": {
         "anchor": {
+          "description": "Which way the text runs from its point.",
           "$ref": "#/$defs/LabelAnchor",
           "default": "middle"
         },
         "text": {
+          "description": "The label's text, drawn as written.",
           "type": "string"
         },
         "x": {
+          "description": "Its point across, in the view's units.",
           "type": "number",
           "format": "double"
         },
         "y": {
+          "description": "Its point down, in the view's units.",
           "type": "number",
           "format": "double"
         }
@@ -441,6 +497,7 @@
           "type": "string"
         },
         "shapes": {
+          "description": "The region's closed outlines, each a list of `[x, y]` points in the view's units.",
           "type": "array",
           "items": {
             "type": "array",
@@ -492,9 +549,11 @@
       "type": "object",
       "properties": {
         "closed": {
+          "description": "The outline joins its last point back to its first.",
           "type": "boolean"
         },
         "points": {
+          "description": "The points the outline runs through, `[x, y]` in the view's units.",
           "type": "array",
           "items": {
             "type": "array",
@@ -507,6 +566,7 @@
           }
         },
         "role": {
+          "description": "How the shape is drawn.",
           "$ref": "#/$defs/ViewRole"
         }
       },
@@ -521,9 +581,11 @@
       "type": "object",
       "properties": {
         "area": {
+          "description": "The part of the cockpit the zone is in (\"Overhead\"), shown before its title (\"Overhead\n· Fuel\"); without overview regions, the step map shows the zones of the same area.",
           "type": "string"
         },
         "id": {
+          "description": "The zone's id, which controls name as their `zone` and overview areas as theirs.",
           "type": "string"
         },
         "position": {
@@ -534,9 +596,11 @@
           ]
         },
         "short_title": {
+          "description": "The zone's label on the overview map's boxes, in capitals, unless an area gives its own.",
           "type": "string"
         },
         "title": {
+          "description": "The zone's name, shown where a control's place is given and on the Flight deck page.",
           "type": "string"
         }
       },

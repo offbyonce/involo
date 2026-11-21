@@ -5,9 +5,9 @@ SPDX-License-Identifier: MIT
 # Working on Involo
 
 A guide for everyone who changes the code or the packs, people and AI agents alike. Read it with
-`CONTRIBUTING.md` (sign-off, checks, content rules) and `docs/plan.md` (what we are building and
-why). Decision records in `docs/decisions/` explain past choices; a change that would reverse one
-starts with a discussion in an issue.
+`CONTRIBUTING.md` (sign-off, checks), `docs/packs/` (writing packs, and their content rules) and
+`docs/plan.md` (what we are building and why). Decision records in `docs/decisions/` explain
+past choices; a change that would reverse one starts with a discussion in an issue.
 
 ## What this project is
 
@@ -19,7 +19,7 @@ engine never names an aircraft. **The app never connects to the simulator** (dec
 
 ## Non-negotiable rules
 
-**Content and sources** (full rules in `CONTRIBUTING.md`):
+**Content and sources** (full rules in `docs/packs/content-rules.md`, the pack guide):
 
 - No per-step citations and no URLs to third-party material (decision 0007). Each list has a
   `basis` tag naming only the kind of material it was checked against. Never link the banned
@@ -99,9 +99,11 @@ engine never names an aircraft. **The app never connects to the simulator** (dec
 | `apps/desktop` | Tauri shell (`src-tauri`) and its host. Parked: not in the workspace (0010) |
 | `packages/ui` | The shared Svelte 5 interface and its host interface (`src/host.ts`) |
 | `packages/bindings` | TypeScript types generated from Rust (`src/generated`), and `isAppError` |
+| `tools/generated-check.mjs` | `just generated-check`'s check that generated files match what is committed and are all added to git |
 | `tools/import-3x` | One-way converter from the 3.0 checklist to pack YAML (retired, kept for reference) |
 | `packs/` | Content packs (CC BY-NC-SA 4.0); `packs/examples` holds invented example packs, checked and tested but never published (decision 0030) |
 | `schemas/` | Generated JSON Schemas |
+| `docs/packs` | The pack authoring guide, and the format reference in `reference/` that `just pack-docs` generates from the schemas and the problem codes |
 | `docs/` | Plan, phase briefs, setup guide, brand, design boards, decision records |
 
 ## Commands
@@ -118,6 +120,7 @@ just update-test  # service worker update test in headless Firefox (local; needs
 just e2e       # end-to-end flows with layout and accessibility checks (Chromium, WebKit)
 just review-shots <dir> <screen>...  # review shots of named screens beside their boards
 just fuzz <target> [seconds]  # fuzz a pack loader target (nightly and cargo-fuzz; not in just ci)
+just pack-docs # regenerate the pack format reference (docs/packs/reference)
 just ci        # everything; must pass before a push
 just overlap   # compare packs with local reference files
 ```

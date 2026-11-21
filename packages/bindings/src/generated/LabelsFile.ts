@@ -13,4 +13,58 @@ import type { SeatLabel } from "./SeatLabel";
  * replace the default list;
  * `position_words`, reference `groups` and `basis_tags` are merged with the defaults by key.
  */
-export type LabelsFile = { listKinds?: ListKindLabelsFile | null, methods?: MethodLabelsFile | null, seats?: Array<SeatLabel> | null, roles?: Array<RoleLabel> | null, reference?: ReferenceLabelsFile | null, seatViewTitle?: string | null, panelStates?: PanelStateLabelsFile | null, positionWords?: { [key in string]: Array<string> } | null, findExamples?: Array<string> | null, glossaryExceptions?: Array<string> | null, sideWords?: Array<string> | null, plainWords?: Array<string> | null, basisTags?: Array<BasisTagLabel>, };
+export type LabelsFile = { 
+/**
+ * The names of the kinds of list.
+ */
+listKinds?: ListKindLabelsFile | null, 
+/**
+ * The names of the ways a list is used (its `method`).
+ */
+methods?: MethodLabelsFile | null, 
+/**
+ * The flight deck's seats. The app has none by default.
+ */
+seats?: Array<SeatLabel> | null, 
+/**
+ * The crew roles steps name. The app has none by default.
+ */
+roles?: Array<RoleLabel> | null, 
+/**
+ * The reference area's title and group tabs.
+ */
+reference?: ReferenceLabelsFile | null, 
+/**
+ * The title over the seat view in "Where is this?".
+ */
+seatViewTitle?: string | null, 
+/**
+ * The Start page's panel-state picker words.
+ */
+panelStates?: PanelStateLabelsFile | null, 
+/**
+ * Other words a step's wording uses for a position, by position: `DN: [DOWN]`.
+ * `check` and `suggest-targets` read steps with them.
+ */
+positionWords?: { [key in string]: Array<string> } | null, 
+/**
+ * Find's example searches; the first two are also the examples in its no-match hint.
+ */
+findExamples?: Array<string> | null, 
+/**
+ * Glossary terms whose first sentence reads as a description, so no expansion is shown.
+ */
+glossaryExceptions?: Array<string> | null, 
+/**
+ * Words that tell one of a pair from the other, by side or seat (`LEFT`, `CAPTAIN`).
+ */
+sideWords?: Array<string> | null, 
+/**
+ * Words that say nothing about where a control is (`AND`, `PANEL`, `SWITCH`).
+ */
+plainWords?: Array<string> | null, 
+/**
+ * Words for the manifest's basis tags, by tag. A tag the manifest doesn't list is
+ * left out of the built pack.
+ */
+basisTags?: Array<BasisTagLabel>, };

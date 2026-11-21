@@ -3,4 +3,12 @@
 /**
  * A seat in the flight deck, e.g. `left`. Seat frames in the overview are keyed by its id.
  */
-export type SeatLabel = { id: string, title: string, };
+export type SeatLabel = { 
+/**
+ * Lower-case letters, digits and dashes, unique among seats; a role's `seat` names it.
+ */
+id: string, 
+/**
+ * The seat's name, e.g. `Left seat`.
+ */
+title: string, };

@@ -1,10 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "BriefingsFile",
-  "description": "`briefings.yaml`.",
+  "description": "`briefings.yaml`: the crew briefings and their mnemonics, which Practice asks about.",
   "type": "object",
   "properties": {
     "briefings": {
+      "description": "Every briefing.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/Briefing"
@@ -32,9 +33,11 @@
           "type": "string"
         },
         "lead": {
+          "description": "The letters of the mnemonic this line stands for, e.g. `R`; with `rest` it makes the\nline's word as Practice shows it.",
           "type": "string"
         },
         "rest": {
+          "description": "The rest of the word after `lead`, e.g. `unway`.",
           "type": "string"
         }
       },
@@ -46,25 +49,30 @@
       ]
     },
     "Briefing": {
-      "description": "A crew briefing, shown in one phase.",
+      "description": "A crew briefing for one phase. The app doesn't show briefings yet; Practice asks about a\nbriefing's mnemonic and its items.",
       "type": "object",
       "properties": {
         "id": {
+          "description": "Unique in the pack.",
           "type": "string"
         },
         "items": {
+          "description": "Its lines, in order.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/BriefItem"
           }
         },
         "mnemonic": {
+          "description": "The word its lines' letters spell. Practice asks about briefings that have one, and\nleaves out one whose mnemonic is empty.",
           "type": "string"
         },
         "phase": {
+          "description": "The phase it belongs to, which must exist; Practice links to it.",
           "type": "string"
         },
         "title": {
+          "description": "Its name, e.g. `Departure`: Practice calls it \"the Departure briefing\".",
           "type": "string"
         }
       },

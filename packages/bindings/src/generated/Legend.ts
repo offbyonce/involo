@@ -4,7 +4,11 @@ import type { LightColor } from "./LightColor";
 /**
  * One legend of a legend pushbutton, e.g. FAULT in amber or OFF in white.
  */
-export type Legend = { text: string, 
+export type Legend = { 
+/**
+ * The legend's words, as the button shows them (`FAULT`, `OFF`).
+ */
+text: string, 
 /**
  * Its light's role.
  */

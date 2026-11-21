@@ -5,8 +5,24 @@ import type { CduRow } from "./CduRow";
 /**
  * What the CDU shows on one walkthrough page.
  */
-export type CduScreen = { title: Array<CduPart>, page: Array<CduPart>, rows: Array<CduRow>, 
+export type CduScreen = { 
+/**
+ * The title line at the top of the screen.
+ */
+title: Array<CduPart>, 
+/**
+ * The page count beside the title, e.g. `1/2`.
+ */
+page: Array<CduPart>, 
+/**
+ * The line select rows, top to bottom.
+ */
+rows: Array<CduRow>, 
 /**
  * Line select keys to highlight, e.g. `2L`.
  */
-highlight?: Array<string>, scratchpad?: Array<CduPart>, };
+highlight?: Array<string>, 
+/**
+ * The scratchpad line below the rows.
+ */
+scratchpad?: Array<CduPart>, };

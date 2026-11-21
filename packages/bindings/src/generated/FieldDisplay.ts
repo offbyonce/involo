@@ -5,4 +5,16 @@ import type { Rounding } from "./Rounding";
  * How a number from a plan is stored: divided by `scale` (1000 for thousands, as the CDU
  * takes a weight), then rounded to a multiple of `step` (0.1 keeps one decimal).
  */
-export type FieldDisplay = { scale: number, round: Rounding, step: number, };
+export type FieldDisplay = { 
+/**
+ * What the plan's number is divided by before it is stored, e.g. 1000.
+ */
+scale: number, 
+/**
+ * Which way the scaled number is rounded to `step`.
+ */
+round: Rounding, 
+/**
+ * The multiple the scaled number is rounded to, e.g. 0.1 for one decimal.
+ */
+step: number, };

@@ -111,10 +111,22 @@ impl Parents for Shelf {
     }
 }
 
+/// The folder that holds the pack in `dir`, where its parent may be: `.` for a pack named
+/// without a folder (`my-child`), whose parent path is empty.
+pub fn beside(dir: &Path) -> Option<PathBuf> {
+    dir.parent().map(|p| {
+        if p.as_os_str().is_empty() {
+            PathBuf::from(".")
+        } else {
+            p.to_path_buf()
+        }
+    })
+}
+
 /// Loads the pack in `dir` and, when it extends a parent, builds it over the parent. Parents are
 /// looked for among the packs beside `dir` and in each of `search`.
 pub fn resolve(dir: &Path, search: &[PathBuf]) -> Result<Resolved, ResolveError> {
-    let mut places: Vec<PathBuf> = dir.parent().map(Path::to_path_buf).into_iter().collect();
+    let mut places: Vec<PathBuf> = beside(dir).into_iter().collect();
     places.extend(search.iter().cloned());
     resolve_files(&Folder(dir.to_path_buf()), &Places(places))
 }

@@ -2,6 +2,28 @@
 import type { BriefItem } from "./BriefItem";
 
 /**
- * A crew briefing, shown in one phase.
+ * A crew briefing for one phase. The app doesn't show briefings yet; Practice asks about a
+ * briefing's mnemonic and its items.
  */
-export type Briefing = { id: string, title: string, mnemonic: string, phase: string, items: Array<BriefItem>, };
+export type Briefing = { 
+/**
+ * Unique in the pack.
+ */
+id: string, 
+/**
+ * Its name, e.g. `Departure`: Practice calls it "the Departure briefing".
+ */
+title: string, 
+/**
+ * The word its lines' letters spell. Practice asks about briefings that have one, and
+ * leaves out one whose mnemonic is empty.
+ */
+mnemonic: string, 
+/**
+ * The phase it belongs to, which must exist; Practice links to it.
+ */
+phase: string, 
+/**
+ * Its lines, in order.
+ */
+items: Array<BriefItem>, };
