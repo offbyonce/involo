@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../../schemas/checklist.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft procedure.
+id: before-start
+title: Before start
+kind: checklist
+method: challenge_response
+basis: [being-checked]
+steps:
+  - id: example-sidestick.before-start.briefing
+    number: 1
+    text: Takeoff briefing
+    expect: COMPLETE
+    role: pm
+    respond: pf
+  - id: example-sidestick.before-start.speeds
+    number: 2
+    text: Takeoff speeds
+    expect: V1 ___, VR ___
+    role: pm
+    respond: capt
+    fill: [v1, vr]
+  - id: example-sidestick.before-start.trim-tank
+    number: 3
+    text: Trim tank fuel
+    expect: CHECK THE QUANTITY
+    role: pm
+    respond: fo
+    decide: trim_tank
+  - id: example-sidestick.before-start.beacon
+    number: 4
+    text: Beacon
+    expect: 'ON'
+    role: pm
+    respond: pf

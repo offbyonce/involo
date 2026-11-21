@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../schemas/messages.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft.
+messages:
+  - id: smoke-cabin
+    text: SMOKE CABIN
+    level: warning
+    meaning: Smoke is detected in the cabin.
+    list: smoke
+    steps: [example-sidestick.smoke.masks, example-sidestick.smoke.checklist]
+  - id: eng-fire
+    text: ENG FIRE
+    level: warning
+    meaning: An engine's fire detection has gone off.
+    list: engine-fire
+    steps: [example-sidestick.engine-fire.thrust]
+  - id: fuel-pump-fault
+    text: FUEL PUMP FAULT
+    level: caution
+    meaning: A fuel pump isn't giving pressure.
+    no_list: The other pump feeds the engine; no procedure is needed.
+  - id: athr-off
+    text: A/THR OFF
+    level: advisory
+    meaning: The autothrust is off.
+    no_list: Set the thrust by hand.
+  - id: seat-belts
+    text: SEAT BELTS
+    level: memo
+    meaning: The seat belt signs are on.
+    no_list: A reminder only; nothing to do.
+  - id: radar-inop
+    text: RADAR INOP
+    level: status
+    meaning: The weather radar isn't working. It matters for the next flight, not this one.
+    no_list: Nothing to do in flight.

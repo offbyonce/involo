@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../../schemas/panel.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft panel.
+id: glareshield
+title: Glareshield
+width: 560
+height: 152
+sections:
+  - id: fcu
+    title: Flight control unit
+    x: 10
+    y: 10
+    width: 540
+    height: 132
+    outline: [[20, 0], [520, 0], [540, 26], [540, 132], [0, 132], [0, 26]]
+    items:
+      - id: spd
+        kind: push_pull_knob
+        label: SPD
+        x: 80
+        y: 66
+        controls: [speed-knob]
+        positions: [PUSH, PULL]
+        rest: PUSH
+        description: Sets the target speed; pushed in, the computer manages it.
+      - id: hdg
+        kind: push_pull_knob
+        label: HDG
+        x: 190
+        y: 66
+        controls: [heading-knob]
+        positions: [PUSH, PULL]
+        rest: PUSH
+        description: Sets the target heading; pushed in, the computer manages it.
+      - id: alt
+        kind: push_pull_knob
+        label: ALT
+        x: 300
+        y: 66
+        controls: [altitude-knob]
+        positions: [PUSH, PULL]
+        rest: PUSH
+        description: Sets the target altitude; pulled out, the airplane climbs or descends to it.
+      - id: ap
+        kind: legend_pushbutton
+        label: AP
+        x: 430
+        y: 70
+        controls: [autopilot]
+        positions: ["OFF", "ON"]
+        rest: "OFF"
+        legends:
+          - {text: "ON", light: green, lit_in: ["ON"]}
+        description: Engages the autopilot.
+      - id: athr
+        kind: legend_pushbutton
+        label: A/THR
+        x: 486
+        y: 70
+        controls: [autothrust]
+        positions: ["OFF", "ON"]
+        rest: "OFF"
+        legends:
+          - {text: FAULT, light: amber}
+          - {text: "ON", light: white, lit_in: ["ON"]}
+        description: Engages the autothrust.

@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../../schemas/panel.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft panel.
+id: overhead
+title: Overhead panel
+width: 300
+height: 130
+sections:
+  - id: fuel
+    title: Fuel
+    x: 10
+    y: 10
+    width: 280
+    height: 110
+    items:
+      - id: pump-1
+        kind: legend_pushbutton
+        label: PUMP 1
+        x: 70
+        y: 56
+        controls: [fuel-pumps]
+        positions: ["ON", "OFF"]
+        rest: "OFF"
+        legends:
+          - {text: FAULT, light: amber}
+          - {text: "OFF", light: white, lit_in: ["OFF"]}
+        description: Runs the first fuel pump.
+      - id: pump-2
+        kind: legend_pushbutton
+        label: PUMP 2
+        x: 150
+        y: 56
+        controls: [fuel-pumps]
+        positions: ["ON", "OFF"]
+        rest: "OFF"
+        legends:
+          - {text: FAULT, light: amber}
+          - {text: "OFF", light: white, lit_in: ["OFF"]}
+        description: Runs the second fuel pump.

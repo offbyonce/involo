@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../schemas/cdu.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft.
+walkthroughs:
+  - id: init
+    title: Flight plan set-up
+    pages:
+      - page: INIT
+        key: INIT
+        title: Enter the airports
+        action:
+          - 'Type '
+          - {field: origin, empty: the departure}
+          - '/'
+          - {field: destination, empty: the destination}
+          - ' and press 1R.'
+        check: [Both airports shown.]
+        note:
+          - {route_legs: overflow, per_page: 5, before: 'Then ', after: ' more route rows follow on the next page.', empty: 'The route fits on one page.', style: data}
+        screen:
+          title: [INIT]
+          page: ['1/1']
+          highlight: [1R]
+          rows:
+            - right_label: [FROM/TO]
+              right:
+                - {field: origin, style: user, empty: '□□□□'}
+                - '/'
+                - {field: destination, style: user, empty: '□□□□'}

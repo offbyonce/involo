@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../schemas/pack.schema.json",
+  "id": "example-sidestick",
+  "name": "Example Sidestick Twin",
+  "version": "0.1.0",
+  "schemaVersion": 6,
+  "kind": "aircraft",
+  "engine": ">=0.1.0, <1.0.0",
+  "aircraft": {
+    "family": "Example Sidestick Twin",
+    "name": "Example Sidestick Twin",
+    "icaoTypes": ["ZZZS"],
+    "simulator": "None: an invented example",
+    "developer": "Involo examples"
+  },
+  "license": "CC-BY-NC-SA-4.0",
+  "attribution": ["Invented example content to show the pack format. Not for real-world or simulator use."],
+  "basisTags": ["invented-example", "being-checked"],
+  "checklists": [
+    "lists/cockpit-prep.yaml",
+    "lists/before-start.yaml",
+    "lists/taxi.yaml",
+    "lists/after-takeoff.yaml",
+    "lists/smoke.yaml",
+    "lists/engine-fire.yaml"
+  ],
+  "phases": "phases.yaml",
+  "controls": "controls.yaml",
+  "panels": ["panels/glareshield.yaml", "panels/overhead.yaml"],
+  "glossary": "glossary.yaml",
+  "panelStates": "panel-states.yaml",
+  "cdu": "cdu.yaml",
+  "flight": "flight.yaml",
+  "messages": "messages.yaml",
+  "labels": "labels.yaml"
+}

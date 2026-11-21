@@ -1,0 +1,82 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../schemas/controls.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft panel.
+zones:
+  - id: fcu
+    area: Glareshield
+    title: Flight control unit
+    short_title: FCU
+  - id: overhead-fuel
+    area: Overhead
+    title: Fuel panel
+    short_title: FUEL
+controls:
+  - id: speed-knob
+    name: Speed knob
+    zone: fcu
+    location: Left of the flight control unit.
+    function: Sets the target speed.
+  - id: heading-knob
+    name: Heading knob
+    zone: fcu
+    location: Middle of the flight control unit.
+    function: Sets the target heading.
+  - id: altitude-knob
+    name: Altitude knob
+    zone: fcu
+    location: Right of the heading knob.
+    function: Sets the target altitude.
+  - id: autopilot
+    name: Autopilot pushbutton
+    zone: fcu
+    location: Right side of the flight control unit.
+    function: Engages the autopilot.
+  - id: autothrust
+    name: Autothrust pushbutton
+    zone: fcu
+    location: Right of the autopilot pushbutton.
+    function: Engages the autothrust.
+  - id: fuel-pumps
+    name: Fuel pump pushbuttons
+    plural: true
+    zone: overhead-fuel
+    location: The fuel panel, on the overhead.
+    function: Run the fuel pumps.
+overview:
+  width: 200
+  height: 100
+  captions:
+    - {text: OVERHEAD, x: 10, y: 10}
+    - {text: GLARESHIELD, x: 10, y: 60}
+  areas:
+    - {zone: overhead-fuel, x: 10, y: 20, width: 60, height: 30}
+    - {zone: fcu, x: 10, y: 66, width: 120, height: 24}
+  # Invented seat views: one frame per seat the labels list, told apart by their labels.
+  views:
+    seat:
+      left:
+        width: 200
+        height: 100
+        shapes:
+          - role: glass
+            closed: true
+            points: [[20, 20], [96, 18], [96, 56], [24, 58]]
+          - role: glass
+            closed: true
+            points: [[104, 18], [180, 20], [176, 58], [104, 56]]
+        labels:
+          - {text: FROM THE LEFT SEAT, x: 100, "y": 84}
+      right:
+        width: 200
+        height: 100
+        shapes:
+          - role: glass
+            closed: true
+            points: [[20, 20], [96, 18], [96, 56], [24, 58]]
+          - role: glass
+            closed: true
+            points: [[104, 18], [180, 20], [176, 58], [104, 56]]
+        labels:
+          - {text: FROM THE RIGHT SEAT, x: 100, "y": 84}
