@@ -5,7 +5,6 @@
 # The controls at each pilot seat that the memory items and non-normal checklists use. Our own
 # schematic layout; switch names and positions are facts.
 id: seat
-title: Pilot station
 width: 640
 height: 140
 sections:

@@ -45,7 +45,7 @@ patches:
   - op: set
     panel: pedestal
     to:
-      title: Center pedestal
+      height: 260
   - op: set
     section: pedestal/cabin
     to:

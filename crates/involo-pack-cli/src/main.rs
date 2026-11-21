@@ -14,7 +14,7 @@
 //! code, without one.
 //! `involo-pack describe [--json] <file>`  the fields one pack file takes (`flight.yaml`,
 //! `lists/<name>.yaml`), from its JSON Schema; `--json` prints the schema.
-//! `involo-pack import-panel <file.svg> [--id <id>] [--title <title>] [--width <units>] [--out <file>]`
+//! `involo-pack import-panel <file.svg> [--id <id>] [--width <units>] [--out <file>]`
 //! a panel drawn in a vector drawing tool, as a panel file for the author to finish: groups named
 //! `section:<id>` and `<kind>:<LABEL>` become sections and controls where they are drawn. Prints
 //! the file, or writes it to `--out`.
@@ -59,7 +59,7 @@ mod workspace;
 
 use starter::words;
 
-const USAGE: &str = "usage:\n  involo-pack new <folder> [--from <example>] [--name <name>]\n  involo-pack check [--json] <pack-dir | packs-dir>... [--parents <dir>]\n  involo-pack explain [--json] [<code>]\n  involo-pack describe [--json] <file>\n  involo-pack import-panel <file.svg> [--id <id>] [--title <title>] [--width <units>] [--out <file>]\n  involo-pack mcp <folder>\n  involo-pack schema <out-dir>\n  involo-pack reference <out-dir>\n  involo-pack build <pack-dir | packs-dir>... <out-dir> [--parents <dir>]\n  involo-pack overlap <pack-dir | packs-dir> [--refs <folder>] [--allow <file>]\n  involo-pack suggest-targets <pack-dir>\n  involo-pack terms [--json] <pack-dir>";
+const USAGE: &str = "usage:\n  involo-pack new <folder> [--from <example>] [--name <name>]\n  involo-pack check [--json] <pack-dir | packs-dir>... [--parents <dir>]\n  involo-pack explain [--json] [<code>]\n  involo-pack describe [--json] <file>\n  involo-pack import-panel <file.svg> [--id <id>] [--width <units>] [--out <file>]\n  involo-pack mcp <folder>\n  involo-pack schema <out-dir>\n  involo-pack reference <out-dir>\n  involo-pack build <pack-dir | packs-dir>... <out-dir> [--parents <dir>]\n  involo-pack overlap <pack-dir | packs-dir> [--refs <folder>] [--allow <file>]\n  involo-pack suggest-targets <pack-dir>\n  involo-pack terms [--json] <pack-dir>";
 
 fn main() -> ExitCode {
     match run() {
@@ -132,12 +132,12 @@ fn new(args: &[String]) -> Result<bool> {
     Ok(true)
 }
 
-/// `import-panel <file.svg> [--id <id>] [--title <title>] [--width <units>] [--out <file>]`: the
+/// `import-panel <file.svg> [--id <id>] [--width <units>] [--out <file>]`: the
 /// panel file a drawing makes, printed or written to `--out` (never over a file that is there).
 /// What was left out or guessed goes to standard error.
 fn import_panel(args: &[String]) -> Result<bool> {
     let mut file = None;
-    let (mut id, mut title, mut width, mut out) = (None, None, None, None);
+    let (mut id, mut width, mut out) = (None, None, None);
     let mut rest = args.iter();
     while let Some(arg) = rest.next() {
         let mut value = |what: &str| {
@@ -147,7 +147,6 @@ fn import_panel(args: &[String]) -> Result<bool> {
         };
         match arg.as_str() {
             "--id" => id = Some(value("an id")?),
-            "--title" => title = Some(value("a title")?),
             "--width" => {
                 let w = value("a width")?;
                 width = Some(
@@ -170,7 +169,7 @@ fn import_panel(args: &[String]) -> Result<bool> {
     }
     let file = file.context(USAGE)?;
     let id = import_panel::panel_id(id, &file)?;
-    let imported = import_panel::import_file(&file, &id, title, width)?;
+    let imported = import_panel::import_file(&file, &id, width)?;
     for warning in &imported.warnings {
         eprintln!("warning: {warning}");
     }

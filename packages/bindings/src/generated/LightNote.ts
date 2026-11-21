@@ -28,10 +28,6 @@ when: string,
  */
 action: string, 
 /**
- * True when seeing this light is normal.
- */
-normal: boolean, 
-/**
  * Internal record of what this note was confirmed against (decision 0013).
  */
 confirmedBy?: Array<Confirmation>, };

@@ -33,10 +33,6 @@
         "$ref": "#/$defs/PanelSection"
       }
     },
-    "title": {
-      "description": "The panel's name. The app names what it shows by its sections and zones, and does not\nshow this today.",
-      "type": "string"
-    },
     "width": {
       "description": "The panel's width in panel units; its outline, when it has one, lies inside.",
       "type": "number",
@@ -46,7 +42,6 @@
   "additionalProperties": false,
   "required": [
     "id",
-    "title",
     "width",
     "height",
     "sections"

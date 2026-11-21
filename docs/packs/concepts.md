@@ -120,6 +120,21 @@ the app's own word, so write only what differs.
 - `position_words` (`DN: [DOWN]`) are other words for a position, merged over the defaults;
   `check` and `suggest-targets` read a step's wording with them.
 
+## Accepted but not shown yet
+
+The format has room for six things the app doesn't show yet. Each has an approved design, and
+the app will show it as written; `involo-pack check` checks them now, so write them as you would
+anything else.
+
+| What | Where | Designed as |
+| --- | --- | --- |
+| Step timers | a step's `timer`, with `auto_start` | A timer chip on the step, started by the step that triggers it, and a bar of running timers |
+| Walkaround points | a step's `walkaround` | The exterior inspection: a top view of the airplane with numbered stops |
+| CDU walkthroughs | `cdu.yaml`, and a step's `opens` | A CDU walkthrough, page by page, with the flight's values filled in |
+| Briefings | `briefings.yaml` | A briefing step in the flow; today, Practice asks about a briefing's mnemonic |
+| When a light comes on, and what to do | a light note's `when` and `action` | Notes under the light's meaning |
+| A panel state's description | a panel state's `description` | A line under Start's panel-state picker |
+
 ## Other things Practice and the overview read
 
 - A panel section's optional `name` is what card titles, captions and "Also" lines call it ("Fuel

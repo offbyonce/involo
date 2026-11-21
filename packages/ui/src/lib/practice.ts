@@ -30,6 +30,7 @@ import { phaseHref } from "../route.svelte";
 import { areaOf, deckAreas, deckHref, zoneSections } from "./deck";
 import { glossaryHref, split } from "./glossary";
 import { stepTitle as titleOfStep } from "./names";
+import { sectionName } from "./panel-name";
 
 /** A showIf condition, as the pack declares it. */
 type ShowIf = NonNullable<Step["showIf"]>;
@@ -468,7 +469,9 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       o.filter((x) => x.area === l.area && x.panel !== l.panel),
     ];
     const side = which(l);
-    const place = l.zone ? `${l.zone.title} · ${l.zone.area}` : (index.panelOf(l.section)?.title ?? "");
+    // A light in no zone is placed by its section, as the app names panels everywhere else.
+    const section = index.section(l.section);
+    const place = l.zone ? `${l.zone.title} · ${l.zone.area}` : section ? sectionName(section) : "";
     const where = side ? `${side.charAt(0).toUpperCase()}${side.slice(1)} · ${place}` : place;
     const area = l.zone ? areaOf(deckAreasOnce(index), l.zone.id) : undefined;
     const links: Link[] = [

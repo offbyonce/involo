@@ -19,7 +19,6 @@ One `panels/*.yaml` file: a drawing of one panel, its sections and the items in 
 | `id` | text | yes |  | The panel's id, unique in the pack; the first part of a locator or step target. |
 | `outline` | list of list of number |  |  | The panel's outline, when it is not a rectangle: points in panel units, inside its box, holding every section (format 6). |
 | `sections` | list of [PanelSection](#panelsection) | yes |  | The panel's sections, each a labeled box of items. |
-| `title` | text | yes |  | The panel's name. The app names what it shows by its sections and zones, and does not show this today. |
 | `width` | number | yes |  | The panel's width in panel units; its outline, when it has one, lies inside. |
 
 ## PanelSection

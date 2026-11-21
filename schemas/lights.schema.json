@@ -74,10 +74,6 @@
           "description": "What the light means when it is on; shown in the Flight deck page's light list and\nasked in Practice.",
           "type": "string"
         },
-        "normal": {
-          "description": "True when seeing this light is normal.",
-          "type": "boolean"
-        },
         "when": {
           "description": "When the light comes on. The app does not show it today.",
           "type": "string"
@@ -95,8 +91,7 @@
         "locator",
         "meaning",
         "when",
-        "action",
-        "normal"
+        "action"
       ]
     }
   }

@@ -60,9 +60,6 @@ controls:
 overview:
   width: 200
   height: 120
-  captions:
-    - {text: OVERHEAD, x: 10, y: 10}
-    - {text: PEDESTAL, x: 10, y: 70}
   areas:
     - {zone: overhead-electrical, x: 10, y: 20, width: 60, height: 30}
     - {zone: overhead-fuel, x: 80, y: 20, width: 60, height: 30, label: FUEL}

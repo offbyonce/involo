@@ -8,6 +8,7 @@
 import { describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
 import { iflyPack } from "../test-pack";
+import { sectionName } from "./panel-name";
 import { seeds } from "./practice";
 
 /** [locator, name, caption], one per light Practice asks about, in the questions' order. */
@@ -340,5 +341,17 @@ describe("Practice's light names with the iFly pack", () => {
         s.stem?.kind === "light" ? s.stem.caption : "",
       ]);
     expect(rows).toEqual(LIGHTS);
+  });
+
+  it("place a light in no zone by its section, as the app names panels elsewhere (#211)", () => {
+    // Panels have no title of their own any more: with no zones, every light's caption is its
+    // section's name.
+    const pack = iflyPack();
+    const index = { ...indexPack(pack), zones: [] };
+    const seed = seeds(pack, index).find((s) => s.source === "light:oh/fctl/LOW QUANTITY/1");
+    const section = index.section("fctl");
+    if (seed?.stem?.kind !== "light" || !section) throw new Error("no LOW QUANTITY question");
+    expect(seed.stem.caption).toBe(sectionName(section));
+    expect(seed.stem.caption).not.toBe("");
   });
 });

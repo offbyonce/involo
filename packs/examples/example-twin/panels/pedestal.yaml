@@ -4,7 +4,6 @@
 # yaml-language-server: $schema=../../../../schemas/panel.schema.json
 # Invented content that shows the pack format (a Boeing-style example). Not a real aircraft panel.
 id: pedestal
-title: Pedestal
 width: 560
 height: 240
 outline: [[0, 0], [560, 0], [560, 200], [520, 240], [40, 240], [0, 200]]

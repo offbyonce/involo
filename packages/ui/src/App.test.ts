@@ -669,7 +669,6 @@ describe("App", () => {
     (crewed.content.controls as ControlsFile).overview = {
       width: 100,
       height: 50,
-      captions: [],
       areas: [],
       regions: [],
       views: { seat: { left: frame("LEFT"), right: frame("RIGHT") } },

@@ -44,8 +44,6 @@ const INKSCAPE_NS: &str = "http://www.inkscape.org/namespaces/inkscape";
 pub struct Options {
     /// The panel's id.
     pub id: String,
-    /// Its title; the id in words when left out.
-    pub title: Option<String>,
     /// How many panel units wide the panel is; one drawing unit is one panel unit otherwise.
     pub width: Option<f64>,
     /// The drawing's file name, for the file's first comment.
@@ -77,12 +75,7 @@ pub fn panel_id(id: Option<String>, svg: &Path) -> Result<String> {
 
 /// Reads the drawing at `svg` into the panel file `id`: refused, before it is read, when it is
 /// over [`MAX_BYTES`].
-pub fn import_file(
-    svg: &Path,
-    id: &str,
-    title: Option<String>,
-    width: Option<f64>,
-) -> Result<Imported> {
+pub fn import_file(svg: &Path, id: &str, width: Option<f64>) -> Result<Imported> {
     let refused = |why: String| anyhow::anyhow!("refused {}: {why}", svg.display());
     let size = std::fs::metadata(svg)
         .with_context(|| format!("cannot read {}", svg.display()))?
@@ -97,7 +90,6 @@ pub fn import_file(
         .with_context(|| format!("cannot read {} as text", svg.display()))?;
     let opts = Options {
         id: id.to_owned(),
-        title,
         width,
         source: svg
             .file_name()
@@ -1062,8 +1054,6 @@ impl<'a, 'input> Drawing<'a, 'input> {
         );
         yaml.push_str("# pack.json's `panels`, then run `involo-pack check`.\n");
         let _ = writeln!(yaml, "id: {}", scalar(&opts.id));
-        let title = opts.title.clone().unwrap_or_else(|| words(&opts.id));
-        let _ = writeln!(yaml, "title: {}", scalar(&title));
         let _ = writeln!(yaml, "width: {}", num(frame.width() * scale));
         let _ = writeln!(yaml, "height: {}", num(frame.height() * scale));
         if let Some(outline) = self.outline.as_deref().filter(|o| !is_box(o)) {
@@ -1642,7 +1632,6 @@ mod tests {
         );
         let opts = Options {
             id: "p".into(),
-            title: None,
             width: None,
             source: "p.svg".into(),
         };
@@ -1657,16 +1646,12 @@ mod tests {
         let svg = r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100"><g id="section:a"><rect x="20" y="20" width="100" height="40"/><circle id="light:ON" cx="40" cy="40" r="5" fill="red"/></g></svg>"#;
         let opts = Options {
             id: "p".into(),
-            title: Some("Pedestal".into()),
             width: Some(400.0),
             source: "p.svg".into(),
         };
         let yaml = import(svg, &opts).unwrap().yaml;
         let panel: involo_checklist_core::Panel = serde_saphyr::from_str(&yaml).unwrap();
-        assert_eq!(
-            (panel.title.as_str(), panel.width, panel.height),
-            ("Pedestal", 400.0, 200.0)
-        );
+        assert_eq!((panel.width, panel.height), (400.0, 200.0));
         let s = &panel.sections[0];
         assert_eq!((s.x, s.y, s.width, s.height), (40.0, 40.0, 200.0, 80.0));
         assert_eq!((s.items[0].x, s.items[0].y), (40.0, 40.0));

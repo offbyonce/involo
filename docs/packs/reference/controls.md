@@ -39,7 +39,6 @@ A schematic of the whole cockpit, in our own layout.
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
 | `areas` | list of [OverviewArea](#overviewarea) | yes |  | The zones' rectangles. |
-| `captions` | list of [OverviewCaption](#overviewcaption) |  |  | Free captions on the map. The app does not draw them today. |
 | `height` | number | yes |  | The overview's height in its own units. |
 | `regions` | list of [OverviewRegion](#overviewregion) |  |  | The parts of the cockpit a step map shows one at a time. |
 | `views` | [OverviewViews](#overviewviews) |  |  | The side and seat views (decision 0023). |
@@ -69,16 +68,6 @@ A rectangle on the cockpit overview map. A zone can have several.
 | `x` | number | yes |  | The rectangle's left edge, in the overview's units. Its center decides which region it belongs to. |
 | `y` | number | yes |  | The rectangle's top edge, in the overview's units. |
 | `zone` | text | yes |  | The zone this rectangle stands for. |
-
-## OverviewCaption
-
-A caption on the cockpit overview map.
-
-| Field | Takes | Required | Default | What it is |
-| --- | --- | --- | --- | --- |
-| `text` | text | yes |  | The caption's text. The app does not draw overview captions today. |
-| `x` | number | yes |  | Its point across, in the overview's units. |
-| `y` | number | yes |  | Its point down, in the overview's units. |
 
 ## OverviewRegion
 

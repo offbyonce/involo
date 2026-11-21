@@ -26,8 +26,8 @@ pub use cdu::{
     CduStyled, CduText, CduWalkthrough, CduWhen, RouteLegCount, RouteLegPart,
 };
 pub use controls::{
-    Control, ControlsFile, LabelAnchor, Overview, OverviewArea, OverviewCaption, OverviewRegion,
-    OverviewViews, SeatViews, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, Zone,
+    Control, ControlsFile, LabelAnchor, Overview, OverviewArea, OverviewRegion, OverviewViews,
+    SeatViews, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, Zone,
 };
 pub use faults::{Fault, FaultsFile};
 pub use flight::{

@@ -22,8 +22,6 @@ data_types! {
         pub when: String,
         /// What to do when it is on. The app does not show it today.
         pub action: String,
-        /// True when seeing this light is normal.
-        pub normal: bool,
         /// Internal record of what this note was confirmed against (decision 0013).
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub confirmed_by: Vec<Confirmation>,

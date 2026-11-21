@@ -12,7 +12,8 @@ where it is. Every field is in the [`panels/<name>.yaml` reference](reference/pa
 ## Placing things
 
 A panel has a `width` and `height` in panel units, which you choose; the app scales the drawing to
-fit. Each section is a box inside it: `x` and `y` are its top-left corner from the panel's
+fit. It has no title of its own: the app names what it shows by its sections (their `title`, or
+`name`) and by the zones in `controls.yaml`. Each section is a box inside it: `x` and `y` are its top-left corner from the panel's
 top-left, then its `width` and `height`. Each item's `x` and `y` are the item's center, from its
 section's top-left corner. Only a display unit or a readout takes a `width` and `height` of its
 own; every other kind is drawn at its one standard size.
@@ -23,7 +24,6 @@ outline is in the section's units.
 
 ```yaml
 id: overhead
-title: Overhead panel
 width: 400
 height: 200
 sections:
@@ -78,10 +78,9 @@ The pack still never holds the drawing.
 involo-pack import-panel overhead.svg --out my-twin/panels/overhead.yaml
 ```
 
-Options: `--id` (the panel id; the drawing's file name otherwise), `--title` (the id in words
-otherwise), `--width` (how many panel units wide the panel is; one drawing unit is one panel unit
-otherwise) and `--out` (the file to write, never over one that is there; without it, the file is
-printed).
+Options: `--id` (the panel id; the drawing's file name otherwise), `--width` (how many panel units
+wide the panel is; one drawing unit is one panel unit otherwise) and `--out` (the file to write,
+never over one that is there; without it, the file is printed).
 
 ### Naming the groups
 

@@ -121,7 +121,7 @@ mod tests {
       - {op: set, stage: departure, to: {title: 'Departure, variant'}}
       - {op: set, list: smoke, to: {title: 'Smoke, variant'}}
       - {op: set, step: example-twin.smoke.masks, to: {expect: ON AND 100%}}
-      - {op: set, panel: overhead, to: {title: 'Overhead, variant'}}
+      - {op: set, panel: overhead, to: {height: 220}}
       - {op: set, section: overhead/electrical, to: {title: Power}}
       - {op: set, item: pedestal/displays/display, to: {description: 'Display, variant.'}}
       - {op: set, flight_field: runway, to: {label: Departure runway}}
@@ -150,7 +150,7 @@ mod tests {
             "ON AND 100%"
         );
         let overhead = c.panels.iter().find(|p| p.id == "overhead").unwrap();
-        assert_eq!(overhead.title, "Overhead, variant");
+        assert_eq!(overhead.height, 220.0);
         assert_eq!(overhead.sections[0].title, "Power");
         let pedestal = c.panels.iter().find(|p| p.id == "pedestal").unwrap();
         let display = pedestal.sections[0]

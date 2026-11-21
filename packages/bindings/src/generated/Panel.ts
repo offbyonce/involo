@@ -11,11 +11,6 @@ export type Panel = {
  */
 id: string, 
 /**
- * The panel's name. The app names what it shows by its sections and zones, and does not
- * show this today.
- */
-title: string, 
-/**
  * The panel's width in panel units; its outline, when it has one, lies inside.
  */
 width: number, 
