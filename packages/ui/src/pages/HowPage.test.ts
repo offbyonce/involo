@@ -14,7 +14,7 @@ afterEach(() => {
 });
 
 const counts = {
-  stages: 5,
+  stages: "5 stages",
   stageNames: "Preflight, Departure, Enroute, Arrival and Post-flight",
   groups: "3 memory-item lists, 13 quick reference lists and 11 procedures",
   reference: "Emergency",

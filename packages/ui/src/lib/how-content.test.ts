@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 import { iflyPack, sidestickPack, twinPack } from "../test-pack";
-import { fill, flowAreas, flowLabelOf, HOW, runs } from "./how-content";
+import { fill, flowAreas, flowLabelOf, HOW, howCountsOf, runs } from "./how-content";
 
 describe("How procedures work's text", () => {
   it("has seven parts, each with a title, blocks and an In Involo box; part 2 holds the figure", () => {
@@ -26,6 +26,18 @@ describe("How procedures work's text", () => {
       }
     }
     expect([...names].sort()).toEqual(["groups", "reference", "stageNames", "stages"]);
+  });
+
+  it("counts the stages in words, one stage as one", () => {
+    const line = (stages: string[]) =>
+      fill(
+        HOW.parts[0]?.blocks.find((b) => "p" in b && b.p.includes("{stages}"))?.p ?? "",
+        howCountsOf(null, stages),
+      );
+    expect(line(["Departure"])).toMatch(/^Involo splits a flight into 1 stage: Departure\. /);
+    expect(line(["Preflight", "Departure"])).toMatch(
+      /^Involo splits a flight into 2 stages: Preflight and Departure\. /,
+    );
   });
 
   it("fills counts and splits bold runs", () => {

@@ -4,9 +4,10 @@
 // How procedures work: every word on the page, in one place to edit (CONTENT.md, a
 // first draft to adjust after seeing it in the app). How to write here:
 //   **word**   shows in bold.
-//   {stages}   a value from the pack: {stages} (how many), {stageNames}, {groups} (the reference
-//              lists by group, "9 memory-item lists, 30 quick reference lists and 18 procedures")
-//              and {reference} (the reference area's title).
+//   {stages}   a value from the pack: {stages} (how many, in words: "5 stages", "1 stage"),
+//              {stageNames}, {groups} (the reference lists by group, "9 memory-item lists, 30
+//              quick reference lists and 18 procedures") and {reference} (the reference area's
+//              title).
 // Each part has a title, its blocks in order, and its "In Involo" box: the line, and where the link
 // goes ("phase": the pilot's current phase, "step": the current step, "emergency": the reference
 // area, "settings", "open": Open steps, "flight": Flight › Overview).
@@ -56,7 +57,7 @@ export const HOW = {
       title: "The shape of a flight",
       blocks: [
         {
-          p: "Involo splits a flight into {stages} stages: {stageNames}. Each stage is made of phases, such as Before start or Taxi, and each phase holds its procedures in the order you fly them.",
+          p: "Involo splits a flight into {stages}: {stageNames}. Each stage is made of phases, such as Before start or Taxi, and each phase holds its procedures in the order you fly them.",
         },
         {
           p: "You always know where you are: the stage is in the header and the phase in the row below it. Move ahead or back at any time; your place is saved as you go.",
@@ -173,7 +174,7 @@ export const HOW = {
 };
 
 /** The values the text names, from the pack. */
-export type HowCounts = { stages: number; stageNames: string; groups: string; reference: string };
+export type HowCounts = { stages: string; stageNames: string; groups: string; reference: string };
 
 /** "A, B and C". */
 const andList = (xs: string[]) =>
@@ -188,9 +189,9 @@ const groupWords = (id: string, title: string, n: number): string => {
   return `${n} ${title} ${n === 1 ? "list" : "lists"}`;
 };
 
-/** The values from the pack: the stages the flight shows (`stages`, their titles), and the lists
- * in each reference group, read by `group` in the labels' order, never by the phases' order or
- * titles (decision 0029). */
+/** The values from the pack: the stages the flight shows (`stages`, counted in words, and their
+ * titles), and the lists in each reference group, read by `group` in the labels' order, never by
+ * the phases' order or titles (decision 0029). */
 export function howCountsOf(pack: FlatPack | null | undefined, stages: string[]): HowCounts {
   const phases = (pack?.content.phases?.phases ?? []).filter((p) => p.reference);
   const labels = pack?.content.labels;
@@ -208,7 +209,7 @@ export function howCountsOf(pack: FlatPack | null | undefined, stages: string[])
     .filter((g) => g.n > 0)
     .map((g) => groupWords(g.id, g.title, g.n));
   return {
-    stages: stages.length,
+    stages: `${stages.length} ${stages.length === 1 ? "stage" : "stages"}`,
     stageNames: andList(stages),
     groups: andList(groups),
     reference: labels?.reference.title ?? "",
