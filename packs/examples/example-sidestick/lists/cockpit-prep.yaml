@@ -6,7 +6,7 @@
 id: cockpit-prep
 title: Cockpit preparation
 kind: flow
-method: do
+method: read_and_do
 basis: [invented-example]
 steps:
   - id: example-sidestick.cockpit-prep.batteries

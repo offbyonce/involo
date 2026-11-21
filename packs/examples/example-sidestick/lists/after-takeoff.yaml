@@ -6,6 +6,7 @@
 id: after-takeoff
 title: After takeoff
 kind: flow
+method: do
 basis: [invented-example]
 steps:
   - id: example-sidestick.after-takeoff.autopilot

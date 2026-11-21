@@ -6,7 +6,6 @@
 id: taxi
 title: Taxi
 kind: checklist
-method: read_and_do
 basis: [invented-example]
 steps:
   - id: example-sidestick.taxi.autothrust
