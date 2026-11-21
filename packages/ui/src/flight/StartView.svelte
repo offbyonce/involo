@@ -38,6 +38,8 @@ link, and the panel-state picker in the pack's words, in the order the pack's `s
   const THIS_PAGE = "start";
   let asked = $derived(options.filter((o) => o.start && (o.askIn ?? []).includes(THIS_PAGE)));
   let entries = $derived(order.length ? order : [...asked.map((o) => o.id), PICKER]);
+  /** The chosen panel state's description (StateNote board); nothing until one is chosen. */
+  let chosenDescription = $derived(states.find((s) => s.id === flight.panelState)?.description?.trim() || "");
   const value = (o: UserOption) => flight.options[o.id] ?? o.default ?? "";
   /** The other of a toggle's two values. */
   const other = (o: UserOption, v: string) => o.values.find((x) => x !== v) ?? v;
@@ -68,6 +70,7 @@ link, and the panel-state picker in the pack's words, in the order the pack's `s
             </select>
             <Icon name="chevron-down" />
           </span>
+          {#if chosenDescription}<span class="state-note">{chosenDescription}</span>{/if}
         </label>
       </section>
     {/if}
@@ -167,12 +170,23 @@ link, and the panel-state picker in the pack's words, in the order the pack's `s
     color: var(--color-text-strong);
     font-weight: var(--weight-semibold);
   }
+  /* The panel-state picker (StateNote board): 280 wide on desktop, the select across it. */
   .pick {
     display: flex;
+    flex: none;
     flex-direction: column;
     gap: calc(var(--space-1) + var(--border-thick));
+    width: calc(7 * var(--space-10));
     color: var(--color-text-muted);
     font-size: var(--font-size-caption);
+  }
+  .pick select {
+    width: 100%;
+  }
+  /* The chosen panel state's description, wrapping within the picker. */
+  .state-note {
+    font-size: calc(var(--font-size-caption) + var(--border-thin));
+    line-height: var(--leading-snug);
   }
   .sel {
     position: relative;
@@ -210,6 +224,9 @@ link, and the panel-state picker in the pack's words, in the order the pack's `s
     .card.stack select {
       width: 100%;
       min-width: 0;
+    }
+    .card.stack .pick {
+      width: auto;
     }
   }
   .sel :global(.icon) {

@@ -162,12 +162,12 @@ export const zoneControls = (index: PackIndex, zone: Zone): string[] =>
 export function zoneLights(
   index: PackIndex,
   zone: Zone,
-): { label: string; color: string | null; meaning: string }[] {
+): { label: string; color: string | null; meaning: string; when: string; action: string }[] {
   return zoneSections(index, zone).flatMap(({ panel, section }) =>
     section.items.flatMap((item, i) => {
       if (item.kind !== "light") return [];
-      const meaning = index.lightMeaning(panel.id, section.id, i);
-      return meaning ? [{ label: item.label, color: item.color ?? null, meaning }] : [];
+      const note = index.lightNote(panel.id, section.id, i);
+      return note?.meaning ? [{ label: item.label, color: item.color ?? null, ...note }] : [];
     }),
   );
 }

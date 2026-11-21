@@ -109,6 +109,36 @@ describe("the Start page", () => {
     expect(screen.getByText("Saved setups")).toBeTruthy();
   });
 
+  it("shows the chosen panel state's description under the picker, and nothing before (StateNote)", () => {
+    const states = [
+      {
+        id: "gpu",
+        title: "GPU Connected",
+        description: "The ground power cart is connected.",
+        phase: "p",
+        done: [],
+      },
+      { id: "bare", title: "Bare", description: "", phase: "p", done: [] },
+    ] as unknown as PanelState[];
+    const show = (panelState: string | null) => {
+      cleanup();
+      const { container } = render(StartView, {
+        flight: { options: {}, panelState } as unknown as Flight,
+        options: [] as UserOption[],
+        states,
+        labels: appLabels().panelStates,
+        onOption: () => {},
+        onPanelState: () => {},
+      });
+      return container.querySelector(".pick .state-note")?.textContent ?? null;
+    };
+    // "Choose a panel state": nothing under the picker.
+    expect(show(null)).toBeNull();
+    expect(show("gpu")).toBe("The ground power cart is connected.");
+    // A state without a description shows nothing, not an empty line.
+    expect(show("bare")).toBeNull();
+  });
+
   it("holds no option id, option value, phase id or the word iFly", () => {
     const text = readFileSync(`${import.meta.dirname}/StartView.svelte`, "utf8");
     expect(text).not.toMatch(/iFly|"exterior"|"power"|"start"\)|"off"|"turn"|"cold"|phaseHref\("/);

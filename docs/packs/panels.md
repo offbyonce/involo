@@ -64,7 +64,10 @@ and handles, an item may be:
   presses.
 
 A light names its `color` as a role (`amber`, `red`, `green`, `blue`, `white`), never a color
-value: each theme draws each role in its own lit color. `involo-pack describe panels/x.yaml` and
+value: each theme draws each role in its own lit color. What a light means goes in `lights.yaml`, found by the
+light's place (`panel/section/LABEL/n`): its `meaning`, `when` it comes on and what to do
+(`action`). The app shows all three wherever it names the light, on the Flight deck and in a
+panel's card. `involo-pack describe panels/x.yaml` and
 the MCP server's `panel_item_kinds` tool list every kind with what it is. See the example packs'
 panels, such as `packs/examples/example-sidestick/panels/glareshield.yaml`.
 
