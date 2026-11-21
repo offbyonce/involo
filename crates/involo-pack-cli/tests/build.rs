@@ -148,6 +148,45 @@ mod tests {
     }
 
     #[test]
+    fn a_child_named_without_a_folder_finds_its_parent_beside_it() {
+        // `involo-pack check my-child` from the folder that holds both packs: the folder beside
+        // a pack named this way is `.`, not an empty path that holds nothing.
+        let dir = temp_dir("bare");
+        for name in ["example-twin", "example-twin-lr"] {
+            let to = dir.join(name);
+            std::fs::create_dir_all(&to).unwrap();
+            for entry in std::fs::read_dir(examples().join(name)).unwrap() {
+                let path = entry.unwrap().path();
+                if path.is_dir() {
+                    let sub = to.join(path.file_name().unwrap());
+                    std::fs::create_dir_all(&sub).unwrap();
+                    for f in std::fs::read_dir(&path).unwrap() {
+                        let f = f.unwrap().path();
+                        std::fs::copy(&f, sub.join(f.file_name().unwrap())).unwrap();
+                    }
+                } else {
+                    std::fs::copy(&path, to.join(path.file_name().unwrap())).unwrap();
+                }
+            }
+        }
+        let run = |args: &[&str]| {
+            Command::new(env!("CARGO_BIN_EXE_involo-pack"))
+                .args(args)
+                .current_dir(&dir)
+                .output()
+                .unwrap()
+        };
+        let checked = run(&["check", "example-twin-lr"]);
+        let text = String::from_utf8_lossy(&checked.stdout);
+        assert!(checked.status.success(), "{text}");
+        assert!(text.starts_with("ok   example-twin-lr 0.1.0"), "{text}");
+        let built = run(&["build", "example-twin-lr", "out"]);
+        assert!(built.status.success(), "{built:?}");
+        assert!(dir.join("out/example-twin-lr-0.1.0.involo-pack").is_file());
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
     fn a_child_builds_over_its_parent_and_records_its_version_and_content_hash() {
         let out = temp_dir("child");
         let parents = temp_dir("child-parents");
