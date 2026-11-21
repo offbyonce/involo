@@ -3060,3 +3060,189 @@ describe("a pack update during a flight (decision 0028; PacksUpdate)", () => {
     expect(note.textContent).not.toMatch(/old-step|\.[a-z-]+\.[a-z-]+/);
   });
 });
+
+describe("back up and restore (#47)", () => {
+  const ticked = {
+    pack: "demo",
+    packVersion: "0.1.0",
+    options: {},
+    session: { done: { battery: 5 }, skipped: {} },
+    values: {},
+  } as unknown as Flight;
+  const ready = <T>(value: T) => ({
+    loaded: { state: "ready", value, migratedFrom: null } as Loaded<T>,
+    text: "{}",
+  });
+  const stored = {
+    theme: "dark",
+    dimming: 0,
+    detail: "expanded",
+    listView: "checklist",
+    tourSeen: true,
+    lastBackup: null,
+  } as unknown as Settings;
+
+  it("saves every pack's flight, the settings and the log in one file, then says when", async () => {
+    const files: Blob[] = [];
+    URL.createObjectURL = (b: Blob | MediaSource) => {
+      files.push(b as Blob);
+      return "blob:backup";
+    };
+    URL.revokeObjectURL = () => {};
+    const parts: unknown[] = [];
+    const saves: Settings[] = [];
+    window.location.hash = "#/settings";
+    const h = host({
+      readSaved: async () => ({ flight: ready(ticked), settings: ready(stored) }),
+      backupText: async (p) => {
+        parts.push(p);
+        return "the backup";
+      },
+      save: async (_p, what, value) => {
+        if (what === "settings") saves.push(value as Settings);
+        return 1;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    expect(await screen.findByText("Last backup: never")).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "Save a backup file" }));
+    await waitFor(() => expect(files).toHaveLength(1));
+    expect(await files[0]?.text()).toBe("the backup");
+    const p = parts[0] as {
+      flights: { pack: string; source: string; place: unknown }[];
+      settings: Settings;
+      savedAt: number;
+    };
+    expect(p.flights.map((f) => [f.pack, f.source])).toEqual([["demo", "catalog"]]);
+    // Where the flight is, as the Packs page says it.
+    expect(p.flights[0]?.place).toEqual({ place: "Preflight › Power up", done: 18, total: 29 });
+    await waitFor(() => expect(saves.at(-1)?.lastBackup).toBe(p.savedAt));
+    expect(screen.getByText(/^Last backup: \w{3} \d+ at \d\d:\d\d$/)).toBeTruthy();
+  });
+
+  it("restores only what the review leaves ticked, after Restore, and starts again", async () => {
+    const restart = vi.fn();
+    const saved: [string, string, unknown][] = [];
+    const restored = vi.fn(async (_p: string, f: Flight) => ({ ...f, packVersion: "0.1.0" }));
+    const backup = {
+      kind: "involo-backup",
+      format: 1,
+      appVersion: "0.1.0",
+      savedAt: new Date(2026, 10, 18, 10, 14).getTime(),
+      flights: [
+        {
+          pack: "demo",
+          name: "Demo",
+          version: "0.0.9",
+          source: "catalog",
+          place: { place: "Departure › Taxi", done: 12, total: 40 },
+          flight: { ...ticked, packVersion: "0.0.9" },
+          plan: null,
+        },
+      ],
+      settings: { ...stored, theme: "light", lastBackup: 1, currentPack: "other" },
+      log: { format: 3, flights: [], practice: [] },
+    };
+    window.location.hash = "#/settings";
+    const h = host({
+      readSaved: async () => ({ flight: ready(ticked), settings: ready({ ...stored, lastBackup: 7 }) }),
+      readBackup: async () => ({ state: "ready", backup: backup as never }),
+      restoreFlight: restored,
+      save: async (p, what, value) => {
+        saved.push([p, what, value]);
+        return 1;
+      },
+    });
+    render(App, { props: { onRestart: restart }, context: hostContext(h) });
+    await screen.findByRole("button", { name: "Restore from a file…" });
+    const input = document.querySelector('.set.backup input[type="file"]') as HTMLInputElement;
+    Object.defineProperty(input, "files", { value: [new File(["{}"], "b.json")], configurable: true });
+    await fireEvent.change(input);
+    const dialog = await screen.findByRole("dialog", { name: "Restore from this backup?" });
+    expect(
+      within(dialog).getByText(
+        "Backup saved Nov 18, 2026 at 10:14 by Involo 0.1.0. Untick anything you want to leave as it is.",
+      ),
+    ).toBeTruthy();
+    expect(within(dialog).getByText("In the backup: Departure › Taxi, 12 of 40")).toBeTruthy();
+    expect(
+      within(dialog).getByText("Replaces the flight on this device: Preflight › Power up, 18 of 29"),
+    ).toBeTruthy();
+    expect(
+      within(dialog).getByText("Brought up to version 0.1.0, with a note on what changed."),
+    ).toBeTruthy();
+    // Nothing is saved while the review is open.
+    expect(saved).toEqual([]);
+    // Settings unticked: only the flight is restored.
+    await fireEvent.click(within(dialog).getAllByRole("checkbox")[1] as HTMLElement);
+    await fireEvent.click(within(dialog).getByRole("button", { name: "Restore" }));
+    await waitFor(() => expect(restart).toHaveBeenCalledWith("demo"));
+    expect(restored).toHaveBeenCalledWith("demo", expect.objectContaining({ packVersion: "0.0.9" }));
+    expect(saved.filter(([, what]) => what === "settings")).toEqual([]);
+    expect(saved.find(([, what]) => what === "flight")?.[2]).toMatchObject({
+      pack: "demo",
+      packVersion: "0.1.0",
+    });
+  });
+
+  it("restores settings keeping this device's last backup and open pack", async () => {
+    const restart = vi.fn();
+    const saved: Settings[] = [];
+    const backup = {
+      kind: "involo-backup",
+      format: 1,
+      appVersion: "0.1.0",
+      savedAt: 1,
+      flights: [],
+      settings: { ...stored, theme: "light", lastBackup: 1, currentPack: "other" },
+      log: { format: 3, flights: [], practice: [] },
+    };
+    window.location.hash = "#/settings";
+    const h = host({
+      readSaved: async () => ({
+        flight: null,
+        settings: ready({ ...stored, lastBackup: 7, currentPack: "demo" }),
+      }),
+      readBackup: async () => ({ state: "ready", backup: backup as never }),
+      save: async (_p, what, value) => {
+        if (what === "settings") saved.push(value as Settings);
+        return 1;
+      },
+    });
+    render(App, { props: { onRestart: restart }, context: hostContext(h) });
+    await screen.findByRole("button", { name: "Restore from a file…" });
+    const input = document.querySelector('.set.backup input[type="file"]') as HTMLInputElement;
+    Object.defineProperty(input, "files", { value: [new File(["{}"], "b.json")], configurable: true });
+    await fireEvent.change(input);
+    const dialog = await screen.findByRole("dialog", { name: "Restore from this backup?" });
+    // No flights in the file, and nothing new for the log: only Settings.
+    expect(within(dialog).queryByText("Flights")).toBeNull();
+    expect(within(dialog).queryByText("Flight log")).toBeNull();
+    await fireEvent.click(within(dialog).getByRole("button", { name: "Restore" }));
+    await waitFor(() => expect(restart).toHaveBeenCalled());
+    expect(saved.at(-1)).toMatchObject({ theme: "light", lastBackup: 7, currentPack: "demo" });
+  });
+
+  it("refuses a file it can't restore and changes nothing", async () => {
+    const saves = vi.fn(async () => 1);
+    window.location.hash = "#/settings";
+    const h = host({
+      readBackup: async () => ({ state: "refused", refusal: { kind: "logFile" } }),
+      save: saves,
+    });
+    render(App, { context: hostContext(h) });
+    await screen.findByRole("button", { name: "Restore from a file…" });
+    const before = saves.mock.calls.length;
+    const input = document.querySelector('.set.backup input[type="file"]') as HTMLInputElement;
+    Object.defineProperty(input, "files", { value: [new File(["{}"], "log.json")], configurable: true });
+    await fireEvent.change(input);
+    const dialog = await screen.findByRole("dialog", { name: "This backup can’t be restored" });
+    expect(
+      within(dialog).getByText("This is a flight log file. Load it from the Flight log page."),
+    ).toBeTruthy();
+    expect(within(dialog).getByText("Nothing on this device was changed.")).toBeTruthy();
+    await fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(saves.mock.calls.length).toBe(before);
+  });
+});

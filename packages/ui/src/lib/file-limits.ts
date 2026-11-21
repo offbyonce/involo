@@ -10,6 +10,9 @@ const MB = 1024 * 1024;
  * twice that leaves room for a longer pack. */
 export const MAX_LOG_FILE_BYTES = 64 * MB;
 
+/** A backup file (#47): a full flight log, every pack's flight and plan, and the settings. */
+export const MAX_BACKUP_FILE_BYTES = 96 * MB;
+
 /** A SimBrief OFP file, JSON or XML, is a few megabytes even for a long-haul flight. */
 export const MAX_PLAN_FILE_BYTES = 16 * MB;
 
