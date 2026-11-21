@@ -257,6 +257,101 @@ mod tests {
         }
     }
 
+    /// Every place in `schema` that needs a description and has none, as `name.field` or
+    /// `name = value`.
+    fn undocumented(file: &str, schema: &serde_json::Value) -> Vec<String> {
+        let mut out = Vec::new();
+        let described = |v: &serde_json::Value| {
+            v.get("description")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|d| !d.trim().is_empty())
+        };
+        let mut nodes = vec![(file.to_owned(), schema)];
+        if let Some(defs) = schema.get("$defs").and_then(serde_json::Value::as_object) {
+            nodes.extend(defs.iter().map(|(name, node)| (name.clone(), node)));
+        }
+        for (name, node) in nodes {
+            if !described(node) {
+                out.push(name.clone());
+            }
+            if let Some(props) = node
+                .get("properties")
+                .and_then(serde_json::Value::as_object)
+            {
+                for (field, prop) in props {
+                    if !described(prop) {
+                        out.push(format!("{name}.{field}"));
+                    }
+                }
+            }
+            for alt in node
+                .get("oneOf")
+                .and_then(serde_json::Value::as_array)
+                .into_iter()
+                .flatten()
+            {
+                let values: Vec<String> = alt
+                    .get("const")
+                    .into_iter()
+                    .chain(
+                        alt.get("enum")
+                            .and_then(|e| e.as_array())
+                            .into_iter()
+                            .flatten(),
+                    )
+                    .map(ToString::to_string)
+                    .collect();
+                // A value without words of its own; a variant with fields is a type, checked
+                // by its properties.
+                if !values.is_empty() && !described(alt) {
+                    out.extend(values.iter().map(|v| format!("{name} = {v}")));
+                }
+                if let Some(props) = alt.get("properties").and_then(serde_json::Value::as_object) {
+                    for (field, prop) in props {
+                        if !described(prop) {
+                            out.push(format!("{name}.{field}"));
+                        }
+                    }
+                }
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn every_type_field_and_value_in_the_pack_format_is_described() {
+        let mut missing = Vec::new();
+        for (file, json) in crate::schema::all() {
+            let schema: serde_json::Value = serde_json::from_str(&json).unwrap();
+            missing.extend(
+                undocumented(file, &schema)
+                    .into_iter()
+                    .map(|m| format!("{file}: {m}")),
+            );
+        }
+        assert!(
+            missing.is_empty(),
+            "these have no doc comment, so the format reference, `describe` and editors show nothing for them; add one to the Rust type:\n{}",
+            missing.join("\n")
+        );
+    }
+
+    #[test]
+    fn the_described_check_finds_what_is_missing() {
+        let schema = serde_json::json!({
+            "description": "A file.",
+            "properties": { "a": { "description": "A." }, "b": {} },
+            "$defs": { "Kind": { "description": "K.", "oneOf": [
+                { "const": "x", "description": "X." },
+                { "enum": ["y", "z"] }
+            ] }, "Bare": { "properties": {} } }
+        });
+        assert_eq!(
+            undocumented("f", &schema),
+            ["f.b", "Bare", "Kind = \"y\"", "Kind = \"z\""]
+        );
+    }
+
     #[test]
     fn a_type_links_the_parts_it_names() {
         assert_eq!(
