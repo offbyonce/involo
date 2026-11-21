@@ -22,6 +22,8 @@
 //! the format, the schemas, the guide, the example packs, and `new`, `check`, `build`,
 //! `import-panel`, `describe` and `explain` as tools, all inside `<folder>`.
 //! `involo-pack schema <dir>`    write every JSON Schema into `<dir>` (`just schemas`).
+//! `involo-pack reference <dir>`  write the pack format reference into `<dir>`: a page per pack
+//!                        file and the problem codes, replacing the pages there (`just pack-docs`).
 //! `involo-pack build <dir>... <out-dir> [--parents <dir>]`  check each pack, then write the
 //!                        catalog (decision 0028): each pack as one flattened
 //!                        `<id>-<version>.involo-pack`, and `index.json` with each one's entry,
@@ -57,7 +59,7 @@ mod workspace;
 
 use starter::words;
 
-const USAGE: &str = "usage:\n  involo-pack new <folder> [--from <example>] [--name <name>]\n  involo-pack check [--json] <pack-dir | packs-dir>... [--parents <dir>]\n  involo-pack explain [--json] [<code>]\n  involo-pack describe [--json] <file>\n  involo-pack import-panel <file.svg> [--id <id>] [--title <title>] [--width <units>] [--out <file>]\n  involo-pack mcp <folder>\n  involo-pack schema <out-dir>\n  involo-pack build <pack-dir | packs-dir>... <out-dir> [--parents <dir>]\n  involo-pack overlap <pack-dir | packs-dir> [--refs <folder>] [--allow <file>]\n  involo-pack suggest-targets <pack-dir>\n  involo-pack terms [--json] <pack-dir>";
+const USAGE: &str = "usage:\n  involo-pack new <folder> [--from <example>] [--name <name>]\n  involo-pack check [--json] <pack-dir | packs-dir>... [--parents <dir>]\n  involo-pack explain [--json] [<code>]\n  involo-pack describe [--json] <file>\n  involo-pack import-panel <file.svg> [--id <id>] [--title <title>] [--width <units>] [--out <file>]\n  involo-pack mcp <folder>\n  involo-pack schema <out-dir>\n  involo-pack reference <out-dir>\n  involo-pack build <pack-dir | packs-dir>... <out-dir> [--parents <dir>]\n  involo-pack overlap <pack-dir | packs-dir> [--refs <folder>] [--allow <file>]\n  involo-pack suggest-targets <pack-dir>\n  involo-pack terms [--json] <pack-dir>";
 
 fn main() -> ExitCode {
     match run() {
@@ -84,6 +86,7 @@ fn run() -> Result<bool> {
         Some((cmd, [file])) if cmd == "describe" => describe(file, json),
         Some((cmd, rest)) if cmd == "import-panel" && !rest.is_empty() => import_panel(rest),
         Some((cmd, [dir])) if cmd == "mcp" => mcp::serve(Path::new(dir)).map(|()| true),
+        Some((cmd, [out])) if cmd == "reference" => reference(Path::new(out)).map(|()| true),
         Some((cmd, [out])) if cmd == "schema" => schema(Path::new(out)).map(|()| true),
         Some((cmd, [packs @ .., out])) if cmd == "build" && !packs.is_empty() => {
             build(packs, Path::new(out), &parents)
@@ -416,6 +419,26 @@ fn overlap(args: &[String]) -> Result<bool> {
         references.file_count()
     );
     Ok(flagged == 0)
+}
+
+/// `reference <dir>`: the format reference's pages, written over the Markdown pages there, so a
+/// file the format no longer has goes with its page.
+fn reference(out: &Path) -> Result<()> {
+    std::fs::create_dir_all(out)?;
+    for entry in std::fs::read_dir(out).with_context(|| format!("cannot read {}", out.display()))? {
+        let path = entry?.path();
+        if path.extension().is_some_and(|e| e == "md") {
+            std::fs::remove_file(&path)
+                .with_context(|| format!("cannot remove {}", path.display()))?;
+        }
+    }
+    let pages = involo_pack::reference::pages();
+    for (name, text) in &pages {
+        let path = out.join(name);
+        std::fs::write(&path, text).with_context(|| format!("cannot write {}", path.display()))?;
+    }
+    println!("wrote {} reference pages in {}", pages.len(), out.display());
+    Ok(())
 }
 
 fn schema(out: &Path) -> Result<()> {

@@ -23,6 +23,25 @@ pub struct CodeInfo {
     pub hint: &'static str,
 }
 
+/// The code groups, by the first two digits of a code: what the problems in each are about. A
+/// test checks every code falls in one.
+pub const GROUPS: &[(&str, &str)] = &[
+    ("P00", "Reading the files and building the pack"),
+    ("P01", "pack.json and the files in the folder"),
+    ("P02", "Ids and references between files"),
+    ("P03", "Lists and steps"),
+    ("P04", "Step targets and glossary terms"),
+    ("P05", "phases.yaml"),
+    ("P06", "labels.yaml"),
+    ("P07", "flight.yaml"),
+    ("P08", "Panels, lights and the flight deck overview"),
+    ("P09", "Panel item kinds and outlines"),
+    (
+        "P10",
+        "CDU text, messages, aliases, confirmations and links",
+    ),
+];
+
 macro_rules! codes {
     ($( $(#[$doc:meta])* $name:ident = $code:literal {
         title: $title:literal,

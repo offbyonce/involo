@@ -146,6 +146,11 @@ drawing-shots out: site
 schemas:
     cargo run -q -p involo-pack-cli -- schema schemas
 
+# Regenerate the pack format reference (docs/packs/reference) from the JSON Schemas and the
+# problem codes (decision 0030).
+pack-docs:
+    cargo run -q -p involo-pack-cli -- reference docs/packs/reference
+
 # Regenerate the TypeScript types from the Rust types.
 bindings:
     cargo test -q --workspace export_bindings
@@ -154,9 +159,11 @@ bindings:
 tokens:
     node packages/ui/build/tokens.mjs
 
-# Fail if generated schemas, bindings or tokens differ from what is committed.
-generated-check: schemas bindings tokens
-    git diff --exit-code -- schemas packages/bindings/src/generated packages/ui/src/theme/tokens.generated.css packages/ui/src/theme/tokens.generated.ts
+# Fail if generated schemas, bindings, tokens or the pack format reference differ from what is
+# committed, or a generated file is not committed at all.
+generated-check: schemas bindings tokens pack-docs
+    git diff --exit-code -- schemas packages/bindings/src/generated packages/ui/src/theme/tokens.generated.css packages/ui/src/theme/tokens.generated.ts docs/packs/reference
+    test -z "$(git ls-files --others --exclude-standard -- schemas packages/bindings/src/generated docs/packs/reference)" || (git ls-files --others --exclude-standard -- schemas packages/bindings/src/generated docs/packs/reference; echo "generated files above are not added to git"; exit 1)
 
 # Validate every pack, including the content rules.
 packs:

@@ -8,12 +8,21 @@ data_types! {
     #[derive(Copy, Eq)]
     #[serde(rename_all = "snake_case")]
     pub enum PanelItemKind {
+        /// A lever switch flipped between its positions, such as the battery switch; may be
+        /// guarded.
         ToggleSwitch,
+        /// A rotary knob turned to one of its named positions, drawn on a dial (`angles`).
         Selector,
+        /// A button pressed and released; may be guarded.
         PushButton,
+        /// An annunciator light in one of the light roles (`color`).
         Light,
+        /// A round dial with a pointer, such as a pressure or quantity gauge.
         Gauge,
+        /// A small digital window showing a value, such as a frequency or a meter display;
+        /// drawn at its `width` and `height`.
         Readout,
+        /// A screen, such as a flight or engine display; drawn at its `width` and `height`.
         DisplayUnit,
         /// A lever moved along a slot, such as the start, speedbrake, gear and flap levers.
         Lever,

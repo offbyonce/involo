@@ -209,16 +209,39 @@
       "description": "What a panel item is, which decides how it is drawn.",
       "oneOf": [
         {
+          "description": "A lever switch flipped between its positions, such as the battery switch; may be\nguarded.",
           "type": "string",
-          "enum": [
-            "toggle_switch",
-            "selector",
-            "push_button",
-            "light",
-            "gauge",
-            "readout",
-            "display_unit"
-          ]
+          "const": "toggle_switch"
+        },
+        {
+          "description": "A rotary knob turned to one of its named positions, drawn on a dial (`angles`).",
+          "type": "string",
+          "const": "selector"
+        },
+        {
+          "description": "A button pressed and released; may be guarded.",
+          "type": "string",
+          "const": "push_button"
+        },
+        {
+          "description": "An annunciator light in one of the light roles (`color`).",
+          "type": "string",
+          "const": "light"
+        },
+        {
+          "description": "A round dial with a pointer, such as a pressure or quantity gauge.",
+          "type": "string",
+          "const": "gauge"
+        },
+        {
+          "description": "A small digital window showing a value, such as a frequency or a meter display;\ndrawn at its `width` and `height`.",
+          "type": "string",
+          "const": "readout"
+        },
+        {
+          "description": "A screen, such as a flight or engine display; drawn at its `width` and `height`.",
+          "type": "string",
+          "const": "display_unit"
         },
         {
           "description": "A lever moved along a slot, such as the start, speedbrake, gear and flap levers.",
