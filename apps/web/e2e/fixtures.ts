@@ -32,6 +32,9 @@ export const test = base.extend<{ app: App }>({
 });
 
 /** The app as a pilot uses it. */
+/** A scene step (apps/web/build/scenes.mjs): a fixed script, or a function and its argument. */
+export type Step = string | { fn: (arg: never) => unknown; arg?: unknown };
+
 export class App {
   constructor(readonly page: Page) {}
 
@@ -75,10 +78,12 @@ export class App {
     await this.dismissWelcome();
   }
 
-  /** Runs one of the review shots' scenes (apps/web/build/scenes.mjs) in the page. */
-  async scene(steps: string | string[]): Promise<void> {
+  /** Runs one of the review shots' scenes (apps/web/build/scenes.mjs) in the page: a fixed script,
+   * or a function with its data passed as its argument. */
+  async scene(steps: Step | readonly Step[]): Promise<void> {
     for (const step of [steps].flat()) {
-      await this.page.evaluate(step);
+      if (typeof step === "string") await this.page.evaluate(step);
+      else await this.page.evaluate(step.fn as (arg: unknown) => unknown, step.arg);
       await this.page.waitForTimeout(250);
     }
   }

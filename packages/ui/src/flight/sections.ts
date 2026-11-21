@@ -148,7 +148,9 @@ const routeLine = (c: Ctx, hi: "route" | "sid" | "arrival"): Part[] => {
     const words = route.split(" ");
     return [
       { text: `… ${words.at(-2) ?? ""} ` },
-      { text: `${words.at(-1) ?? "—"}${arr.replace(" ", " ")}`, hi: true },
+      // The STAR, the destination and its runway are one marked stretch: a no-break space keeps
+      // them on one line.
+      { text: `${words.at(-1) ?? "—"}${arr.replace(" ", "\u00a0")}`, hi: true },
     ];
   }
   return [{ text: dep }, { text: route, hi: true }, { text: arr }];

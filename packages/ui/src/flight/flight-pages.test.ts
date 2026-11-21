@@ -60,6 +60,23 @@ describe("the Flight pages for any pack", () => {
     suggested: {},
   });
 
+  it("keep the arrival close-up's marked stretch on one line: the STAR, then the destination and runway", () => {
+    const close = home("arrival_runway")?.row.ofp.close(
+      ctx({
+        route: "SUMMA2 SEA J1 OAK BDEGA4",
+        origin: "KSEA",
+        runway: "16L",
+        destination: "KSFO",
+        arrival_runway: "28L",
+      }),
+    );
+    expect(close).toEqual([
+      { text: "… OAK " },
+      // A no-break space between the STAR and the destination, so the marked text never wraps.
+      { text: "BDEGA4\u00a0KSFO/28L", hi: true },
+    ]);
+  });
+
   it("give a pack with only ids, labels and kinds a usable page", () => {
     // The example pack names no pages, groups or presentation: its fields go on the first page.
     useFlightPack(examplePack());
