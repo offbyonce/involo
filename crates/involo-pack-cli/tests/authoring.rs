@@ -86,6 +86,21 @@ mod tests {
             "{}",
             stdout(&checked)
         );
+        // An AGENTS.md for whoever writes it: the pack, how to check it, the content rules.
+        let agents = std::fs::read_to_string(demo.join("AGENTS.md")).unwrap();
+        for part in [
+            "This folder is an Involo pack, Demo (`demo`)",
+            "involo-pack check .",
+            "involo-pack mcp",
+            "involo://guide/",
+            "## Content rules",
+            "No citations and no links to third-party material",
+        ] {
+            assert!(
+                agents.contains(part),
+                "AGENTS.md has no {part:?}:\n{agents}"
+            );
+        }
         // Nothing of the example's id, name or repository schema paths is left.
         let mut stack = vec![demo.clone()];
         while let Some(d) = stack.pop() {
