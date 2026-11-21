@@ -653,7 +653,8 @@ export const chooseBackup = (newer = false) =>
     ({ at, log, newer }) => {
       const mine = JSON.parse(localStorage.getItem("involo.flight.example-trainer"));
       const settings = JSON.parse(localStorage.getItem("involo.settings"));
-      const flight = (pack, packVersion) => ({ ...mine, pack, packVersion });
+      // Each backed-up flight with its first step ticked, whatever this device's flight has.
+      const flight = (pack, packVersion) => ({ ...mine, pack, packVersion, session: { done: { "example-trainer.before-start.battery": new Date(...at).getTime() }, skipped: {} } });
       const backup = {
         kind: "involo-backup",
         format: newer === true ? 2 : 1,
@@ -679,6 +680,16 @@ export const chooseBackup = (newer = false) =>
   );
 /** Settings scrolled to Back up and restore, in the middle of the screen. */
 export const scrollToBackup = `new Promise((done) => setTimeout(() => { document.querySelector(".set.backup")?.scrollIntoView({ block: "center" }); setTimeout(() => done(true), 300); }, 300))`;
+/** The same device, its flight saved with nothing ticked (its first step ticked, then unticked). */
+export const exampleUntouched = [
+  ...noPacks,
+  ...addExample,
+  go("#/phase/before-start"),
+  click('[data-step="example-trainer.before-start.battery"] .tick'),
+  `new Promise((d) => setTimeout(() => d(true), 300))`,
+  click('[data-step="example-trainer.before-start.battery"] .tick'),
+  go("#/settings"),
+];
 /** A device with only the example pack, added from a file, its first step ticked, on Settings
  * (the Backup boards: Your seat shows, then Back up and restore). */
 export const exampleOnly = [

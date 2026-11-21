@@ -108,6 +108,13 @@ describe("back up and restore words", () => {
     expect(rowFor(entry({ place: null }), undefined, null, []).inBackup).toBeNull();
   });
 
+  it("says a flight on this device with no ticks is not started, as the backup line does", () => {
+    expect(rowFor(entry(), installed("0.0.9"), true, []).device).toEqual({
+      text: "Replaces the flight on this device: not started",
+      replaces: true,
+    });
+  });
+
   it("says a flight with no ticks is not started", () => {
     const untouched = entry({
       place: null,

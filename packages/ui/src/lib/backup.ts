@@ -90,7 +90,7 @@ export type ReviewFlight = {
 
 /**
  * The review's row for one of the backup's flights. `here` is this device's flight for the pack:
- * where it is, true when one is saved but can't be shown that way, or null for none.
+ * where it is, true when one is saved with nothing ticked yet (not started), or null for none.
  */
 export function rowFor(
   entry: BackupFlight,
@@ -104,10 +104,7 @@ export function rowFor(
     : here === null
       ? { text: "No flight on this device yet, so nothing is replaced.", replaces: false }
       : {
-          text:
-            here === true
-              ? "Replaces the flight on this device."
-              : `Replaces the flight on this device: ${placeLine(here)}`,
+          text: `Replaces the flight on this device: ${here === true ? "not started" : placeLine(here)}`,
           replaces: true,
         };
   return {
