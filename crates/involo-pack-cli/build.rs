@@ -1,10 +1,12 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-//! Builds the example packs (`packs/examples`) into the command, for `involo-pack new`: an
-//! installed `involo-pack` has no repository beside it. Writes `examples.rs` in `OUT_DIR`: each
-//! example's id and its files, as paths in its folder and their bytes. Where the examples aren't
-//! there (a crate built outside the repository), the list is empty and `new` says so.
+//! Builds the example packs (`packs/examples`) and the pack authoring guide (`docs/packs`) into
+//! the command, for `involo-pack new` and the MCP server's resources: an installed
+//! `involo-pack` has no repository beside it. Writes `examples.rs` in `OUT_DIR` (each example's
+//! id and its files, as paths in its folder and their bytes) and `guide.rs` (each guide page's
+//! path and bytes). Where the folders aren't there (a crate built outside the repository), the
+//! lists are empty.
 
 // Cargo reads a build script's instructions from its standard output.
 #![allow(clippy::print_stdout)]
@@ -49,8 +51,36 @@ fn main() {
         out.push_str("    ]),\n");
     }
     out.push_str("];\n");
-    let dest = PathBuf::from(std::env::var_os("OUT_DIR").unwrap_or_default()).join("examples.rs");
-    if let Err(e) = std::fs::write(&dest, out) {
+    write("examples.rs", &out);
+
+    let guide = manifest.join("../../docs/packs");
+    println!("cargo:rerun-if-changed={}", guide.display());
+    let mut out = String::from(
+        "/// Each page of the pack authoring guide: its path in `docs/packs`, and its bytes.\npub static GUIDE: &[(&str, &[u8])] = &[\n",
+    );
+    let mut files = Vec::new();
+    walk(&guide, &mut files);
+    files.sort();
+    for file in files {
+        let rel = file
+            .strip_prefix(&guide)
+            .unwrap_or(&file)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let abs = file.canonicalize().unwrap_or(file);
+        let _ = writeln!(
+            out,
+            "    ({rel:?}, include_bytes!({:?})),",
+            abs.to_string_lossy()
+        );
+    }
+    out.push_str("];\n");
+    write("guide.rs", &out);
+}
+
+fn write(name: &str, text: &str) {
+    let dest = PathBuf::from(std::env::var_os("OUT_DIR").unwrap_or_default()).join(name);
+    if let Err(e) = std::fs::write(&dest, text) {
         panic!("cannot write {}: {e}", dest.display());
     }
 }

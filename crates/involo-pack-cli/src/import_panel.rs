@@ -17,7 +17,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 
-use anyhow::{Result, bail};
+use std::path::Path;
+
+use anyhow::{Context as _, Result, bail};
 
 use crate::words;
 use involo_checklist_core::PanelItemKind;
@@ -56,6 +58,64 @@ pub struct Imported {
     pub warnings: Vec<String>,
     pub sections: usize,
     pub items: usize,
+}
+
+/// The panel id: `id` when given, else the drawing's file name as an id.
+pub fn panel_id(id: Option<String>, svg: &Path) -> Result<String> {
+    let stem = svg
+        .file_stem()
+        .map(|s| s.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let id = id.unwrap_or_else(|| slug(&stem));
+    if !involo_pack::validate::valid_pack_id(&id) || id.contains('.') {
+        bail!(
+            "`{id}` can't be a panel id: use lower-case letters, digits and dashes, such as `overhead`, with `--id`"
+        );
+    }
+    Ok(id)
+}
+
+/// Reads the drawing at `svg` into the panel file `id`: refused, before it is read, when it is
+/// over [`MAX_BYTES`].
+pub fn import_file(
+    svg: &Path,
+    id: &str,
+    title: Option<String>,
+    width: Option<f64>,
+) -> Result<Imported> {
+    let refused = |why: String| anyhow::anyhow!("refused {}: {why}", svg.display());
+    let size = std::fs::metadata(svg)
+        .with_context(|| format!("cannot read {}", svg.display()))?
+        .len();
+    if size > MAX_BYTES {
+        return Err(refused(format!(
+            "it is over {} MB; a panel drawing is far smaller",
+            MAX_BYTES / 1024 / 1024
+        )));
+    }
+    let text = std::fs::read_to_string(svg)
+        .with_context(|| format!("cannot read {} as text", svg.display()))?;
+    let opts = Options {
+        id: id.to_owned(),
+        title,
+        width,
+        source: svg
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default(),
+    };
+    import(&text, &opts).map_err(|e| refused(e.to_string()))
+}
+
+/// Writes a panel file to `out`, never over a file that is there.
+pub fn write_new(out: &Path, yaml: &str) -> Result<()> {
+    if out.exists() {
+        bail!(
+            "{} is already there; choose another file or remove it first",
+            out.display()
+        );
+    }
+    std::fs::write(out, yaml).with_context(|| format!("cannot write {}", out.display()))
 }
 
 /// Reads `text`, an SVG drawing, into a panel file.
