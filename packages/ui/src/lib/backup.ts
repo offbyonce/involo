@@ -42,6 +42,9 @@ export function placeLine(place: FlightPlace): string {
   return `${place.place}, ${place.done} of ${place.total}`;
 }
 
+/** The refusal's first line for a file over the size limit, which is refused unread. */
+export const TOO_LARGE = "This file is too large to be an Involo backup.";
+
 /** The refusal's first line; the dialog always adds that nothing changed. */
 export function refusalLine(refusal: BackupRefusal): string {
   switch (refusal.kind) {

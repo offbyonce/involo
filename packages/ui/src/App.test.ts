@@ -3223,6 +3223,22 @@ describe("back up and restore (#47)", () => {
     expect(saved.at(-1)).toMatchObject({ theme: "light", lastBackup: 7, currentPack: "demo" });
   });
 
+  it("refuses a file over the size limit unread, with its own line", async () => {
+    const read = vi.fn(async () => ({ state: "refused" as const, refusal: { kind: "notBackup" as const } }));
+    window.location.hash = "#/settings";
+    render(App, { context: hostContext(host({ readBackup: read })) });
+    await screen.findByRole("button", { name: "Restore from a file…" });
+    const big = new File(["{}"], "huge.json");
+    Object.defineProperty(big, "size", { value: 96 * 1024 * 1024 + 1 });
+    const input = document.querySelector('.set.backup input[type="file"]') as HTMLInputElement;
+    Object.defineProperty(input, "files", { value: [big], configurable: true });
+    await fireEvent.change(input);
+    const dialog = await screen.findByRole("dialog", { name: "This backup can’t be restored" });
+    expect(within(dialog).getByText("This file is too large to be an Involo backup.")).toBeTruthy();
+    expect(within(dialog).getByText("Nothing on this device was changed.")).toBeTruthy();
+    expect(read).not.toHaveBeenCalled();
+  });
+
   it("refuses a file it can't restore and changes nothing", async () => {
     const saves = vi.fn(async () => 1);
     window.location.hash = "#/settings";

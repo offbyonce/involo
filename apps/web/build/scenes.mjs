@@ -646,7 +646,7 @@ export const lastBackupSaved = [
  * flight saved with an older version of the pack, an iFly flight (a catalog pack this device
  * doesn't have), a flight not started for a pack added from a file elsewhere, the settings, and a
  * log with entries this device doesn't have. `newer`: the file a newer Involo saved
- * (RestoreRefused).
+ * (RestoreRefused); "big": a file just over the size limit, refused unread.
  */
 export const chooseBackup = (newer = false) =>
   call(
@@ -656,8 +656,8 @@ export const chooseBackup = (newer = false) =>
       const flight = (pack, packVersion) => ({ ...mine, pack, packVersion });
       const backup = {
         kind: "involo-backup",
-        format: newer ? 2 : 1,
-        appVersion: newer ? "0.3.0" : "0.1.0",
+        format: newer === true ? 2 : 1,
+        appVersion: newer === true ? "0.3.0" : "0.1.0",
         savedAt: new Date(...at).getTime(),
         flights: [
           { pack: "example-trainer", name: "Example trainer (format demo)", version: "0.0.9", source: "file", place: { place: "Preflight › Before start", done: 4, total: 10 }, flight: flight("example-trainer", "0.0.9"), plan: null },
@@ -669,7 +669,8 @@ export const chooseBackup = (newer = false) =>
       };
       const input = document.querySelector('.set.backup input[type="file"]');
       const dt = new DataTransfer();
-      dt.items.add(new File([JSON.stringify(backup)], "involo-backup-2026-11-18.json", { type: "application/json" }));
+      const body = newer === "big" ? new Uint8Array(96 * 1024 * 1024 + 1) : JSON.stringify(backup);
+      dt.items.add(new File([body], "involo-backup-2026-11-18.json", { type: "application/json" }));
       input.files = dt.files;
       input.dispatchEvent(new Event("change", { bubbles: true }));
       return new Promise((done) => setTimeout(() => done(true), 600));

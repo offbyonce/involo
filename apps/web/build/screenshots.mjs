@@ -562,6 +562,7 @@ const SHOTS = [
   { name: "board-backup-setting", full: true, fresh: true, only: ["desktop", "phone"], app: { hash: "#/settings", before: [...exampleOnly, ...lastBackupSaved, go("#/settings"), scrollToBackup] } },
   { name: "board-restore-review", full: true, fresh: true, only: ["desktop", "phone"], app: { hash: "#/settings", before: [...exampleOnly, chooseBackup()] } },
   { name: "board-restore-refused", fresh: true, only: ["desktop", "phone"], app: { hash: "#/settings", before: [...exampleOnly, chooseBackup(true)] } },
+  { name: "board-restore-too-large", fresh: true, only: ["desktop", "phone"], app: { hash: "#/settings", before: [...exampleOnly, chooseBackup("big")] } },
   { name: "board-packs-remove", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go("#/packs"), click('button[aria-label^="Remove "]')] } },
   { name: "board-packs-first", full: true, fresh: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: noPacks } },
   // A pack update during a flight (PacksUpdate): What's new on the Packs page, then the note

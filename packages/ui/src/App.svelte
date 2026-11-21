@@ -40,7 +40,7 @@ in Rust. The host saves progress and settings on the device.
   import PacksPage, { type PackRow, type PacksNotice } from "./pages/PacksPage.svelte";
   import UpdateNote from "./lib/UpdateNote.svelte";
   import RestoreDialog, { type Chosen, type Refused, type Review } from "./lib/RestoreDialog.svelte";
-  import { backupFileName, logLine, refusalLine, rowFor, savedByLine } from "./lib/backup";
+  import { backupFileName, logLine, refusalLine, rowFor, savedByLine, TOO_LARGE } from "./lib/backup";
   import { MAX_BACKUP_FILE_BYTES } from "./lib/file-limits";
   import OtherAircraftDialog from "./lib/OtherAircraft.svelte";
   import { morePacks, savedLine, updateFor } from "./lib/packs";
@@ -1074,7 +1074,7 @@ in Rust. The host saves progress and settings on the device.
       const refuse = (line: string) => {
         restoring = { backup: null, shown: { kind: "refused", line } };
       };
-      if (file.size > MAX_BACKUP_FILE_BYTES) return refuse(refusalLine({ kind: "notBackup" }));
+      if (file.size > MAX_BACKUP_FILE_BYTES) return refuse(TOO_LARGE);
       const read = await host.readBackup(await file.text());
       if (read.state === "refused") return refuse(refusalLine(read.refusal));
       restoring = { backup: read.backup, shown: await review(read.backup) };
