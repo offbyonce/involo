@@ -16,7 +16,11 @@ const entry = (more: Partial<BackupFlight> = {}): BackupFlight => ({
   version: "0.0.9",
   source: "catalog",
   place: { place: "Departure › Before start", done: 12, total: 40 },
-  flight: { pack: "ifly", packVersion: "0.0.9" } as Flight,
+  flight: {
+    pack: "ifly",
+    packVersion: "0.0.9",
+    session: { done: { battery: 1 }, skipped: {} },
+  } as unknown as Flight,
   plan: null,
   ...more,
 });
@@ -73,7 +77,13 @@ describe("back up and restore words", () => {
       download: null,
     });
     const fresh = rowFor(
-      entry({ flight: { pack: "ifly", packVersion: "0.1.0" } as Flight }),
+      entry({
+        flight: {
+          pack: "ifly",
+          packVersion: "0.1.0",
+          session: { done: { battery: 1 }, skipped: {} },
+        } as unknown as Flight,
+      }),
       installed("0.1.0"),
       null,
       [],
@@ -96,5 +106,14 @@ describe("back up and restore words", () => {
     expect(rowFor(entry({ source: "file" }), undefined, null, [listed]).download).toBeNull();
     expect(rowFor(entry(), undefined, null, []).download).toBeNull();
     expect(rowFor(entry({ place: null }), undefined, null, []).inBackup).toBeNull();
+  });
+
+  it("says a flight with no ticks is not started", () => {
+    const untouched = entry({
+      place: null,
+      flight: { pack: "ifly", packVersion: "0.0.9", session: { done: {}, skipped: {} } } as unknown as Flight,
+    });
+    expect(rowFor(untouched, installed("0.0.9"), null, []).inBackup).toBe("In the backup: not started");
+    expect(rowFor(untouched, undefined, null, []).inBackup).toBe("In the backup: not started");
   });
 });

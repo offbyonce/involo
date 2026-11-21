@@ -644,8 +644,9 @@ export const lastBackupSaved = [
 /**
  * Chooses a backup file in Settings › Restore from a file… (RestoreReview): this device's example
  * flight saved with an older version of the pack, an iFly flight (a catalog pack this device
- * doesn't have), a flight for a pack added from a file elsewhere, the settings, and a log with
- * entries this device doesn't have. `newer`: the file a newer Involo saved (RestoreRefused).
+ * doesn't have), a flight not started for a pack added from a file elsewhere, the settings, and a
+ * log with entries this device doesn't have. `newer`: the file a newer Involo saved
+ * (RestoreRefused).
  */
 export const chooseBackup = (newer = false) =>
   call(
@@ -661,7 +662,7 @@ export const chooseBackup = (newer = false) =>
         flights: [
           { pack: "example-trainer", name: "Example trainer (format demo)", version: "0.0.9", source: "file", place: { place: "Preflight › Before start", done: 4, total: 10 }, flight: flight("example-trainer", "0.0.9"), plan: null },
           { pack: "ifly-737-max8", name: "iFly 737 MAX 8", version: "0.1.0", source: "catalog", place: { place: "Departure › Before taxi", done: 30, total: 357 }, flight: flight("ifly-737-max8", "0.1.0"), plan: null },
-          { pack: "example-twin", name: "Example twin-jet", version: "0.1.0", source: "file", place: { place: "Preflight › Power up", done: 6, total: 88 }, flight: flight("example-twin", "0.1.0"), plan: null },
+          { pack: "example-twin", name: "Example twin-jet", version: "0.1.0", source: "file", place: null, flight: { ...flight("example-twin", "0.1.0"), session: { done: {}, skipped: {} } }, plan: null },
         ],
         settings,
         log,

@@ -72,7 +72,8 @@ export type ReviewFlight = {
   name: string;
   /** The pack version the flight was saved with, as the badge shows it ("v0.0.9"). */
   version: string;
-  /** "In the backup: …", or null when the device that saved it didn't have the pack. */
+  /** "In the backup: …" ("not started" before the first tick), or null when the device that saved
+   * it didn't have the pack. */
   inBackup: string | null;
   /** The flight on this device it replaces ("Replaces the flight on this device: …"), the line
    * that says nothing is replaced, or, for a pack not installed, that it is kept. */
@@ -110,7 +111,12 @@ export function rowFor(
     pack: entry.pack,
     name: installed?.summary.name ?? entry.name,
     version,
-    inBackup: entry.place ? `In the backup: ${placeLine(entry.place)}` : null,
+    inBackup:
+      Object.keys(entry.flight.session.done).length === 0
+        ? "In the backup: not started"
+        : entry.place
+          ? `In the backup: ${placeLine(entry.place)}`
+          : null,
     device,
     upgrade:
       installed && installed.summary.version !== version
