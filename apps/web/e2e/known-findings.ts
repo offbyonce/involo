@@ -20,22 +20,7 @@ export type KnownFinding = {
   issue: string;
 };
 
-export const KNOWN_FINDINGS: KnownFinding[] = [
-  {
-    screen: "Start",
-    check: "layout",
-    finding: /^the "Choose a panel state.*" select sits outside the screen \(\d+ to \d+ px of 390\)$/,
-    packs: ["Example Twin LR"],
-    issue: "#198",
-  },
-  {
-    screen: "Start",
-    check: "layout",
-    finding: /^the ".+" button sits outside the screen \(\d+ to \d+ px of 390\)$/,
-    packs: ["Example Sidestick Twin"],
-    issue: "#198",
-  },
-];
+export const KNOWN_FINDINGS: KnownFinding[] = [];
 
 /**
  * Sorts a pack's screen problems (`<screen>, <width> px, <theme>: <finding>`) into the known ones
