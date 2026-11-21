@@ -46,6 +46,7 @@ checks dependencies. The git hooks (installed by `pnpm install`) run the quick p
 | Pack authoring commands (`crates/involo-pack-cli/tests/authoring.rs`, and the code table's tests in `crates/involo-pack/src/codes.rs`) | `involo-pack new` making a pack that fails `check`; a problem `check` reports without a known code, a file, a line and a hint; a code in the table that no check raises; a change to the `check --json` or `explain --json` output (snapshots); `describe` listing other fields than the file's schema. | `just test`, part of `just ci` |
 | Panel importer (`crates/involo-pack-cli/tests/import_panel.rs`, with drawings saved the way two drawing tools save them in `tests/svg`) | A control more than one unit from where it is drawn, once group transforms are applied; an imported panel that fails `check` once positions are filled in; a group the naming rule does not cover left out without a warning naming it; a drawing read although it links outside itself, holds a script, or is over the size or nesting limit. | `just test`, part of `just ci` |
 | MCP server (`crates/involo-pack-cli/tests/mcp.rs`, and the path tests in `src/workspace.rs`) | An agent's round through the server failing (list, `new`, break, `check` with code, file, line and hint, fix, `build`); version negotiation off the MCP specification in either era (`_meta` on every request in 2026-07-28, `initialize` in 2025-11-25 and earlier); a path with `..`, an absolute path or a symlink leading out of the folder accepted; the schema tool serving anything but the committed `schemas/`; networking code or a networking crate in the server. The run with the network turned off needs `unshare -rn`, and is skipped where the system doesn't allow it. | `just test`, part of `just ci` |
+| Pack guide and format reference (`docs/packs`; `crates/involo-pack/src/reference.rs` and `crates/involo-pack-cli/tests/walkthrough.rs`) | A schema description or problem code changed without `just pack-docs` (`generated-check` fails on any difference, or a generated page not added to git); a type, field or enum value in the pack format without a doc comment; a pack file or code missing from the reference; the walkthrough's commands printing something other than the page shows. | `just test` and `generated-check`, part of `just ci` |
 | Fuzzing (`fuzz/fuzz_targets`) | A pack file, data file or pack folder that makes the loader panic, hang or run out of memory. Four targets: `pack_file` (a built pack file, checked and opened), `pack_edits` (a valid pack with fuzzer-chosen edits), `data_file` (`pack.json` and each YAML file) and `pack_folder` (a whole folder, with `extends` and patches). An input that fails is saved in `target/fuzz-artifacts/<target>/`; fix it and keep it as a test. | `just fuzz <target> [seconds]` (needs a nightly compiler and cargo-fuzz); weekly in CI |
 | Dependencies (`deny.toml`, and `audit` in `pnpm-workspace.yaml`) | A Rust crate with a security advisory, yanked, or under a license outside the list in `deny.toml`, or from a source other than crates.io; two versions of one crate (reported, not failed). A JavaScript package the app ships with a high or critical advisory. | `just deny`, part of `just ci` |
 | Size budget (`apps/web/size-budget.json`) | The built app (every file but the pack catalog), the WebAssembly module or the largest script growing past its limit. Each run prints the three sizes against their limits. | the last step of `just site`, part of `just ci` |
@@ -73,191 +74,26 @@ side effects. Add a row to `review-boards.mjs` when a new screen comes with its 
 
 Dependabot proposes updates every Monday: all minor and patch updates of each kind (Cargo, npm, GitHub Actions) in one pull request, and each major update on its own.
 
-## 3. Checklist content rules
+## 3. Pack content rules
 
-These protect the project and other people's work. `involo-pack check` enforces most of them
-automatically, and the maintainer reviews every content change. The reasoning is in
-[decision 0007](docs/decisions/0007-pack-content-model.md).
+Packs have their own guide, [`docs/packs/`](docs/packs/README.md): how to write one, the full
+[content rules](docs/packs/content-rules.md), how the files fit together, panels, extending,
+publishing, and a format reference generated from the code. The rules that are never broken:
 
-**No citations and no third-party links.** Steps do not cite sources, and packs contain no URLs
-to third-party material. A first-party link needs the maintainer's approval.
+- **Facts, in your own words.** Facts are checked against the aircraft's documentation and written
+  in your own words. Manuals are never downloaded into, stored in, linked from or cited by the
+  repository or a pack, and no manual text, tables or diagrams are copied or closely
+  paraphrased.
+- **No citations and no third-party links.** Each list has a `basis` naming only the kind of
+  material it was checked against.
+- **Never used as a basis:** second-hand study material and airline SOPs.
+- **No files from aircraft developers, manufacturers or simulators:** no images, screenshots or
+  PDFs.
+- **Systems content** is labeled as the real aircraft, the simulator model, or both.
 
-**Every list has a `basis`** naming only the kind of material it was checked against, such as
-`manufacturer-docs` or `sim-observed`, from the tags the pack declares. Never a document name or
-link.
-
-**Confirmation records are internal.** A step or panel light note may carry `confirmed_by`, a
-list of `{ kind, date }` entries saying what kind of source it was confirmed against and when
-(kinds defined in [decision 0013](docs/decisions/0013-step-presentation-and-provenance.md),
-for example `vendor-docs`). Record only the kind and the date, never who or which document. The
-app never shows these records or the list `basis`, and `involo-pack check` never flags a step without a
-record: every step in a pack is presented the same way. Steps may also set `sim_simplified` where
-the simulator simplifies the real aircraft. Content imported from the 3.0 checklist starts with
-basis `prior-release`; each list moves to a real basis when the maintainer reviews it.
-
-**Responses state the value.** A step's expected response names the actual value or position the
-pilot should see, such as `FLAPS 5`, `ON` or `AUTO`, never just `SET`, so the pilot can check it
-against the cockpit.
-
-**Manufacturer manuals (FCOM, FCTM, QRH).** Facts are checked against vendor documentation. No manual text, link or citation enters the repo. Facts and procedures (switch positions, the order of steps, how a system works)
-are not protected by copyright, but a manual's wording, tables, diagrams and layout are. So:
-
-- use facts only, and write every step and explanation in your own words;
-- never copy text, tables, diagrams or layout, and never closely paraphrase;
-- write from our own flow structure, not line by line alongside a manual;
-- draw your own diagrams;
-- never store, upload, link or cite a manual.
-
-**Never used as a basis:**
-
-- Second-hand study material: Brainscape, SlideShare, AviationHunt and memory-item compilations
-- Airline SOPs
-- Paid or members-only content you would need to copy to reproduce
-
-**Never link,** anywhere in the project: Scribd, Studylib, Brainscape, SlideShare, Manualshive,
-archive.org, AviationHunt, NTSB docket documents, or any other second-hand study material.
-
-**Never include:**
-
-- Images, screenshots, PDFs or any files from an aircraft developer, manufacturer or simulator
-- Text, tables or diagrams copied from a manual or tutorial. Switch names, positions and
-  values are facts and are fine.
-
-**Field names.** The pack's YAML files and their fields are snake_case (`expect_when`, `ask_in`),
-as authors write them. The manifest, `pack.json`, is camelCase (`schemaVersion`), as is the app's
-own saved data. The app hands pack content to its interface with camelCase field names, so the
-interface reads one case (decision 0029).
-
-**Step ids** are `<prefix>.<phase>.<short-name>`, where the prefix is the pack's own id or the id
-of the pack it extends, for example `ifly-737-max8.preflight.irs-mode`. An id never changes once
-published, even if the step is reworded or moved. A removed step's id is retired and never
-reused. Stages have an `id` too, reference phases a `group` (`memory`, `quick` or `procedures`),
-and a panel item may have an `id` so a step target or light note can name it
-`panel/section/#id` (decision 0029).
-
-**Flight fields.** The values steps fill (`fill`, `hint`, CDU text) are fields the pack defines
-in `flight.yaml`, listed in `pack.json` as `flight`: each with its label, kind (number, text or
-choice), unit and ranges, where it goes in the aircraft, where else it shows (the flight strip, the
-Arrival data box), how a plan's number is stored (`display`) and the SimBrief values that fill it.
-SimBrief sources are the app's list (see `flight.schema.json`); a pack picks among them. The Flight pages are
-built from the same file: an optional `pages` list gives each page's title, sub-line and cards (with
-a card's row order, a unit toggle or the notes from ATC), and each field may add how its box takes
-input (`input`), how its value reads (`show`), a range's own words (`message`), a second box
-(`with`), a two-choice toggle (`toggle`), read-only copies on other pages (`also`), `read_only` with
-the `phase` that uses it, an option whose suggestion it shows (`suggested_by`), `needed`, and the
-side panel's words (`ofp`). Every one is optional: a field with only an id, label and kind still
-gets a row. The pack gives content and grouping only; the app decides how it looks. An option is
-asked on a Flight page with `ask_in: [flight:approach]`. The Overview's "This flight" card is
-`flight.yaml`'s optional `overview`: rows with a `label`, the `page` they link to, `value` and
-`description` parts written with `{field}`, `{field:grouped}` (thousands grouped) and `{unit}`
-(the flight's unit), and an `empty` description. A part shows when any field it names has a value.
-Without `overview`, the card has one row per Flight page with fields. The Weather page finds the
-altimeter settings by their SimBrief source (`origin_altimeter`, `destination_altimeter`) and
-their `unit`.
-
-**The Start page.** An option `ask_in` names `start` shows on the Start page with its `start`
-block: a `style` (`row`, `cards`, or `toggle` with `on`, the value its on position sets, for an
-option of two values), and optionally its own `title`, `description` and a `link` to a phase. The
-page's order is `phases.yaml`'s `start_page`: option ids and `panel_state` for the panel-state
-picker, whose words are the labels' `panel_states`; without it, the options in file order, then
-the picker.
-
-**Panel controls.** Besides switches, selectors, buttons, lights, levers and handles, a panel item
-may be a `push_pull_knob` (two positions, pushed in first), a `rocker` (two positions, the top end
-first), a `legend_pushbutton` (its `positions`, and one or two `legends`, each with its `text`, its
-`light` role and the positions it is `lit_in`; a legend without `lit_in` is lit by the airplane and
-shows lit when a step expects the button's light on) or a `keypad` (its keys as `positions`,
-`columns` to a row; a step has one target per key it presses). A panel or section may give an
-`outline`, three points or more, in place of its rectangle; it must hold everything drawn in it.
-Packs name light roles (amber, red, green, blue, white), never colors. See the example packs'
-panels (`packs/examples/example-sidestick/panels/glareshield.yaml`, for one).
-
-**Alert messages.** An aircraft with an alert display (EICAS or ECAM) lists its messages in
-`messages.yaml` (manifest `messages`): each with an `id`, its `text` as the display shows it, a
-`level` (`warning`, `caution`, `advisory`, `memo`, `status`), what it means (`meaning`), the `list`
-that deals with it or, without one, why none is needed (`no_list`), and the `steps` that deal with
-it. A pack never sets their colors. Without `messages.yaml` the app shows no Alert messages tab and
-no message rows. See `packs/examples/example-sidestick/messages.yaml`.
-
-**Extending a pack.** A pack may build on one parent (another pack or a `kind: library` pack):
-`extends` names it with the versions it accepts, and `patches` (`patches.yaml`) changes it by id.
-Each patch has an `op` (`set`, `replace`, `remove`, `insert_before`, `insert_after`) and names one
-target: a `stage`, `list`, `step`, `panel`, `section` (`panel/section`), `item`
-(`panel/section/item`; an item needs an `id` in the parent to be patched), `flight_field`,
-`panel_state`, `message`, `glossary_term` or `label` (a dotted path, list entries by id). `set` takes `to`
-(the fields to change; null removes one); `replace` and the inserts take `with` (one entry or a
-list). The child's own lists and panels follow the parent's, and its `labels.yaml` applies over
-the parent's words; any other content file the parent has is changed with patches. Attribution
-notes and basis tags are the parents' first, then the child's, each once. `involo-pack check` and
-`build` find the parent beside the child, or in a folder given with `--parents`; the built pack
-records each parent's exact version (`resolved`) and a `contentHash`. A library is checked but
-never written as an installable pack. A patch that matches nothing, two patches on one target, a
-cycle, or a parent of another format or outside the range fails the build.
-
-**Labels.** Words the interface shows that belong to the aircraft (list kind names, the reference
-area's title and groups, crew roles and seats, the panel-state picker, basis tag labels) can go in
-an optional `labels.yaml`, listed in `pack.json` as `labels`. Every key is optional, and a key left
-out keeps the app's own word. Write only what differs. Reference tabs follow the order of
-`reference.groups`; `side_words` are the words that tell one of a pair from the other (left and
-right, captain and first officer), which Practice uses so it never offers a twin as a wrong
-answer, and which, with the seated roles' names, name two panels as a pair ("L and R wiper
-panels"), in the order the words are listed. Practice also counts as twins the numbered items:
-the text before a number, where two names differ by that number alone (ENGINE 1, ENGINE 2).
-`plain_words` are words that say nothing about where a control is (`AND`, `PANEL`, `SWITCH`),
-which Practice's where questions ignore; the app's default list is replaced as a whole.
-`find_examples` are Find's Try chips, and its first two are the no-match hint's examples.
-`glossary_exceptions` are terms whose first sentence is not shown as their expansion.
-`position_words` (`DN: [DOWN]`) are other words for a position, merged over the defaults; `check`
-and `suggest-targets` read a step's wording with them. A panel section's optional `name` is what
-card titles, captions and "Also" lines call it ("Fuel panel") when that is not its drawn `title`;
-the interface adds nothing to a name. On the Flight deck page, a region the side view draws as
-several outlines is split into that many areas by its places' `area` names, top to bottom on the
-map, each named by the side view place's `names` (one per outline, front to back) or else its
-area name as written; with a side view, a region it does not draw lists the places with no region
-of their own, last. In `lights.yaml`, every light that shares its label with another on the same
-section carries `which` ("transfer bus 1"), each different, and Practice names it with that as
-given. In `controls.yaml`, a control whose name is plural carries `plural: true` (Practice asks
-"Where are the …?"). A step that opens a case of its own ("IF RUNAWAY CONTINUES") carries
-`branch: true`, so Practice never asks across it; never on a list's first step. The phase that starts the engines carries
-`engine_start: true` in `phases.yaml`, for Practice's "Before engine start". An overview region's
-optional `short` name ("Overhead", shared by both overhead regions) names that area in the How
-page's flow figure.
-
-**Publishing a pack.** The catalog is built by `just catalog <out>`: each pack in the justfile's
-`published` list (the invented example packs in `packs/examples` are not published), checked, as one
-`<id>-<version>.involo-pack`, and `index.json` with each pack's id, name, version, aircraft,
-`engine`, size and SHA-256. `just site` writes it into the site's `packs/`, as separate files the
-service worker never precaches; a release attaches the same files. Interface tests and the dev
-server read `target/test-packs`, which `just test-packs` builds with the same recipe and the
-example packs. Raise a pack's `version` for each change you publish.
-
-**Installing a pack.** The app checks every pack before it keeps it on the device (decision 0028),
-with the checks `involo-pack check` makes, run on the built file. The file must be at most 16 MB
-(a larger one is refused unread), JSON with a manifest, of a format the app reads, not a library,
-for a range of app versions (`engine`) that includes this one, and, when it comes from the
-catalog, match the catalog's SHA-256. A refused pack is reported with every reason and nothing is
-kept. A built pack is one file, so two kinds of rule run only when it is built: the folder's other
-files (no images or PDFs), and the `labels.yaml` entries building leaves out (labels for basis
-tags `pack.json` doesn't list, a second label for one tag or reference group). Installed packs are
-kept in the browser's IndexedDB, one version per pack id, with where each came from; one from a
-file is "Not from the Involo catalog".
-
-**Updating a pack.** An update keeps a pilot's flight (decision 0028): when the app loads a
-flight saved with an older version, ticks, skips, blanks and timers follow `aliases.yaml` to the
-steps' new ids, option values follow their `option_value` aliases (a value the pack no longer
-offers goes back to unanswered), and a panel state follows its alias or is cleared. A step that
-is gone loses its marks. So when you rename or move a step id, add a `step` alias from the old id;
-a retired id with no alias drops the pilot's tick. The pilot sees what changed (steps added,
-reworded in their name, value, Check or If not, and removed) in What's new before updating and in
-a note after it, whether the new version comes from the catalog or from a pack file.
-
-**Overlap check.** `just overlap` flags any run of 8 or more words matching plain-text reference
-files (see `INVOLO_OVERLAP_REFS` under "Optional local files" below). It also compares each list's
-steps joined in order. Standard phrases can be accepted in `crates/involo-pack-overlap/allow.txt`
-with a reason.
-
-If you are unsure whether something is acceptable, ask in your pull request before writing the
-content.
+`involo-pack check` enforces the rules a program can see, and the maintainer reviews every content
+change. If you are unsure whether something is acceptable, ask in your pull request before writing
+the content.
 
 ## 4. Optional local files
 
