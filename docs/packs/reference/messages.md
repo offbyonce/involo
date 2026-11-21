@@ -15,7 +15,7 @@ Schema: `schemas/messages.schema.json`. [All files](index.md).
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `messages` | list of [Message](#message) | yes |  |  |
+| `messages` | list of [Message](#message) | yes |  | Every message. |
 
 ## Message
 
@@ -24,7 +24,7 @@ One alert message.
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
 | `id` | text | yes |  | Lower-case letters, digits and dashes, e.g. `engine-fire-l`, so a step, a link or a pack extending this one can name it. |
-| `level` | [MessageLevel](#messagelevel) | yes |  |  |
+| `level` | [MessageLevel](#messagelevel) | yes |  | How serious it is, which sets its badge, its colors and the level filter it is under. |
 | `list` | text |  |  | The list that deals with it. |
 | `meaning` | text | yes |  | What it means. |
 | `no_list` | text |  |  | Without a list: why none is needed, e.g. a memo that only reminds. |
@@ -37,11 +37,11 @@ How serious a message is. The app draws each level in its own theme colors and a
 
 | Value | What it means |
 | --- | --- |
-| `warning` |  |
-| `caution` |  |
-| `advisory` |  |
-| `memo` |  |
-| `status` |  |
+| `warning` | A warning, the most serious level; its filter comes first. |
+| `caution` | A caution; its filter comes after warnings. |
+| `advisory` | An advisory; its filter comes after cautions. |
+| `memo` | A memo; its filter comes after advisories. |
+| `status` | A status message; its filter comes last. |
 
 ## StepId
 

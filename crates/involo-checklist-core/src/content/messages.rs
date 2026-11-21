@@ -13,10 +13,15 @@ data_types! {
     #[derive(Copy, Eq, PartialOrd, Ord)]
     #[serde(rename_all = "snake_case")]
     pub enum MessageLevel {
+        /// A warning, the most serious level; its filter comes first.
         Warning,
+        /// A caution; its filter comes after warnings.
         Caution,
+        /// An advisory; its filter comes after cautions.
         Advisory,
+        /// A memo; its filter comes after advisories.
         Memo,
+        /// A status message; its filter comes last.
         Status,
     }
 
@@ -28,6 +33,7 @@ data_types! {
         pub id: String,
         /// The message as the alert display shows it, e.g. `ENGINE FIRE L`.
         pub text: String,
+        /// How serious it is, which sets its badge, its colors and the level filter it is under.
         pub level: MessageLevel,
         /// What it means.
         pub meaning: String,
@@ -44,6 +50,7 @@ data_types! {
 
     /// `messages.yaml`, in the order the app lists them.
     pub struct MessagesFile {
+        /// Every message.
         pub messages: Vec<Message>,
     }
 }

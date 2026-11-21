@@ -4,4 +4,8 @@ import type { Message } from "./Message";
 /**
  * `messages.yaml`, in the order the app lists them.
  */
-export type MessagesFile = { messages: Array<Message>, };
+export type MessagesFile = { 
+/**
+ * Every message.
+ */
+messages: Array<Message>, };

@@ -7,7 +7,16 @@ export type BriefItem = {
 /**
  * Unique in the pack. Saved progress uses it, so it never changes once published.
  */
-id: string, lead: string, rest: string, 
+id: string, 
+/**
+ * The letters of the mnemonic this line stands for, e.g. `R`; with `rest` it makes the
+ * line's word as Practice shows it.
+ */
+lead: string, 
+/**
+ * The rest of the word after `lead`, e.g. `unway`.
+ */
+rest: string, 
 /**
  * What to cover under this line.
  */

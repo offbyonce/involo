@@ -5,6 +5,7 @@
   "type": "object",
   "properties": {
     "messages": {
+      "description": "Every message.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/Message"
@@ -25,6 +26,7 @@
           "type": "string"
         },
         "level": {
+          "description": "How serious it is, which sets its badge, its colors and the level filter it is under.",
           "$ref": "#/$defs/MessageLevel"
         },
         "list": {
@@ -67,13 +69,32 @@
     },
     "MessageLevel": {
       "description": "How serious a message is. The app draws each level in its own theme colors and always\nwrites its name; a pack never sets a color.",
-      "type": "string",
-      "enum": [
-        "warning",
-        "caution",
-        "advisory",
-        "memo",
-        "status"
+      "oneOf": [
+        {
+          "description": "A warning, the most serious level; its filter comes first.",
+          "type": "string",
+          "const": "warning"
+        },
+        {
+          "description": "A caution; its filter comes after warnings.",
+          "type": "string",
+          "const": "caution"
+        },
+        {
+          "description": "An advisory; its filter comes after cautions.",
+          "type": "string",
+          "const": "advisory"
+        },
+        {
+          "description": "A memo; its filter comes after advisories.",
+          "type": "string",
+          "const": "memo"
+        },
+        {
+          "description": "A status message; its filter comes last.",
+          "type": "string",
+          "const": "status"
+        }
       ]
     },
     "StepId": {

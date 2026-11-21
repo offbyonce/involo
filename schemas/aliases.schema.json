@@ -1,10 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "AliasesFile",
-  "description": "`aliases.yaml`.",
+  "description": "`aliases.yaml`: the ids an earlier version of the pack used and the ids that replaced them,\nso a flight saved with that version keeps its ticks, blanks, options and panel state when\nthe pack is updated (decision 0028).",
   "type": "object",
   "properties": {
     "aliases": {
+      "description": "Every renamed id.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/Alias"
@@ -21,12 +22,15 @@
       "type": "object",
       "properties": {
         "from": {
+          "description": "The old id, as an earlier version of the pack saved it. Each old id is listed once per\nkind.",
           "type": "string"
         },
         "kind": {
+          "description": "What kind of id it renames, which says what `from` and `to` are.",
           "$ref": "#/$defs/AliasKind"
         },
         "to": {
+          "description": "The id that replaced it, which must exist in this version of the pack.",
           "type": "string"
         }
       },

@@ -11,11 +11,11 @@ Schema: `schemas/faults.schema.json`. [All files](index.md).
 
 ## The file
 
-`faults.yaml`.
+`faults.yaml`: what most likely went wrong when a step does not give its expected result, and what to do, for Practice's Faults questions.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `faults` | list of [Fault](#fault) | yes |  |  |
+| `faults` | list of [Fault](#fault) | yes |  | Every fault. |
 
 ## Fault
 
@@ -23,9 +23,9 @@ The likely causes when a step does not give the expected result.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `action` | text | yes |  |  |
-| `causes` | list of text | yes |  |  |
-| `steps` | list of [StepId](#stepid) | yes |  |  |
+| `action` | text | yes |  | What to do about it. Practice asks for it. |
+| `causes` | list of text | yes |  | The likely causes, each a short sentence. Practice asks for one of them. |
+| `steps` | list of [StepId](#stepid) | yes |  | The steps it is about; each must be a step of the pack. Practice asks about the first one, when that step has an `if_not`, alongside faults in the same flight deck area. |
 
 ## StepId
 

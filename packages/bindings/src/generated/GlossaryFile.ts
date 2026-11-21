@@ -2,6 +2,11 @@
 import type { GlossaryEntry } from "./GlossaryEntry";
 
 /**
- * `glossary.yaml`.
+ * `glossary.yaml`: the abbreviations and terms the pack uses, for the Glossary page, Find
+ * and Practice, and the terms a step can name.
  */
-export type GlossaryFile = { terms: Array<GlossaryEntry>, };
+export type GlossaryFile = { 
+/**
+ * Every term, in any order: the Glossary sorts them A to Z.
+ */
+terms: Array<GlossaryEntry>, };

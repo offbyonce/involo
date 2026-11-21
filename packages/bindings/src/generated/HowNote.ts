@@ -3,4 +3,12 @@
 /**
  * Shared "how to do it" instructions.
  */
-export type HowNote = { id: string, steps: Array<string>, };
+export type HowNote = { 
+/**
+ * Unique in the pack; a step's `how` names it.
+ */
+id: string, 
+/**
+ * The instructions, in order: a numbered list under the step's "How to do it".
+ */
+steps: Array<string>, };

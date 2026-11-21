@@ -2,6 +2,12 @@
 import type { Alias } from "./Alias";
 
 /**
- * `aliases.yaml`.
+ * `aliases.yaml`: the ids an earlier version of the pack used and the ids that replaced them,
+ * so a flight saved with that version keeps its ticks, blanks, options and panel state when
+ * the pack is updated (decision 0028).
  */
-export type AliasesFile = { aliases: Array<Alias>, };
+export type AliasesFile = { 
+/**
+ * Every renamed id.
+ */
+aliases: Array<Alias>, };

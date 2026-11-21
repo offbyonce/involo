@@ -15,17 +15,17 @@ the JSON Schemas in `schemas/` give editors autocomplete. The guide that explain
 | File | Schema | What it is |
 | --- | --- | --- |
 | [`pack.json`](pack-json.md) | `pack.schema.json` | A pack's manifest, `pack.json`. |
-| [`aliases.yaml`](aliases.md) | `aliases.schema.json` | `aliases.yaml`. |
-| [`briefings.yaml`](briefings.md) | `briefings.schema.json` | `briefings.yaml`. |
+| [`aliases.yaml`](aliases.md) | `aliases.schema.json` | The ids an earlier version of the pack used and the ids that replaced them, so a flight saved with that version keeps its ticks, blanks, options and panel state when the pack is updated (decision 0028). |
+| [`briefings.yaml`](briefings.md) | `briefings.schema.json` | The crew briefings and their mnemonics, which Practice asks about. |
 | [`cdu.yaml`](cdu.md) | `cdu.schema.json` | Page-by-page CDU walkthroughs, each with the text and live flight values the screen shows at every step. |
 | [`controls.yaml`](controls.md) | `controls.schema.json` | The cockpit's zones, the controls steps refer to, and the overview map that shows where each zone is. |
-| [`faults.yaml`](faults.md) | `faults.schema.json` | `faults.yaml`. |
+| [`faults.yaml`](faults.md) | `faults.schema.json` | What most likely went wrong when a step does not give its expected result, and what to do, for Practice's Faults questions. |
 | [`flight.yaml`](flight.md) | `flight.schema.json` | The pack's Flight pages and its flight fields, in order. |
-| [`glossary.yaml`](glossary.md) | `glossary.schema.json` | `glossary.yaml`. |
+| [`glossary.yaml`](glossary.md) | `glossary.schema.json` | The abbreviations and terms the pack uses, for the Glossary page, Find and Practice, and the terms a step can name. |
 | [`labels.yaml`](labels.md) | `labels.schema.json` | `labels.yaml`. |
 | [`lights.yaml`](lights.md) | `lights.schema.json` | What the panel lights mean, each found by its place on a panel. |
 | [`messages.yaml`](messages.md) | `messages.schema.json` | `messages.yaml`, in the order the app lists them. |
-| [`notes.yaml`](notes.md) | `notes.schema.json` | `notes.yaml`. |
+| [`notes.yaml`](notes.md) | `notes.schema.json` | How-to instructions and explanations that several steps share, each named by the steps that use it. |
 | [`panel-states.yaml`](panel-states.md) | `panel-states.schema.json` | The starting points a pilot can pick on the Start page, each with the steps it counts as already done or skipped. |
 | [`patches.yaml`](patches.md) | `patches.schema.json` | A child pack's changes to its parent's content, by id, applied in order when the child is built (decision 0029). |
 | [`phases.yaml`](phases.md) | `phases.schema.json` | The pilot's options, the stages and phases of a flight with the lists in each phase, the turnaround rule and the Start page's order. |

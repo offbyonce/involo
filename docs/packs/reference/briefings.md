@@ -11,23 +11,23 @@ Schema: `schemas/briefings.schema.json`. [All files](index.md).
 
 ## The file
 
-`briefings.yaml`.
+`briefings.yaml`: the crew briefings and their mnemonics, which Practice asks about.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `briefings` | list of [Briefing](#briefing) | yes |  |  |
+| `briefings` | list of [Briefing](#briefing) | yes |  | Every briefing. |
 
 ## Briefing
 
-A crew briefing, shown in one phase.
+A crew briefing for one phase. The app doesn't show briefings yet; Practice asks about a briefing's mnemonic and its items.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `id` | text | yes |  |  |
-| `items` | list of [BriefItem](#briefitem) | yes |  |  |
-| `mnemonic` | text | yes |  |  |
-| `phase` | text | yes |  |  |
-| `title` | text | yes |  |  |
+| `id` | text | yes |  | Unique in the pack. |
+| `items` | list of [BriefItem](#briefitem) | yes |  | Its lines, in order. |
+| `mnemonic` | text | yes |  | The word its lines' letters spell. Practice asks about briefings that have one, and leaves out one whose mnemonic is empty. |
+| `phase` | text | yes |  | The phase it belongs to, which must exist; Practice links to it. |
+| `title` | text | yes |  | Its name, e.g. `Departure`: Practice calls it "the Departure briefing". |
 
 ## BriefItem
 
@@ -37,6 +37,6 @@ One line of a briefing: the letter of its mnemonic and the rest of the word.
 | --- | --- | --- | --- | --- |
 | `detail` | text |  |  | What to cover under this line. |
 | `id` | text | yes |  | Unique in the pack. Saved progress uses it, so it never changes once published. |
-| `lead` | text | yes |  |  |
-| `rest` | text | yes |  |  |
+| `lead` | text | yes |  | The letters of the mnemonic this line stands for, e.g. `R`; with `rest` it makes the line's word as Practice shows it. |
+| `rest` | text | yes |  | The rest of the word after `lead`, e.g. `unway`. |
 

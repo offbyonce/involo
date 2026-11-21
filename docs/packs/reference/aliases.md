@@ -11,11 +11,11 @@ Schema: `schemas/aliases.schema.json`. [All files](index.md).
 
 ## The file
 
-`aliases.yaml`.
+`aliases.yaml`: the ids an earlier version of the pack used and the ids that replaced them, so a flight saved with that version keeps its ticks, blanks, options and panel state when the pack is updated (decision 0028).
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `aliases` | list of [Alias](#alias) | yes |  |  |
+| `aliases` | list of [Alias](#alias) | yes |  | Every renamed id. |
 
 ## Alias
 
@@ -23,9 +23,9 @@ An old saved id and what replaced it. Lets saved progress carry over.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `from` | text | yes |  |  |
-| `kind` | [AliasKind](#aliaskind) | yes |  |  |
-| `to` | text | yes |  |  |
+| `from` | text | yes |  | The old id, as an earlier version of the pack saved it. Each old id is listed once per kind. |
+| `kind` | [AliasKind](#aliaskind) | yes |  | What kind of id it renames, which says what `from` and `to` are. |
+| `to` | text | yes |  | The id that replaced it, which must exist in this version of the pack. |
 
 ## AliasKind
 
