@@ -1,0 +1,91 @@
+// SPDX-FileCopyrightText: 2026 offbyonce
+// SPDX-License-Identifier: MIT
+
+import type { Page } from "@playwright/test";
+import { chooseFile, exampleFile, go, restarted } from "../build/scenes.mjs";
+import { type App, expect, test } from "./fixtures";
+import { sortFindings } from "./known-findings";
+import { screenProblems } from "./layout";
+
+// The main screens with each invented example pack open (decision 0030, #108), checked for layout
+// and accessibility at phone and desktop width in both themes, as the iFly pack's are: a screen
+// built only around one aircraft's data shows it here. Findings known today are listed, each with
+// the issue that fixes it, in known-findings.ts; any other finding fails, and so does a listed one
+// that no longer happens.
+
+const EXAMPLES = [
+  { id: "example-twin", name: "Example Twin" },
+  { id: "example-sidestick", name: "Example Sidestick Twin" },
+  { id: "example-twin-lr", name: "Example Twin LR" },
+];
+
+/** The first launch with this pack added from its file (the examples are never in the catalog),
+ * the welcome answered. */
+async function firstRunWith(app: App, page: Page, id: string): Promise<void> {
+  await app.open();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await app.scene([
+    go("#/packs"),
+    chooseFile('input[type="file"]', exampleFile(id), `${id}.involo-pack`),
+    restarted,
+  ]);
+  await app.ready();
+  await app.answerWelcome();
+}
+
+const heading = (page: Page) => page.getByRole("heading", { level: 1 }).first();
+
+for (const pack of EXAMPLES) {
+  test(`the main screens with ${pack.name} open: layout and accessibility (#108)`, async ({ app, page }) => {
+    test.setTimeout(240_000);
+    await firstRunWith(app, page, pack.id);
+    const problems: { screen: string; problem: string }[] = [];
+    const check = async (screen: string, keys: ReturnType<Page["locator"]>[]) => {
+      for (const problem of await screenProblems(page, screen, keys)) problems.push({ screen, problem });
+    };
+
+    // A phase in List: the app opens on the pack's first phase.
+    await expect(page.locator("li.it[data-step]").first()).toBeVisible();
+    await check("a phase in List", [heading(page), page.locator("li.it[data-step]").first()]);
+
+    // The same phase in Step by step.
+    await page.goto("./#/settings");
+    await page.getByRole("radiogroup", { name: "View" }).getByRole("radio", { name: "Step by step" }).click();
+    await page.goto("./#/");
+    await expect(page.locator(".box h1")).toBeVisible();
+    await check("a phase in Step by step", [page.locator(".box h1")]);
+    await page.goto("./#/settings");
+    await page.getByRole("radiogroup", { name: "View" }).getByRole("radio", { name: "List" }).click();
+
+    for (const [hash, screen] of [
+      ["#/flight/start", "Start"],
+      ["#/setup", "Flight"],
+      ["#/reference", "Emergency"],
+      ["#/references", "References"],
+      ["#/how", "How"],
+      ["#/practice", "Practice"],
+      ["#/deck", "Flight deck"],
+    ] as const) {
+      await page.goto(`./${hash}`);
+      await expect(heading(page)).toBeVisible();
+      await check(screen, [heading(page)]);
+    }
+
+    // Find, open over a phase.
+    await page.goto("./#/");
+    await expect(page.locator("li.it[data-step]").first()).toBeVisible();
+    await page.keyboard.press("Control+K");
+    const find = page.getByRole("combobox", { name: "Find a step, control or term" });
+    await expect(find).toBeVisible();
+    await find.fill((await page.locator("li.it[data-step] .nm").first().textContent())?.trim() ?? "");
+    await expect(page.locator("#find-steps [role=option]").first()).toBeVisible();
+    await check("Find", [find]);
+
+    const { fresh, gone } = sortFindings(pack.name, problems);
+    expect(fresh, `${pack.name}: layout and accessibility findings not in known-findings.ts`).toEqual([]);
+    expect(
+      gone,
+      `${pack.name}: known findings that no longer happen (remove them from known-findings.ts)`,
+    ).toEqual([]);
+  });
+}
