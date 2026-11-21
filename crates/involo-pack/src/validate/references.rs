@@ -8,7 +8,7 @@ use std::collections::BTreeSet;
 use super::aliases::check_alias;
 use super::ids::unique;
 use super::index::Index;
-use super::{Issue, error};
+use super::{Code, Issue, error};
 use crate::Pack;
 
 pub(super) fn check_other_references(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
@@ -52,7 +52,11 @@ pub(super) fn check_other_references(pack: &Pack, idx: &Index, issues: &mut Vec<
         let mut seen = BTreeSet::new();
         for alias in &file.aliases {
             if !seen.insert((alias.kind, alias.from.as_str())) {
-                issues.push(error(&alias.from, "alias id is used twice in this pack"));
+                issues.push(error(
+                    Code::DuplicateId,
+                    &alias.from,
+                    "alias id is used twice in this pack",
+                ));
             }
             check_alias(alias, idx, issues);
         }

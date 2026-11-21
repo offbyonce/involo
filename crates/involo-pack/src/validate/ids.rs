@@ -5,9 +5,9 @@
 
 use std::collections::BTreeSet;
 
-use super::{Issue, error};
+use super::{Code, Issue, error};
 
-pub(super) fn valid_id(id: &str) -> bool {
+pub fn valid_id(id: &str) -> bool {
     !id.is_empty()
         && id
             .chars()
@@ -45,7 +45,11 @@ pub(super) fn unique<'a>(
     let mut seen = BTreeSet::new();
     for id in ids {
         if !seen.insert(id) {
-            issues.push(error(id, format!("{what} id is used twice in this pack")));
+            issues.push(error(
+                Code::DuplicateId,
+                id,
+                format!("{what} id is used twice in this pack"),
+            ));
         }
     }
     seen

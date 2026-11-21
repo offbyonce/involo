@@ -4,7 +4,7 @@
 //! The manifest, and the files a pack holds: types and names.
 
 use super::ids::{valid_id, valid_segment};
-use super::{Issue, error};
+use super::{Code, Issue, error};
 use crate::{Pack, PackKind, format_problem};
 
 /// File types a pack must not contain. Vendor images and screenshots never ship.
@@ -20,6 +20,7 @@ pub(super) fn check_manifest(pack: &Pack, issues: &mut Vec<Issue>) {
     let m = &pack.manifest;
     if !valid_id(&m.id) {
         issues.push(error(
+            Code::PackId,
             "pack.json",
             format!(
                 "pack id `{}` must be lower-case letters, digits, dots and dashes",
@@ -28,7 +29,7 @@ pub(super) fn check_manifest(pack: &Pack, issues: &mut Vec<Issue>) {
         ));
     }
     if let Some(problem) = format_problem(m.schema_version) {
-        issues.push(error("pack.json", problem));
+        issues.push(error(Code::FormatVersion, "pack.json", problem));
     }
     check_aircraft(pack, issues);
     check_extends(pack, issues);
@@ -36,12 +37,14 @@ pub(super) fn check_manifest(pack: &Pack, issues: &mut Vec<Issue>) {
         // A built child's lists may all come from its parent.
         if pack.checklists.is_empty() {
             issues.push(error(
+                Code::NoChecklists,
                 "pack.json",
                 "an aircraft pack must list at least one checklist",
             ));
         }
         if pack.content.phases.is_none() {
             issues.push(error(
+                Code::NoPhasesFile,
                 "pack.json",
                 "an aircraft pack must list a phases file",
             ));
@@ -50,6 +53,7 @@ pub(super) fn check_manifest(pack: &Pack, issues: &mut Vec<Issue>) {
     for tag in &m.basis_tags {
         if !valid_segment(tag) {
             issues.push(error(
+                Code::BasisTagFormat,
                 "pack.json",
                 format!("basis tag `{tag}` must be lower-case letters, digits and dashes"),
             ));
@@ -69,23 +73,23 @@ fn valid_icao_type(t: &str) -> bool {
 fn check_aircraft(pack: &Pack, issues: &mut Vec<Issue>) {
     let m = &pack.manifest;
     match (m.kind, &m.aircraft) {
-        (PackKind::Aircraft, None) => issues.push(error(
+        (PackKind::Aircraft, None) => issues.push(error(Code::NoAircraftBlock,
             "pack.json",
             "an aircraft pack must have an `aircraft` block (family, name, icaoTypes, simulator, developer)",
         )),
-        (PackKind::Library, Some(_)) => issues.push(error(
+        (PackKind::Library, Some(_)) => issues.push(error(Code::LibraryHasAircraft,
             "pack.json",
             "a library pack has no `aircraft` block: the packs that extend it name their aircraft",
         )),
         (PackKind::Aircraft, Some(a)) => {
             if a.icao_types.is_empty() {
-                issues.push(error(
+                issues.push(error(Code::NoIcaoType,
                     "pack.json",
                     "`aircraft.icaoTypes` must list at least one ICAO type designator",
                 ));
             }
             for t in a.icao_types.iter().filter(|t| !valid_icao_type(t)) {
-                issues.push(error(
+                issues.push(error(Code::BadIcaoType,
                     "pack.json",
                     format!("`{t}` is not an ICAO type designator (two to four capital letters and digits, starting with a letter)"),
                 ));
@@ -97,7 +101,7 @@ fn check_aircraft(pack: &Pack, issues: &mut Vec<Issue>) {
                 ("developer", &a.developer),
             ] {
                 if value.trim().is_empty() {
-                    issues.push(error(
+                    issues.push(error(Code::EmptyAircraftField,
                         "pack.json",
                         format!("`aircraft.{field}` must not be empty"),
                     ));
@@ -113,6 +117,7 @@ fn check_extends(pack: &Pack, issues: &mut Vec<Issue>) {
     let m = &pack.manifest;
     if m.extends.len() > 1 {
         issues.push(error(
+            Code::ExtendsMany,
             "pack.json",
             format!(
                 "`extends` names {} packs; a pack builds on one parent",
@@ -123,11 +128,16 @@ fn check_extends(pack: &Pack, issues: &mut Vec<Issue>) {
     for parent in m.extends.keys() {
         if !valid_id(parent) {
             issues.push(error(
+                Code::ExtendsBadId,
                 "pack.json",
                 format!("`extends` names `{parent}`, which is not a valid pack id"),
             ));
         } else if parent == &m.id {
-            issues.push(error("pack.json", "a pack cannot extend itself"));
+            issues.push(error(
+                Code::ExtendsSelf,
+                "pack.json",
+                "a pack cannot extend itself",
+            ));
         }
     }
 }
@@ -145,6 +155,7 @@ fn is_windows_reserved(name: &str) -> bool {
 fn check_windows_name(path: &str, issues: &mut Vec<Issue>) {
     if path.split(['/', '\\']).any(is_windows_reserved) {
         issues.push(error(
+            Code::ReservedFileName,
             path,
             "this name is reserved on Windows, so the file cannot be checked out there",
         ));
@@ -163,7 +174,7 @@ pub(super) fn check_files(pack: &Pack, issues: &mut Vec<Issue>) {
             .unwrap_or("")
             .to_ascii_lowercase();
         if BLOCKED_FILE_EXTENSIONS.contains(&ext.as_str()) {
-            issues.push(error(
+            issues.push(error(Code::ImageOrPdf,
                 file.to_string_lossy(),
                 "packs must not contain images or PDFs; vendor artwork, screenshots and manuals never ship",
             ));

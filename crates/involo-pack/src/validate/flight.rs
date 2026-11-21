@@ -8,7 +8,7 @@ use std::collections::BTreeSet;
 use involo_checklist_core::{FieldId, FieldKind, FlightField, ShowIn};
 
 use super::ids::unique;
-use super::{Issue, error};
+use super::{Code, Issue, error};
 use crate::Pack;
 
 /// A field id: lower-case letters, digits and underscores, starting with a letter.
@@ -45,7 +45,11 @@ fn check_overview(
     for row in &file.overview {
         let at = format!("overview `{}`", row.label);
         if !FIELD_PAGES.contains(&row.page.as_str()) {
-            issues.push(error(&at, format!("`{}` is not a Flight page", row.page)));
+            issues.push(error(
+                Code::NotFlightPage,
+                &at,
+                format!("`{}` is not a Flight page", row.page),
+            ));
         }
         for part in row.value.iter().chain(&row.description) {
             for name in placeholders(part) {
@@ -54,9 +58,14 @@ fn check_overview(
                     continue;
                 }
                 if !ids.contains(field) {
-                    issues.push(error(&at, format!("`{{{name}}}` names no flight field")));
+                    issues.push(error(
+                        Code::PlaceholderField,
+                        &at,
+                        format!("`{{{name}}}` names no flight field"),
+                    ));
                 } else if !how.is_empty() && how != "grouped" {
                     issues.push(error(
+                        Code::PlaceholderForm,
                         &at,
                         format!("`{{{name}}}`: the only form is `:grouped`"),
                     ));
@@ -100,6 +109,7 @@ fn check_page(
     let at = format!("Flight page `{}`", page.id);
     if !FIELD_PAGES.contains(&page.id.as_str()) {
         issues.push(error(
+            Code::NotFlightPage,
             &at,
             format!(
                 "is not one of the app's Flight pages ({})",
@@ -119,6 +129,7 @@ fn check_page(
             .any(|f| &f.id == sel && f.page.as_deref() == Some(page.id.as_str()))
     {
         issues.push(error(
+            Code::FieldNotOnPage,
             &at,
             format!("`selected` names `{sel}`, which is not a field on this page"),
         ));
@@ -134,6 +145,7 @@ fn check_page(
             });
             if !here {
                 issues.push(error(
+                    Code::FieldNotOnPage,
                     &at,
                     format!(
                         "group `{}` lists `{id}`, which is not a field in it",
@@ -146,6 +158,7 @@ fn check_page(
             && field(&u.field).is_none_or(|f| f.kind != FieldKind::Choice)
         {
             issues.push(error(
+                Code::FieldWrongKind,
                 &at,
                 format!("`units` names `{}`, which is not a choice field", u.field),
             ));
@@ -189,17 +202,18 @@ fn check_field_links(
     if let Some(page) = &f.page
         && let Some(problem) = place_problem(file, page, f.group.as_deref())
     {
-        issues.push(error(at, problem));
+        issues.push(error(Code::NotFlightPage, at, problem));
     }
     for also in &f.also {
         if let Some(problem) = place_problem(file, &also.page, Some(&also.group)) {
-            issues.push(error(at, format!("`also`: {problem}")));
+            issues.push(error(Code::NotFlightPage, at, format!("`also`: {problem}")));
         }
     }
     if let Some(w) = &f.with
         && field(w).is_none_or(|x| x.kind == FieldKind::Choice || x.id == f.id)
     {
         issues.push(error(
+            Code::FieldWrongKind,
             at,
             format!("`with` names `{w}`, which is not another number or text field"),
         ));
@@ -208,6 +222,7 @@ fn check_field_links(
         && field(t).is_none_or(|x| x.kind != FieldKind::Choice || x.choices.len() != 2)
     {
         issues.push(error(
+            Code::FieldWrongKind,
             at,
             format!("`toggle` names `{t}`, which is not a choice field of two choices"),
         ));
@@ -216,6 +231,7 @@ fn check_field_links(
         && !phases.is_some_and(|ph| ph.phases.iter().any(|x| &x.id == p))
     {
         issues.push(error(
+            Code::UnknownPhase,
             at,
             format!("`phase` names `{p}`, which is not a phase"),
         ));
@@ -224,6 +240,7 @@ fn check_field_links(
         && !phases.is_some_and(|ph| ph.options.iter().any(|x| &x.id == o))
     {
         issues.push(error(
+            Code::UnknownOption,
             at,
             format!("`suggested_by` names `{o}`, which is not an option"),
         ));
@@ -239,19 +256,32 @@ fn check_field(
     let at = &field.id;
     if !valid_field_id(at) {
         issues.push(error(
+            Code::IdFormat,
             at,
             "a field id is lower-case letters, digits and underscores, starting with a letter",
         ));
     }
     if FieldId::new(at.as_str()).is_built_in() {
-        issues.push(error(at, format!("`{at}` is one of the app's own fields")));
+        issues.push(error(
+            Code::AppFieldId,
+            at,
+            format!("`{at}` is one of the app's own fields"),
+        ));
     }
     match field.kind {
         FieldKind::Choice if field.choices.is_empty() => {
-            issues.push(error(at, "a choice field lists its `choices`"));
+            issues.push(error(
+                Code::ChoicesShape,
+                at,
+                "a choice field lists its `choices`",
+            ));
         }
         FieldKind::Number | FieldKind::Text if !field.choices.is_empty() => {
-            issues.push(error(at, "only a choice field has `choices`"));
+            issues.push(error(
+                Code::ChoicesShape,
+                at,
+                "only a choice field has `choices`",
+            ));
         }
         _ => {}
     }
@@ -259,6 +289,7 @@ fn check_field(
         && (field.unit.is_some() || !field.ranges.is_empty() || field.display.is_some())
     {
         issues.push(error(
+            Code::NumberOnly,
             at,
             "only a number has a `unit`, `ranges` or `display`",
         ));
@@ -270,12 +301,14 @@ fn check_field(
     match unit {
         Some((u, None)) if !ids.contains(u) => {
             issues.push(error(
+                Code::FieldWrongKind,
                 at,
                 format!("`unit` names `{u}`, which is not a field"),
             ));
         }
         Some((u, Some(f))) if f.kind != FieldKind::Choice => {
             issues.push(error(
+                Code::FieldWrongKind,
                 at,
                 format!("`unit` names `{u}`, which is not a choice field"),
             ));
@@ -284,7 +317,11 @@ fn check_field(
     }
     for range in &field.ranges {
         if range.min > range.max {
-            issues.push(error(at, "a range's `min` is above its `max`"));
+            issues.push(error(
+                Code::RangeOrder,
+                at,
+                "a range's `min` is above its `max`",
+            ));
         }
         if let Some(value) = &range.unit {
             let named = unit
@@ -292,6 +329,7 @@ fn check_field(
                 .is_some_and(|f| f.choices.iter().any(|c| &c.value == value));
             if !named {
                 issues.push(error(
+                    Code::RangeUnit,
                     at,
                     format!("a range for unit `{value}`, which the field's `unit` does not offer"),
                 ));
@@ -301,10 +339,18 @@ fn check_field(
     if let Some(display) = &field.display
         && (display.scale <= 0.0 || display.step <= 0.0)
     {
-        issues.push(error(at, "`display` needs a `scale` and a `step` above 0"));
+        issues.push(error(
+            Code::DisplayScale,
+            at,
+            "`display` needs a `scale` and a `step` above 0",
+        ));
     }
     if field.strip.is_some() && !field.show_in.contains(&ShowIn::Strip) {
-        issues.push(error(at, "`strip` text is for a field `show_in` the strip"));
+        issues.push(error(
+            Code::StripNotShown,
+            at,
+            "`strip` text is for a field `show_in` the strip",
+        ));
     }
 }
 

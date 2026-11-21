@@ -8,7 +8,7 @@ use std::collections::BTreeSet;
 use involo_checklist_core::{FieldKind, Quick, Suggests, UserOption};
 
 use super::index::Index;
-use super::{Issue, error};
+use super::{Code, Issue, error};
 use crate::Pack;
 
 /// The Start page's order names options asked there and the panel-state picker, each once.
@@ -16,7 +16,11 @@ fn check_start_page(file: &involo_checklist_core::PhasesFile, issues: &mut Vec<I
     let mut seen = std::collections::BTreeSet::new();
     for entry in &file.start_page {
         if !seen.insert(entry.as_str()) {
-            issues.push(error("start_page", format!("`{entry}` is listed twice")));
+            issues.push(error(
+                Code::StartPageTwice,
+                "start_page",
+                format!("`{entry}` is listed twice"),
+            ));
         }
         let asked = file
             .options
@@ -24,6 +28,7 @@ fn check_start_page(file: &involo_checklist_core::PhasesFile, issues: &mut Vec<I
             .any(|o| &o.id == entry && o.ask_in.iter().any(|p| p == START));
         if entry != "panel_state" && !asked {
             issues.push(error(
+                Code::StartPageUnknown,
                 "start_page",
                 format!("`{entry}` is not an option asked on the Start page, nor `panel_state`"),
             ));
@@ -36,6 +41,7 @@ fn check_engine_start(file: &involo_checklist_core::PhasesFile, issues: &mut Vec
     let marked: Vec<_> = file.phases.iter().filter(|p| p.engine_start).collect();
     if marked.len() > 1 {
         issues.push(error(
+            Code::EngineStartMany,
             "phases",
             format!(
                 "`engine_start` marks {} phases; at most one starts the engines",
@@ -45,6 +51,7 @@ fn check_engine_start(file: &involo_checklist_core::PhasesFile, issues: &mut Vec
     }
     for p in marked.iter().filter(|p| p.reference) {
         issues.push(error(
+            Code::EngineStartReference,
             &p.id,
             "a reference phase cannot be the one that starts the engines",
         ));
@@ -59,10 +66,12 @@ fn check_start(option: &UserOption, idx: &Index, issues: &mut Vec<Issue>) {
     let asked = option.ask_in.iter().any(|p| p == START);
     match (&option.start, asked) {
         (None, true) => issues.push(error(
+            Code::StartStyleMissing,
             &option.id,
             "asked on the Start page, so it needs `start` with a `style` (cards or row)",
         )),
         (Some(_), false) => issues.push(error(
+            Code::StartNotAsked,
             &option.id,
             "`start` is for an option `ask_in` names `start`",
         )),
@@ -73,11 +82,11 @@ fn check_start(option: &UserOption, idx: &Index, issues: &mut Vec<Issue>) {
             let toggle = control.style == involo_checklist_core::StartStyle::Toggle;
             match (&control.on, toggle) {
                 (Some(on), true) if option.values.len() == 2 && option.values.contains(on) => {}
-                (_, true) => issues.push(error(
+                (_, true) => issues.push(error(Code::ToggleShape,
                     &option.id,
                     "a toggle is for an option of two values, with `on` naming the one it sets when on",
                 )),
-                (Some(_), false) => issues.push(error(&option.id, "`on` is for `style: toggle`")),
+                (Some(_), false) => issues.push(error(Code::ToggleShape, &option.id, "`on` is for `style: toggle`")),
                 (None, false) => {}
             }
         }
@@ -100,7 +109,7 @@ fn check_suggests(pack: &Pack, option: &UserOption, issues: &mut Vec<Issue>) {
     let weighs =
         |c: &str| unit.is_some_and(|u| u.choices.iter().any(|x| x.value.eq_ignore_ascii_case(c)));
     if field.is_none_or(|f| f.kind != FieldKind::Number) || !(weighs("LB") && weighs("KG")) {
-        issues.push(error(
+        issues.push(error(Code::SuggestsNotWeight,
             &option.id,
             format!(
                 "`suggests` reads `{}`, which is not a weight field (a number whose unit is LB or KG)",
@@ -111,6 +120,7 @@ fn check_suggests(pack: &Pack, option: &UserOption, issues: &mut Vec<Issue>) {
     for value in [&rule.then, &rule.otherwise] {
         if !option.values.contains(value) {
             issues.push(error(
+                Code::UnknownOptionValue,
                 &option.id,
                 format!("`suggests` names `{value}`, which is not one of the option's values"),
             ));
@@ -118,6 +128,8 @@ fn check_suggests(pack: &Pack, option: &UserOption, issues: &mut Vec<Issue>) {
     }
 }
 
+// One check per rule, in order; each one's code makes the calls longer than one line.
+#[allow(clippy::too_many_lines)]
 pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
     let Some(file) = &pack.content.phases else {
         return;
@@ -134,6 +146,7 @@ pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
         .find(|s| s.quick == Some(Quick::Turnaround));
     if let (Some(step), None) = (uses_turnaround, &file.turnaround) {
         issues.push(error(
+            Code::TurnaroundUndeclared,
             step.id.as_str(),
             "is in Essentials on a turnaround, but phases.yaml declares no `turnaround`",
         ));
@@ -150,6 +163,7 @@ pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
             if let Some(page) = phase.strip_prefix("flight:") {
                 if !involo_checklist_core::FIELD_PAGES.contains(&page) {
                     issues.push(error(
+                        Code::AskInUnknownPage,
                         &option.id,
                         format!(
                             "`ask_in` names `{phase}`, which is not one of the app's Flight pages"
@@ -166,22 +180,35 @@ pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
     for phase in &file.phases {
         for list in &phase.lists {
             if !idx.lists.contains(list.as_str()) {
-                issues.push(error(&phase.id, format!("refers to unknown list `{list}`")));
+                issues.push(error(
+                    Code::UnknownList,
+                    &phase.id,
+                    format!("refers to unknown list `{list}`"),
+                ));
             }
             if !placed.insert(list.as_str()) {
-                issues.push(error(list, "list is placed in more than one phase"));
+                issues.push(error(
+                    Code::ListPlacedTwice,
+                    list,
+                    "list is placed in more than one phase",
+                ));
             }
         }
     }
     for list in &idx.lists {
         if !placed.contains(list) {
-            issues.push(error(*list, "list is not placed in any phase"));
+            issues.push(error(
+                Code::ListNotPlaced,
+                *list,
+                "list is not placed in any phase",
+            ));
         }
     }
     super::ids::unique("stage", file.stages.iter().map(|s| s.id.as_str()), issues);
     for stage in &file.stages {
         if !super::ids::valid_segment(&stage.id) {
             issues.push(error(
+                Code::IdFormat,
                 &stage.title,
                 format!(
                     "stage id `{}` must be lower-case letters, digits and dashes",
@@ -214,15 +241,21 @@ pub(super) fn check_phases(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) {
 fn check_group(phase: &involo_checklist_core::Phase, groups: &[&str], issues: &mut Vec<Issue>) {
     match (&phase.group, phase.reference) {
         (None, true) => issues.push(error(
+            Code::ReferenceGroup,
             &phase.id,
             format!(
                 "a reference phase needs a `group`: one of {}",
                 groups.join(", ")
             ),
         )),
-        (Some(_), false) => issues.push(error(&phase.id, "only a reference phase has a `group`")),
+        (Some(_), false) => issues.push(error(
+            Code::ReferenceGroup,
+            &phase.id,
+            "only a reference phase has a `group`",
+        )),
         (Some(group), true) if !groups.contains(&group.as_str()) => {
             issues.push(error(
+                Code::ReferenceGroup,
                 &phase.id,
                 format!(
                     "unknown reference group `{group}`: one of {}",
@@ -243,11 +276,13 @@ fn check_choices(option: &UserOption, issues: &mut Vec<Issue>) {
     for choice in &option.choices {
         if !option.values.contains(&choice.value) {
             issues.push(error(
+                Code::ChoiceValues,
                 &option.id,
                 format!("choice for unknown value `{}`", choice.value),
             ));
         } else if !seen.insert(choice.value.as_str()) {
             issues.push(error(
+                Code::ChoiceValues,
                 &option.id,
                 format!("more than one choice for value `{}`", choice.value),
             ));
@@ -255,7 +290,11 @@ fn check_choices(option: &UserOption, issues: &mut Vec<Issue>) {
     }
     for value in &option.values {
         if !seen.contains(value.as_str()) {
-            issues.push(error(&option.id, format!("no choice for value `{value}`")));
+            issues.push(error(
+                Code::ChoiceValues,
+                &option.id,
+                format!("no choice for value `{value}`"),
+            ));
         }
     }
 }

@@ -42,6 +42,19 @@ pub enum LoadError {
     File { path: PathBuf, message: String },
 }
 
+impl LoadError {
+    /// The problem's stable code (decision 0030).
+    pub const fn code(&self) -> crate::Code {
+        match self {
+            Self::Io { .. } => crate::Code::ReadFailed,
+            Self::Yaml { .. } => crate::Code::BadYaml,
+            Self::Json { .. } => crate::Code::BadManifest,
+            Self::Format { .. } => crate::Code::FormatVersion,
+            Self::File { .. } => crate::Code::BadFile,
+        }
+    }
+}
+
 fn options() -> serde_saphyr::Options {
     // Options is non-exhaustive, so set fields on a default rather than building a literal.
     // Duplicate keys are already an error by default.

@@ -8,7 +8,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use involo_checklist_core::{FieldId, OptionTest, ShowIf, StepId};
 
 use super::ids::unique;
-use super::{BLANK, Issue, error};
+use super::{BLANK, Code, Issue, error};
 use crate::Pack;
 
 /// The flight fields the pack defines.
@@ -180,13 +180,21 @@ impl<'a> Index<'a> {
 
     pub(super) fn require_step(&self, at: &str, id: &StepId, issues: &mut Vec<Issue>) {
         if !self.steps.contains(id.as_str()) {
-            issues.push(error(at, format!("refers to unknown step `{id}`")));
+            issues.push(error(
+                Code::UnknownStep,
+                at,
+                format!("refers to unknown step `{id}`"),
+            ));
         }
     }
 
     pub(super) fn require_phase(&self, at: &str, id: &str, issues: &mut Vec<Issue>) {
         if !self.phases.contains(id) {
-            issues.push(error(at, format!("refers to unknown phase `{id}`")));
+            issues.push(error(
+                Code::UnknownPhase,
+                at,
+                format!("refers to unknown phase `{id}`"),
+            ));
         }
     }
 
@@ -195,6 +203,7 @@ impl<'a> Index<'a> {
     pub(super) fn require_field(&self, at: &str, field: &str, issues: &mut Vec<Issue>) {
         if !self.fields.contains(field) && field != FieldId::MANUAL && field != FieldId::ROUTE_LEG {
             issues.push(error(
+                Code::UnknownFlightField,
                 at,
                 format!("`{field}` is not a flight field the pack defines in flight.yaml"),
             ));
@@ -203,7 +212,11 @@ impl<'a> Index<'a> {
 
     pub(super) fn require_control(&self, at: &str, id: &str, issues: &mut Vec<Issue>) {
         if !self.controls.contains(id) {
-            issues.push(error(at, format!("refers to unknown control `{id}`")));
+            issues.push(error(
+                Code::UnknownControl,
+                at,
+                format!("refers to unknown control `{id}`"),
+            ));
         }
     }
 
@@ -215,8 +228,13 @@ impl<'a> Index<'a> {
         issues: &mut Vec<Issue>,
     ) {
         match self.options.get(option) {
-            None => issues.push(error(at, format!("refers to unknown option `{option}`"))),
+            None => issues.push(error(
+                Code::UnknownOption,
+                at,
+                format!("refers to unknown option `{option}`"),
+            )),
             Some(values) if !values.contains(value) => issues.push(error(
+                Code::UnknownOptionValue,
                 at,
                 format!("option `{option}` has no value `{value}`"),
             )),
@@ -231,7 +249,11 @@ impl<'a> Index<'a> {
             }
             OptionTest::OneOf { option, one_of } => {
                 if one_of.is_empty() {
-                    issues.push(error(at, "`one_of` must list at least one value"));
+                    issues.push(error(
+                        Code::EmptyTest,
+                        at,
+                        "`one_of` must list at least one value",
+                    ));
                 }
                 for value in one_of {
                     self.check_option_value(at, option, value, issues);
@@ -247,6 +269,7 @@ impl<'a> Index<'a> {
         };
         if tests.is_empty() {
             issues.push(error(
+                Code::EmptyTest,
                 at,
                 "`all_of` and `any_of` must list at least one test",
             ));
