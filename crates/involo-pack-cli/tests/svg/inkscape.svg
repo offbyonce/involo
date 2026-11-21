@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- SPDX-FileCopyrightText: 2026 offbyonce -->
+<!-- SPDX-License-Identifier: MIT -->
+<!-- An invented panel, saved the way Inkscape saves a drawing: names in inkscape:label, a layer
+     moved by a transform, controls in groups inside groups. One control of each kind. -->
+<svg
+   width="400mm"
+   height="200mm"
+   viewBox="0 0 400 200"
+   version="1.1"
+   id="svg1"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview id="namedview1" pagecolor="#ffffff" inkscape:zoom="1" />
+  <defs id="defs1">
+    <linearGradient id="linearGradient1" inkscape:collect="always">
+      <stop style="stop-color:#000000" offset="0" id="stop1" />
+    </linearGradient>
+  </defs>
+  <g inkscape:label="Layer 1" inkscape:groupmode="layer" id="layer1" transform="translate(10,5)">
+    <path id="path1" inkscape:label="outline" style="fill:none;stroke:#000000"
+       d="M -10,-5 H 390 V 145 L 340,195 H -10 Z" />
+    <g id="g10" inkscape:label="section:electrical">
+      <rect id="rect10" style="fill:none;stroke:#000000" x="0" y="5" width="185" height="90" />
+      <text id="text10" x="5" y="15">ELECTRICAL</text>
+      <g id="g11" inkscape:label="toggle_switch:BATTERY" transform="translate(30,35)">
+        <rect id="rect11" x="-5" y="-10" width="10" height="20" />
+        <circle id="circle11" cx="0" cy="-6" r="3" />
+        <text id="text11" x="-12" y="22">BATTERY</text>
+      </g>
+      <circle id="path12" inkscape:label="light:BATT LOW" cx="80" cy="35" r="6"
+         style="fill:#f5a623;stroke:none" />
+      <g id="g13" inkscape:label="display_unit:VOLTS" transform="matrix(1,0,0,1,145,35)">
+        <rect id="rect13" x="-25" y="-10" width="50" height="20" style="fill:url(#linearGradient1)" />
+      </g>
+      <g id="g14">
+        <g id="g15" inkscape:label="readout:FREQ" transform="rotate(90 160 70)">
+          <rect id="rect15" x="140" y="65" width="40" height="10" />
+        </g>
+      </g>
+      <g id="g16">
+        <rect id="rect16" x="20" y="60" width="6" height="6" />
+      </g>
+    </g>
+    <g id="g20" inkscape:label="section:fuel">
+      <rect id="rect20" style="fill:none;stroke:#000000" x="190" y="5" width="190" height="130" />
+      <g id="g21" inkscape:label="selector:FUEL MODE">
+        <circle id="circle21" cx="220" cy="35" r="8" />
+        <path id="path21" d="m 220,35 v -8" />
+      </g>
+      <g id="g22" inkscape:label="push_button:TEST"><rect id="rect22" x="255" y="30" width="10" height="10" /></g>
+      <g id="g23" inkscape:label="lever:CUTOFF"><rect id="rect23" x="297" y="25" width="6" height="20" /></g>
+      <g id="g24" inkscape:label="handle:FIRE"><path id="path24" d="M 330,30 h 20 v 10 h -20 z" /></g>
+      <g id="g25" inkscape:label="gauge:QTY"><ellipse id="ellipse25" cx="220" cy="75" rx="10" ry="10" /></g>
+      <g id="g26" inkscape:label="push_pull_knob:XFEED"><circle id="circle26" cx="260" cy="75" r="6" /></g>
+      <g id="g27" inkscape:label="legend_pushbutton:PUMP" transform="translate(300,75)">
+        <rect id="rect27" x="-8" y="-8" width="16" height="16" />
+        <text id="text27a" x="-6" y="-2" style="fill:#f5a623">FAULT</text>
+        <text id="text27b" x="-4" y="6" style="fill:#ffffff">OFF</text>
+      </g>
+      <g id="g28" inkscape:label="rocker:WIPER"><rect id="rect28" x="337" y="67" width="6" height="16" /></g>
+      <g id="g29" inkscape:label="keypad:ENTRY"><rect id="rect29" x="205" y="100" width="30" height="20" /></g>
+      <g id="g30" inkscape:label="slider:TRIM"><rect id="rect30" x="300" y="105" width="20" height="6" /></g>
+    </g>
+  </g>
+  <g inkscape:label="Reference" inkscape:groupmode="layer" id="layer2" style="display:none">
+    <g id="g90" inkscape:label="section:hidden"><rect id="rect90" x="0" y="0" width="10" height="10" /></g>
+  </g>
+</svg>

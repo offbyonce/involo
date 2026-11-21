@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-FileCopyrightText: 2026 offbyonce -->
+<!-- SPDX-License-Identifier: MIT -->
+<!-- An invented panel, saved the way Adobe Illustrator saves a drawing: a DOCTYPE with internal
+     entities, names escaped into ids (`_x3A_` for a colon, `_` for a space, `_1_` to keep ids
+     apart) or kept in data-name, colors in a style sheet, a matrix transform and a symbol. -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" [
+	<!ENTITY ns_flows "http://ns.example.com/Flows/1.0/">
+	<!ENTITY ns_extend "http://ns.example.com/Extensibility/1.0/">
+]>
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 300 120" style="enable-background:new 0 0 300 120;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:none;stroke:#000000;stroke-miterlimit:10;}
+	.st1{fill:#2E9E3F;}
+	.st2,.st3{fill:#FFFFFF;}
+</style>
+<defs>
+	<symbol id="rocker_shape" viewBox="-4 -8 8 16">
+		<rect x="-4" y="-8" width="8" height="16"/>
+	</symbol>
+</defs>
+<g id="section_x3A_hydraulics">
+	<rect x="10" y="10" class="st0" width="140" height="100"/>
+	<g id="toggle_x5F_switch_x3A_ENG_PUMP_A">
+		<path d="M35,30h10v20H35V30z"/>
+	</g>
+	<g id="light_x3A_LOW_PRESS_1_">
+		<circle class="st1" cx="80" cy="40" r="5"/>
+	</g>
+	<g id="selector_x3A_ELEC_PUMP" transform="matrix(0.7071 0.7071 -0.7071 0.7071 120 40)">
+		<ellipse cx="0" cy="0" rx="8" ry="5"/>
+	</g>
+	<use id="rocker_x3A_WIPER" xlink:href="#rocker_shape" x="60" y="80"/>
+</g>
+<g id="push_x5F_button_x3A_TEST">
+	<rect x="100" y="80" width="10" height="10"/>
+</g>
+<g id="section_x3A_brakes_1_" data-name="section:brakes">
+	<g id="handle_x3A_PARK_BRAKE" data-name="handle:PARK BRAKE">
+		<path class="st2" d="M170,30a10,10 0 1,0 20,0a10,10 0 1,0 -20,0"/>
+	</g>
+</g>
+</svg>
