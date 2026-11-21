@@ -31,6 +31,7 @@ now (References was the last). The version line lives at the foot of Settings.
     view,
     detail,
     essentials,
+    hasEssentials = true,
     onView,
     onDetail,
     onEssentials,
@@ -56,6 +57,8 @@ now (References was the last). The version line lives at the foot of Settings.
     view: StepLayout | null;
     detail: Detail;
     essentials: boolean;
+    /** The pack marks quick steps; without them there is no Full or Essentials to choose. */
+    hasEssentials?: boolean;
     onView: (view: StepLayout) => void;
     onDetail: (detail: Detail) => void;
     onEssentials: (on: boolean) => void;
@@ -191,10 +194,12 @@ now (References was the last). The version line lives at the foot of Settings.
           <button type="button" aria-pressed={view === "flow"} onclick={() => onView("flow")}>Step by step</button>
         </div>
       {/if}
-      <div class="seg" role="group" aria-label="Steps shown">
-        <button type="button" aria-pressed={!essentials} onclick={() => onEssentials(false)}>Full</button>
-        <button type="button" aria-pressed={essentials} onclick={() => onEssentials(true)}>Essentials</button>
-      </div>
+      {#if hasEssentials}
+        <div class="seg" role="group" aria-label="Steps shown">
+          <button type="button" aria-pressed={!essentials} onclick={() => onEssentials(false)}>Full</button>
+          <button type="button" aria-pressed={essentials} onclick={() => onEssentials(true)}>Essentials</button>
+        </div>
+      {/if}
       <div class="seg" role="group" aria-label="Step detail">
         <button type="button" aria-pressed={detail === "expanded"} onclick={() => onDetail("expanded")}>Detailed</button>
         <button type="button" aria-pressed={detail === "quick"} onclick={() => onDetail("quick")}>Simple</button>

@@ -49,6 +49,7 @@ expression: flat
       "basis": [
         "invented-example"
       ],
+      "method": "challenge_response",
       "steps": [
         {
           "id": "example-trainer.before-start.battery",
@@ -65,6 +66,8 @@ expression: flat
             }
           ],
           "quick": "always",
+          "role": "pm",
+          "respond": "capt",
           "why": "Gives the aircraft its first electrical power.",
           "check": "Voltage above 24 on the gauge",
           "if_not": "No voltage",
@@ -97,6 +100,8 @@ expression: flat
               }
             ]
           },
+          "role": "pm",
+          "respond": "fo",
           "panel_lights": {
             "battery": [
               "BATT LOW"
@@ -120,11 +125,13 @@ expression: flat
       "basis": [
         "prior-release"
       ],
+      "method": "read_and_do",
       "steps": [
         {
           "id": "example-trainer.start.walkaround",
           "text": "Nose area",
           "expect": "CLEAR",
+          "role": "capt",
           "walkaround": {
             "x": 160,
             "y": 40
@@ -143,6 +150,7 @@ expression: flat
             }
           ],
           "opens": "example-setup",
+          "role": "fo",
           "how": "computer",
           "explain": "computer-test"
         },
@@ -154,7 +162,8 @@ expression: flat
             "v1",
             "vr",
             "manual"
-          ]
+          ],
+          "role": "pf"
         },
         {
           "id": "example-trainer.start.warm-up",
@@ -184,7 +193,8 @@ expression: flat
               "at": "autoflight/autoflight/#alt",
               "set": "PULL"
             }
-          ]
+          ],
+          "role": "capt"
         },
         {
           "id": "example-trainer.start.seat-belts",
@@ -198,7 +208,8 @@ expression: flat
               "at": "autoflight/cabin/#seat-belts",
               "set": "ON"
             }
-          ]
+          ],
+          "role": "fo"
         },
         {
           "id": "example-trainer.start.radio",
@@ -232,11 +243,13 @@ expression: flat
       "memory": true,
       "when": "Smoke is seen or smelled.",
       "why": "Smoke can quickly make the crew unable to work.",
+      "method": "from_memory",
       "steps": [
         {
           "id": "example-trainer.smoke.masks",
           "text": "Oxygen masks",
-          "expect": "ON"
+          "expect": "ON",
+          "role": "pf"
         },
         {
           "id": "example-trainer.smoke.checklist",
@@ -415,7 +428,127 @@ expression: flat
             "height": 30.0,
             "label": "ELEC 2"
           }
-        ]
+        ],
+        "views": {
+          "seat": {
+            "left": {
+              "width": 200.0,
+              "height": 100.0,
+              "shapes": [
+                {
+                  "points": [
+                    [
+                      20.0,
+                      20.0
+                    ],
+                    [
+                      96.0,
+                      18.0
+                    ],
+                    [
+                      96.0,
+                      56.0
+                    ],
+                    [
+                      24.0,
+                      58.0
+                    ]
+                  ],
+                  "closed": true,
+                  "role": "glass"
+                },
+                {
+                  "points": [
+                    [
+                      104.0,
+                      18.0
+                    ],
+                    [
+                      180.0,
+                      20.0
+                    ],
+                    [
+                      176.0,
+                      58.0
+                    ],
+                    [
+                      104.0,
+                      56.0
+                    ]
+                  ],
+                  "closed": true,
+                  "role": "glass"
+                }
+              ],
+              "labels": [
+                {
+                  "text": "FROM THE LEFT SEAT",
+                  "x": 100.0,
+                  "y": 84.0,
+                  "anchor": "middle"
+                }
+              ]
+            },
+            "right": {
+              "width": 200.0,
+              "height": 100.0,
+              "shapes": [
+                {
+                  "points": [
+                    [
+                      20.0,
+                      20.0
+                    ],
+                    [
+                      96.0,
+                      18.0
+                    ],
+                    [
+                      96.0,
+                      56.0
+                    ],
+                    [
+                      24.0,
+                      58.0
+                    ]
+                  ],
+                  "closed": true,
+                  "role": "glass"
+                },
+                {
+                  "points": [
+                    [
+                      104.0,
+                      18.0
+                    ],
+                    [
+                      180.0,
+                      20.0
+                    ],
+                    [
+                      176.0,
+                      58.0
+                    ],
+                    [
+                      104.0,
+                      56.0
+                    ]
+                  ],
+                  "closed": true,
+                  "role": "glass"
+                }
+              ],
+              "labels": [
+                {
+                  "text": "FROM THE RIGHT SEAT",
+                  "x": 100.0,
+                  "y": 84.0,
+                  "anchor": "middle"
+                }
+              ]
+            }
+          }
+        }
       }
     },
     "notes": {
@@ -1140,8 +1273,40 @@ expression: flat
         "challenge_response": "Challenge and response",
         "from_memory": "From memory"
       },
-      "seats": [],
-      "roles": [],
+      "seats": [
+        {
+          "id": "left",
+          "title": "Left seat"
+        },
+        {
+          "id": "right",
+          "title": "Right seat"
+        }
+      ],
+      "roles": [
+        {
+          "id": "capt",
+          "title": "Captain",
+          "short": "CAPT",
+          "seat": "left"
+        },
+        {
+          "id": "fo",
+          "title": "First officer",
+          "short": "F/O",
+          "seat": "right"
+        },
+        {
+          "id": "pf",
+          "title": "Pilot flying",
+          "short": "PF"
+        },
+        {
+          "id": "pm",
+          "title": "Pilot monitoring",
+          "short": "PM"
+        }
+      ],
       "reference": {
         "title": "Emergency",
         "groups": [
@@ -1159,7 +1324,7 @@ expression: flat
           }
         ]
       },
-      "seat_view_title": "From the captain seat: which side",
+      "seat_view_title": "From the seat: which side",
       "panel_states": {
         "title": "Panel state",
         "description": "Loaded a saved panel state in the simulator? Pick it to tick the steps it has already set and start where the airplane is. Steps it can't set stay open.",

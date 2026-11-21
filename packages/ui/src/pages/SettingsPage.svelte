@@ -12,8 +12,20 @@ on the device (decision 0012).
   let {
     settings,
     version,
+    seats = [],
+    hasEssentials = true,
     onChange,
-  }: { settings: Settings; version: string | null; onChange: (s: Settings) => void } = $props();
+  }: {
+    settings: Settings;
+    version: string | null;
+    /** Your seat's choices (decision 0029); none for a pack with one seat view or none. */
+    seats?: { id: string; label: string }[];
+    /** The pack marks quick steps; without them the Steps row (Full or Essentials) is left out. */
+    hasEssentials?: boolean;
+    onChange: (s: Settings) => void;
+  } = $props();
+  /** No seat chosen yet: "Where is this?" shows the first seat's view, so that one is selected. */
+  let seat = $derived(seats.some((s) => s.id === settings.seat) ? settings.seat : (seats[0]?.id ?? null));
   /** The release notes, on the project's own releases page. */
   const RELEASES = "https://github.com/offbyonce/involo/releases";
 
@@ -97,9 +109,22 @@ on the device (decision 0012).
     </div>
     <Toggle on={settings.panelPreview} labelledby="set-preview" onToggle={() => onChange({ ...settings, panelPreview: !settings.panelPreview })} />
   </div>
+  {#if seats.length > 1}
+    <!-- Settings › Your seat (SeatSetting board): the title, the seats, then what it does. Both
+         choices on one line when they fit; otherwise one under the other, never cut short. -->
+    <div class="set seat">
+      <b id="set-seat">Your seat</b>
+      <div class="seg seats" role="radiogroup" aria-labelledby="set-seat">
+        {#each seats as s (s.id)}
+          <button type="button" role="radio" aria-checked={seat === s.id} onclick={() => onChange({ ...settings, seat: s.id })}>{s.label}</button>
+        {/each}
+      </div>
+      <p>Panel views show what you see from this seat.</p>
+    </div>
+  {/if}
 {/snippet}
 <div class="card">
-  {#each ROWS as row (row.key)}
+  {#each ROWS.filter((r) => hasEssentials || r.key !== "essentials") as row (row.key)}
     <div class="set">
       <div>
         <b id="set-{row.key}">{row.title}</b>
@@ -190,6 +215,25 @@ on the device (decision 0012).
     background: var(--color-surface);
     box-shadow: inset 0 0 0 var(--size-focus-ring) var(--color-accent);
     color: var(--color-text);
+  }
+  /* Your seat: stacked, its seats side by side when both fit whole, else one per line. */
+  .set.seat {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    gap: var(--space-3);
+  }
+  .set.seat p {
+    margin: 0;
+  }
+  .seats {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+  .seats button {
+    flex: 1 1 auto;
+    padding-block: var(--space-2);
+    text-align: center;
   }
   /* The toggle switch (rules.md components; R6Settings). */
   .done {

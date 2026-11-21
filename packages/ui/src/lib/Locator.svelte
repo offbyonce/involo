@@ -9,6 +9,7 @@ from the seat, the side and seat views, the legend, and "Open in Flight deck", w
 Flight deck page at this panel. All from the pack, in the panel palette.
 -->
 <script lang="ts">
+  import { getSeatView } from "./seat-view";
   import { areaOf, deckAreas, deckHref } from "./deck";
   import type { Zone } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
@@ -25,6 +26,8 @@ Flight deck page at this panel. All from the pack, in the panel palette.
     /** Drawn as a plain link (the side pane's "Where is this?"), not a pill button. */
     link?: boolean;
   } = $props();
+  /** The seat frame for this step, as Rust picked it (seat-view.ts). */
+  const seat = getSeatView();
 
   let dialog = $state<HTMLDialogElement | null>(null);
   let trigger = $state<HTMLButtonElement | null>(null);
@@ -109,13 +112,13 @@ Flight deck page at this panel. All from the pack, in the panel palette.
       <button class="close" type="button" aria-label="Close" onclick={close}><Icon name="x" /></button>
     </div>
     {#if region?.locate}<p class="locate">{region.locate}</p>{/if}
-    {#if overview.views?.side || index.seatFrame}
+    {#if overview.views?.side || seat.frame}
       <div class="views">
         {#if overview.views?.side}
           <ViewDrawing frame={overview.views.side} region={region?.name ?? null} kind="side" title="From the side: how high, how far" />
         {/if}
-        {#if index.seatFrame}
-          <ViewDrawing frame={index.seatFrame} region={region?.name ?? null} kind="seat" title="From the captain seat: which side" />
+        {#if seat.frame}
+          <ViewDrawing frame={seat.frame} region={region?.name ?? null} kind="seat" title={index.labels.seatViewTitle} />
         {/if}
       </div>
     {/if}

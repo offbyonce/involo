@@ -18,8 +18,10 @@ describe("pack labels", () => {
   const labels = iflyPack().content.labels;
 
   it("match the words the interface shows today", () => {
-    expect(source["Slideout.svelte"]).toContain(`title="${labels.seatViewTitle}"`);
-    expect(source["Locator.svelte"]).toContain(`title="${labels.seatViewTitle}"`);
+    // The seat view's title comes from the labels (#133); the iFly pack's is the title shown before.
+    expect(source["Slideout.svelte"]).toContain("title={index.labels.seatViewTitle}");
+    expect(source["Locator.svelte"]).toContain("title={index.labels.seatViewTitle}");
+    expect(labels.seatViewTitle).toBe("From the captain seat: which side");
     // The examples Find showed before it read them from the labels.
     expect(labels.findExamples).toEqual(["Fuel panel", "Parking brake", "MCP", "Transponder"]);
   });

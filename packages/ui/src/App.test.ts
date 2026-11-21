@@ -3,9 +3,11 @@
 
 import type {
   Action,
+  ControlsFile,
   FlatPack,
   Flight,
   Loaded,
+  Overview,
   PackChanges,
   PhaseModel,
   PracticeResult,
@@ -13,7 +15,9 @@ import type {
   RailPhase,
   SavedPlan,
   Settings,
+  Step,
   StepState,
+  ViewFrame,
 } from "@involo/bindings";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -196,6 +200,7 @@ function host(overrides: Partial<Host> = {}): Host {
     phaseModel: async () => view(["skipped", "current"]),
     openSteps: async () => [],
     suggestion: async () => null,
+    seatFrame: async () => null,
     readSaved: async () => ({ flight: null, settings: null }),
     save: async () => 0,
     setAside: async () => true,
@@ -444,6 +449,46 @@ describe("App", () => {
     states = ["skipped", "current"];
   });
 
+  it("a pack with no quick steps offers no Essentials: not in the menu, nor in a row's menu, and shows in Full (#133)", async () => {
+    const plain = structuredClone(pack);
+    for (const list of plain.lists) for (const step of list.steps) step.quick = null;
+    const asked: Settings[] = [];
+    const saved = {
+      theme: "dark",
+      dimming: 0,
+      detail: "expanded",
+      listView: "checklist",
+      tourSeen: true,
+      essentials: true,
+    } as Settings;
+    render(App, {
+      context: hostContext(
+        host({
+          loadPack: async () => plain,
+          readSaved: async () => ({
+            flight: null,
+            settings: {
+              loaded: { state: "ready", value: saved, migratedFrom: null } as Loaded<Settings>,
+              text: "{}",
+            },
+          }),
+          phaseModel: async (_p, _f, s) => {
+            asked.push(s);
+            return view(["skipped", "current"]);
+          },
+        }),
+      ),
+    });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.click(screen.getByRole("button", { name: "More actions for Battery" }));
+    expect(screen.queryByRole("menuitem", { name: /Essentials/ })).toBeNull();
+    await fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    expect(screen.queryByRole("group", { name: "Steps shown" })).toBeNull();
+    // Saved as Essentials, but the pack has none: no second, Full list is fetched to compare with.
+    expect(asked.length).toBeGreaterThan(0);
+    expect(asked.some((s) => !s.essentials)).toBe(false);
+  });
+
   it("shows the options the pack asks for on a phase as cards, and applies a choice", async () => {
     const actions: Action[] = [];
     const h = host({
@@ -601,6 +646,73 @@ describe("App", () => {
     const intro = container.querySelector(".when")?.textContent ?? "";
     expect(intro).toContain("When · Cold and dark.");
     expect(intro).toContain("Why · Power comes first.");
+  });
+
+  it("asks Rust for the seat view with the step's role and the pilot's seat, again when either changes, and draws it (#133)", async () => {
+    // The demo pack with two seat views and crew roles; its standby step is done by the first officer.
+    const frame = (text: string) =>
+      ({ width: 100, height: 50, labels: [{ text, x: 50, y: 25 }] }) as ViewFrame;
+    const crewed = structuredClone(pack);
+    crewed.content.labels.seats = [
+      { id: "left", title: "Left seat" },
+      { id: "right", title: "Right seat" },
+    ];
+    crewed.content.labels.roles = [
+      { id: "capt", title: "Captain", short: "CAPT", seat: "left" },
+      { id: "fo", title: "First officer", short: "F/O", seat: "right" },
+    ];
+    (crewed.lists[0]?.steps[1] as Step).role = "fo";
+    (crewed.content.controls as ControlsFile).overview = {
+      width: 100,
+      height: 50,
+      captions: [],
+      areas: [],
+      regions: [],
+      views: { seat: { left: frame("LEFT"), right: frame("RIGHT") } },
+    } as unknown as Overview;
+    const asked: [string, string | null, string | null][] = [];
+    const saved = {
+      theme: "dark",
+      dimming: 0,
+      detail: "expanded",
+      listView: "checklist",
+      tourSeen: true,
+      seat: "left",
+    } as Settings;
+    render(App, {
+      context: hostContext(
+        host({
+          loadPack: async () => crewed,
+          readSaved: async () => ({
+            flight: null,
+            settings: {
+              loaded: { state: "ready", value: saved, migratedFrom: null } as Loaded<Settings>,
+              text: "{}",
+            },
+          }),
+          seatFrame: async (id, role, chosen) => {
+            asked.push([id, role, chosen]);
+            return frame(`${role ?? "none"} from ${chosen ?? "none"}`);
+          },
+        }),
+      ),
+    });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    // The current step, standby, is the first officer's: Rust is asked with its role and the seat.
+    await waitFor(() => expect(asked.at(-1)).toEqual(["demo", "fo", "left"]));
+    // Where it is draws what Rust picked, titled from the labels.
+    await fireEvent.keyDown(window, { key: "w" });
+    await waitFor(() => expect(screen.getByText("fo from left")).toBeTruthy());
+    expect(screen.getByText(crewed.content.labels.seatViewTitle)).toBeTruthy();
+    await fireEvent.keyDown(window, { key: "Escape" });
+    // A step with no role: asked with none.
+    await fireEvent.click(screen.getByRole("button", { name: /^Battery/ }));
+    await waitFor(() => expect(asked.at(-1)).toEqual(["demo", null, "left"]));
+    // Settings › Your seat: the other seat, and Rust is asked again.
+    window.location.hash = "#/settings";
+    const seat = await screen.findByRole("radiogroup", { name: "Your seat" });
+    await fireEvent.click(within(seat).getByRole("radio", { name: "Right seat · First officer" }));
+    await waitFor(() => expect(asked.some(([, , chosen]) => chosen === "right")).toBe(true));
   });
 
   it("shows the current step in a large box in Step by step view", async () => {

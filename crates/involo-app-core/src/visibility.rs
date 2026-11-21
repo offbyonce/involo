@@ -43,9 +43,11 @@ pub struct Shown<'a> {
 }
 
 impl<'a> Shown<'a> {
+    /// Essentials applies only to a pack that marks quick steps; any other pack shows in Full,
+    /// since it offers no Essentials to choose (#133).
     pub fn new(pack: &'a FlatPack, settings: &'a Settings) -> Self {
         Self {
-            essentials: settings.essentials,
+            essentials: settings.essentials && has_essentials(pack),
             changes: settings.essentials_changes.get(&pack.manifest.id),
             turnaround: pack
                 .content
@@ -54,6 +56,14 @@ impl<'a> Shown<'a> {
                 .and_then(|p| p.turnaround.as_ref()),
         }
     }
+}
+
+/// Whether the pack marks any step for Essentials (`quick`); without one there is no Essentials.
+pub fn has_essentials(pack: &FlatPack) -> bool {
+    pack.lists
+        .iter()
+        .flat_map(|l| &l.steps)
+        .any(|s| s.quick.is_some())
 }
 
 /// Whether a step is in Essentials for these options: the pilot's changes first, then the pack.
@@ -109,6 +119,28 @@ mod tests {
             option: option.into(),
             equals: value.into(),
         }
+    }
+
+    #[test]
+    fn a_pack_with_no_quick_steps_offers_no_essentials_and_shows_in_full() {
+        let mut pack = crate::test_support::example_pack();
+        let settings = Settings {
+            essentials: true,
+            ..Settings::default()
+        };
+        assert!(has_essentials(&pack));
+        assert!(Shown::new(&pack, &settings).essentials);
+        for step in pack.lists.iter_mut().flat_map(|l| &mut l.steps) {
+            step.quick = None;
+        }
+        assert!(!has_essentials(&pack));
+        let shown = Shown::new(&pack, &settings);
+        assert!(!shown.essentials);
+        let list = &pack.lists[0];
+        assert_eq!(
+            shown_steps(list, &BTreeMap::new(), shown, false).count(),
+            visible_steps(list, &BTreeMap::new()).count()
+        );
     }
 
     #[test]

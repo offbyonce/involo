@@ -234,6 +234,10 @@ const SHOTS = [
   ["PacksUpdate", { layout: "update" }, 880, 1020, "Packs"],
   ["PacksSimbrief", { layout: "simbrief" }, 1440, 900, "Packs"],
   ["PacksLog", { layout: "log" }, 1040, 520, "Packs"],
+  // Crew roles and list methods (docs/design/boards/Roles.dc.html).
+  ["RolesDesk", { layout: "desktop" }, 1440, 900, "Roles"],
+  ["RolesPhone", { layout: "phone" }, 390, 844, "Roles"],
+  ["SeatSetting", { layout: "settings" }, 720, 300, "Roles"],
 ];
 
 async function main() {

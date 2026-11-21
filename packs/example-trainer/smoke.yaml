@@ -8,12 +8,14 @@ title: Smoke in the cabin
 kind: non-normal
 basis: [invented-example]
 memory: true
+method: from_memory
 when: Smoke is seen or smelled.
 why: Smoke can quickly make the crew unable to work.
 steps:
   - id: example-trainer.smoke.masks
     text: Oxygen masks
     expect: 'ON'
+    role: pf
 
   - id: example-trainer.smoke.checklist
     text: Reference checklist

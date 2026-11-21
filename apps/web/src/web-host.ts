@@ -36,6 +36,7 @@ import {
   practiceResult,
   rail,
   reconcile,
+  seatFrame,
   suggestion,
 } from "./core";
 import { readLog as readLogText, writeLog } from "./log-store.js";
@@ -150,6 +151,7 @@ export const webHost: Host = {
   rail,
   phaseModel,
   openSteps,
+  seatFrame,
   suggestion,
   readSaved,
   readSettings,

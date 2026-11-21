@@ -1,11 +1,13 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
+import type { ViewFrame } from "@involo/bindings";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
 import { iflyPack } from "../test-pack";
 import Slideout from "./Slideout.svelte";
+import { seatViewContext } from "./seat-view";
 
 const pack = iflyPack();
 const index = indexPack(pack);
@@ -57,10 +59,18 @@ describe("Slideout", () => {
   });
 
   it("opens from Where is this? with Where it is expanded: the views and the area map", () => {
-    render(Slideout, props("where"));
+    // The seat frame comes from the app, as Rust picked it (seat-view.ts); its title, from the labels.
+    const frame = pack.content.controls?.overview?.views?.seat as ViewFrame;
+    render(Slideout, { props: props("where"), context: seatViewContext({ frame }) });
     expect(screen.getByRole("button", { name: "Where it is" }).getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByText("From the side: how high, how far")).toBeTruthy();
     expect(screen.getByText("From the captain seat: which side")).toBeTruthy();
+  });
+
+  it("draws no seat view when the app gives none", () => {
+    render(Slideout, props("where"));
+    expect(screen.getByText("From the side: how high, how far")).toBeTruthy();
+    expect(screen.queryByText("From the captain seat: which side")).toBeNull();
   });
 
   it("opens on a control's card, its control ringed, Where it is folded", () => {

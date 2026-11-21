@@ -104,6 +104,11 @@ folded to one line with its count until the phase's procedure is done.
   });
   /** The alert messages that call for this list (MsgEmergency); none without messages. */
   let calledBy = $derived(index.messagesCalling(list.id));
+  /** How the list is used, in the pack's words, and its kind (Roles board); no method, no line. */
+  let method = $derived(index.listMethod(list.id));
+  let kind = $derived(index.listKind(list.id) ?? "");
+  /** Challenge and response: who calls and who answers, in columns of their own. */
+  let pair = $derived(source?.method === "challenge_response");
   let counts = $derived(
     `${list.progress.done} of ${list.progress.total} done${list.progress.skipped ? ` · ${list.progress.skipped} skipped` : ""}`,
   );
@@ -113,19 +118,28 @@ folded to one line with its count until the phase's procedure is done.
   <!-- Folded until the procedure is done (Checklist board): one line with its count. -->
   <button class="card folded" type="button" aria-expanded="false" onclick={() => (openList = true)}>
     <span class="ft">{list.title}</span>
-    <span class="fd">{index.labels.methods.challengeResponse} · opens when the procedure is done</span>
+    <span class="fd">{method ? `${method} · opens when the procedure is done` : "Opens when the procedure is done"}</span>
     <span class="fill"></span>
     <span class="fd">{list.progress.done} of {list.progress.total} ⌄</span>
   </button>
 {:else}
 <section class="card" class:large aria-labelledby="list-{list.id}">
   <header>
-    <h2 id="list-{list.id}">{list.title}</h2>
+    <span class="ttl">
+      <h2 id="list-{list.id}">{list.title}</h2>
+      {#if method}<span class="how">{kind} · {method}</span>{/if}
+    </span>
     <span class="count">{counts}</span>
     {#if touched}<button class="clear" type="button" onclick={() => onClear(list.id)}>Clear ticks</button>{/if}
   </header>
   <!-- Tablet and phone: a later list starts with a plain label, the fold's text. -->
-  <p class="label" aria-hidden="true">{list.title} · {list.progress.done} of {list.progress.total}</p>
+  {#if method}
+    <!-- Tablet and phone (Roles board): how the list is used and its count; a later list names
+         itself first, as its label row did. -->
+    <p class="strip" aria-hidden="true"><span><span class="st">{`${list.title} · `}</span>{method}</span><span>{counts}</span></p>
+  {:else}
+    <p class="label" aria-hidden="true">{list.title} · {list.progress.done} of {list.progress.total}</p>
+  {/if}
   {#each calledBy as m (m.id)}
     <div class="called">
       <span class="bell"><Icon name="bell" /></span>
@@ -148,6 +162,9 @@ folded to one line with its count until the phase's procedure is done.
       <button class="show" type="button" aria-expanded={showDone} onclick={() => (showDone = !showDone)}>{showDone ? "Hide" : "Show"}</button>
     </div>
   {/if}
+  {#if pair}
+    <div class="heads" aria-hidden="true"><span></span><span>Calls</span><span>Challenge</span><span>Answers</span><span>Response</span></div>
+  {/if}
   <ol class="items" class:rest={unfolded}>
     {#each shown as row (row.id)}
       {@const step = index.step(row.id)}
@@ -159,6 +176,7 @@ folded to one line with its count until the phase's procedure is done.
           {detail}
           {large}
           full={full || more}
+          {pair}
           doneAt={flight.session.done[row.id]}
           selected={selected === row.id}
           marked={marksStep(selected, row.id, row.state)}
@@ -213,8 +231,18 @@ folded to one line with its count until the phase's procedure is done.
     padding: 0 var(--space-4) 0 calc(var(--space-4) + var(--space-1));
     border-bottom: var(--border-thin) solid var(--color-line);
   }
-  h2 {
+  .ttl {
+    display: flex;
     flex: 1;
+    flex-direction: column;
+    gap: var(--border-thick);
+    min-width: 0;
+  }
+  .how {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-secondary);
+  }
+  h2 {
     margin: 0;
     font-size: var(--font-size-body);
     font-weight: var(--weight-semibold);
@@ -433,5 +461,50 @@ folded to one line with its count until the phase's procedure is done.
   .called .means :global(svg) {
     width: var(--size-icon-small);
     height: var(--size-icon-small);
+  }
+  /* How the list is used, on tablet and phone (Roles board): method left, count right. */
+  .strip {
+    display: none;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin: 0;
+    padding: calc(var(--space-2) + var(--border-thick)) calc(var(--space-3) + var(--border-thick));
+    border-bottom: var(--border-thin) solid var(--color-line);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-secondary);
+  }
+  .strip .st {
+    display: none;
+  }
+  @media (max-width: 1439px) {
+    section.card:not(.large) > .strip {
+      display: flex;
+    }
+    :global(.card) ~ section.card:not(.large) > .strip .st {
+      display: inline;
+    }
+  }
+  /* Column headings over a challenge-and-response list (Roles board), on the rows' own grid. */
+  .heads {
+    display: grid;
+    grid-template-columns:
+      calc(var(--size-touch-min) - var(--space-1)) calc(var(--space-8) * 2) minmax(0, 1fr)
+      calc(var(--space-8) * 2) 34% var(--size-touch-min);
+    column-gap: var(--space-3);
+    padding: var(--space-2) var(--space-1) var(--space-2) var(--space-4);
+    border-bottom: var(--border-thin) solid var(--color-line);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-caption);
+    font-weight: var(--weight-semibold);
+  }
+  @media (max-width: 1439px) {
+    .heads {
+      column-gap: calc(var(--space-2) + var(--border-thick));
+    }
+  }
+  @media (max-width: 599px) {
+    .heads {
+      display: none;
+    }
   }
 </style>

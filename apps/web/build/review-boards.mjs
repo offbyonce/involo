@@ -57,6 +57,12 @@ export const REVIEW_BOARDS = {
   "board-log-packs": { desktop: "PacksLog", phone: "PacksLog" },
   "board-log-pack": { desktop: "PacksLog", phone: "PacksLog" },
   "board-refs": { desktop: "RefsDesk", phone: "RefsPhone" },
+  // The Checklist board (the challenge-and-response list folded until its procedure is done).
+  "board-checklist": { desktop: "Checklist" },
+  // Crew roles and list methods (#133, Roles.dc.html). RolesDesk draws desktop and tablet.
+  "board-roles": { desktop: "RolesDesk", "tablet-landscape": "RolesDesk", tablet: "RolesDesk", phone: "RolesPhone" },
+  "board-roles-procedure": { desktop: "RolesDesk", phone: "RolesPhone" },
+  "board-seat": { desktop: "SeatSetting", phone: "SeatSetting" },
   // Several packs (Packs.dc.html).
   "board-packs-two": { desktop: "PacksDesktop", phone: "PacksPhone" },
   "board-packs-first": { desktop: "PacksFirst" },

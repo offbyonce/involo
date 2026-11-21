@@ -32,6 +32,7 @@ import type {
   SavedPlan,
   Settings,
   Suggestion,
+  ViewFrame,
 } from "@involo/bindings";
 import init, * as wasm from "./wasm/involo_web_host.js";
 
@@ -90,6 +91,16 @@ export async function comparePacks(old: string, next: string): Promise<PackChang
 export async function reconcile(pack: string, flight: Flight): Promise<Flight> {
   await load();
   return unwrap<Flight>(wasm.reconcile_flight(pack, JSON.stringify(flight)));
+}
+
+/** The seat frame "Where is this?" draws for a step done by `role`, with the chosen seat. */
+export async function seatFrame(
+  pack: string,
+  role: string | null,
+  chosen: string | null,
+): Promise<ViewFrame | null> {
+  await load();
+  return unwrap<ViewFrame | null>(wasm.seat_frame(pack, role ?? "", chosen ?? ""));
 }
 
 /** Reads the pack catalog, `packs/index.json`. */

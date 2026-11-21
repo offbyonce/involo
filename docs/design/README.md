@@ -246,6 +246,38 @@ Pack names other than iFly, versions, sizes, step names, the reworded text and t
 on these boards are invented examples; the app builds everything from the pack, the catalog and the
 flight.
 
+**Crew roles and list methods (2026-11-17).** `Roles.dc.html` draws decision 0029's crew roles,
+list methods and seat setting (#133), dark and light: `RolesDesk` (a challenge-and-response
+checklist and a read-and-do procedure, desktop and tablet), `RolesPhone` (the challenge-and-response
+list on a phone) and `SeatSetting` (Settings › Your seat). The build may improve on these boards
+but never be worse in any state, theme or size; each change from a board is listed with before and
+after shots in its pull request.
+
+- **Only when the pack says so.** No roles in the pack: no tags. No `method` on a list: no method
+  line. Fewer than two seat views: no seat setting.
+- **Role tags** show the role's short name (labels `roles[].short`), with its full name
+  (`roles[].title`) as what a screen reader says. Neutral only: Geist Mono 11 semibold,
+  color.text-secondary, a color.border outline, radius 4. Roles are never colored, so status
+  colors keep their meaning.
+- **List method:** the pack's label for it, under the list title beside the list's kind
+  ("Checklist · Challenge and response"). On tablet and phone, where the card header is hidden, a
+  strip above the rows shows the method and the count; a later list's strip names the list first.
+  A checklist folded until its procedure is done reads "<method> · opens when the procedure is
+  done", or "Opens when the procedure is done" without a method.
+- **Challenge and response** (`method: challenge_response`): each row shows who calls (`role`) and
+  who answers (`respond`). Desktop and tablet have columns headed Calls, Challenge, Answers and
+  Response; on a phone the caller's tag sits on the name line and the answerer's on the value line.
+  Step by step does the same as the phone.
+- **Other lists:** the step's role tag after its name; in Step by step, before it.
+- **Your seat** (Settings, right after Panel preview in steps): the pack's seats, each named with
+  the role that sits there ("Left seat · Captain"), saved in settings format 7. Both choices sit side
+  by side when they fit whole, otherwise one under the other; a name is never cut short. "Where is
+  this?" shows the frame for the seat of the step's role, then this setting, then the first frame.
+- Rows, rings, the current step's bar, Done and Skip are unchanged.
+
+The lists, roles and values on these boards are invented examples; the app builds everything from
+the pack.
+
 ## Read in this order
 
 1. `rules.md`: what the tokens mean and the rules every screen follows.

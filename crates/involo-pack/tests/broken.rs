@@ -122,7 +122,7 @@ mod tests {
         put(&mut pack, "smoke.yaml", &yaml[..cut]);
         refused_with(&pack, &[], &format!("{}:", file("smoke.yaml")));
         assert!(
-            refusal(&pack, &[]).contains("line 16"),
+            refusal(&pack, &[]).contains("line 17"),
             "{}",
             refusal(&pack, &[])
         );
@@ -178,7 +178,7 @@ mod tests {
                 "{said}"
             );
             assert!(
-                said.contains("line 17")
+                said.contains("line 18")
                     && said.contains(
                         "maps and lists nest too deeply; a pack file may nest them at most 64 deep"
                     ),
@@ -205,7 +205,7 @@ mod tests {
             "{said}"
         );
         assert!(
-            said.contains("line 17")
+            said.contains("line 18")
                 && said.contains(
                     "the file has more than 250000 values (maps, lists and the values in them)"
                 ),

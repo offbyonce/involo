@@ -17,6 +17,7 @@ value on the right. The pilot confirms each step; the app never knows a switch p
   import { phaseHref } from "../route.svelte";
   import ContextPane from "./ContextPane.svelte";
   import Icon from "./Icon.svelte";
+  import RoleTag from "./RoleTag.svelte";
   import StepDetail from "./StepDetail.svelte";
 
   let {
@@ -50,6 +51,9 @@ value on the right. The pilot confirms each step; the app never knows a switch p
   let step = $derived<Step | undefined>(entry ? index.step(entry.row.id) : undefined);
   let fill = $derived(step ? fillParts(step.expect) : null);
   let place = $derived(step ? index.place(step) : null);
+  /** Who does the step and, in a challenge-and-response list, who answers (decision 0029). */
+  let role = $derived(step ? index.role(step.role) : undefined);
+  let responder = $derived(step ? index.role(step.respond) : undefined);
   /** Whether the step sets a control (its value names a position), or only checks something. */
   let sets = $derived(entry?.row.targets.some((t) => t.position != null) ?? false);
   let next = $derived.by(() => {
@@ -85,21 +89,43 @@ value on the right. The pilot confirms each step; the app never knows a switch p
     {#if place && detail === "expanded"}<p class="crumb">{place.zone.area} · {place.zone.title}</p>{/if}
 
     <section class="box {entry.row.state}" aria-labelledby="flow-step">
-      <h1
-        id="flow-step"
-        style:--len={step.text.length}
-        style:--longest={Math.max(...step.text.split(/\s+/).map((w) => w.length))}
-      >
-        {step.text}
-      </h1>
-      {#if fill}
-        <div class="value fill">
-          <BlankFields name={step.text} blanks={fill.blanks} rest={fill.rest} values={entry.row.values} links={blankLinks(step.fill ?? [])} onBlank={(n, v) => onBlank(step.id, n, v)} />
+      {#snippet title(s: Step)}
+        <h1
+          id="flow-step"
+          style:--len={s.text.length}
+          style:--longest={Math.max(...s.text.split(/\s+/).map((w) => w.length))}
+        >
+          {s.text}
+        </h1>
+      {/snippet}
+      {#snippet value(s: Step, e: NonNullable<typeof entry>)}
+        {#if fill}
+          <div class="value fill">
+            <BlankFields name={s.text} blanks={fill.blanks} rest={fill.rest} values={e.row.values} links={blankLinks(s.fill ?? [])} onBlank={(n, v) => onBlank(s.id, n, v)} />
+          </div>
+        {:else}
+          <p class="value">{stepValue(s)}</p>
+        {/if}
+      {/snippet}
+      <!-- Roles (as on the phone's Roles board): the tag before the name; in a challenge-and-
+           response list, the answerer's before the value. -->
+      {#if role}
+        <div class="line">
+          <RoleTag {role} />{#if responder}<span class="sr-only">, calls</span>{/if}
+          {@render title(step)}
         </div>
       {:else}
-        <p class="value">{stepValue(step)}</p>
-        {#if entry.row.hint}<p class="vh">{entry.row.hint}</p>{/if}
+        {@render title(step)}
       {/if}
+      {#if responder}
+        <div class="line">
+          <RoleTag role={responder} /><span class="sr-only">, answers</span>
+          {@render value(step, entry)}
+        </div>
+      {:else}
+        {@render value(step, entry)}
+      {/if}
+      {#if !fill && entry.row.hint}<p class="vh">{entry.row.hint}</p>{/if}
       <p class="state">
         {#if entry.row.state === "done"}<Icon name="check" /> Done. Confirm again to move on.
         {:else if entry.row.state === "skipped"}<Icon name="skip" /> Skipped, still open
@@ -367,5 +393,12 @@ value on the right. The pilot confirms each step; the app never knows a switch p
     background: var(--color-surface-2);
     color: var(--color-done);
     text-transform: uppercase;
+  }
+  /* A name or value with its role tag before it, on the first line's baseline. */
+  .line {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    min-width: 0;
   }
 </style>

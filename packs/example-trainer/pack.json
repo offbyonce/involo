@@ -29,5 +29,6 @@
   "cdu": "cdu.yaml",
   "aliases": "aliases.yaml",
   "flight": "flight.yaml",
-  "messages": "messages.yaml"
+  "messages": "messages.yaml",
+  "labels": "labels.yaml"
 }

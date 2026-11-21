@@ -17,6 +17,7 @@ mod phase_model;
 mod plans;
 mod rail;
 mod saved;
+mod seat;
 mod settings;
 mod suggest;
 mod targets;
@@ -47,6 +48,7 @@ pub use plans::{
 };
 pub use rail::{Rail, RailPhase, RailStage, rail};
 pub use saved::{Loaded, load_flight, load_plan, load_settings};
+pub use seat::seat_frame;
 pub use settings::{
     Detail, EssentialsChanges, MAX_DIMMING, SETTINGS_FORMAT, Settings, StepLayout, TextSize, Theme,
 };
@@ -55,5 +57,7 @@ pub use targets::{ItemTarget, step_targets};
 pub use update::{
     ChangedStep, PackChanges, RewordedStep, Rewording, UpdateNote, pack_changes, reconcile,
 };
-pub use visibility::{Shown, in_essentials, passes, shown_steps, step_shows, visible_steps};
+pub use visibility::{
+    Shown, has_essentials, in_essentials, passes, shown_steps, step_shows, visible_steps,
+};
 pub use weather::{Altimeter, Decoded, DecodedRow, Element, altimeter, decode_metar, decode_taf};

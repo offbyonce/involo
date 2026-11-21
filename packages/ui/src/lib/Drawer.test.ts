@@ -137,4 +137,13 @@ describe("Drawer", () => {
       "#/flight/overview",
     );
   });
+
+  it("offers Full or Essentials only for a pack with quick steps (#133)", () => {
+    render(Drawer, base);
+    expect(screen.getByRole("group", { name: "Steps shown" })).toBeTruthy();
+    cleanup();
+    render(Drawer, { ...base, hasEssentials: false });
+    expect(screen.queryByRole("group", { name: "Steps shown" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Essentials" })).toBeNull();
+  });
 });

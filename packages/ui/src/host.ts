@@ -31,6 +31,7 @@ import type {
   Settings,
   Suggestion,
   Theme,
+  ViewFrame,
 } from "@involo/bindings";
 import { getContext } from "svelte";
 
@@ -77,6 +78,10 @@ export interface Host {
   openSteps(pack: string, flight: Flight, settings: Settings, before?: string): Promise<OpenStep[]>;
   /** The answer an option's rule suggests from the flight's values, or null (decision 0027). */
   suggestion(pack: string, flight: Flight, option: string): Promise<Suggestion | null>;
+  /** The seat frame "Where is this?" draws for a step done by `role`, with the pilot's `chosen`
+   * seat: the role's seat, then the chosen one, then the first (decision 0029). Null when the
+   * pack draws no seat view. */
+  seatFrame(pack: string, role: string | null, chosen: string | null): Promise<ViewFrame | null>;
   /**
    * Reads what is saved on this device for a pack from storage (decision 0012); Rust parses each
    * as ready (migrated if older), newer or unreadable, with the saved text so nothing is lost.
