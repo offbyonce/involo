@@ -11,6 +11,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { serve, session, sleep, startFirefox } from "./browser.mjs";
+import { click } from "./scenes.mjs";
 
 const web = path.resolve(import.meta.dirname, "..");
 const root = path.resolve(web, "../..");
@@ -48,6 +49,16 @@ async function openAt(profile, prefs, firstUrl) {
   }
 }
 
+/** The gallery draws the iFly pack's views from the packs installed on this device (decision
+ * 0028): a fresh profile has none, so the app downloads it from the site's catalog first, as a
+ * pilot does. */
+async function installIfly(browser) {
+  await browser.send("browsingContext.navigate", { context: browser.context, url: `http://localhost:${PORT}/app/`, wait: "complete" });
+  await browser.until(`!!document.querySelector('button[aria-label="Download iFly 737 MAX 8"]')`, "the catalog");
+  await browser.run(click('button[aria-label="Download iFly 737 MAX 8"]'));
+  await browser.until(`!!document.querySelector("#drawer")`, "the iFly pack to open");
+}
+
 async function shotOf(browser, file, clip) {
   const { data } = await browser.send("browsingContext.captureScreenshot", {
     context: browser.context,
@@ -67,8 +78,11 @@ async function main() {
   try {
     for (const [theme, override] of Object.entries(THEMES)) {
       const profile = path.join(work, `profile-${theme}`);
-      const { firefox, browser } = await openAt(profile, { "layout.css.prefers-color-scheme.content-override": override }, `http://localhost:${PORT}/design/`);
+      const { firefox, browser } = await openAt(profile, { "layout.css.prefers-color-scheme.content-override": override }, `http://localhost:${PORT}/app/`);
       try {
+        await installIfly(browser);
+        const logged = await browser.logs();
+        logged.length = 0;
         await browser.send("browsingContext.navigate", { context: browser.context, url: `http://localhost:${PORT}/design/?theme=${theme}`, wait: "complete" });
         await browser.until("!!document.querySelector('[data-gallery-ready]')", "the gallery");
         await browser.js("document.fonts.ready.then(() => true)");
@@ -97,6 +111,9 @@ async function main() {
           const name = cell.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
           await shotOf(browser, path.join(out, "cells", `${name}-${theme}.png`), box);
         }
+        // The gallery logs no errors (#192): a drawing with a negative size was one.
+        const errors = logged.filter((l) => l.level === "error");
+        if (errors.length) throw new Error(`the ${theme} gallery logged errors:\n${errors.map((e) => e.text).join("\n")}`);
         await browser.send("browsingContext.navigate", { context: browser.context, url: `http://localhost:${PORT}/board-${theme}.html`, wait: "complete" });
         await sleep(300);
         await shotOf(browser, path.join(out, `board-fuel-${theme}.png`), { x: 0, y: 0, width: 912, height: 420 });
