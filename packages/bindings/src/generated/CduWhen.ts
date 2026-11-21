@@ -10,4 +10,12 @@ export type CduWhen = {
 /**
  * Every one of these must be known for `show` to appear.
  */
-whenKnown: Array<FieldId>, show: Array<CduInline>, otherwise?: Array<CduInline>, };
+whenKnown: Array<FieldId>, 
+/**
+ * The parts shown when every field in `when_known` is known.
+ */
+show: Array<CduInline>, 
+/**
+ * The parts shown when any of them is not; nothing when left out.
+ */
+otherwise?: Array<CduInline>, };

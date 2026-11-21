@@ -11,11 +11,11 @@ Schema: `schemas/cdu.schema.json`. [All files](index.md).
 
 ## The file
 
-`cdu.yaml`.
+`cdu.yaml`: page-by-page CDU walkthroughs, each with the text and live flight values the screen shows at every step. The app doesn't show walkthroughs yet; `involo-pack check` checks them.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `walkthroughs` | list of [CduWalkthrough](#cduwalkthrough) | yes |  |  |
+| `walkthroughs` | list of [CduWalkthrough](#cduwalkthrough) | yes |  | Every walkthrough. |
 
 ## CduWalkthrough
 
@@ -23,9 +23,9 @@ A page-by-page guide a step can open.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `id` | text | yes |  |  |
-| `pages` | list of [CduPage](#cdupage) | yes |  |  |
-| `title` | text | yes |  |  |
+| `id` | text | yes |  | Unique in the pack; a step's `opens` names it. |
+| `pages` | list of [CduPage](#cdupage) | yes |  | Its steps, in order. |
+| `title` | text | yes |  | Its name. |
 
 ## CduPage
 
@@ -33,13 +33,13 @@ One step of a CDU walkthrough.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `action` | list of [CduPart](#cdupart) | yes |  |  |
-| `check` | list of [CduPart](#cdupart) | yes |  |  |
+| `action` | list of [CduPart](#cdupart) | yes |  | What to do on this page. |
+| `check` | list of [CduPart](#cdupart) | yes |  | What to check once it is done. |
 | `key` | text |  |  | The function key to highlight. |
-| `note` | list of [CduPart](#cdupart) |  |  |  |
+| `note` | list of [CduPart](#cdupart) |  |  | A further note for this page. |
 | `page` | text | yes |  | The CDU page name, e.g. `PERF INIT`. |
-| `screen` | [CduScreen](#cduscreen) | yes |  |  |
-| `title` | text | yes |  |  |
+| `screen` | [CduScreen](#cduscreen) | yes |  | What the CDU screen shows at this step. |
+| `title` | text | yes |  | This step's heading. |
 
 ## CduPart
 
@@ -52,10 +52,10 @@ What the CDU shows on one walkthrough page.
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
 | `highlight` | list of text |  |  | Line select keys to highlight, e.g. `2L`. |
-| `page` | list of [CduPart](#cdupart) | yes |  |  |
-| `rows` | list of [CduRow](#cdurow) | yes |  |  |
-| `scratchpad` | list of [CduPart](#cdupart) |  |  |  |
-| `title` | list of [CduPart](#cdupart) | yes |  |  |
+| `page` | list of [CduPart](#cdupart) | yes |  | The page count beside the title, e.g. `1/2`. |
+| `rows` | list of [CduRow](#cdurow) | yes |  | The line select rows, top to bottom. |
+| `scratchpad` | list of [CduPart](#cdupart) |  |  | The scratchpad line below the rows. |
+| `title` | list of [CduPart](#cdupart) | yes |  | The title line at the top of the screen. |
 
 ## CduStyled
 
@@ -63,8 +63,8 @@ Fixed text in a style.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `style` | [CduStyle](#cdustyle) | yes |  |  |
-| `text` | text | yes |  |  |
+| `style` | [CduStyle](#cdustyle) | yes |  | The style it is drawn in. |
+| `text` | text | yes |  | The text. |
 
 ## CduField
 
@@ -75,11 +75,11 @@ A live flight value. Calculations happen in the app, never in the pack.
 | `after` | text |  |  | Literal text after the value, e.g. a degree sign. |
 | `before` | text |  |  | Literal text before the value, e.g. `RW`. |
 | `empty` | text |  |  | Shown when the value is not known. |
-| `empty_style` | [CduStyle](#cdustyle) |  |  |  |
-| `field` | [FieldId](#fieldid) | yes |  |  |
+| `empty_style` | [CduStyle](#cdustyle) |  |  | The style `empty` is drawn in. |
+| `field` | [FieldId](#fieldid) | yes |  | The flight field whose value is shown, which the pack must define. `route_leg` shows one route row and needs `index` and `part`; `manual` is not allowed here. |
 | `index` | whole number |  |  | For `route_leg`: the row, from 1 to `MAX_ROUTE_LEG`. |
 | `part` | [RouteLegPart](#routelegpart) |  |  | For `route_leg`: which half of the row. |
-| `style` | [CduStyle](#cdustyle) |  |  |  |
+| `style` | [CduStyle](#cdustyle) |  |  | The style the value is drawn in. |
 
 ## CduRouteCount
 
@@ -90,9 +90,9 @@ A number calculated from the route. The rows per page are the aircraft's, so the
 | `after` | text |  |  | Literal text after the number. |
 | `before` | text |  |  | Literal text before the number. |
 | `empty` | text |  |  | Shown instead when the count is zero. |
-| `per_page` | whole number | yes |  |  |
-| `route_legs` | [RouteLegCount](#routelegcount) | yes |  |  |
-| `style` | [CduStyle](#cdustyle) |  |  |  |
+| `per_page` | whole number | yes |  | How many route rows one page holds; at least 1. |
+| `route_legs` | [RouteLegCount](#routelegcount) | yes |  | Which count: the pages, or the rows past the first page. |
+| `style` | [CduStyle](#cdustyle) |  |  | The style the number is drawn in. |
 
 ## CduWhen
 
@@ -100,8 +100,8 @@ Shows one group of parts when flight values are known and another when they are 
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `otherwise` | list of [CduInline](#cduinline) |  |  |  |
-| `show` | list of [CduInline](#cduinline) | yes |  |  |
+| `otherwise` | list of [CduInline](#cduinline) |  |  | The parts shown when any of them is not; nothing when left out. |
+| `show` | list of [CduInline](#cduinline) | yes |  | The parts shown when every field in `when_known` is known. |
 | `when_known` | list of [FieldId](#fieldid) | yes |  | Every one of these must be known for `show` to appear. |
 
 ## CduRow
@@ -110,10 +110,10 @@ One line select row: a small label line above a value line.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `left` | list of [CduPart](#cdupart) |  |  |  |
-| `left_label` | list of [CduPart](#cdupart) |  |  |  |
-| `right` | list of [CduPart](#cdupart) |  |  |  |
-| `right_label` | list of [CduPart](#cdupart) |  |  |  |
+| `left` | list of [CduPart](#cdupart) |  |  | The value on the left, beside its line select key. |
+| `left_label` | list of [CduPart](#cdupart) |  |  | The small label above the left value. |
+| `right` | list of [CduPart](#cdupart) |  |  | The value on the right, beside its line select key. |
+| `right_label` | list of [CduPart](#cdupart) |  |  | The small label above the right value. |
 | `separator` | text |  |  | Draws a divider instead of the labels; empty text means a plain line. |
 
 ## CduStyle
@@ -136,8 +136,8 @@ Which half of a route row a field shows.
 
 | Value | What it means |
 | --- | --- |
-| `via` |  |
-| `to` |  |
+| `via` | The left half: the way the leg is flown. |
+| `to` | The right half: where the leg ends. |
 
 ## RouteLegCount
 

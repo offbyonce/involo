@@ -75,7 +75,7 @@ One challenge and response line.
 | `note` | text |  |  | Optional note shown under the step. |
 | `note_caution` | true or false |  |  | The note is a caution: it stays visible on the step (under If not) instead of in How to do it. Changes only where the note shows, never its wording. |
 | `number` | whole number |  |  | Printed number; absent for steps that are not numbered. |
-| `opens` | text |  |  | Id of a CDU walkthrough this step can open. |
+| `opens` | text |  |  | The id of the CDU walkthrough for this step; `check` makes sure it exists. The app doesn't show walkthroughs yet. |
 | `panel_lights` | map of list of text |  |  | Panel lights this step refers to: control id, then light labels. |
 | `quick` | [Quick](#quick) |  |  | Puts the step in Essentials: `always`, or `turnaround`. Without it, the step shows only when the pilot sees every step. |
 | `respond` | text |  |  | In a challenge-and-response list, who answers the challenge: a role id from the pack's labels. |

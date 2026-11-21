@@ -13,4 +13,24 @@ page: string,
 /**
  * The function key to highlight.
  */
-key?: string | null, title: string, action: Array<CduPart>, check: Array<CduPart>, note?: Array<CduPart>, screen: CduScreen, };
+key?: string | null, 
+/**
+ * This step's heading.
+ */
+title: string, 
+/**
+ * What to do on this page.
+ */
+action: Array<CduPart>, 
+/**
+ * What to check once it is done.
+ */
+check: Array<CduPart>, 
+/**
+ * A further note for this page.
+ */
+note?: Array<CduPart>, 
+/**
+ * What the CDU screen shows at this step.
+ */
+screen: CduScreen, };

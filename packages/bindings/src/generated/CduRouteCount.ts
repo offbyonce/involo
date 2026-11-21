@@ -6,7 +6,19 @@ import type { RouteLegCount } from "./RouteLegCount";
  * A number calculated from the route. The rows per page are the aircraft's, so they
  * come from the pack.
  */
-export type CduRouteCount = { routeLegs: RouteLegCount, perPage: number, style?: CduStyle | null, 
+export type CduRouteCount = { 
+/**
+ * Which count: the pages, or the rows past the first page.
+ */
+routeLegs: RouteLegCount, 
+/**
+ * How many route rows one page holds; at least 1.
+ */
+perPage: number, 
+/**
+ * The style the number is drawn in.
+ */
+style?: CduStyle | null, 
 /**
  * Literal text before the number.
  */

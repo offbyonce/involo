@@ -4,4 +4,16 @@ import type { CduPage } from "./CduPage";
 /**
  * A page-by-page guide a step can open.
  */
-export type CduWalkthrough = { id: string, title: string, pages: Array<CduPage>, };
+export type CduWalkthrough = { 
+/**
+ * Unique in the pack; a step's `opens` names it.
+ */
+id: string, 
+/**
+ * Its name.
+ */
+title: string, 
+/**
+ * Its steps, in order.
+ */
+pages: Array<CduPage>, };

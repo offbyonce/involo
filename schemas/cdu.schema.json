@@ -1,10 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "CduFile",
-  "description": "`cdu.yaml`.",
+  "description": "`cdu.yaml`: page-by-page CDU walkthroughs, each with the text and live flight values the\nscreen shows at every step. The app doesn't show walkthroughs yet; `involo-pack check`\nchecks them.",
   "type": "object",
   "properties": {
     "walkthroughs": {
+      "description": "Every walkthrough.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/CduWalkthrough"
@@ -42,6 +43,7 @@
           ]
         },
         "empty_style": {
+          "description": "The style `empty` is drawn in.",
           "anyOf": [
             {
               "$ref": "#/$defs/CduStyle"
@@ -52,6 +54,7 @@
           ]
         },
         "field": {
+          "description": "The flight field whose value is shown, which the pack must define. `route_leg` shows\none route row and needs `index` and `part`; `manual` is not allowed here.",
           "$ref": "#/$defs/FieldId"
         },
         "index": {
@@ -75,6 +78,7 @@
           ]
         },
         "style": {
+          "description": "The style the value is drawn in.",
           "anyOf": [
             {
               "$ref": "#/$defs/CduStyle"
@@ -112,12 +116,14 @@
       "type": "object",
       "properties": {
         "action": {
+          "description": "What to do on this page.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduPart"
           }
         },
         "check": {
+          "description": "What to check once it is done.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduPart"
@@ -131,6 +137,7 @@
           ]
         },
         "note": {
+          "description": "A further note for this page.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduPart"
@@ -141,9 +148,11 @@
           "type": "string"
         },
         "screen": {
+          "description": "What the CDU screen shows at this step.",
           "$ref": "#/$defs/CduScreen"
         },
         "title": {
+          "description": "This step's heading.",
           "type": "string"
         }
       },
@@ -202,14 +211,17 @@
           ]
         },
         "per_page": {
+          "description": "How many route rows one page holds; at least 1.",
           "type": "integer",
           "format": "uint32",
           "minimum": 0
         },
         "route_legs": {
+          "description": "Which count: the pages, or the rows past the first page.",
           "$ref": "#/$defs/RouteLegCount"
         },
         "style": {
+          "description": "The style the number is drawn in.",
           "anyOf": [
             {
               "$ref": "#/$defs/CduStyle"
@@ -231,24 +243,28 @@
       "type": "object",
       "properties": {
         "left": {
+          "description": "The value on the left, beside its line select key.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduPart"
           }
         },
         "left_label": {
+          "description": "The small label above the left value.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduPart"
           }
         },
         "right": {
+          "description": "The value on the right, beside its line select key.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduPart"
           }
         },
         "right_label": {
+          "description": "The small label above the right value.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduPart"
@@ -276,24 +292,28 @@
           }
         },
         "page": {
+          "description": "The page count beside the title, e.g. `1/2`.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduPart"
           }
         },
         "rows": {
+          "description": "The line select rows, top to bottom.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduRow"
           }
         },
         "scratchpad": {
+          "description": "The scratchpad line below the rows.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduPart"
           }
         },
         "title": {
+          "description": "The title line at the top of the screen.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduPart"
@@ -332,9 +352,11 @@
       "type": "object",
       "properties": {
         "style": {
+          "description": "The style it is drawn in.",
           "$ref": "#/$defs/CduStyle"
         },
         "text": {
+          "description": "The text.",
           "type": "string"
         }
       },
@@ -349,15 +371,18 @@
       "type": "object",
       "properties": {
         "id": {
+          "description": "Unique in the pack; a step's `opens` names it.",
           "type": "string"
         },
         "pages": {
+          "description": "Its steps, in order.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduPage"
           }
         },
         "title": {
+          "description": "Its name.",
           "type": "string"
         }
       },
@@ -373,12 +398,14 @@
       "type": "object",
       "properties": {
         "otherwise": {
+          "description": "The parts shown when any of them is not; nothing when left out.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduInline"
           }
         },
         "show": {
+          "description": "The parts shown when every field in `when_known` is known.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/CduInline"
@@ -419,10 +446,17 @@
     },
     "RouteLegPart": {
       "description": "Which half of a route row a field shows.",
-      "type": "string",
-      "enum": [
-        "via",
-        "to"
+      "oneOf": [
+        {
+          "description": "The left half: the way the leg is flown.",
+          "type": "string",
+          "const": "via"
+        },
+        {
+          "description": "The right half: where the leg ends.",
+          "type": "string",
+          "const": "to"
+        }
       ]
     }
   }

@@ -54,7 +54,8 @@ fill?: Array<FieldId>,
  */
 hint?: Array<HintPart>, 
 /**
- * Id of a CDU walkthrough this step can open.
+ * The id of the CDU walkthrough for this step; `check` makes sure it exists. The app
+ * doesn't show walkthroughs yet.
  */
 opens?: string | null, 
 /**

@@ -17,7 +17,7 @@ the JSON Schemas in `schemas/` give editors autocomplete. The guide that explain
 | [`pack.json`](pack-json.md) | `pack.schema.json` | A pack's manifest, `pack.json`. |
 | [`aliases.yaml`](aliases.md) | `aliases.schema.json` | `aliases.yaml`. |
 | [`briefings.yaml`](briefings.md) | `briefings.schema.json` | `briefings.yaml`. |
-| [`cdu.yaml`](cdu.md) | `cdu.schema.json` | `cdu.yaml`. |
+| [`cdu.yaml`](cdu.md) | `cdu.schema.json` | Page-by-page CDU walkthroughs, each with the text and live flight values the screen shows at every step. |
 | [`controls.yaml`](controls.md) | `controls.schema.json` | The cockpit's zones, the controls steps refer to, and the overview map that shows where each zone is. |
 | [`faults.yaml`](faults.md) | `faults.schema.json` | `faults.yaml`. |
 | [`flight.yaml`](flight.md) | `flight.schema.json` | The pack's Flight pages and its flight fields, in order. |
