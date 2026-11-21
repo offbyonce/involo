@@ -7,21 +7,26 @@ import { type App, expect, test } from "./fixtures";
 import { sortFindings } from "./known-findings";
 import { screenProblems } from "./layout";
 
-// The main screens with each invented example pack open (decision 0030, #108), checked for layout
-// and accessibility at phone and desktop width in both themes, as the iFly pack's are: a screen
-// built only around one aircraft's data shows it here. Findings known today are listed, each with
-// the issue that fixes it, in known-findings.ts; any other finding fails, and so does a listed one
-// that no longer happens.
+// The main screens with each pack open, the iFly pack and the invented example packs (decision
+// 0030, #108), checked for layout and accessibility at phone and desktop width in both themes: a
+// screen built only around one aircraft's data shows it here. A finding fails unless
+// known-findings.ts lists it with the issue that fixes it, and a listed one that no longer happens
+// fails too.
 
-const EXAMPLES = [
+const PACKS = [
+  { id: "ifly-737-max8", name: "iFly 737 MAX 8" },
   { id: "example-twin", name: "Example Twin" },
   { id: "example-sidestick", name: "Example Sidestick Twin" },
   { id: "example-twin-lr", name: "Example Twin LR" },
 ];
 
-/** The first launch with this pack added from its file (the examples are never in the catalog),
- * the welcome answered. */
+/** The first launch with this pack: the iFly pack from the catalog, an example added from its
+ * file (the examples are never in the catalog); the welcome answered. */
 async function firstRunWith(app: App, page: Page, id: string): Promise<void> {
+  if (id === "ifly-737-max8") {
+    await app.firstRun();
+    return;
+  }
   await app.open();
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await app.scene([
@@ -35,8 +40,11 @@ async function firstRunWith(app: App, page: Page, id: string): Promise<void> {
 
 const heading = (page: Page) => page.getByRole("heading", { level: 1 }).first();
 
-for (const pack of EXAMPLES) {
-  test(`the main screens with ${pack.name} open: layout and accessibility (#108)`, async ({ app, page }) => {
+for (const pack of PACKS) {
+  test(`the main screens with ${pack.name} open: layout and accessibility (#108, #198)`, async ({
+    app,
+    page,
+  }) => {
     test.setTimeout(240_000);
     await firstRunWith(app, page, pack.id);
     const problems: { screen: string; problem: string }[] = [];

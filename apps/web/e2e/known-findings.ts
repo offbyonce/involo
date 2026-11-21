@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// Layout and accessibility findings the main screens have today with the example packs open
-// (examples.spec.ts, #108). Each is tracked by the issue that fixes it. The check fails on any
+// Layout and accessibility findings the main screens have today with a pack open
+// (screens.spec.ts, #108). Each is tracked by the issue that fixes it. The check fails on any
 // finding not listed here, and on a listed one that no longer happens, so this list only shrinks:
 // remove an entry when its fix lands. It must be empty before the v0.1.0 release.
 
@@ -14,7 +14,7 @@ export type KnownFinding = {
   check: "layout" | "shown" | "label-content-name-mismatch";
   /** What the check says, without the pack, width or theme. */
   finding: RegExp;
-  /** The example packs it happens with. */
+  /** The packs it happens with, by name. */
   packs: string[];
   /** The issue that fixes it. */
   issue: string;
