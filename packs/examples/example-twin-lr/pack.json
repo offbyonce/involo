@@ -1,0 +1,17 @@
+{
+  "$schema": "../../../schemas/pack.schema.json",
+  "id": "example-twin-lr",
+  "name": "Example Twin LR",
+  "version": "0.1.0",
+  "schemaVersion": 6,
+  "kind": "aircraft",
+  "engine": ">=0.1.0, <1.0.0",
+  "extends": { "example-twin": ">=0.1.0, <1.0.0" },
+  "patches": "patches.yaml",
+  "license": "CC-BY-NC-SA-4.0",
+  "attribution": [
+    "Invented example content: a longer-range version of the Example Twin. Not for real-world or simulator use."
+  ],
+  "basisTags": ["invented-example"],
+  "checklists": []
+}
