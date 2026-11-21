@@ -17,12 +17,25 @@ $schema?: string | null,
 /**
  * Lower-case id with dots and dashes, e.g. `ifly-737-max8` or `lib.boeing-cdu`.
  */
-id: string, name: string, version: string, 
+id: string, 
+/**
+ * The pack's name as the app shows it, e.g. on the Packs page and in the catalog.
+ */
+name: string, 
+/**
+ * The pack's version, e.g. `1.2.0`. The app keeps one version of each pack and offers a
+ * newer one as an update; raise it for each change you publish.
+ */
+version: string, 
 /**
  * Pack format. The app reads every format from 6 (the first public one) up to its own and
  * refuses an older or newer pack with the reason. From 6 on, a later format only adds.
  */
-schemaVersion: number, kind: PackKind, 
+schemaVersion: number, 
+/**
+ * `aircraft`, a pack a pilot opens, or `library`, shared content other packs extend.
+ */
+kind: PackKind, 
 /**
  * App versions this pack works with, e.g. `>=0.1, <1`.
  */
@@ -74,11 +87,47 @@ checklists: Array<string>,
 /**
  * Phases, stages and options. Required for an aircraft pack.
  */
-phases?: string | null, controls?: string | null, notes?: string | null, 
+phases?: string | null, 
+/**
+ * The controls steps name, where they are, and the flight deck overview (`controls.yaml`).
+ */
+controls?: string | null, 
+/**
+ * Longer explanations for steps (What, Why, Check, If not) and How notes (`notes.yaml`).
+ */
+notes?: string | null, 
 /**
  * Panel files, in display order.
  */
-panels?: Array<string>, lights?: string | null, faults?: string | null, glossary?: string | null, briefings?: string | null, panelStates?: string | null, cdu?: string | null, aliases?: string | null, 
+panels?: Array<string>, 
+/**
+ * What the panel lights mean and what to do when one is on (`lights.yaml`).
+ */
+lights?: string | null, 
+/**
+ * Faults: their causes, what to do and the steps that deal with them (`faults.yaml`).
+ */
+faults?: string | null, 
+/**
+ * The terms and abbreviations steps use, and what each means (`glossary.yaml`).
+ */
+glossary?: string | null, 
+/**
+ * Briefings, each with its items, for the phases that have one (`briefings.yaml`).
+ */
+briefings?: string | null, 
+/**
+ * Panel states a pilot can start from, and the steps each counts as done or skips (`panel-states.yaml`).
+ */
+panelStates?: string | null, 
+/**
+ * CDU walkthroughs: the pages to type into, screen by screen (`cdu.yaml`).
+ */
+cdu?: string | null, 
+/**
+ * Old ids and the ids they became, so an update keeps a pilot's flight (`aliases.yaml`).
+ */
+aliases?: string | null, 
 /**
  * The pack's flight fields (`flight.yaml`): what steps fill and what a SimBrief plan fills.
  */

@@ -17,34 +17,34 @@ A pack's manifest, `pack.json`. Field names: the manifest is camelCase (`schemaV
 | --- | --- | --- | --- | --- |
 | `$schema` | text |  |  | Optional path to `pack.schema.json`, so editors offer autocomplete. Ignored by the app. |
 | `aircraft` | [AircraftInfo](#aircraftinfo) |  |  | The aircraft this pack is for. Required for `kind: aircraft`, refused on `kind: library`. |
-| `aliases` | text |  |  |  |
+| `aliases` | text |  |  | Old ids and the ids they became, so an update keeps a pilot's flight (`aliases.yaml`). |
 | `attribution` | list of text |  | `[]` | Credit and terms notes. A built child carries its parents' notes first, then its own, each once. |
 | `basisTags` | list of text |  | `[]` | The `basis` tags this pack's lists may use: kinds of material, never document names. A built child may use its parents' tags and its own: theirs first, then its own, each once. |
-| `briefings` | text |  |  |  |
-| `cdu` | text |  |  |  |
+| `briefings` | text |  |  | Briefings, each with its items (`briefings.yaml`). The app doesn't show them yet; Practice asks about their mnemonics. |
+| `cdu` | text |  |  | CDU walkthroughs, screen by screen (`cdu.yaml`). The app doesn't show them yet. |
 | `checklists` | list of text | yes |  | Checklist files, in display order, relative to the pack folder. |
 | `contentHash` | text |  |  | Written by `involo-pack build`, never by an author: the SHA-256 of the built pack's content (its lists and content files, flattened), in hex. |
-| `controls` | text |  |  |  |
+| `controls` | text |  |  | The controls steps name, where they are, and the flight deck overview (`controls.yaml`). |
 | `engine` | text | yes |  | App versions this pack works with, e.g. `>=0.1, <1`. |
 | `extends` | map of text |  |  | The one pack this pack builds on, with the versions it accepts, e.g. `{"lib.boeing-737": ">=1.0, <2"}`. A library can be extended but not opened on its own. This replaces format 5's `dependencies`, which nothing read: a pack has at most one parent, and builds on it rather than listing what it includes. |
-| `faults` | text |  |  |  |
+| `faults` | text |  |  | Faults: their causes, what to do and the steps that deal with them (`faults.yaml`). |
 | `flight` | text |  |  | The pack's flight fields (`flight.yaml`): what steps fill and what a SimBrief plan fills. |
-| `glossary` | text |  |  |  |
+| `glossary` | text |  |  | The terms and abbreviations steps use, and what each means (`glossary.yaml`). |
 | `id` | text | yes |  | Lower-case id with dots and dashes, e.g. `ifly-737-max8` or `lib.boeing-cdu`. |
-| `kind` | [PackKind](#packkind) | yes |  |  |
+| `kind` | [PackKind](#packkind) | yes |  | `aircraft`, a pack a pilot opens, or `library`, shared content other packs extend. |
 | `labels` | text |  |  | The words the interface shows for this pack (`labels.yaml`); without it, the app's own. |
 | `license` | text | yes |  | SPDX license id for the pack content, e.g. `CC-BY-NC-SA-4.0`. A child's license is the built pack's. |
-| `lights` | text |  |  |  |
+| `lights` | text |  |  | What each panel light means (`lights.yaml`). |
 | `messages` | text |  |  | The aircraft's alert messages (`messages.yaml`), when it has an alert display. |
-| `name` | text | yes |  |  |
-| `notes` | text |  |  |  |
-| `panelStates` | text |  |  |  |
+| `name` | text | yes |  | The pack's name as the app shows it, e.g. on the Packs page and in the catalog. |
+| `notes` | text |  |  | Longer explanations for steps (What, Why, Check, If not) and How notes (`notes.yaml`). |
+| `panelStates` | text |  |  | Panel states a pilot can start from, and the steps each counts as done or skips (`panel-states.yaml`). |
 | `panels` | list of text |  |  | Panel files, in display order. |
 | `patches` | text |  |  | A child's changes to its parent, by id (`patches.yaml`). Only with `extends`. |
 | `phases` | text |  |  | Phases, stages and options. Required for an aircraft pack. |
 | `resolved` | list of [ResolvedParent](#resolvedparent) |  |  | Written by `involo-pack build`, never by an author: each pack this one was built from, the parent first, with its exact version. |
 | `schemaVersion` | whole number | yes |  | Pack format. The app reads every format from 6 (the first public one) up to its own and refuses an older or newer pack with the reason. From 6 on, a later format only adds. |
-| `version` | text | yes |  |  |
+| `version` | text | yes |  | The pack's version, e.g. `1.2.0`. The app keeps one version of each pack and offers a newer one as an update; raise it for each change you publish. |
 
 ## AircraftInfo
 
@@ -60,6 +60,8 @@ The aircraft an aircraft pack is for (decision 0029). Required for `kind: aircra
 
 ## PackKind
 
+What a pack is: an aircraft a pilot opens, or a library other packs extend.
+
 | Value | What it means |
 | --- | --- |
 | `aircraft` | A flyable aircraft (e.g. `ifly-737-max8`). |
@@ -71,6 +73,6 @@ One pack a built pack was built from: its id and exact version (decision 0029).
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `id` | text | yes |  |  |
-| `version` | text | yes |  |  |
+| `id` | text | yes |  | The parent pack's id. |
+| `version` | text | yes |  | The parent's exact version the pack was built over. |
 
