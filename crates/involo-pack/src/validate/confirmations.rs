@@ -8,7 +8,7 @@ use std::collections::BTreeSet;
 
 use involo_checklist_core::Confirmation;
 
-use super::{Issue, error};
+use super::{Code, Issue, error};
 
 fn leap(year: u32) -> bool {
     (year.is_multiple_of(4) && !year.is_multiple_of(100)) || year.is_multiple_of(400)
@@ -42,6 +42,7 @@ pub(super) fn check_confirmations(at: &str, records: &[Confirmation], issues: &m
     for record in records {
         if !valid_date(&record.date) {
             issues.push(error(
+                Code::ConfirmationDate,
                 at,
                 format!(
                     "confirmation date `{}` must be a real date written YYYY-MM-DD",
@@ -50,7 +51,11 @@ pub(super) fn check_confirmations(at: &str, records: &[Confirmation], issues: &m
             ));
         }
         if !seen.insert((record.kind, record.date.as_str())) {
-            issues.push(error(at, "the same confirmation is recorded twice"));
+            issues.push(error(
+                Code::ConfirmationTwice,
+                at,
+                "the same confirmation is recorded twice",
+            ));
         }
     }
 }

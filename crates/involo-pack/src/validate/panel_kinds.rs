@@ -8,7 +8,7 @@ use std::collections::BTreeSet;
 
 use involo_checklist_core::{Panel, PanelItem, PanelItemKind, PanelSection};
 
-use super::{Issue, error};
+use super::{Code, Issue, error};
 
 /// The most legends a legend pushbutton has: a top and a bottom one.
 const MAX_LEGENDS: usize = 2;
@@ -24,7 +24,7 @@ pub(super) fn check_kind(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
             } else {
                 "a push/pull knob has two positions, pushed in first"
             };
-            issues.push(error(at, format!("`{label}`: {what}")));
+            issues.push(error(Code::KindField, at, format!("`{label}`: {what}")));
         }
         PanelItemKind::LegendPushbutton => check_legends(at, item, &positions, issues),
         PanelItemKind::Keypad => check_keypad(at, item, &positions, issues),
@@ -32,12 +32,17 @@ pub(super) fn check_kind(at: &str, item: &PanelItem, issues: &mut Vec<Issue>) {
     }
     if item.kind != PanelItemKind::LegendPushbutton && !item.legends.is_empty() {
         issues.push(error(
+            Code::KindField,
             at,
             format!("`{label}`: only a legend pushbutton has `legends`"),
         ));
     }
     if item.kind != PanelItemKind::Keypad && item.columns.is_some() {
-        issues.push(error(at, format!("`{label}`: only a keypad has `columns`")));
+        issues.push(error(
+            Code::KindField,
+            at,
+            format!("`{label}`: only a keypad has `columns`"),
+        ));
     }
 }
 
@@ -46,23 +51,30 @@ fn check_legends(at: &str, item: &PanelItem, positions: &[&str], issues: &mut Ve
     let label = &item.label;
     if item.legends.is_empty() || item.legends.len() > MAX_LEGENDS {
         issues.push(error(
+            Code::Legends,
             at,
             format!("`{label}`: a legend pushbutton has one or two `legends`"),
         ));
     }
     if positions.is_empty() {
         issues.push(error(
+            Code::Legends,
             at,
             format!("`{label}`: a legend pushbutton names the `positions` it is set to"),
         ));
     }
     for legend in &item.legends {
         if legend.text.trim().is_empty() {
-            issues.push(error(at, format!("`{label}`: a legend needs its `text`")));
+            issues.push(error(
+                Code::Legends,
+                at,
+                format!("`{label}`: a legend needs its `text`"),
+            ));
         }
         for p in &legend.lit_in {
             if !positions.contains(&p.trim()) {
                 issues.push(error(
+                    Code::UnknownPosition,
                     at,
                     format!(
                         "`{label}`: legend `{}` is lit in `{p}`, which is not one of its positions",
@@ -79,6 +91,7 @@ fn check_keypad(at: &str, item: &PanelItem, keys: &[&str], issues: &mut Vec<Issu
     let label = &item.label;
     if keys.is_empty() || keys.iter().any(|k| k.is_empty()) {
         issues.push(error(
+            Code::Keypad,
             at,
             format!("keypad `{label}` needs its keys, each with a name, as `positions`"),
         ));
@@ -87,6 +100,7 @@ fn check_keypad(at: &str, item: &PanelItem, keys: &[&str], issues: &mut Vec<Issu
     for key in keys.iter().filter(|k| !k.is_empty()) {
         if !seen.insert(*key) {
             issues.push(error(
+                Code::Keypad,
                 at,
                 format!("keypad `{label}` has the key `{key}` twice"),
             ));
@@ -94,6 +108,7 @@ fn check_keypad(at: &str, item: &PanelItem, keys: &[&str], issues: &mut Vec<Issu
     }
     if item.columns == Some(0) {
         issues.push(error(
+            Code::Keypad,
             at,
             format!("keypad `{label}`: `columns` is at least 1"),
         ));
@@ -112,6 +127,7 @@ pub(super) fn check_outlines(panel: &Panel, issues: &mut Vec<Issue>) {
                     .map(|[x, y]| [x + section.x, y + section.y]);
                 if !corners.into_iter().all(|p| inside(&panel.outline, p)) {
                     issues.push(error(
+                        Code::Outline,
                         &at,
                         format!(
                             "section `{}` reaches outside the panel's outline",
@@ -133,6 +149,7 @@ pub(super) fn check_outlines(panel: &Panel, issues: &mut Vec<Issue>) {
         for item in &section.items {
             if !inside(&section.outline, [item.x, item.y]) {
                 issues.push(error(
+                    Code::Outline,
                     &at,
                     format!("`{}` lies outside the section's outline", item.label),
                 ));
@@ -153,6 +170,7 @@ fn shaped(
     let ok = outline.len() >= 3 && outline.iter().all(within);
     if !ok {
         issues.push(error(
+            Code::Outline,
             at,
             "an `outline` needs three points or more, all inside its box",
         ));

@@ -12,7 +12,7 @@ use involo_checklist_core::{
     names_position, says_light_on, switch_value,
 };
 
-use super::{Issue, error};
+use super::{Code, Issue, error};
 use crate::Pack;
 
 pub(super) fn check_step_targets(pack: &Pack, issues: &mut Vec<Issue>) {
@@ -47,11 +47,13 @@ pub(super) fn check_step_targets(pack: &Pack, issues: &mut Vec<Issue>) {
         for term in &step.terms {
             if !glossary.contains(term.as_str()) {
                 issues.push(error(
+                    Code::UnknownTerm,
                     step.id.as_str(),
                     format!("term `{term}` is not in the glossary"),
                 ));
             } else if plain.contains(term.as_str()) {
                 issues.push(error(
+                    Code::TermIsUnit,
                     step.id.as_str(),
                     format!("term `{term}` is a unit or plain abbreviation (step_term: false)"),
                 ));
@@ -69,7 +71,11 @@ fn check_decision(options: &BTreeMap<&str, Vec<&str>>, step: &Step, issues: &mut
     if let Some(option) = &step.decide
         && !options.contains_key(option.as_str())
     {
-        issues.push(error(at, format!("`decide` names no option `{option}`")));
+        issues.push(error(
+            Code::UnknownOption,
+            at,
+            format!("`decide` names no option `{option}`"),
+        ));
     }
     let mut by_item: BTreeMap<&str, Vec<&involo_checklist_core::StepTarget>> = BTreeMap::new();
     for t in &step.targets {
@@ -84,10 +90,12 @@ fn check_decision(options: &BTreeMap<&str, Vec<&str>>, step: &Step, issues: &mut
         for w in &conditional {
             match options.get(w.option.as_str()) {
                 None => issues.push(error(
+                    Code::UnknownOption,
                     at,
                     format!("`{item}`: `when` names no option `{}`", w.option),
                 )),
                 Some(values) if !values.contains(&w.equals.as_str()) => issues.push(error(
+                    Code::UnknownOptionValue,
                     at,
                     format!(
                         "`{item}`: `{}` is not a value of option `{}`",
@@ -98,6 +106,7 @@ fn check_decision(options: &BTreeMap<&str, Vec<&str>>, step: &Step, issues: &mut
             }
             if !answers.insert(w.equals.as_str()) {
                 issues.push(error(
+                    Code::TargetTwiceForAnswer,
                     at,
                     format!("`{item}` has two targets for `{} = {}`", w.option, w.equals),
                 ));
@@ -106,6 +115,7 @@ fn check_decision(options: &BTreeMap<&str, Vec<&str>>, step: &Step, issues: &mut
         let option = conditional[0].option.as_str();
         if conditional.iter().any(|w| w.option != option) {
             issues.push(error(
+                Code::TargetManyOptions,
                 at,
                 format!("`{item}`'s targets depend on more than one option"),
             ));
@@ -116,6 +126,7 @@ fn check_decision(options: &BTreeMap<&str, Vec<&str>>, step: &Step, issues: &mut
         let fallbacks: Vec<_> = targets.iter().filter(|t| t.when.is_none()).collect();
         if !covered && !fallbacks.iter().any(|t| t.open) {
             issues.push(error(
+                Code::TargetNoOpen,
                 at,
                 format!(
                     "`{item}` depends on `{option}`, but has no `open` target for before the answer"
@@ -138,10 +149,12 @@ fn check_expect_when(
     for e in &step.expect_when {
         match options.get(e.option.as_str()) {
             None => issues.push(error(
+                Code::UnknownOption,
                 at,
                 format!("`expect_when` names no option `{}`", e.option),
             )),
             Some(values) if !values.contains(&e.equals.as_str()) => issues.push(error(
+                Code::UnknownOptionValue,
                 at,
                 format!(
                     "`expect_when`: `{}` is not a value of option `{}`",
@@ -153,6 +166,7 @@ fn check_expect_when(
         let blanks = |v: &str| v.matches("___").count();
         if blanks(&e.expect) != blanks(&step.expect) {
             issues.push(error(
+                Code::ExpectWhenBlanks,
                 at,
                 format!(
                     "`expect_when` for `{} = {}` has {} blanks, the step's value {}",
@@ -165,6 +179,7 @@ fn check_expect_when(
         }
         if !seen.insert((e.option.as_str(), e.equals.as_str())) {
             issues.push(error(
+                Code::ExpectWhenTwice,
                 at,
                 format!("`expect_when` has `{} = {}` twice", e.option, e.equals),
             ));
@@ -180,6 +195,7 @@ fn check_expect_when(
             .collect();
         if answered.is_empty() {
             issues.push(error(
+                Code::ExpectWhenUnused,
                 at,
                 format!(
                     "`expect_when` for `{} = {}`, but no target depends on that answer",
@@ -190,7 +206,7 @@ fn check_expect_when(
         for t in answered {
             let Some(set) = &t.set else { continue };
             if !names_position(&e.expect, set, words) {
-                issues.push(error(
+                issues.push(error(Code::WordingDisagrees,
                     at,
                     format!(
                         "`{}` is set to `{set}` for `{} = {}`, but that answer's value does not say so",
@@ -258,7 +274,7 @@ fn check_answers_differ(step: &Step, words: &PositionWords, issues: &mut Vec<Iss
                         .iter()
                         .any(|c| names_position(c, other, words) && !names_position(c, own, words));
                     if !says_own || says_other {
-                        issues.push(error(
+                        issues.push(error(Code::WordingDisagrees,
                             at,
                             format!(
                                 "`{item}` is `{own}` for `{} = {equals}`, but where that answer's value differs it does not say `{own}`",
@@ -286,6 +302,7 @@ fn check_step(
         .any(|i| i.controls.iter().any(|c| step.controls.contains(c)));
     if drawable && step.targets.is_empty() {
         issues.push(error(
+            Code::NoTargets,
             at,
             "the step's controls are drawn, but it has no `targets`",
         ));
@@ -322,10 +339,15 @@ fn check_step(
             .and_then(|(s, i)| s.items.get(i))
             .is_some_and(|i| i.kind == PanelItemKind::Keypad);
         if t.when.is_none() && !keypad && !seen.insert(t.at.as_str()) {
-            issues.push(error(at, format!("target `{}` is listed twice", t.at)));
+            issues.push(error(
+                Code::TargetTwice,
+                at,
+                format!("target `{}` is listed twice", t.at),
+            ));
         }
         let Some((section, index)) = located else {
             issues.push(error(
+                Code::UnknownPanelItem,
                 at,
                 format!("target `{}` does not match any panel item", t.at),
             ));
@@ -336,6 +358,7 @@ fn check_step(
         };
         if !item.controls.iter().any(|c| step.controls.contains(c)) {
             issues.push(error(
+                Code::TargetOffControls,
                 at,
                 format!("target `{}` is not on one of the step's controls", t.at),
             ));
@@ -344,12 +367,14 @@ fn check_step(
         // A keypad's open target names the key it may press, drawn dashed (format 6).
         if t.open && t.set.is_some() && !keypad {
             issues.push(error(
+                Code::TargetOpenAndSet,
                 at,
                 format!("`{}` leaves its position `open` and also `set`s one", t.at),
             ));
         }
         if is_light && t.set.is_some() {
             issues.push(error(
+                Code::TargetKind,
                 at,
                 format!("`{}`: a light takes `light`, not `set`", t.at),
             ));
@@ -357,6 +382,7 @@ fn check_step(
         // A legend pushbutton's light is its legends lit by the airplane, not the button.
         if !is_light && item.kind != PanelItemKind::LegendPushbutton && t.light.is_some() {
             issues.push(error(
+                Code::TargetKind,
                 at,
                 format!(
                     "`{}`: only a light or legend pushbutton takes `light`",
@@ -385,11 +411,13 @@ fn check_wording(
     if let Some(set) = &t.set {
         if !positions.contains(&set.as_str()) {
             issues.push(error(
+                Code::UnknownPosition,
                 at,
                 format!("`{}`: `{set}` is not one of its positions", t.at),
             ));
         } else if t.when.is_none() && !names_position(value, set, words) {
             issues.push(error(
+                Code::WordingDisagrees,
                 at,
                 format!(
                     "`{}` is set to `{set}`, but the step's wording does not say so",
@@ -402,6 +430,7 @@ fn check_wording(
         && let Some(n) = named_position(value, &item.positions, words)
     {
         issues.push(error(
+            Code::WordingDisagrees,
             at,
             format!(
                 "the step's wording sets `{}` to `{}`, but its target has no `set`",
@@ -416,6 +445,7 @@ fn check_wording(
         let (on, sure) = says_light_on(&step.expect, &item.label);
         match light {
             LightState::On if says_out => issues.push(error(
+                Code::WordingDisagrees,
                 at,
                 format!(
                     "`{}` is expected on, but the step's wording says it is out",
@@ -423,6 +453,7 @@ fn check_wording(
                 ),
             )),
             LightState::Out if on && sure => issues.push(error(
+                Code::WordingDisagrees,
                 at,
                 format!(
                     "`{}` is expected out, but the step's wording says it is on",

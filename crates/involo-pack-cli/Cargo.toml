@@ -3,7 +3,7 @@
 
 [package]
 name = "involo-pack-cli"
-description = "The `involo-pack` command for authors: check packs and regenerate schemas without launching the app."
+description = "The `involo-pack` command for authors: start, check, explain, describe and build packs without launching the app."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

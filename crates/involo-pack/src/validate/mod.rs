@@ -38,9 +38,10 @@ use references::check_other_references;
 use steps::{check_list, check_notes_repeat_how};
 use targets::check_step_targets;
 
+pub use crate::codes::Code;
 use crate::{FlatPack, Pack};
 
-pub use ids::valid_step_id;
+pub use ids::{valid_id as valid_pack_id, valid_step_id};
 pub use links::{ALLOWED_LINKS, BLOCKED_DOMAINS, BLOCKED_PATHS, find_links, is_blocked_link};
 
 /// How a blank is written in a step's expected response.
@@ -55,6 +56,9 @@ pub enum Severity {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Issue {
     pub severity: Severity,
+    /// The problem's stable code (decision 0030); `involo-pack explain <code>` says what it means
+    /// and how to fix it.
+    pub code: Code,
     /// Where: a list id, a step id, a file name or a path into the content.
     pub at: String,
     pub message: String,
@@ -66,21 +70,23 @@ impl fmt::Display for Issue {
             Severity::Warning => "warning",
             Severity::Error => "error",
         };
-        write!(f, "{level}: {}: {}", self.at, self.message)
+        write!(f, "{level} {}: {}: {}", self.code, self.at, self.message)
     }
 }
 
-fn error(at: impl Into<String>, message: impl Into<String>) -> Issue {
+fn error(code: Code, at: impl Into<String>, message: impl Into<String>) -> Issue {
     Issue {
         severity: Severity::Error,
+        code,
         at: at.into(),
         message: message.into(),
     }
 }
 
-fn warning(at: impl Into<String>, message: impl Into<String>) -> Issue {
+fn warning(code: Code, at: impl Into<String>, message: impl Into<String>) -> Issue {
     Issue {
         severity: Severity::Warning,
+        code,
         at: at.into(),
         message: message.into(),
     }
@@ -110,7 +116,10 @@ fn validate_with_allow_list(pack: &Pack, allow: &[&str]) -> Vec<Issue> {
     // A pack over a limit is refused for that alone: the other checks are not run on it.
     let over = crate::limits::over_limits(&pack.checklists, &pack.content);
     if !over.is_empty() {
-        return over.into_iter().map(|(at, what)| error(at, what)).collect();
+        return over
+            .into_iter()
+            .map(|(at, what)| error(Code::OverLimit, at, what))
+            .collect();
     }
     let mut issues = Vec::new();
     check_manifest(pack, &mut issues);

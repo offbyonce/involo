@@ -1,0 +1,52 @@
+---
+source: crates/involo-pack-cli/tests/authoring.rs
+---
+{
+  "ok": false,
+  "packs": [
+    {
+      "folder": "example-twin",
+      "id": "example-twin",
+      "issues": [
+        {
+          "at": "example-twin.before-start.battery",
+          "code": "P0205",
+          "file": "lists/before-start.yaml",
+          "hint": "Check the spelling against controls.yaml, or add the control there.",
+          "line": 15,
+          "message": "refers to unknown control `batery`",
+          "severity": "error"
+        },
+        {
+          "at": "example-twin.before-start.battery",
+          "code": "P0413",
+          "file": "lists/before-start.yaml",
+          "hint": "Add the item's control to the step's `controls`, or target an item of the step's controls.",
+          "line": 17,
+          "message": "target `overhead/electrical/BATTERY/1` is not on one of the step's controls",
+          "severity": "error"
+        },
+        {
+          "at": "example-twin.before-start.battery",
+          "code": "P0413",
+          "file": "lists/before-start.yaml",
+          "hint": "Add the item's control to the step's `controls`, or target an item of the step's controls.",
+          "line": 19,
+          "message": "target `overhead/electrical/BATT LOW/1` is not on one of the step's controls",
+          "severity": "error"
+        },
+        {
+          "at": "pack.json",
+          "code": "P0108",
+          "file": "pack.json",
+          "hint": "Write the designator in capitals, such as `B738` or `A20N`.",
+          "line": 12,
+          "message": "`zz` is not an ICAO type designator (two to four capital letters and digits, starting with a letter)",
+          "severity": "error"
+        }
+      ],
+      "ok": false,
+      "version": "0.1.0"
+    }
+  ]
+}

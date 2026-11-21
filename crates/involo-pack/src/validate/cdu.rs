@@ -8,35 +8,48 @@ use involo_checklist_core::{
 };
 
 use super::index::Index;
-use super::{Issue, error};
+use super::{Code, Issue, error};
 use crate::Pack;
 
 fn check_cdu_field(at: &str, field: &CduField, idx: &Index, issues: &mut Vec<Issue>) {
     idx.require_field(at, field.field.as_str(), issues);
     if field.field.as_str() == FieldId::MANUAL {
-        issues.push(error(at, "`manual` is only valid in a step's `fill`"));
+        issues.push(error(
+            Code::ManualOutsideFill,
+            at,
+            "`manual` is only valid in a step's `fill`",
+        ));
     }
     if field.field.as_str() == FieldId::ROUTE_LEG {
         if field.part.is_none() || field.index.is_none() {
-            issues.push(error(at, "`route_leg` needs an `index` and a `part`"));
+            issues.push(error(
+                Code::CduRouteLeg,
+                at,
+                "`route_leg` needs an `index` and a `part`",
+            ));
         }
         if field
             .index
             .is_some_and(|n| !(1..=MAX_ROUTE_LEG).contains(&n))
         {
             issues.push(error(
+                Code::CduRouteLeg,
                 at,
                 format!("`route_leg` index must be from 1 to {MAX_ROUTE_LEG}"),
             ));
         }
     } else if field.index.is_some() || field.part.is_some() {
-        issues.push(error(at, "only `route_leg` takes an `index` or `part`"));
+        issues.push(error(
+            Code::CduRouteLeg,
+            at,
+            "only `route_leg` takes an `index` or `part`",
+        ));
     }
 }
 
 fn check_route_count(at: &str, count: &CduRouteCount, issues: &mut Vec<Issue>) {
     if count.per_page == 0 {
-        issues.push(error(at, "`per_page` must be at least 1"));
+        issues.push(error(Code::PerPage, at, "`per_page` must be at least 1"));
     }
 }
 
@@ -53,14 +66,18 @@ fn check_cdu_when(at: &str, when: &CduWhen, idx: &Index, issues: &mut Vec<Issue>
         idx.require_field(at, field.as_str(), issues);
     }
     if when.when_known.is_empty() {
-        issues.push(error(at, "`when_known` must name a field"));
+        issues.push(error(Code::WhenKnown, at, "`when_known` must name a field"));
     }
     if when
         .when_known
         .iter()
         .any(|f| f.as_str() == FieldId::MANUAL)
     {
-        issues.push(error(at, "`manual` is only valid in a step's `fill`"));
+        issues.push(error(
+            Code::ManualOutsideFill,
+            at,
+            "`manual` is only valid in a step's `fill`",
+        ));
     }
     if when
         .when_known
@@ -68,6 +85,7 @@ fn check_cdu_when(at: &str, when: &CduWhen, idx: &Index, issues: &mut Vec<Issue>
         .any(|f| f.as_str() == FieldId::ROUTE_LEG)
     {
         issues.push(error(
+            Code::WhenKnown,
             at,
             "`when_known` cannot test `route_leg`; test `route`",
         ));

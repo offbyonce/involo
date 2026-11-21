@@ -10,7 +10,7 @@ use involo_checklist_core::content::ReferenceLabelsFile;
 use involo_checklist_core::{Labels, LabelsFile};
 
 use super::ids::{unique, valid_segment};
-use super::{Issue, error};
+use super::{Code, Issue, error};
 use crate::Pack;
 
 const FILE: &str = "labels.yaml";
@@ -45,6 +45,8 @@ pub(super) fn as_written(labels: &Labels) -> LabelsFile {
     }
 }
 
+// One check per rule, in order; each one's code makes the calls longer than one line.
+#[allow(clippy::too_many_lines)]
 pub(super) fn check_labels(pack: &Pack, issues: &mut Vec<Issue>) {
     let Some(file) = &pack.labels_file else {
         return;
@@ -79,6 +81,7 @@ pub(super) fn check_labels(pack: &Pack, issues: &mut Vec<Issue>) {
     {
         if !valid_segment(id) {
             issues.push(error(
+                Code::IdFormat,
                 FILE,
                 format!("{what} id `{id}` must be lower-case letters, digits and dashes"),
             ));
@@ -89,6 +92,7 @@ pub(super) fn check_labels(pack: &Pack, issues: &mut Vec<Issue>) {
             && !known.contains(seat.as_str())
         {
             issues.push(error(
+                Code::RoleSeat,
                 FILE,
                 format!("role `{}` sits in unknown seat `{seat}`", role.id),
             ));
@@ -103,6 +107,7 @@ pub(super) fn check_labels(pack: &Pack, issues: &mut Vec<Issue>) {
         for group in &reference.groups {
             if !valid_segment(&group.id) {
                 issues.push(error(
+                    Code::IdFormat,
                     FILE,
                     format!(
                         "reference group id `{}` must be lower-case letters, digits and dashes",
@@ -120,6 +125,7 @@ pub(super) fn check_labels(pack: &Pack, issues: &mut Vec<Issue>) {
     for tag in &file.basis_tags {
         if !pack.manifest.basis_tags.contains(&tag.id) {
             issues.push(error(
+                Code::UndeclaredBasis,
                 FILE,
                 format!(
                     "a label for basis tag `{}`, which pack.json's basisTags does not list",
@@ -138,6 +144,7 @@ pub(super) fn check_labels(pack: &Pack, issues: &mut Vec<Issue>) {
     for term in file.glossary_exceptions.iter().flatten() {
         if !terms.contains(term.as_str()) {
             issues.push(error(
+                Code::GlossaryException,
                 FILE,
                 format!("glossary exception `{term}` is not a glossary term"),
             ));

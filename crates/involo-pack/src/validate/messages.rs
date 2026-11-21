@@ -7,7 +7,7 @@ use std::collections::BTreeSet;
 
 use super::ids::{unique, valid_segment};
 use super::index::Index;
-use super::{Issue, error};
+use super::{Code, Issue, error};
 use crate::Pack;
 
 /// Ids are well formed and unique; a message's text is given once per level; its list and steps
@@ -25,26 +25,37 @@ pub(super) fn check_messages(pack: &Pack, idx: &Index, issues: &mut Vec<Issue>) 
     for m in &file.messages {
         let at = format!("message `{}`", m.id);
         if !valid_segment(&m.id) {
-            issues.push(error(&at, "an id is lower-case letters, digits and dashes"));
+            issues.push(error(
+                Code::IdFormat,
+                &at,
+                "an id is lower-case letters, digits and dashes",
+            ));
         }
         if m.text.trim().is_empty() || m.meaning.trim().is_empty() {
             issues.push(error(
+                Code::MessageText,
                 &at,
                 "a message needs its `text` and what it means (`meaning`)",
             ));
         }
         if !texts.insert((m.level, m.text.trim())) {
             issues.push(error(
+                Code::MessageTwice,
                 &at,
                 format!("`{}` is given twice at this level", m.text.trim()),
             ));
         }
         if let Some(list) = &m.list {
             if !idx.lists.contains(list.as_str()) {
-                issues.push(error(&at, format!("refers to unknown list `{list}`")));
+                issues.push(error(
+                    Code::UnknownList,
+                    &at,
+                    format!("refers to unknown list `{list}`"),
+                ));
             }
             if m.no_list.is_some() {
                 issues.push(error(
+                    Code::NoListReason,
                     &at,
                     "`no_list` says why a message has no list; this one has a `list`",
                 ));

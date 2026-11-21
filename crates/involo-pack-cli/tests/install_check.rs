@@ -44,21 +44,33 @@ mod tests {
         }
     }
 
-    /// The errors `involo-pack check` prints for the pack, as `where: what`.
+    /// The errors `involo-pack check --json` reports for the pack, as `where: what`.
     fn check_errors(dir: &Path) -> Vec<String> {
         let output = Command::new(env!("CARGO_BIN_EXE_involo-pack"))
-            .arg("check")
+            .args(["check", "--json"])
             .arg(dir)
             .output()
             .unwrap();
-        let text = String::from_utf8(output.stdout).unwrap();
-        let errors: Vec<String> = text
-            .lines()
-            .filter_map(|l| l.strip_prefix("  error: "))
-            .map(str::to_owned)
+        let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        let errors: Vec<String> = report["packs"][0]["issues"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|i| i["severity"] == "error")
+            .map(|i| {
+                format!(
+                    "{}: {}",
+                    i["at"].as_str().unwrap(),
+                    i["message"].as_str().unwrap()
+                )
+            })
             .collect();
         let stderr = String::from_utf8_lossy(&output.stderr);
-        assert_eq!(output.status.success(), errors.is_empty(), "{text}{stderr}");
+        assert_eq!(
+            output.status.success(),
+            errors.is_empty(),
+            "{report}{stderr}"
+        );
         errors
     }
 

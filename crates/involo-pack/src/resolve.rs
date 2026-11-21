@@ -35,6 +35,17 @@ pub enum ResolveError {
     Pack(String),
 }
 
+impl ResolveError {
+    /// The problem's stable code (decision 0030).
+    pub const fn code(&self) -> crate::Code {
+        match self {
+            Self::Load(e) => e.code(),
+            Self::NotFound { .. } => crate::Code::ParentNotFound,
+            Self::Pack(_) => crate::Code::PatchFailed,
+        }
+    }
+}
+
 /// A pack built over its parents, and what each of its patches touched.
 #[derive(Debug, Clone)]
 pub struct Resolved {
