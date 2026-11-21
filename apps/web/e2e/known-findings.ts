@@ -22,8 +22,6 @@ export type KnownFinding = {
 
 const ALL = ["Example Twin", "Example Sidestick Twin", "Example Twin LR"];
 const TWINS = ["Example Twin", "Example Twin LR"];
-/** The Beta 1 issue that fixes these findings. */
-const ISSUE = "Beta 1: layout and accessibility on the main screens (number to come)";
 
 export const KNOWN_FINDINGS: KnownFinding[] = [
   {
@@ -31,14 +29,14 @@ export const KNOWN_FINDINGS: KnownFinding[] = [
     check: "layout",
     finding: /^the ".+ ›" link is \d+ px tall$/,
     packs: ALL,
-    issue: ISSUE,
+    issue: "#198",
   },
   {
     screen: "Flight",
     check: "layout",
     finding: /^the "— enter" link is \d+ px tall$/,
     packs: ALL,
-    issue: ISSUE,
+    issue: "#198",
   },
   {
     screen: "Flight deck",
@@ -46,49 +44,49 @@ export const KNOWN_FINDINGS: KnownFinding[] = [
     finding:
       /^label-content-name-mismatch \(serious\): .* at \.on \(<g role="button" tabindex="0" class="box /,
     packs: TWINS,
-    issue: ISSUE,
+    issue: "#198",
   },
   {
     screen: "How",
     check: "layout",
     finding: /^the "Start ›" link is \d+ px wide$/,
     packs: TWINS,
-    issue: ISSUE,
+    issue: "#198",
   },
   {
     screen: "Practice",
     check: "shown",
     finding: /^getByRole\('heading', \{ level: 1 \}\)\.first\(\) doesn't show$/,
     packs: ALL,
-    issue: ISSUE,
+    issue: "#198",
   },
   {
     screen: "References",
     check: "label-content-name-mismatch",
     finding: /^label-content-name-mismatch \(serious\): .* at a\[href\$="#\/phase\//,
     packs: ALL,
-    issue: ISSUE,
+    issue: "#198",
   },
   {
     screen: "References",
     check: "layout",
     finding: /^the ".+" button is 36 px tall$/,
     packs: ALL,
-    issue: ISSUE,
+    issue: "#198",
   },
   {
     screen: "Start",
     check: "layout",
     finding: /^the "Choose a panel state.*" select sits outside the screen \(\d+ to \d+ px of 390\)$/,
     packs: ["Example Twin LR"],
-    issue: ISSUE,
+    issue: "#198",
   },
   {
     screen: "Start",
     check: "layout",
     finding: /^the ".+" button sits outside the screen \(\d+ to \d+ px of 390\)$/,
     packs: ["Example Sidestick Twin"],
-    issue: ISSUE,
+    issue: "#198",
   },
 ];
 
