@@ -33,6 +33,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository &&
        ((vars.SITE_FROM != 'tags' && github.event.workflow_run.head_branch == 'main') ||
         (vars.SITE_FROM == 'tags' && startsWith(github.event.workflow_run.head_branch, 'v'))))
     runs-on: ubuntu-latest
@@ -57,10 +58,12 @@ jobs:
       # pnpm first (version from package.json "packageManager"), so setup-node can find it.
       - uses: pnpm/action-setup@v6
 
+      # No dependency cache here: this job publishes the site, so it never restores a cache that
+      # another workflow could have written (CodeQL actions/cache-poisoning).
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: pnpm
+          package-manager-cache: false
 
       - run: pnpm install --frozen-lockfile
 
