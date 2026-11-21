@@ -37,7 +37,8 @@ const key = (name: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-/** The page's areas, in the pack's order, the regions the side view does not draw last. */
+/** The page's areas, in the pack's order, the regions the side view does not draw last; for a pack
+ * without regions, its zones' area names. */
 export function deckAreas(index: PackIndex): DeckArea[] {
   const overview = index.overview;
   if (!overview) return [];
@@ -58,6 +59,26 @@ export function deckAreas(index: PackIndex): DeckArea[] {
       return [z];
     });
   };
+  // No regions: one area per area name the zones give, in map order, each listing its zones.
+  if (!regions.length) {
+    const names = [
+      ...new Set(overview.areas.map((b) => byId.get(b.zone)?.area).filter((a): a is string => !!a)),
+    ];
+    return names.map((full) => {
+      const [name, code] = splitArea(full);
+      const boxes = overview.areas.filter((b) => byId.get(b.zone)?.area === full);
+      return {
+        id: key(name),
+        name,
+        code,
+        locate: null,
+        region: null,
+        boxes,
+        zones: zonesOf(boxes),
+        side: null,
+      };
+    });
+  }
   const side = overview.views?.side;
   const placeOf = (name: string) => side?.places?.find((p) => p.region === name) ?? null;
   const out: DeckArea[] = [];

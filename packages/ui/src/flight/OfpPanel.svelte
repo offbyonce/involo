@@ -10,7 +10,7 @@ OFP on SimBrief is a plain link: it opens SimBrief and sends nothing from this a
 -->
 <script lang="ts">
   import Icon from "../lib/Icon.svelte";
-  import { OFP_SECTIONS, type Ctx, type Ofp } from "./sections";
+  import { OFP_SECTIONS, pagesFedBy, type Ctx, type Ofp } from "./sections";
 
   let {
     ofp,
@@ -30,15 +30,23 @@ OFP on SimBrief is a plain link: it opens SimBrief and sends nothing from this a
   const BLOCKS = ["b16", "b28", "b14", "b64", "b14", "b22", "b18"];
   /** Weather.dc.html draws its page with these heights. */
   const WEATHER_BLOCKS = ["b16", "b28", "b14", "b64", "b16", "b32", "b20"];
-  const LAYOUT = [
-    { name: "Header and times", what: "Flight number, airports, route, cruise level, cost index, times", where: "Route · Cruise and levels" },
-    { name: "Fuel plan", what: "Trip, reserves, taxi and block fuel", where: "Fuel and weights" },
-    { name: "Weights", what: "Zero fuel weight, payload, takeoff and landing weights", where: "Fuel and weights · Takeoff" },
+  /** Each OFP section: what it holds, and where the app uses it. For the sections that fill flight
+   * values, that is the pack's own Flight pages that take them (the SimBrief values listed), none
+   * when the pack takes none; the rest go to the app's own pages. */
+  const LAYOUT: { name: string; what: string; where?: string; sources?: string[] }[] = [
+    {
+      name: "Header and times",
+      what: "Flight number, airports, route, cruise level, cost index, times",
+      sources: ["flight_number", "origin", "destination", "route", "cruise_level", "cost_index", "enroute_time", "air_distance"],
+    },
+    { name: "Fuel plan", what: "Trip, reserves, taxi and block fuel", sources: ["block_fuel", "trip_fuel", "reserve_fuel", "taxi_fuel", "minimum_takeoff_fuel"] },
+    { name: "Weights", what: "Zero fuel weight, payload, takeoff and landing weights", sources: ["zero_fuel_weight", "passengers", "cargo", "takeoff_weight"] },
     { name: "Navigation log", what: "Each fix with its level, wind and temperature", where: "Weather › En route winds" },
-    { name: "Alternate", what: "The alternate airport and the fuel to get there", where: "Route · Fuel and weights" },
+    { name: "Alternate", what: "The alternate airport and the fuel to get there", sources: ["alternate", "alternate_fuel"] },
     { name: "Weather", what: "METAR and TAF for each airport", where: "Weather" },
     { name: "NOTAMs", what: "Notices for the airports and airspace", where: "Read before you fly" },
   ];
+  const whereOf = (m: (typeof LAYOUT)[number]) => m.where ?? pagesFedBy(m.sources ?? []).join(" · ");
 </script>
 
 <aside class="ofp" aria-label="Find it in your OFP">
@@ -60,7 +68,7 @@ OFP on SimBrief is a plain link: it opens SimBrief and sends nothing from this a
           <span class="mt">
             <span class="mn">{m.name}</span>
             <span class="mw">{m.what}</span>
-            <span class="mu">{m.where}</span>
+            {#if whereOf(m)}<span class="mu">{whereOf(m)}</span>{/if}
           </span>
         </li>
       {/each}

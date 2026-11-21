@@ -9,10 +9,20 @@ import { readFileSync } from "node:fs";
 import type { FieldId, FlatPack, FlightFile, Plan } from "@involo/bindings";
 import { beforeAll, describe, expect, it } from "vitest";
 import { initSync, parse_plan } from "../../../../apps/web/src/wasm/involo_web_host.js";
-import { iflyPack, twinPack } from "../test-pack";
+import { iflyPack, sidestickPack, twinPack } from "../test-pack";
 import fixture from "./fixtures/flight-pages-ifly.json";
 import { contexts, dumpRanges, dumpSections, SAMPLE_VALUES } from "./flight-dump";
-import { blankLinks, home, needed, rangeMessage, sections, toEnter, unitOf, useFlightPack } from "./sections";
+import {
+  blankLinks,
+  home,
+  needed,
+  pagesFedBy,
+  rangeMessage,
+  sections,
+  toEnter,
+  unitOf,
+  useFlightPack,
+} from "./sections";
 
 const root = `${import.meta.dirname}/../../../..`;
 let plan: Plan;
@@ -168,5 +178,37 @@ describe("the Flight pages for any pack", () => {
       // Nor the altimeter fields' ids: they are found by their SimBrief source.
       expect(text, file).not.toMatch(/\bqnh|destination_qnh|qnh_unit/);
     }
+  });
+});
+
+describe("where the app uses each part of the OFP (#108)", () => {
+  const HEADER = [
+    "flight_number",
+    "origin",
+    "destination",
+    "route",
+    "cruise_level",
+    "cost_index",
+    "enroute_time",
+    "air_distance",
+  ];
+  const FUEL = ["block_fuel", "trip_fuel", "reserve_fuel", "taxi_fuel", "minimum_takeoff_fuel"];
+  const WEIGHTS = ["zero_fuel_weight", "passengers", "cargo", "takeoff_weight"];
+  const ALTERNATE = ["alternate", "alternate_fuel"];
+
+  it("names the iFly pack's pages as the board does", () => {
+    useFlightPack(iflyPack());
+    expect(pagesFedBy(HEADER).join(" · ")).toBe("Route · Cruise and levels");
+    expect(pagesFedBy(FUEL).join(" · ")).toBe("Fuel and weights");
+    expect(pagesFedBy(WEIGHTS).join(" · ")).toBe("Fuel and weights · Takeoff");
+    expect(pagesFedBy(ALTERNATE).join(" · ")).toBe("Route · Fuel and weights");
+  });
+
+  it("names another pack's own pages, and none it doesn't have", () => {
+    useFlightPack(sidestickPack());
+    expect(pagesFedBy(HEADER)).toEqual(["Route"]);
+    expect(pagesFedBy(FUEL)).toEqual(["Fuel and load", "Takeoff"]);
+    expect(pagesFedBy(ALTERNATE)).toEqual([]);
+    useFlightPack(iflyPack());
   });
 });
