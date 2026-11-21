@@ -10,12 +10,16 @@ packs. Read the [content rules](content-rules.md) before you write a real aircra
 
 ## 1. Get the command
 
-Download `involo-pack` for Windows, macOS or Linux from a release of the Involo repository (the
-`involo-pack-SHA256SUMS.txt` beside them lets you check the download), or build it with Rust:
+Download `involo-pack` for Windows, macOS or Linux from a release of the Involo repository,
+<https://github.com/offbyonce/involo> (the `involo-pack-SHA256SUMS.txt` beside them lets you check
+the download), or build it with Rust:
 
 ```sh
-cargo install --git <the Involo repository> involo-pack-cli
+cargo install --locked --git https://github.com/offbyonce/involo involo-pack-cli
 ```
+
+`--locked` builds with the exact versions the app is built with, from the repository's
+`Cargo.lock`; without it, Cargo may pick newer versions of the libraries the command uses.
 
 Check it runs:
 

@@ -37,8 +37,9 @@ copied text.
 ## The tools
 
 - **`involo-pack`**, the command: `new`, `check`, `explain`, `describe`, `import-panel`, `build`
-  and `mcp`. Download it for Windows, macOS or Linux from a release of the Involo repository, or
-  install it with `cargo install --git <the Involo repository> involo-pack-cli`.
+  and `mcp`. Download it for Windows, macOS or Linux from a release of the Involo repository,
+  <https://github.com/offbyonce/involo>, or install it with
+  `cargo install --locked --git https://github.com/offbyonce/involo involo-pack-cli`.
 - **JSON Schemas** in `schemas/`, which give an editor autocomplete and checking as you type. The
   example packs show how to point a file at its schema.
 - **The example packs** in `packs/examples`: invented aircraft that use every part of the format.
