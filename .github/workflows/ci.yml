@@ -64,7 +64,8 @@ jobs:
 
   # The end-to-end flows with their layout and accessibility checks (#163): the built site in
   # Chromium and WebKit, served locally with the catalog, the network blocked. The token rules
-  # run in `just ci` above (Vitest). About five minutes, most of it building the site.
+  # run in `just ci` above (Vitest). About five minutes, most of it building the site. On a push,
+  # it also keeps that site for the Pages workflow.
   e2e:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -97,6 +98,16 @@ jobs:
       - run: just e2e
         env:
           CI: "1"
+
+      # A push to main or a release tag: the site these tests just passed, pack catalog included,
+      # for the Pages workflow to publish as it is, with nothing rebuilt (#201). The release
+      # attaches its packs/ files.
+      - if: github.event_name == 'push'
+        uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: apps/web/dist
+          if-no-files-found: error
 
       # On a failure: the HTML report, with each failed test's trace and the page as it was.
       - if: failure()
