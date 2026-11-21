@@ -5,7 +5,8 @@
 # tested (the e2e job's `site` artifact: apps/web/dist, with the pack catalog in packs/). Nothing
 # is checked out, installed or built here. The repository variable SITE_FROM chooses the source:
 # "main" until the first release, then "tags", so the site, the catalog and the release files
-# always match. A release tag also attaches the pack files and index.json to its release.
+# always match. A release tag also attaches the pack files, index.json and the `involo-pack`
+# command for each platform (CI's `cli` job) to its release.
 # Can also be run by hand, to publish a given CI run's site or the newest one SITE_FROM chooses.
 
 name: Pages
@@ -113,8 +114,8 @@ jobs:
         uses: actions/deploy-pages@v5
 
   release:
-    # A release tag: attach the pack files and index.json, from the same site, to its GitHub
-    # release.
+    # A release tag: attach the pack files and index.json, from the same site, and the
+    # `involo-pack` binaries CI built for the tag, to its GitHub release, with their SHA-256 sums.
     needs: [site, deploy]
     if: github.event_name == 'workflow_run' && startsWith(github.event.workflow_run.head_branch, 'v')
     runs-on: ubuntu-latest
@@ -128,12 +129,21 @@ jobs:
           path: ${{ runner.temp }}/site
           run-id: ${{ needs.site.outputs.run_id }}
           github-token: ${{ github.token }}
-      - name: Attach the catalog to the release
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: involo-pack-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/cli
+          run-id: ${{ needs.site.outputs.run_id }}
+          github-token: ${{ github.token }}
+      - name: Attach the catalog and the command to the release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.workflow_run.head_branch }}
           CATALOG: ${{ runner.temp }}/site/packs
+          CLI: ${{ runner.temp }}/cli
         run: |
+          (cd "$CLI" && sha256sum involo-pack-* > involo-pack-SHA256SUMS.txt)
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
             || gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --notes ""
-          gh release upload "$TAG" "$CATALOG"/* --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload "$TAG" "$CATALOG"/* "$CLI"/* --repo "$GITHUB_REPOSITORY" --clobber
