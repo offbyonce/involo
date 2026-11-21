@@ -54,6 +54,64 @@ jobs:
 
       - run: just ci
 
+  # A release tag: the `involo-pack` command for Windows, macOS and Linux, for the Pages
+  # workflow's release job to attach to the release (#109). Built from the tag CI tests.
+  cli:
+    if: startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            exe: ""
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            exe: ""
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            exe: ""
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            exe: ".exe"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # The version from rust-toolchain.toml, with the platform's target (Intel macOS builds on
+      # an Apple silicon runner).
+      - name: Rust
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          rustup show active-toolchain || rustup toolchain install
+          rustup target add "$TARGET"
+        shell: bash
+
+      - name: Build
+        env:
+          TARGET: ${{ matrix.target }}
+        run: cargo build --release --locked -p involo-pack-cli --target "$TARGET"
+        shell: bash
+
+      - name: Name the binary after its platform
+        env:
+          TARGET: ${{ matrix.target }}
+          EXE: ${{ matrix.exe }}
+        run: |
+          mkdir -p dist
+          cp "target/$TARGET/release/involo-pack$EXE" "dist/involo-pack-$TARGET$EXE"
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: involo-pack-${{ matrix.target }}
+          path: dist
+          if-no-files-found: error
+
   reuse:
     runs-on: ubuntu-latest
     steps:
