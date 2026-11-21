@@ -410,6 +410,8 @@ dependencies = [
  "involo-checklist-core",
  "involo-pack",
  "involo-pack-overlap",
+ "roxmltree",
+ "serde-saphyr",
  "serde_json",
 ]
 

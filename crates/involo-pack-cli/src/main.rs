@@ -14,6 +14,10 @@
 //! code, without one.
 //! `involo-pack describe [--json] <file>`  the fields one pack file takes (`flight.yaml`,
 //! `lists/<name>.yaml`), from its JSON Schema; `--json` prints the schema.
+//! `involo-pack import-panel <file.svg> [--id <id>] [--title <title>] [--width <units>] [--out <file>]`
+//! a panel drawn in a vector drawing tool, as a panel file for the author to finish: groups named
+//! `section:<id>` and `<kind>:<LABEL>` become sections and controls where they are drawn. Prints
+//! the file, or writes it to `--out`.
 //! `involo-pack schema <dir>`    write every JSON Schema into `<dir>` (`just schemas`).
 //! `involo-pack build <dir>... <out-dir> [--parents <dir>]`  check each pack, then write the
 //!                        catalog (decision 0028): each pack as one flattened
@@ -45,11 +49,13 @@ use involo_pack_overlap::{
 };
 use serde_json::json;
 
+mod import_panel;
+
 mod examples {
     include!(concat!(env!("OUT_DIR"), "/examples.rs"));
 }
 
-const USAGE: &str = "usage:\n  involo-pack new <folder> [--from <example>] [--name <name>]\n  involo-pack check [--json] <pack-dir | packs-dir>... [--parents <dir>]\n  involo-pack explain [--json] [<code>]\n  involo-pack describe [--json] <file>\n  involo-pack schema <out-dir>\n  involo-pack build <pack-dir | packs-dir>... <out-dir> [--parents <dir>]\n  involo-pack overlap <pack-dir | packs-dir> [--refs <folder>] [--allow <file>]\n  involo-pack suggest-targets <pack-dir>\n  involo-pack terms [--json] <pack-dir>";
+const USAGE: &str = "usage:\n  involo-pack new <folder> [--from <example>] [--name <name>]\n  involo-pack check [--json] <pack-dir | packs-dir>... [--parents <dir>]\n  involo-pack explain [--json] [<code>]\n  involo-pack describe [--json] <file>\n  involo-pack import-panel <file.svg> [--id <id>] [--title <title>] [--width <units>] [--out <file>]\n  involo-pack schema <out-dir>\n  involo-pack build <pack-dir | packs-dir>... <out-dir> [--parents <dir>]\n  involo-pack overlap <pack-dir | packs-dir> [--refs <folder>] [--allow <file>]\n  involo-pack suggest-targets <pack-dir>\n  involo-pack terms [--json] <pack-dir>";
 
 /// The example `new` starts from when `--from` names none.
 const DEFAULT_EXAMPLE: &str = "example-twin";
@@ -77,6 +83,7 @@ fn run() -> Result<bool> {
             explain(rest.first().map(String::as_str), json)
         }
         Some((cmd, [file])) if cmd == "describe" => describe(file, json),
+        Some((cmd, rest)) if cmd == "import-panel" && !rest.is_empty() => import_panel(rest),
         Some((cmd, [out])) if cmd == "schema" => schema(Path::new(out)).map(|()| true),
         Some((cmd, [packs @ .., out])) if cmd == "build" && !packs.is_empty() => {
             build(packs, Path::new(out), &parents)
@@ -171,6 +178,102 @@ fn new(args: &[String]) -> Result<bool> {
     println!(
         "next: change the aircraft in pack.json and the content in each file, then run `involo-pack check {}`",
         folder.display()
+    );
+    Ok(true)
+}
+
+/// `import-panel <file.svg> [--id <id>] [--title <title>] [--width <units>] [--out <file>]`: the
+/// panel file a drawing makes, printed or written to `--out` (never over a file that is there).
+/// What was left out or guessed goes to standard error.
+fn import_panel(args: &[String]) -> Result<bool> {
+    let mut file = None;
+    let (mut id, mut title, mut width, mut out) = (None, None, None, None);
+    let mut rest = args.iter();
+    while let Some(arg) = rest.next() {
+        let mut value = |what: &str| {
+            rest.next()
+                .with_context(|| format!("`{arg}` needs {what}"))
+                .cloned()
+        };
+        match arg.as_str() {
+            "--id" => id = Some(value("an id")?),
+            "--title" => title = Some(value("a title")?),
+            "--width" => {
+                let w = value("a width")?;
+                width = Some(
+                    w.parse::<f64>()
+                        .ok()
+                        .filter(|w| w.is_finite() && *w > 0.0)
+                        .with_context(|| {
+                            format!(
+                                "`--width {w}`: give the panel's width in panel units, such as 400"
+                            )
+                        })?,
+                );
+            }
+            "--out" => out = Some(PathBuf::from(value("a file")?)),
+            other if file.is_none() && !other.starts_with("--") => {
+                file = Some(PathBuf::from(other));
+            }
+            _ => bail!("{USAGE}"),
+        }
+    }
+    let file = file.context(USAGE)?;
+    let stem = file
+        .file_stem()
+        .map(|s| s.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let id = id.unwrap_or_else(|| import_panel::slug(&stem));
+    if !involo_pack::validate::valid_pack_id(&id) || id.contains('.') {
+        bail!(
+            "`{id}` can't be a panel id: use lower-case letters, digits and dashes, such as `overhead`, with `--id`"
+        );
+    }
+    let size = std::fs::metadata(&file)
+        .with_context(|| format!("cannot read {}", file.display()))?
+        .len();
+    let refused = |why: String| anyhow::anyhow!("refused {}: {why}", file.display());
+    if size > import_panel::MAX_BYTES {
+        return Err(refused(format!(
+            "it is over {} MB; a panel drawing is far smaller",
+            import_panel::MAX_BYTES / 1024 / 1024
+        )));
+    }
+    let text = std::fs::read_to_string(&file)
+        .with_context(|| format!("cannot read {} as text", file.display()))?;
+    let opts = import_panel::Options {
+        id: id.clone(),
+        title,
+        width,
+        source: file
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default(),
+    };
+    let imported = import_panel::import(&text, &opts).map_err(|e| refused(e.to_string()))?;
+    for warning in &imported.warnings {
+        eprintln!("warning: {warning}");
+    }
+    let Some(out) = out else {
+        print!("{}", imported.yaml);
+        return Ok(true);
+    };
+    if out.exists() {
+        bail!(
+            "{} is already there; choose another file or remove it first",
+            out.display()
+        );
+    }
+    std::fs::write(&out, &imported.yaml)
+        .with_context(|| format!("cannot write {}", out.display()))?;
+    println!(
+        "wrote {}: panel `{id}`, {} sections, {} controls",
+        out.display(),
+        imported.sections,
+        imported.items
+    );
+    println!(
+        "next: give each control its positions, controls and description, list the file in pack.json's `panels`, then run `involo-pack check`"
     );
     Ok(true)
 }
