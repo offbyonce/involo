@@ -80,7 +80,7 @@ describe("reference groups (decision 0029)", () => {
       /^\d+ memory-item lists, \d+ quick reference lists and \d+ procedures$/,
     );
     expect(howCountsOf(pack, stages)).toMatchObject({
-      stages: 5,
+      stages: "5 stages",
       stageNames: "Preflight, Departure, Enroute, Arrival and Post-flight",
       reference: "Emergency",
     });
@@ -597,7 +597,7 @@ describe("Practice for any pack", () => {
       .filter((p) => p.reference)
       .reduce((k, p) => k + p.lists.length, 0);
     expect(howCountsOf(three, ["Ground", "Air", "Ground again"])).toEqual({
-      stages: 3,
+      stages: "3 stages",
       stageNames: "Ground, Air and Ground again",
       groups: `${n} fire lists`,
       reference: "Abnormal",
