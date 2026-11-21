@@ -13,7 +13,20 @@ locator: string,
  * Which one of the lights sharing its label on a section this is ("transfer bus 1"),
  * as Practice names it; every light that shares its label needs one, each different.
  */
-which?: string | null, meaning: string, when: string, action: string, 
+which?: string | null, 
+/**
+ * What the light means when it is on; shown in the Flight deck page's light list and
+ * asked in Practice.
+ */
+meaning: string, 
+/**
+ * When the light comes on. The app does not show it today.
+ */
+when: string, 
+/**
+ * What to do when it is on. The app does not show it today.
+ */
+action: string, 
 /**
  * True when seeing this light is normal.
  */

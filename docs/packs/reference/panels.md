@@ -11,16 +11,16 @@ Schema: `schemas/panel.schema.json`. [All files](index.md).
 
 ## The file
 
-One `panels/*.yaml` file.
+One `panels/*.yaml` file: a drawing of one panel, its sections and the items in them, in our own layout. `pack.json` lists each panel file under `panels`.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `height` | number | yes |  |  |
-| `id` | text | yes |  |  |
+| `height` | number | yes |  | The panel's height in panel units. |
+| `id` | text | yes |  | The panel's id, unique in the pack; the first part of a locator or step target. |
 | `outline` | list of list of number |  |  | The panel's outline, when it is not a rectangle: points in panel units, inside its box, holding every section (format 6). |
-| `sections` | list of [PanelSection](#panelsection) | yes |  |  |
-| `title` | text | yes |  |  |
-| `width` | number | yes |  |  |
+| `sections` | list of [PanelSection](#panelsection) | yes |  | The panel's sections, each a labeled box of items. |
+| `title` | text | yes |  | The panel's name. The app names what it shows by its sections and zones, and does not show this today. |
+| `width` | number | yes |  | The panel's width in panel units; its outline, when it has one, lies inside. |
 
 ## PanelSection
 
@@ -28,15 +28,15 @@ A labeled section of a panel.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `height` | number | yes |  |  |
-| `id` | text | yes |  |  |
-| `items` | list of [PanelItem](#panelitem) | yes |  |  |
+| `height` | number | yes |  | The section box's height, in panel units. |
+| `id` | text | yes |  | The section's id, unique on its panel; locators and step targets name it. |
+| `items` | list of [PanelItem](#panelitem) | yes |  | The controls, lights and displays drawn in the section. |
 | `name` | text |  |  | What card titles, captions and "Also" lines call the panel ("Fuel panel"), when it is not the title as written. |
 | `outline` | list of list of number |  |  | The section's outline, when it is not a rectangle: points in the section's own units, inside its box, holding every item (format 6). Drawn as the rectangle frame is. |
 | `title` | text | yes |  | The title drawn on the panel, as the pack writes it. |
-| `width` | number | yes |  |  |
-| `x` | number | yes |  |  |
-| `y` | number | yes |  |  |
+| `width` | number | yes |  | The section box's width, in panel units. |
+| `x` | number | yes |  | The section box's left edge, in panel units from the panel's left edge. |
+| `y` | number | yes |  | The section box's top edge, in panel units from the panel's top edge. |
 
 ## PanelItem
 
@@ -48,19 +48,19 @@ One item on a panel drawing. Positions are our own layout.
 | `color` | [LightColor](#lightcolor) |  |  | Required on a light, and only valid on a light. |
 | `columns` | whole number |  |  | Only on a keypad: keys to a row. Three when left out. |
 | `controls` | list of text |  |  | Ids of the controls this item belongs to. |
-| `description` | text | yes |  |  |
+| `description` | text | yes |  | What the item does, shown in its card; the control's `function` when empty. |
 | `guarded` | true or false |  |  | Has a protective cover. Only valid on a toggle switch or push button. |
-| `height` | number |  |  |  |
+| `height` | number |  |  | Only on a display unit or readout: its drawn height in panel units, 30 when left out. |
 | `id` | text |  |  | An id, unique in its section, so a step target or light note can name the item as `panel/section/#id`, and a pack extending this one can change it (decision 0029). |
-| `kind` | [PanelItemKind](#panelitemkind) | yes |  |  |
-| `label` | text | yes |  |  |
+| `kind` | [PanelItemKind](#panelitemkind) | yes |  | What the item is, which decides how it is drawn and the fields it takes. |
+| `label` | text | yes |  | The item's name, drawn on the panel and used in its locator, `panel/section/LABEL/n`. |
 | `legends` | list of [Legend](#legend) |  |  | Only on a legend pushbutton: its legends, top then bottom; a single legend sits in the bottom half. |
 | `lit_at` | text |  |  | Only on a light: the position, on another item it shares a control with, that turns it on, e.g. the parking brake at SET. Drawings show the light on, as expected, when a step asks for that position. |
 | `positions` | list of text |  |  | The positions it can be set to, in order, e.g. `[OFF, AUTO, ON]`. A position may hold a comma. |
 | `rest` | text |  |  | Where it rests when the airplane is cold and dark: one of `positions`. Drawings show it, dimmed, on controls a step does not use (decision 0015). |
-| `width` | number |  |  |  |
-| `x` | number | yes |  |  |
-| `y` | number | yes |  |  |
+| `width` | number |  |  | Only on a display unit or readout: its drawn width in panel units, 60 when left out. |
+| `x` | number | yes |  | The item's center across, in panel units from its section's left edge. |
+| `y` | number | yes |  | The item's center down, in panel units from its section's top edge. |
 
 ## LightColor
 
@@ -68,11 +68,11 @@ A light's role: which light it is, never a color value. The app draws each role 
 
 | Value | What it means |
 | --- | --- |
-| `amber` |  |
-| `red` |  |
-| `green` |  |
-| `blue` |  |
-| `white` |  |
+| `amber` | Drawn in the theme's amber lit color. |
+| `red` | Drawn in the theme's red lit color. |
+| `green` | Drawn in the theme's green lit color. |
+| `blue` | Drawn in the theme's blue lit color. |
+| `white` | Drawn in the panel's text color. |
 
 ## PanelItemKind
 
@@ -102,5 +102,5 @@ One legend of a legend pushbutton, e.g. FAULT in amber or OFF in white.
 | --- | --- | --- | --- | --- |
 | `light` | [LightColor](#lightcolor) | yes |  | Its light's role. |
 | `lit_in` | list of text |  |  | The button's positions it is lit in (OFF lit when pushed to OFF). Without any, it is lit by the airplane, not the button (FAULT), and shows lit when a step expects the button's light on. |
-| `text` | text | yes |  |  |
+| `text` | text | yes |  | The legend's words, as the button shows them (`FAULT`, `OFF`). |
 

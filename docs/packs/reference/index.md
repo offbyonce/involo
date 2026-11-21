@@ -23,13 +23,13 @@ the JSON Schemas in `schemas/` give editors autocomplete. The guide that explain
 | [`flight.yaml`](flight.md) | `flight.schema.json` | The pack's Flight pages and its flight fields, in order. |
 | [`glossary.yaml`](glossary.md) | `glossary.schema.json` | `glossary.yaml`. |
 | [`labels.yaml`](labels.md) | `labels.schema.json` | `labels.yaml`. |
-| [`lights.yaml`](lights.md) | `lights.schema.json` | `lights.yaml`. |
+| [`lights.yaml`](lights.md) | `lights.schema.json` | What the panel lights mean, each found by its place on a panel. |
 | [`messages.yaml`](messages.md) | `messages.schema.json` | `messages.yaml`, in the order the app lists them. |
 | [`notes.yaml`](notes.md) | `notes.schema.json` | `notes.yaml`. |
-| [`panel-states.yaml`](panel-states.md) | `panel-states.schema.json` | `panel-states.yaml`. |
+| [`panel-states.yaml`](panel-states.md) | `panel-states.schema.json` | The starting points a pilot can pick on the Start page, each with the steps it counts as already done or skipped. |
 | [`patches.yaml`](patches.md) | `patches.schema.json` | A child pack's changes to its parent's content, by id, applied in order when the child is built (decision 0029). |
 | [`phases.yaml`](phases.md) | `phases.schema.json` | `phases.yaml`. |
 | [`lists/<name>.yaml`](lists.md) | `checklist.schema.json` | An ordered list of steps: a checklist, a flow or a non-normal procedure. |
-| [`panels/<name>.yaml`](panels.md) | `panel.schema.json` | One `panels/*.yaml` file. |
+| [`panels/<name>.yaml`](panels.md) | `panel.schema.json` | One `panels/*.yaml` file: a drawing of one panel, its sections and the items in them, in our own layout. |
 
 [Problem codes](codes.md): what each of the 126 codes `involo-pack check` gives means, and how to fix it.

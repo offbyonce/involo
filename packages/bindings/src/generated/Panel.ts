@@ -2,11 +2,33 @@
 import type { PanelSection } from "./PanelSection";
 
 /**
- * One `panels/*.yaml` file.
+ * One `panels/*.yaml` file: a drawing of one panel, its sections and the items in them, in
+ * our own layout. `pack.json` lists each panel file under `panels`.
  */
-export type Panel = { id: string, title: string, width: number, height: number, 
+export type Panel = { 
+/**
+ * The panel's id, unique in the pack; the first part of a locator or step target.
+ */
+id: string, 
+/**
+ * The panel's name. The app names what it shows by its sections and zones, and does not
+ * show this today.
+ */
+title: string, 
+/**
+ * The panel's width in panel units; its outline, when it has one, lies inside.
+ */
+width: number, 
+/**
+ * The panel's height in panel units.
+ */
+height: number, 
 /**
  * The panel's outline, when it is not a rectangle: points in panel units, inside its
  * box, holding every section (format 6).
  */
-outline?: Array<[number, number]>, sections: Array<PanelSection>, };
+outline?: Array<[number, number]>, 
+/**
+ * The panel's sections, each a labeled box of items.
+ */
+sections: Array<PanelSection>, };

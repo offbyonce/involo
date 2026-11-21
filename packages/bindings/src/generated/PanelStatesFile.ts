@@ -2,6 +2,11 @@
 import type { PanelState } from "./PanelState";
 
 /**
- * `panel-states.yaml`.
+ * `panel-states.yaml`: the starting points a pilot can pick on the Start page, each with
+ * the steps it counts as already done or skipped.
  */
-export type PanelStatesFile = { states: Array<PanelState>, };
+export type PanelStatesFile = { 
+/**
+ * The states, in the picker's order.
+ */
+states: Array<PanelState>, };

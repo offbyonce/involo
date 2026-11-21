@@ -15,8 +15,12 @@ data_types! {
         /// as Practice names it; every light that shares its label needs one, each different.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub which: Option<String>,
+        /// What the light means when it is on; shown in the Flight deck page's light list and
+        /// asked in Practice.
         pub meaning: String,
+        /// When the light comes on. The app does not show it today.
         pub when: String,
+        /// What to do when it is on. The app does not show it today.
         pub action: String,
         /// True when seeing this light is normal.
         pub normal: bool,
@@ -25,8 +29,9 @@ data_types! {
         pub confirmed_by: Vec<Confirmation>,
     }
 
-    /// `lights.yaml`.
+    /// `lights.yaml`: what the panel lights mean, each found by its place on a panel.
     pub struct LightsFile {
+        /// One note per light.
         pub lights: Vec<LightNote>,
     }
 }

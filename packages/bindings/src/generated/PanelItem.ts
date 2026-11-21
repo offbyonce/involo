@@ -11,7 +11,16 @@ export type PanelItem = {
  * An id, unique in its section, so a step target or light note can name the item as
  * `panel/section/#id`, and a pack extending this one can change it (decision 0029).
  */
-id?: string | null, kind: PanelItemKind, label: string, 
+id?: string | null, 
+/**
+ * What the item is, which decides how it is drawn and the fields it takes.
+ */
+kind: PanelItemKind, 
+/**
+ * The item's name, drawn on the panel and used in its locator,
+ * `panel/section/LABEL/n`.
+ */
+label: string, 
 /**
  * Required on a light, and only valid on a light.
  */
@@ -19,7 +28,15 @@ color?: LightColor | null,
 /**
  * Has a protective cover. Only valid on a toggle switch or push button.
  */
-guarded?: boolean, x: number, y: number, 
+guarded?: boolean, 
+/**
+ * The item's center across, in panel units from its section's left edge.
+ */
+x: number, 
+/**
+ * The item's center down, in panel units from its section's top edge.
+ */
+y: number, 
 /**
  * Ids of the controls this item belongs to.
  */
@@ -54,4 +71,16 @@ legends?: Array<Legend>,
 /**
  * Only on a keypad: keys to a row. Three when left out.
  */
-columns?: number | null, description: string, width?: number | null, height?: number | null, };
+columns?: number | null, 
+/**
+ * What the item does, shown in its card; the control's `function` when empty.
+ */
+description: string, 
+/**
+ * Only on a display unit or readout: its drawn width in panel units, 60 when left out.
+ */
+width?: number | null, 
+/**
+ * Only on a display unit or readout: its drawn height in panel units, 30 when left out.
+ */
+height?: number | null, };
