@@ -47,20 +47,6 @@ export const KNOWN_FINDINGS: KnownFinding[] = [
     issue: "#198",
   },
   {
-    screen: "References",
-    check: "label-content-name-mismatch",
-    finding: /^label-content-name-mismatch \(serious\): .* at a\[href\$="#\/phase\//,
-    packs: ALL,
-    issue: "#198",
-  },
-  {
-    screen: "References",
-    check: "layout",
-    finding: /^the ".+" button is 36 px tall$/,
-    packs: ALL,
-    issue: "#198",
-  },
-  {
     screen: "Start",
     check: "layout",
     finding: /^the "Choose a panel state.*" select sits outside the screen \(\d+ to \d+ px of 390\)$/,
