@@ -1,0 +1,79 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../../schemas/panel.schema.json
+# Invented content that shows the pack format (a Boeing-style example). Not a real aircraft panel.
+id: pedestal
+title: Pedestal
+width: 560
+height: 240
+outline: [[0, 0], [560, 0], [560, 200], [520, 240], [40, 240], [0, 200]]
+sections:
+  - id: displays
+    title: Displays
+    x: 10
+    y: 10
+    width: 160
+    height: 110
+    items:
+      - id: display
+        kind: selector
+        label: DISPLAY
+        x: 80
+        y: 56
+        controls: [display-selector]
+        positions: ["OFF", ENGINE, SYSTEMS, MAP]
+        angles: [-90, -30, 30, 90]
+        rest: "OFF"
+        description: Chooses what the lower display shows.
+  - id: cabin
+    title: Cabin
+    x: 180
+    y: 10
+    width: 260
+    height: 108
+    items:
+      - id: seat-belts
+        kind: rocker
+        label: SEAT BELTS
+        x: 50
+        y: 46
+        controls: [seat-belts]
+        positions: ["ON", "OFF"]
+        rest: "OFF"
+        description: Turns the seat belt signs on.
+      - id: radio
+        kind: keypad
+        label: RADIO
+        x: 170
+        y: 46
+        controls: [radio-keypad]
+        positions: ["1", "2", "3", "4", "5", "6", "7", "8", "9", CLR, "0", ENT]
+        columns: 3
+        description: Enters a frequency.
+  - id: brakes
+    title: Brakes
+    name: Brake panel
+    x: 60
+    y: 130
+    width: 200
+    height: 90
+    items:
+      - id: brake
+        kind: lever
+        label: PARKING BRAKE
+        x: 60
+        y: 44
+        controls: [parking-brake]
+        positions: [RELEASED, SET]
+        rest: RELEASED
+        description: Holds the airplane still.
+      - id: brake-light
+        kind: light
+        label: PARK BRAKE
+        color: red
+        x: 140
+        y: 44
+        controls: [parking-brake]
+        lit_at: SET
+        description: The parking brake is holding the airplane.

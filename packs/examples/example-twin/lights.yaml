@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../schemas/lights.schema.json
+# Invented content that shows the pack format (a Boeing-style example). Not a real aircraft procedure.
+lights:
+  - locator: overhead/electrical/BATT LOW/1
+    which: battery
+    meaning: The battery is running low.
+    when: Abnormal at any time.
+    action: Connect external power.
+    normal: false
+    confirmed_by:
+      - kind: vendor-docs
+        date: 2026-11-08
+  - locator: pedestal/brakes/PARK BRAKE/1
+    meaning: The parking brake is set.
+    when: Normal on the ground, before taxi.
+    action: Release it before you taxi.
+    normal: true

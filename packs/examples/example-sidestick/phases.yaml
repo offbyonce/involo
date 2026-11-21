@@ -1,0 +1,113 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../schemas/phases.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft procedure.
+options:
+  - id: power
+    title: Power on arrival
+    values: [ground, apu]
+    default: ground
+    choices:
+      - value: ground
+        label: Ground power cart
+        description: Prepare on ground power; start the APU before the engines.
+      - value: apu
+        label: No ground power
+        description: Start the APU straight after the batteries.
+    ask_in: [cockpit-prep, start]
+    start:
+      style: row
+      description: How the airplane is powered while you prepare it.
+  - id: leg
+    title: Leg
+    values: [first, next]
+    default: first
+    description: A next leg starts from the before-start checklist, with the airplane already prepared.
+    choices:
+      - value: first
+        label: First flight of the day
+      - value: next
+        label: Next leg
+    ask_in: [start]
+    start:
+      style: toggle
+      "on": next
+      title: Next leg
+      description: The airplane is already prepared, so cockpit preparation is skipped.
+      link:
+        phase: cockpit-prep
+        text: Preview cockpit preparation
+  - id: trim_tank
+    title: Trim tank
+    description: The trim tank holds
+    values: [fuel, empty]
+    default: empty
+    choices:
+      - value: fuel
+        label: More than 500 kg (1,100 lb)
+      - value: empty
+        label: 500 kg (1,100 lb) or less
+    # Invented: what is left of the block fuel after the wing tanks' 12,000 kg.
+    suggests:
+      field: block_fuel
+      unit: kg
+      minus: 12000
+      more_than: 500
+      near: 200
+      other_unit:
+        more_than: 1100
+        near: 440
+      then: fuel
+      otherwise: empty
+turnaround:
+  option: leg
+  equals: next
+start_page: [leg, power, panel_state]
+stages:
+  - id: prep
+    title: Preparation
+    phases:
+      - phase: cockpit-prep
+        show_if: {option: leg, equals: first}
+      - phase: before-start
+  - id: ground
+    title: Ground
+    phases:
+      - phase: taxi
+        show_if:
+          all_of:
+            - {option: power, one_of: [ground, apu]}
+            - {option: leg, one_of: [first, next]}
+  - id: air
+    title: In the air
+    phases:
+      - phase: after-takeoff
+        show_if:
+          any_of:
+            - {option: leg, equals: first}
+            - {option: leg, equals: next}
+phases:
+  - id: cockpit-prep
+    title: Cockpit preparation
+    lists: [cockpit-prep]
+  - id: before-start
+    title: Before start
+    engine_start: true
+    lists: [before-start]
+  - id: taxi
+    title: Taxi
+    lists: [taxi]
+  - id: after-takeoff
+    title: After takeoff
+    lists: [after-takeoff]
+  - id: memory
+    title: Memory items
+    reference: true
+    group: memory
+    lists: [smoke]
+  - id: quick
+    title: Quick reference card
+    reference: true
+    group: quick
+    lists: [engine-fire]

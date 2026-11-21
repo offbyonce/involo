@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../../schemas/checklist.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft procedure.
+id: after-takeoff
+title: After takeoff
+kind: flow
+method: do
+basis: [invented-example]
+steps:
+  - id: example-sidestick.after-takeoff.autopilot
+    text: Autopilot
+    expect: 'ON'
+    role: pf
+    controls: [autopilot]
+    targets:
+      - {at: "glareshield/fcu/#ap", set: "ON"}
+  - id: example-sidestick.after-takeoff.speed
+    text: Speed knob
+    expect: PUSH
+    role: pf
+    controls: [speed-knob]
+    targets:
+      - {at: "glareshield/fcu/#spd", set: PUSH}

@@ -86,7 +86,7 @@ test("the flight log shows one pack's flights and results, and exports only them
   const saved = JSON.parse((await page.locator("body").getAttribute("data-exported")) ?? "");
   expect(saved.format, "the export is a log file of today's format").toBe(3);
   expect(
-    [...saved.flights, ...saved.practice].every((e: { pack: string }) => e.pack === "example-trainer"),
+    [...saved.flights, ...saved.practice].every((e: { pack: string }) => e.pack === "example-sidestick"),
     "the export holds only the chosen pack's flights and results",
   ).toBe(true);
   expect([saved.flights.length, saved.practice.length]).toEqual([2, 1]);
@@ -148,6 +148,6 @@ test("a log saved by the version before (format 2) loads, migrates and filters b
   );
   expect(saved.flights[0].stages.every((st: { id: unknown }) => st.id === null)).toBe(true);
   expect(saved.practice).toMatchObject([
-    { pack: "example-trainer", packVersion: null, packName: null, aircraft: null },
+    { pack: "example-sidestick", packVersion: null, packName: null, aircraft: null },
   ]);
 });

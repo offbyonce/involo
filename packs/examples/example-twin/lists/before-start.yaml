@@ -1,0 +1,79 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../../schemas/checklist.schema.json
+# Invented content that shows the pack format (a Boeing-style example). Not a real aircraft procedure.
+id: before-start
+title: Before start
+kind: checklist
+basis: [invented-example]
+steps:
+  - id: example-twin.before-start.battery
+    number: 1
+    text: Battery switch
+    expect: 'ON'
+    controls: [battery]
+    targets:
+      - at: "overhead/electrical/BATTERY/1"
+        set: "ON"
+      - at: "overhead/electrical/BATT LOW/1"
+        light: out
+    quick: always
+    why: Gives the aircraft its first electrical power.
+    check: Voltage shown on the gauge
+    check_detail: About 24 volts, steady
+    if_not: No voltage
+    if_not_detail: Check the battery is connected
+    confirmed_by:
+      - kind: vendor-docs
+        date: 2026-11-08
+  - id: example-twin.before-start.beacon
+    number: 2
+    text: Beacon light
+    expect: 'ON'
+    note: Turn on before engine start.
+    note_caution: true
+    simulator_model: true
+    callout: Beacon on.
+    show_if: {option: power, equals: external}
+  - id: example-twin.before-start.doors
+    number: 3
+    section: Cabin
+    text: Doors
+    expect: CLOSED
+    show_if:
+      any_of:
+        - {option: power, one_of: [external, internal]}
+        - {option: start, equals: turnaround}
+    panel_lights:
+      battery: [BATT LOW]
+    sim_simplified: true
+  - id: example-twin.before-start.fuel-balance
+    number: 4
+    section: Fuel
+    text: Fuel balance
+    expect: CHECK THE TWO TANK QUANTITIES
+    terms: [CDU]
+    decide: crossfeed
+  - id: example-twin.before-start.crossfeed
+    number: 5
+    section: Fuel
+    text: Crossfeed switch
+    expect: 'ON IF THE TANKS ARE UNEVEN, ELSE OFF'
+    expect_when:
+      - option: crossfeed
+        equals: uneven
+        expect: 'ON'
+      - option: crossfeed
+        equals: balanced
+        expect: 'OFF'
+    controls: [crossfeed]
+    targets:
+      - at: "overhead/fuel/CROSSFEED/1"
+        open: true
+      - at: "overhead/fuel/CROSSFEED/1"
+        set: "ON"
+        when: {option: crossfeed, equals: uneven}
+      - at: "overhead/fuel/CROSSFEED/1"
+        set: "OFF"
+        when: {option: crossfeed, equals: balanced}

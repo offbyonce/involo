@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../schemas/patches.schema.json
+# Invented: a longer-range version of the Example Twin, with a center tank. Every kind of patch,
+# so the format's patches stay covered. Not a real aircraft.
+patches:
+  - op: set
+    step: example-twin.before-start.battery
+    to:
+      check: Voltage above 24 on the gauge
+  - op: remove
+    step: example-twin.before-start.beacon
+  - op: insert_after
+    step: example-twin.before-start.doors
+    with:
+      id: example-twin-lr.before-start.signs
+      number: 4
+      section: Cabin
+      text: Cabin signs
+      expect: 'ON'
+  - op: insert_before
+    step: example-twin.before-start.fuel-balance
+    with:
+      id: example-twin-lr.before-start.center-tank
+      section: Fuel
+      text: Center tank quantity
+      expect: CHECK
+  - op: replace
+    step: example-twin.battery-low.if-unavailable
+    with:
+      id: example-twin-lr.battery-low.if-unavailable
+      number: 2
+      text: IF EXTERNAL POWER IS NOT AVAILABLE
+      branch: true
+      expect: START THE AUXILIARY POWER UNIT
+  - op: set
+    list: smoke
+    to:
+      title: Smoke or fumes in the cabin
+  - op: set
+    stage: departure
+    to:
+      title: Ground
+  - op: set
+    panel: pedestal
+    to:
+      title: Center pedestal
+  - op: set
+    section: pedestal/cabin
+    to:
+      title: Cabin signs
+  - op: set
+    item: overhead/fuel/crossfeed
+    to:
+      description: Lets one tank, or the center tank, feed both engines.
+  - op: set
+    panel_state: ready
+    to:
+      title: Ready to start, center tank checked
+  - op: set
+    flight_field: zfw
+    to:
+      label: Zero fuel weight (LR)
+  - op: set
+    message: batt-low
+    to:
+      meaning: The battery charge is low; the LR's larger battery lasts longer.
+  - op: set
+    glossary_term: CDU
+    to:
+      meaning: Control display unit. The keypad and screen for the long-range flight computer.
+  - op: set
+    label: list_kinds.checklist
+    to: Check

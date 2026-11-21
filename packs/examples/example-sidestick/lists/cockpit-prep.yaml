@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../../schemas/checklist.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft procedure.
+id: cockpit-prep
+title: Cockpit preparation
+kind: flow
+method: read_and_do
+basis: [invented-example]
+steps:
+  - id: example-sidestick.cockpit-prep.batteries
+    text: Batteries
+    expect: 'ON'
+    role: capt
+  - id: example-sidestick.cockpit-prep.fuel-pumps
+    text: Fuel pumps
+    expect: 'ON'
+    role: fo
+    controls: [fuel-pumps]
+    targets:
+      - {at: "overhead/fuel/#pump-1", set: "ON"}
+      - {at: "overhead/fuel/#pump-2", set: "ON"}
+  - id: example-sidestick.cockpit-prep.flight-plan
+    text: Flight plan
+    expect: ENTERED
+    role: pf
+    opens: init

@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../schemas/messages.schema.json
+# Invented content that shows the pack format (a Boeing-style example). Not a real aircraft procedure.
+messages:
+  - id: batt-low
+    text: BATT LOW
+    level: caution
+    meaning: The battery charge is low.
+    list: battery-low
+    steps: [example-twin.battery-low.external]
+  - id: park-brake
+    text: PARKING BRAKE SET
+    level: memo
+    meaning: The parking brake is holding the airplane.
+    no_list: A reminder only; release it before taxi.

@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../schemas/glossary.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft.
+terms:
+  - term: FCU
+    meaning: Flight control unit, on the glareshield. Sets speed, heading and altitude.
+  - term: PF
+    meaning: Pilot flying.
+  - term: PM
+    meaning: Pilot monitoring.
+    step_term: false

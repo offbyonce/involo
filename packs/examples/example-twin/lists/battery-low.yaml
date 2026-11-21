@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../../schemas/checklist.schema.json
+# Invented content that shows the pack format (a Boeing-style example). Not a real aircraft procedure.
+id: battery-low
+title: Battery low
+kind: non-normal
+basis: [invented-example]
+when: The BATT LOW light is on.
+why: A flat battery leaves nothing to start the engines with.
+steps:
+  - id: example-twin.battery-low.external
+    number: 1
+    text: External power
+    expect: CONNECT
+  - id: example-twin.battery-low.if-unavailable
+    number: 2
+    text: IF EXTERNAL POWER IS NOT AVAILABLE
+    branch: true
+    expect: DELAY THE FLIGHT
+  - id: example-twin.battery-low.battery
+    number: 3
+    text: Battery switch
+    expect: 'OFF'
+    controls: [battery]
+    targets:
+      - at: "overhead/electrical/BATTERY/1"
+        set: "OFF"

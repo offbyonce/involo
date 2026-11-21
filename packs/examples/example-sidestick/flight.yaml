@@ -1,0 +1,286 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../schemas/flight.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft.
+pages:
+  - id: route
+    title: Route
+    sub: Where you're going and the way there.
+    selected: origin
+    groups:
+      - title: Airports
+        fields: [origin, destination]
+      - title: The route
+        fields: [route]
+  - id: fuel
+    title: Fuel and load
+    sub: Numbers for the fuel and load steps.
+    selected: block_fuel
+    groups:
+      - title: Fuel
+        units:
+          field: weight_unit
+          label: Weights in
+        fields: [block_fuel, trim_fuel, minimum_fuel]
+      - title: Load
+        note: Same unit as fuel
+        fields: [passengers, cargo]
+  - id: takeoff
+    title: Takeoff
+    sub: Used by the takeoff steps.
+    selected: v1
+    ofp:
+      from: block_fuel
+      title: Takeoff speeds come from the flight computer
+      body: The plan covers the flight, not the takeoff. Speeds come from the computer once the weights are in.
+      note: The computer uses the takeoff weight for these speeds.
+      not_in_plan: true
+      outline: false
+    groups:
+      - title: Speeds
+        fields: [v1, vr]
+      - title: Conditions
+        fields: [qnh, temperature_deviation]
+  - id: clearance
+    title: Clearance
+    sub: What ATC cleared you to fly.
+    selected: runway
+    ofp:
+      from: runway
+    groups:
+      - title: Departure clearance
+        fields: [runway, initial_altitude, squawk, transition_altitude]
+      - title: Notes from ATC
+        notes:
+          label: Note
+          description: Anything else ATC told you.
+        fields: []
+  - id: approach
+    title: Approach
+    sub: Used by the approach steps.
+    selected: minimums
+    groups:
+      - title: Minimums
+        fields: [minimums]
+fields:
+  - id: origin
+    label: Departure
+    description: The airport you depart from.
+    kind: text
+    location: Enter on the computer's INIT page
+    page: route
+    group: Airports
+    show_in: [strip]
+    simbrief: [origin]
+    input:
+      max_length: 4
+  - id: destination
+    label: Destination
+    description: Where you plan to land.
+    kind: text
+    page: route
+    group: Airports
+    show_in: [strip]
+    strip:
+      join: ' → '
+    simbrief: [destination]
+    input:
+      max_length: 4
+    needed: true
+  - id: route
+    label: Route
+    kind: text
+    page: route
+    group: The route
+    simbrief: [route]
+    input:
+      max_length: 400
+      mode: text
+      placeholder: Enter the route
+  - id: weight_unit
+    label: Weight unit
+    kind: choice
+    choices:
+      - value: KG
+        label: Kilograms
+      - value: LB
+        label: Pounds
+    simbrief: [weight_unit]
+  - id: block_fuel
+    label: Block fuel
+    description: All the fuel on board before engine start.
+    kind: number
+    unit: weight_unit
+    page: fuel
+    group: Fuel
+    ranges:
+      - unit: KG
+        min: 0
+        max: 30000
+        message: Enter 0 to 30,000 kg
+      - unit: LB
+        min: 0
+        max: 66000
+        message: Enter 0 to 66,000 lb
+    show:
+      grouped: true
+    simbrief: [block_fuel]
+  - id: trim_fuel
+    label: Trim tank fuel
+    description: What the trim tank holds once the wing tanks are full.
+    kind: text
+    page: fuel
+    group: Fuel
+    phase: before-start
+    suggested_by: trim_tank
+    ofp:
+      from: block_fuel
+      note: The trim tank takes what's left of the block fuel.
+  - id: minimum_fuel
+    label: Minimum takeoff fuel
+    kind: number
+    unit: weight_unit
+    page: fuel
+    group: Fuel
+    read_only: true
+    simbrief: [minimum_takeoff_fuel]
+  - id: passengers
+    label: Passengers
+    kind: number
+    page: fuel
+    group: Load
+    input:
+      max_length: 3
+      mode: numeric
+    with: cargo
+  - id: cargo
+    label: Cargo
+    kind: number
+    unit: weight_unit
+    page: fuel
+    group: Load
+  - id: v1
+    label: V1
+    kind: number
+    page: takeoff
+    group: Speeds
+    ranges:
+      - {min: 80, max: 180}
+  - id: vr
+    label: VR
+    kind: number
+    page: takeoff
+    group: Speeds
+    ranges:
+      - {min: 80, max: 180}
+  - id: qnh_unit
+    label: Altimeter unit
+    kind: choice
+    choices:
+      - value: hPa
+      - value: inHg
+  - id: qnh
+    label: Altimeter setting
+    kind: number
+    unit: qnh_unit
+    page: takeoff
+    group: Conditions
+    ranges:
+      - unit: hPa
+        min: 948
+        max: 1050
+        message: Enter 948 to 1050 hPa
+      - unit: inHg
+        min: 28
+        max: 31
+        message: Enter 28 to 31 inHg
+    spoken: QNH
+  - id: temperature_deviation
+    label: Temperature deviation
+    kind: number
+    page: takeoff
+    group: Conditions
+    input:
+      max_length: 3
+      mode: numeric
+    show:
+      signed: true
+  - id: runway
+    label: Runway
+    description: The runway you depart from.
+    kind: text
+    page: clearance
+    group: Departure clearance
+    show_in: [strip]
+    strip:
+      prefix: 'RWY '
+    simbrief: [runway]
+    input:
+      max_length: 4
+    also:
+      - page: takeoff
+        group: Speeds
+        label: Takeoff runway
+        description: Set in Clearance.
+        ofp:
+          from: runway
+  - id: initial_altitude
+    label: Initial altitude
+    kind: number
+    page: clearance
+    group: Departure clearance
+    ranges:
+      - min: 0
+        max: 39000
+        message: Enter 0 to 39,000 ft
+    show_in: [strip]
+    strip:
+      suffix: ' FT'
+    input:
+      max_length: 5
+      mode: numeric
+  - id: squawk
+    label: Squawk
+    kind: text
+    page: clearance
+    group: Departure clearance
+    show_in: [strip]
+    strip:
+      prefix: 'SQK '
+  - id: transition_altitude
+    label: Transition altitude
+    kind: number
+    page: clearance
+    group: Departure clearance
+    show:
+      grouped: true
+      suffix: ' ft'
+  - id: minimums_type
+    label: Minimums type
+    kind: choice
+    choices:
+      - value: BARO
+      - value: RADIO
+  - id: minimums
+    label: Minimums
+    kind: number
+    page: approach
+    group: Minimums
+    input:
+      max_length: 5
+      mode: numeric
+      placeholder: Enter
+    toggle: minimums_type
+    show:
+      prefix: 'DA '
+overview:
+  - label: Route
+    page: route
+    value: ['{origin} → {destination}']
+    description: ['{route}']
+    empty: Where you're going.
+  - label: Block fuel
+    page: fuel
+    value: ['{block_fuel:grouped} {unit}']
+    empty: All the fuel on board before engine start.

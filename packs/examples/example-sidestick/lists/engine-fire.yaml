@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../../schemas/checklist.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft procedure.
+id: engine-fire
+title: Engine fire
+kind: non-normal
+basis: [invented-example]
+when: The fire warning sounds and the engine's fire light is on.
+steps:
+  - id: example-sidestick.engine-fire.thrust
+    number: 1
+    text: Thrust lever, affected engine
+    expect: IDLE
+    role: pf
+  - id: example-sidestick.engine-fire.fire-button
+    number: 2
+    text: Engine fire pushbutton
+    expect: PUSH
+    role: pm

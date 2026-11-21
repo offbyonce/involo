@@ -1669,7 +1669,7 @@ mod tests {
             Some(pack.manifest.version.to_string().as_str())
         );
         assert_eq!(r.pack_name.as_deref(), Some(pack.manifest.name.as_str()));
-        assert_eq!(r.aircraft.as_deref(), Some("Example trainer"));
+        assert_eq!(r.aircraft.as_deref(), Some("Example Twin"));
         assert_eq!(
             (r.score, r.total),
             (10, 10),

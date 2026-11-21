@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import type { FieldId, FlatPack, FlightFile, Plan } from "@involo/bindings";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { initSync, parse_plan } from "../../../../apps/web/src/wasm/involo_web_host.js";
-import { examplePack, iflyPack } from "../test-pack";
+import { iflyPack, twinPack } from "../test-pack";
 import { contexts, SAMPLE_VALUES } from "./flight-dump";
 import { type Ctx, overviewRows, useFlightPack } from "./sections";
 
@@ -101,7 +101,7 @@ describe("the Overview's This flight rows", () => {
 
   it("follow a test pack's own rows and field names", () => {
     // Invented: a pack whose airports are dep and arr, and whose fuel is ramp_fuel.
-    const pack = structuredClone(examplePack()) as FlatPack;
+    const pack = structuredClone(twinPack()) as FlatPack;
     pack.content.flight = {
       pages: [{ id: "route", title: "Trip", groups: [{ title: "Trip" }] }],
       fields: [
@@ -138,7 +138,7 @@ describe("the Overview's This flight rows", () => {
   });
 
   it("without overview rows, give one row per page with fields: its title, first two values and sub-line", () => {
-    const pack = structuredClone(examplePack()) as FlatPack;
+    const pack = structuredClone(twinPack()) as FlatPack;
     pack.content.flight = {
       pages: [
         { id: "route", title: "Trip", sub: "Where you fly.", groups: [{ title: "Trip" }] },

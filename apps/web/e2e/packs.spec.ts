@@ -11,7 +11,7 @@ import {
 import { expect, IFLY, test, tickedIds, tickedOf, tickOf } from "./fixtures";
 import { checkScreen } from "./layout";
 
-const EXAMPLE = { id: "example-trainer", name: "Example trainer (format demo)" };
+const EXAMPLE = { id: "example-sidestick", name: "Example Sidestick Twin" };
 
 test("switching packs and back: each pack keeps its own flight (#104)", async ({ app, page }) => {
   await app.firstRun();

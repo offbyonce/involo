@@ -29,12 +29,13 @@ pub fn app_info() -> AppInfo {
     }
 }
 
-/// The bundled format-demo checklist, parsed through the same strict loader as real packs.
+/// The Example Twin's Before start checklist (packs/examples), parsed through the same strict
+/// loader as real packs.
 pub fn example_checklist() -> Result<Checklist, AppError> {
-    const YAML: &str = include_str!("../../../packs/example-trainer/before-start.yaml");
+    const YAML: &str = include_str!("../../../packs/examples/example-twin/lists/before-start.yaml");
     Ok(involo_pack::parse_checklist_yaml(
         YAML,
-        Path::new("example-trainer/before-start.yaml"),
+        Path::new("example-twin/lists/before-start.yaml"),
     )?)
 }
 
@@ -46,7 +47,11 @@ mod tests {
     fn example_checklist_loads() {
         let list = example_checklist().unwrap();
         assert_eq!(list.id, "before-start");
-        assert_eq!(list.steps.len(), 3, "the example pack has three steps");
+        assert_eq!(
+            list.steps.len(),
+            5,
+            "the example pack's Before start has five steps"
+        );
     }
 
     #[test]

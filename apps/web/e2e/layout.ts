@@ -166,10 +166,11 @@ export function layoutProblems(phone: boolean): string[] {
 }
 
 /**
- * Checks the screen on show at both widths and in both themes, then puts the page back as it was.
- * `keys` are the screen's key elements, which must show at every size.
+ * The screen's layout and accessibility problems at both widths and in both themes, each as
+ * `<screen>, <width> px, <theme>: <problem>`; the page is put back as it was. `keys` are the
+ * screen's key elements, which must show at every size.
  */
-export async function checkScreen(page: Page, screen: string, keys: Locator[] = []): Promise<void> {
+export async function screenProblems(page: Page, screen: string, keys: Locator[] = []): Promise<string[]> {
   const size = page.viewportSize();
   const problems: string[] = [];
   for (const { width, height } of WIDTHS) {
@@ -197,5 +198,13 @@ export async function checkScreen(page: Page, screen: string, keys: Locator[] = 
   }
   await page.emulateMedia({ colorScheme: null });
   if (size) await page.setViewportSize(size);
-  expect.soft(problems, `layout and accessibility on ${screen}`).toEqual([]);
+  return problems;
+}
+
+/**
+ * Checks the screen on show at both widths and in both themes, then puts the page back as it was.
+ * `keys` are the screen's key elements, which must show at every size.
+ */
+export async function checkScreen(page: Page, screen: string, keys: Locator[] = []): Promise<void> {
+  expect.soft(await screenProblems(page, screen, keys), `layout and accessibility on ${screen}`).toEqual([]);
 }

@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
-import { iflyPack } from "../test-pack";
+import { iflyPack, sidestickPack } from "../test-pack";
 import { areaOf, deckAreas, deckHref, zoneControls, zoneLights, zoneSections, zoneSteps } from "./deck";
 
 const pack = iflyPack();
@@ -49,6 +49,16 @@ describe("the Flight deck's areas (Deck board)", () => {
     const regions = pack.content.controls?.overview?.regions ?? [];
     expect(plain.map((a) => a.name)).toEqual(regions.map((r) => r.name));
     expect(plain.every((a) => a.region !== null && a.side === null)).toBe(true);
+  });
+
+  it("for a pack without regions, are its zones' area names, each listing its zones (#108)", () => {
+    // The Airbus-style example pack draws no regions: before, its Flight deck showed no area at all.
+    const areas = deckAreas(indexPack(sidestickPack()));
+    expect(areas.map((a) => [a.name, a.zones.map((z) => z.title)])).toEqual([
+      ["Overhead", ["Fuel panel"]],
+      ["Glareshield", ["Flight control unit"]],
+    ]);
+    expect(areas.every((a) => a.region === null && a.side === null)).toBe(true);
   });
 
   it("name a split region's areas as the side view names its outlines, else as written", () => {

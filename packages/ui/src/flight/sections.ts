@@ -452,6 +452,8 @@ type Model = {
   unitField: FlightField | null;
   /** The pack's Overview rows. */
   overview: FlightOverviewRow[];
+  /** Each Flight page's title, in order, with the SimBrief values its fields and plan note use. */
+  fed: { title: string; sources: Set<string> }[];
 };
 
 let model: Model = buildModel(null);
@@ -464,6 +466,12 @@ export function useFlightPack(pack: FlatPack | null): void {
 /** The Flight pages of the pack in use. */
 export function sections(): Section[] {
   return model.sections;
+}
+
+/** The titles of the pack's Flight pages that use any of these SimBrief values, in page order: for
+ * "where the app uses it" beside each part of the OFP. */
+export function pagesFedBy(sources: readonly string[]): string[] {
+  return model.fed.filter((p) => sources.some((s) => p.sources.has(s))).map((p) => p.title);
 }
 
 /** A flight field of the pack in use. */
@@ -623,7 +631,17 @@ function buildModel(pack: FlatPack | null): Model {
       },
     ];
   });
-  return { sections, fields, needed: needed as FieldId[], unitField, overview: file?.overview ?? [] };
+  // What each page takes from a plan: its fields' SimBrief values, and those of the field its plan
+  // note is taken from.
+  const sourcesOf = (f: FlightField | undefined) => f?.simbrief ?? [];
+  const fed = pages.map((page) => ({
+    title: page.title,
+    sources: new Set([
+      ...all.filter((f) => placed(f, page.id)).flatMap(sourcesOf),
+      ...sourcesOf(page.ofp?.from ? fields.get(page.ofp.from) : undefined),
+    ]),
+  }));
+  return { sections, fields, needed: needed as FieldId[], unitField, overview: file?.overview ?? [], fed };
 }
 
 /** How a field's value reads, from its `show`. */

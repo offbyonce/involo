@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../../schemas/checklist.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft procedure.
+id: taxi
+title: Taxi
+kind: checklist
+basis: [invented-example]
+steps:
+  - id: example-sidestick.taxi.autothrust
+    text: Autothrust
+    expect: 'ON'
+    role: pf
+    controls: [autothrust]
+    targets:
+      - {at: "glareshield/fcu/#athr", set: "ON"}
+  - id: example-sidestick.taxi.altitude
+    text: Altitude knob
+    expect: PULL
+    role: pf
+    controls: [altitude-knob]
+    targets:
+      - {at: "glareshield/fcu/#alt", set: PULL}

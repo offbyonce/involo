@@ -31,8 +31,9 @@ if (differ.length)
   );
 const folders = [
   "packs/ifly-737-max8",
-  "packs/example-trainer",
-  "crates/involo-pack/tests/fixtures/extend/example-variant",
+  "packs/examples/example-twin",
+  "packs/examples/example-twin-lr",
+  "packs/examples/example-sidestick",
 ].map((f) => path.join(root, f));
 
 const write = (target, name, body) => {
@@ -68,8 +69,9 @@ for (const dir of folders) {
 /** A pack folder as pack_folder reads it. */
 const asText = (dir) =>
   [`==== pack ${path.basename(dir)}\n`, ...dataFiles(dir).map(([, rel]) => `---- ${rel}\n${fs.readFileSync(path.join(dir, rel), "utf8")}`)].join("");
-const [ifly, example, variant] = folders;
+const [ifly, example, variant, sidestick] = folders;
 write("pack_folder", "ifly-737-max8", asText(ifly));
-write("pack_folder", "example-trainer", asText(example));
-write("pack_folder", "example-variant", asText(variant) + asText(example));
+write("pack_folder", "example-twin", asText(example));
+write("pack_folder", "example-twin-lr", asText(variant) + asText(example));
+write("pack_folder", "example-sidestick", asText(sidestick));
 process.stdout.write(`wrote the seed corpus in ${path.relative(root, out)}\n`);

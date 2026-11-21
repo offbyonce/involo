@@ -1,0 +1,60 @@
+# SPDX-FileCopyrightText: 2026 offbyonce
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+#
+# yaml-language-server: $schema=../../../schemas/labels.schema.json
+# Invented content that shows the pack format (an Airbus-style example). Not a real aircraft procedure.
+# Its own words for the app's labels, so nothing the app shows depends on one aircraft's.
+list_kinds:
+  checklist: Checklist
+  flow: Flow
+  non_normal: Abnormal procedure
+  memory: Memory items
+  quick: Quick reference card
+methods:
+  do: Do
+  read_and_do: Read and do
+  challenge_response: Challenge and response
+  from_memory: From memory
+seats:
+  - id: left
+    title: Left seat
+  - id: right
+    title: Right seat
+roles:
+  - id: capt
+    title: Captain
+    short: CAPT
+    seat: left
+  - id: fo
+    title: First officer
+    short: F/O
+    seat: right
+  - id: pf
+    title: Pilot flying
+    short: PF
+  - id: pm
+    title: Pilot monitoring
+    short: PM
+seat_view_title: "From the seat: which side"
+reference:
+  title: Abnormal
+  groups:
+    - id: memory
+      title: Memory items
+    - id: quick
+      title: Quick reference card
+panel_states:
+  title: Saved situation
+  description: Started the simulator from a saved situation? Pick it to tick the steps it has already set.
+  placeholder: Choose a situation
+basis_tags:
+  - id: being-checked
+    label: Being checked
+    about: A list still being checked against its material.
+    pending: true
+position_words:
+  "ON": [ENGAGED]
+find_examples: [Autopilot, Speed knob, Fuel pumps, Seat belts]
+glossary_exceptions: [FCU]
+side_words: [LEFT, RIGHT, CAPTAIN, CAPT, FIRST OFFICER, F/O, "1", "2"]
+plain_words: [AND, PANEL, SWITCH, PUSHBUTTON, KNOB]

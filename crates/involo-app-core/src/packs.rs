@@ -235,7 +235,7 @@ mod tests {
     use super::*;
 
     fn example_json() -> String {
-        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/example-trainer");
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/examples/example-twin");
         serde_json::to_string(&FlatPack::from(involo_pack::load_pack_dir(&dir).unwrap())).unwrap()
     }
 
@@ -277,8 +277,8 @@ mod tests {
     #[test]
     fn a_flattened_pack_loads() {
         let flat = load_pack(&example_json()).unwrap();
-        assert_eq!(flat.manifest.id, "example-trainer");
-        assert_eq!(flat.lists.len(), 3);
+        assert_eq!(flat.manifest.id, "example-twin");
+        assert_eq!(flat.lists.len(), 4);
     }
 
     fn with(edit: impl FnOnce(&mut serde_json::Value)) -> String {
@@ -347,7 +347,7 @@ mod tests {
         let PackCheck::Ready { summary } = check_pack(json.as_bytes(), None) else {
             panic!("refused: {:?}", check_pack(json.as_bytes(), None));
         };
-        assert_eq!(summary.id, "example-trainer");
+        assert_eq!(summary.id, "example-twin");
         assert_eq!(summary.version.to_string(), "0.1.0");
         // The iFly pack, as the site builds it, passes too.
         let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/ifly-737-max8");
@@ -373,7 +373,7 @@ mod tests {
             PackCheck::Ready { .. }
         ));
         // One changed letter: still a valid pack, but not the catalog's file.
-        let tampered = json.replacen("Example trainer", "Example trainex", 1);
+        let tampered = json.replacen("Example Twin", "Example trainex", 1);
         assert!(matches!(
             check_pack(tampered.as_bytes(), None),
             PackCheck::Ready { .. }
@@ -429,7 +429,7 @@ mod tests {
             let steps = j["lists"][0]["steps"].as_array_mut().unwrap();
             for n in 0..MAX_STEPS {
                 let mut s = step.clone();
-                s["id"] = format!("example-trainer.many.step-{n}").into();
+                s["id"] = format!("example-twin.many.step-{n}").into();
                 steps.push(s);
             }
         });
@@ -567,13 +567,13 @@ mod tests {
     #[test]
     fn the_catalog_reads_each_entry_and_ignores_fields_it_doesn_t_know() {
         let entry = serde_json::json!({
-            "id": "example-trainer", "name": "Example trainer", "version": "0.1.0",
-            "aircraft": {"family": "Example trainer", "name": "Example trainer",
+            "id": "example-twin", "name": "Example Twin", "version": "0.1.0",
+            "aircraft": {"family": "Example Twin", "name": "Example Twin",
                 "icaoTypes": ["ZZZZ"], "simulator": "None", "developer": "Involo examples"},
             "engine": ">=0.1.0, <1.0.0", "size": 1234, "sha256": "ab", "later": true
         });
         let catalog = parse_catalog(&serde_json::json!([entry]).to_string()).unwrap();
-        assert_eq!(catalog[0].id, "example-trainer");
+        assert_eq!(catalog[0].id, "example-twin");
         assert_eq!(catalog[0].size, 1234);
         let mut no_hash = entry.clone();
         no_hash.as_object_mut().unwrap().remove("sha256");

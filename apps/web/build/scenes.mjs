@@ -481,7 +481,7 @@ const writeLog = (log) => [
   `new Promise((done) => { let n = 0; const t = setInterval(() => { if ((!window.seeding && document.querySelector("[data-app-ready]")) || ++n > 100) { clearInterval(t); setTimeout(() => done(true), 300); } }, 100); })`,
 ];
 const IFLY = { id: "ifly-737-max8", name: "iFly 737 MAX 8", version: "0.1.0", aircraft: "737 MAX 8", total: 366 };
-const EXAMPLE = { id: "example-trainer", name: "Example trainer (format demo)", version: "0.1.0", aircraft: "Example trainer", total: 13 };
+const EXAMPLE = { id: "example-sidestick", name: "Example Sidestick Twin", version: "0.1.0", aircraft: "Example Sidestick Twin", total: 13 };
 /** A date as day, hour and minute in November 2026, worked out in the page (its time zone). */
 const day = (d, h, m) => [d, h, m];
 /** A logged flight of pack `p`, in log format 1 (no step names), 2 (step names; the pack's name
@@ -599,19 +599,21 @@ export const savedAs = (what) => [
   }, what),
   "new Promise((done) => { const t = setInterval(() => { if (document.querySelector('[data-app-ready]') && document.querySelector('.kept')) { clearInterval(t); done(true); } }, 100); })",
 ];
-/** The example pack's built file (`just test-packs`), added from a file on the Packs page. */
-export const examplePack = (() => {
+/** An example pack's built file (`just test-packs`), by id, to add from a file on the Packs page. */
+export function exampleFile(id) {
   const dir = path.resolve(web, "../../target/test-packs");
   if (!fs.existsSync(path.join(dir, "index.json")))
-    throw new Error("the example pack's file isn't built: run `just test-packs` (`just e2e` does)");
+    throw new Error("the example packs' files aren't built: run `just test-packs` (`just e2e` does)");
   const index = JSON.parse(fs.readFileSync(path.join(dir, "index.json"), "utf8"));
-  const e = index.find((x) => x.id === "example-trainer");
+  const e = index.find((x) => x.id === id);
   return fs.readFileSync(path.join(dir, `${e.id}-${e.version}.involo-pack`), "utf8");
-})();
+}
+/** The Airbus-style example pack's file (crew roles, seats, alert messages), added from a file. */
+export const examplePack = exampleFile("example-sidestick");
 /** Until the app has started again on a pack (after an install, a switch or a reload). */
 export const restarted = `new Promise((done) => { let n = 0; const t = setInterval(() => { if (document.querySelector("#drawer") || ++n > 150) { clearInterval(t); setTimeout(() => done(true), 300); } }, 100); })`;
 /** Adds the example pack from a file on the Packs page; installing opens it. */
-export const addExample = [go("#/packs"), `new Promise((d) => setTimeout(() => d(true), 300))`, chooseFile('input[type="file"]', examplePack, "example-trainer.involo-pack"), restarted];
+export const addExample = [go("#/packs"), `new Promise((d) => setTimeout(() => d(true), 300))`, chooseFile('input[type="file"]', examplePack, "example-sidestick.involo-pack"), restarted];
 /** Makes the installed iFly pack an older version, so the catalog's is an update (PacksDesktop's band). */
 export const olderIfly = [
   `new Promise((done) => { const r = indexedDB.open("involo"); r.onsuccess = () => { const db = r.result; const tx = db.transaction("packs", "readwrite"); const store = tx.objectStore("packs"); const g = store.get("ifly-737-max8"); g.onsuccess = () => { const rec = g.result; rec.summary.version = "0.0.9"; store.put(rec, "ifly-737-max8"); }; tx.oncomplete = () => { db.close(); location.reload(); done(true); }; }; })`,
@@ -651,17 +653,17 @@ export const lastBackupSaved = [
 export const chooseBackup = (newer = false) =>
   call(
     ({ at, log, newer }) => {
-      const mine = JSON.parse(localStorage.getItem("involo.flight.example-trainer"));
+      const mine = JSON.parse(localStorage.getItem("involo.flight.example-sidestick"));
       const settings = JSON.parse(localStorage.getItem("involo.settings"));
       // Each backed-up flight with its first step ticked, whatever this device's flight has.
-      const flight = (pack, packVersion) => ({ ...mine, pack, packVersion, session: { done: { "example-trainer.before-start.battery": new Date(...at).getTime() }, skipped: {} } });
+      const flight = (pack, packVersion) => ({ ...mine, pack, packVersion, session: { done: { "example-sidestick.before-start.briefing": new Date(...at).getTime() }, skipped: {} } });
       const backup = {
         kind: "involo-backup",
         format: newer === true ? 2 : 1,
         appVersion: newer === true ? "0.3.0" : "0.1.0",
         savedAt: new Date(...at).getTime(),
         flights: [
-          { pack: "example-trainer", name: "Example trainer (format demo)", version: "0.0.9", source: "file", place: { place: "Preflight › Before start", done: 4, total: 10 }, flight: flight("example-trainer", "0.0.9"), plan: null },
+          { pack: "example-sidestick", name: "Example Sidestick Twin", version: "0.0.9", source: "file", place: { place: "Preparation › Before start", done: 4, total: 15 }, flight: flight("example-sidestick", "0.0.9"), plan: null },
           { pack: "ifly-737-max8", name: "iFly 737 MAX 8", version: "0.1.0", source: "catalog", place: { place: "Departure › Before taxi", done: 30, total: 357 }, flight: flight("ifly-737-max8", "0.1.0"), plan: null },
           { pack: "example-twin", name: "Example twin-jet", version: "0.1.0", source: "file", place: null, flight: { ...flight("example-twin", "0.1.0"), session: { done: {}, skipped: {} } }, plan: null },
         ],
@@ -692,9 +694,9 @@ export const exampleUntouched = [
   ...noPacks,
   ...addExample,
   go("#/phase/before-start"),
-  click('[data-step="example-trainer.before-start.battery"] .tick'),
+  click('[data-step="example-sidestick.before-start.briefing"] .tick'),
   `new Promise((d) => setTimeout(() => d(true), 300))`,
-  click('[data-step="example-trainer.before-start.battery"] .tick'),
+  click('[data-step="example-sidestick.before-start.briefing"] .tick'),
   go("#/settings"),
 ];
 /** A device with only the example pack, added from a file, its first step ticked, on Settings
@@ -703,7 +705,7 @@ export const exampleOnly = [
   ...noPacks,
   ...addExample,
   go("#/phase/before-start"),
-  click('[data-step="example-trainer.before-start.battery"] .tick'),
+  click('[data-step="example-sidestick.before-start.briefing"] .tick'),
   go("#/settings"),
 ];
 

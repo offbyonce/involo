@@ -49,8 +49,8 @@ wasm:
     cargo build -q -p involo-web-host --target wasm32-unknown-unknown --profile wasm
     wasm-bindgen --target web --remove-name-section --remove-producers-section --out-dir apps/web/src/wasm target/wasm32-unknown-unknown/wasm/involo_web_host.wasm
 
-# The packs the catalog publishes: every aircraft pack in packs/ except the invented example,
-# which is a format demo for authors. Add a new pack here to publish it.
+# The packs the catalog publishes: every aircraft pack in packs/. The invented examples in
+# packs/examples are not published. Add a new pack here to publish it.
 published := "packs/ifly-737-max8"
 
 # Build the pack catalog into <out> (decision 0028): each published pack, checked, as one
@@ -59,10 +59,14 @@ published := "packs/ifly-737-max8"
 catalog out *extra:
     cargo run -q -p involo-pack-cli -- build {{published}} {{extra}} {{out}}
 
+# The invented example packs (decision 0030): checked and built with the others, used by the
+# interface tests, never published.
+examples := "packs/examples/example-twin packs/examples/example-sidestick packs/examples/example-twin-lr"
+
 # The catalog the interface tests and the dev server read, built the same way into
-# target/test-packs, with the example pack (invented; it draws every format 6 control) after it.
+# target/test-packs, with the example packs after it.
 test-packs:
-    just catalog target/test-packs packs/example-trainer
+    just catalog target/test-packs {{examples}}
 
 # Build the deployable web site into apps/web/dist (published to GitHub Pages): the placeholder
 # front page, the work-in-progress app at app/ and the SimBrief probe page, with the WebAssembly
@@ -156,13 +160,14 @@ generated-check: schemas bindings tokens
 
 # Validate every pack, including the content rules.
 packs:
-    cargo run -q -p involo-pack-cli -- check packs
+    cargo run -q -p involo-pack-cli -- check packs packs/examples
     cargo run -q -p involo-pack-cli -- terms packs/ifly-737-max8
 
 # Compare pack text with local reference files named by INVOLO_OVERLAP_REFS (optional; see
 # CONTRIBUTING.md, "Optional local files").
 overlap:
     cargo run -q -p involo-pack-cli -- overlap packs --allow crates/involo-pack-overlap/allow.txt
+    cargo run -q -p involo-pack-cli -- overlap packs/examples --allow crates/involo-pack-overlap/allow.txt
 
 # Licenses, advisories, banned crates and sources (Rust), then JS advisories in what the app
 # ships (level and accepted advisories in pnpm-workspace.yaml: high and critical fail).
