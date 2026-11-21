@@ -1,11 +1,12 @@
 # SPDX-FileCopyrightText: 2026 offbyonce
 # SPDX-License-Identifier: MIT
 #
-# Publishes the site (apps/web/dist, with the pack catalog in packs/) to GitHub Pages after CI
-# passes on the commit it builds (decision 0031). The repository variable SITE_FROM chooses the
-# source: "main" until the first release, then "tags", so the site, the catalog and the release
-# files always match. A release tag also attaches the pack files and index.json to its release.
-# Can also be run by hand.
+# Publishes the site to GitHub Pages after CI passes on a commit: exactly the site CI built and
+# tested (the e2e job's `site` artifact: apps/web/dist, with the pack catalog in packs/). Nothing
+# is checked out, installed or built here. The repository variable SITE_FROM chooses the source:
+# "main" until the first release, then "tags", so the site, the catalog and the release files
+# always match. A release tag also attaches the pack files and index.json to its release.
+# Can also be run by hand, to publish a given CI run's site or the newest one SITE_FROM chooses.
 
 name: Pages
 
@@ -14,9 +15,17 @@ on:
     workflows: [CI]
     types: [completed]
   workflow_dispatch:
+    inputs:
+      run_id:
+        description: >-
+          The CI run whose site to publish (the number in the run's address). Leave it empty for
+          the newest green CI run on main, or on a release tag once SITE_FROM is "tags".
+        required: false
+        default: ""
 
-# Least privilege: the build job can only read the repo. Only the deploy job gets the Pages and
-# OIDC token permissions that deploy-pages needs, and only the release job may write releases.
+# Least privilege: the site job can only read the repo and its workflow runs. Only the deploy job
+# gets the Pages and OIDC token permissions that deploy-pages needs, and only the release job may
+# write releases.
 permissions:
   contents: read
 
@@ -26,7 +35,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  site:
     # After a green CI run on main (until the first release) or on a release tag (from then on),
     # or by hand.
     if: >-
@@ -37,50 +46,61 @@ jobs:
        ((vars.SITE_FROM != 'tags' && github.event.workflow_run.head_branch == 'main') ||
         (vars.SITE_FROM == 'tags' && startsWith(github.event.workflow_run.head_branch, 'v'))))
     runs-on: ubuntu-latest
+    permissions:
+      # To find the CI run and download its artifact.
+      actions: read
+    outputs:
+      run_id: ${{ steps.pick.outputs.run_id }}
     steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-          # The commit CI tested.
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
-
-      # `just site` builds the WebAssembly module, the app and the pack catalog with Rust.
-      - name: Rust (version and targets from rust-toolchain.toml)
+      # The CI run to publish: the one that triggered this run, the one asked for, or the newest
+      # green one. Whichever it is, it must be a green CI run for a push to this repository, on
+      # the branch or tag SITE_FROM chooses.
+      - id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          TRIGGER_RUN: ${{ github.event.workflow_run.id }}
+          ASKED_RUN: ${{ inputs.run_id }}
+          SITE_FROM: ${{ vars.SITE_FROM }}
         run: |
-          rustup show active-toolchain || rustup toolchain install
-          rustup target add wasm32-unknown-unknown
+          set -euo pipefail
+          from=main
+          if [ "$SITE_FROM" = tags ]; then from=tags; fi
+          if [ "$EVENT" = workflow_run ]; then
+            run="$TRIGGER_RUN"
+          elif [ -n "$ASKED_RUN" ]; then
+            run="$ASKED_RUN"
+          else
+            run=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&status=success&per_page=100" \
+              | jq -r --arg from "$from" '[.workflow_runs[]
+                  | select(if $from == "tags" then (.head_branch | startswith("v")) else .head_branch == "main" end)
+                ][0].id // empty')
+          fi
+          case "$run" in
+            "" | *[!0-9]*) echo "::error::Not a CI run number: '$run'"; exit 1 ;;
+          esac
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" \
+            | jq -e --arg repo "$GITHUB_REPOSITORY" --arg from "$from" '
+                .path == ".github/workflows/ci.yml" and .event == "push" and .conclusion == "success"
+                and .head_repository.full_name == $repo
+                and (if $from == "tags" then (.head_branch | startswith("v")) else .head_branch == "main" end)' >/dev/null \
+            || { echo "::error::Run $run is not a green CI run for a push to $from"; exit 1; }
+          echo "run_id=$run" >> "$GITHUB_OUTPUT"
 
-      # wasm-bindgen must be the same version as the crate pinned in Cargo.toml.
-      - uses: taiki-e/install-action@v2
+      # Outside the workspace: the files are only published, never run.
+      - uses: actions/download-artifact@v8
         with:
-          tool: just,wasm-bindgen@0.2.130
-
-      # pnpm first (version from package.json "packageManager"), so setup-node can find it.
-      - uses: pnpm/action-setup@v6
-
-      # No dependency cache here: this job publishes the site, so it never restores a cache that
-      # another workflow could have written (CodeQL actions/cache-poisoning).
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          package-manager-cache: false
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: just site
+          name: site
+          path: ${{ runner.temp }}/site
+          run-id: ${{ steps.pick.outputs.run_id }}
+          github-token: ${{ github.token }}
 
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: apps/web/dist
-
-      # The catalog alone, for the release job.
-      - uses: actions/upload-artifact@v7
-        with:
-          name: catalog
-          path: apps/web/dist/packs
+          path: ${{ runner.temp }}/site
 
   deploy:
-    needs: build
+    needs: site
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -93,22 +113,27 @@ jobs:
         uses: actions/deploy-pages@v5
 
   release:
-    # A release tag: attach the pack files and index.json to its GitHub release.
-    needs: deploy
+    # A release tag: attach the pack files and index.json, from the same site, to its GitHub
+    # release.
+    needs: [site, deploy]
     if: github.event_name == 'workflow_run' && startsWith(github.event.workflow_run.head_branch, 'v')
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: write
     steps:
       - uses: actions/download-artifact@v8
         with:
-          name: catalog
-          path: catalog
+          name: site
+          path: ${{ runner.temp }}/site
+          run-id: ${{ needs.site.outputs.run_id }}
+          github-token: ${{ github.token }}
       - name: Attach the catalog to the release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.workflow_run.head_branch }}
+          CATALOG: ${{ runner.temp }}/site/packs
         run: |
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
             || gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --notes ""
-          gh release upload "$TAG" catalog/* --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload "$TAG" "$CATALOG"/* --repo "$GITHUB_REPOSITORY" --clobber
