@@ -8,9 +8,39 @@ import type { WeightUnit } from "./WeightUnit";
  * `otherwise`; within `near` of `more_than` the suggestion says it is close to the line
  * (decision 0027). The amounts are in `unit`. With `minus` at 0, nothing is suggested.
  */
-export type SuggestRule = { field: FieldId, unit: WeightUnit, minus: number, moreThan: number, near: number, 
+export type SuggestRule = { 
+/**
+ * The flight field whose weight is read, e.g. the planned fuel.
+ */
+field: FieldId, 
+/**
+ * The unit `minus`, `more_than` and `near` are in; a flight in the other unit is
+ * converted.
+ */
+unit: WeightUnit, 
+/**
+ * Taken from the weight before it is compared (what other tanks hold). At 0, nothing is
+ * suggested.
+ */
+minus: number, 
+/**
+ * The line: what is left above it suggests `then`.
+ */
+moreThan: number, 
+/**
+ * How close to the line the suggestion says it is close; 0 never says so.
+ */
+near: number, 
 /**
  * The line and margin for a flight in the other unit, when the choices name both
  * ("More than 1,000 lb (450 kg)"): a pound flight is held to 1,000 lb, not 992.
  */
-otherUnit?: SuggestLine | null, then: string, otherwise: string, };
+otherUnit?: SuggestLine | null, 
+/**
+ * The option value suggested when what is left is above the line.
+ */
+then: string, 
+/**
+ * The option value suggested when what is left is at or below the line.
+ */
+otherwise: string, };

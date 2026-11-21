@@ -11,13 +11,13 @@ Schema: `schemas/phases.schema.json`. [All files](index.md).
 
 ## The file
 
-`phases.yaml`.
+`phases.yaml`: the pilot's options, the stages and phases of a flight with the lists in each phase, the turnaround rule and the Start page's order.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `options` | list of [UserOption](#useroption) |  |  |  |
-| `phases` | list of [Phase](#phase) | yes |  |  |
-| `stages` | list of [Stage](#stage) | yes |  |  |
+| `options` | list of [UserOption](#useroption) |  |  | The choices the pilot makes that `show_if` tests read. |
+| `phases` | list of [Phase](#phase) | yes |  | Every phase, flight and reference, with its lists. |
+| `stages` | list of [Stage](#stage) | yes |  | The stages of a flight, in order, as the rail shows them. |
 | `start_page` | list of text |  |  | The Start page's order: the ids of options asked there, and `panel_state` for the panel-state picker. Without it, the options in this file's order, then the picker. |
 | `turnaround` | [ShowIf](#showif) |  |  | Which option choices make a turnaround, for steps in Essentials only on a turnaround (`quick: turnaround`). Required when any step uses it. |
 
@@ -31,11 +31,11 @@ A choice the pilot makes that decides what is shown, e.g. the power source.
 | `choices` | list of [OptionChoice](#optionchoice) |  |  | How each value is shown. When present, every value has exactly one. |
 | `default` | text | yes |  | The value used until the pilot chooses. Must be one of `values`. |
 | `description` | text |  |  | What the choice changes, shown beside it. |
-| `id` | text | yes |  |  |
+| `id` | text | yes |  | Unique in the pack: `show_if` tests, `ask_in`, `start_page` and saved flights name the option by it. |
 | `start` | [StartControl](#startcontrol) |  |  | How the Start page shows the choice; required when `ask_in` names `start`. |
 | `suggests` | [Suggests](#suggests) |  |  | How a flight value suggests the answer, for the pilot to confirm (decisions 0022 and 0027). |
-| `title` | text | yes |  |  |
-| `values` | list of text | yes |  |  |
+| `title` | text | yes |  | The choice's name where it is asked; the Start page may give its own. |
+| `values` | list of text | yes |  | The values the pilot chooses among, in order. `show_if` tests compare against them. |
 
 ## Phase
 
@@ -45,11 +45,11 @@ One part of the flight, holding its lists in order.
 | --- | --- | --- | --- | --- |
 | `engine_start` | true or false |  |  | The phase that starts the engines, on at most one flight phase: Practice's "Before engine start" covers the flight up to and including it. |
 | `group` | text |  |  | Which reference group the phase is, required on a reference phase: `memory` (memory items), `quick` (quick reference) or `procedures` (non-normal procedures). The app reads reference phases by group, never by their order or title (decision 0029). |
-| `id` | text | yes |  |  |
+| `id` | text | yes |  | Unique in the pack: stages, `ask_in`, links and other files name the phase by it. |
 | `intro` | list of [IntroParagraph](#introparagraph) |  |  | Shown at the top of the phase. |
 | `lists` | list of text | yes |  | Ids of the lists in this phase. |
 | `reference` | true or false |  |  | Reference material, outside the normal flow of a flight. |
-| `title` | text | yes |  |  |
+| `title` | text | yes |  | The phase's name in the rail and at its top. |
 
 ## Stage
 
@@ -58,8 +58,8 @@ A group of phases, e.g. "Preflight".
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
 | `id` | text | yes |  | Unique in the pack, and never changes once published: the rail, Find and a pack extending this one name the stage by it (decision 0029). The title is display text. |
-| `phases` | list of [StagePhase](#stagephase) | yes |  |  |
-| `title` | text | yes |  |  |
+| `phases` | list of [StagePhase](#stagephase) | yes |  | Its phases, in the rail's order. |
+| `title` | text | yes |  | The stage's name in the rail. |
 
 ## ShowIf
 
@@ -71,9 +71,9 @@ How one value of an option is shown, e.g. "Ground power at the gate".
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `description` | text |  |  |  |
-| `label` | text | yes |  |  |
-| `value` | text | yes |  |  |
+| `description` | text |  |  | A line shown under the label. |
+| `label` | text | yes |  | The text shown for the value. |
+| `value` | text | yes |  | The option value it shows: one of the option's `values`. |
 
 ## StartControl
 
@@ -81,11 +81,11 @@ An option on the Start page (decision 0029): its control style, and optionally i
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `description` | text |  |  |  |
-| `link` | [StartLink](#startlink) |  |  |  |
+| `description` | text |  |  | Its description on the Start page; the option's own otherwise. |
+| `link` | [StartLink](#startlink) |  |  | A link under it to a phase. |
 | `on` | text |  |  | With `style: toggle`: the value the switch sets when on; off sets the other. |
-| `style` | [StartStyle](#startstyle) | yes |  |  |
-| `title` | text |  |  |  |
+| `style` | [StartStyle](#startstyle) | yes |  | How the choice is drawn. |
+| `title` | text |  |  | Its title on the Start page; the option's own otherwise. |
 
 ## Suggests
 
@@ -98,7 +98,7 @@ One paragraph of a phase's introduction.
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
 | `heading` | text |  |  | A short lead-in shown before the text, e.g. "When to use them". |
-| `text` | text | yes |  |  |
+| `text` | text | yes |  | The paragraph's text. |
 
 ## StagePhase
 
@@ -106,8 +106,8 @@ A phase's place in a stage.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `phase` | text | yes |  |  |
-| `show_if` | [ShowIf](#showif) |  |  |  |
+| `phase` | text | yes |  | The id of the phase. |
+| `show_if` | [ShowIf](#showif) |  |  | Shows the phase in this stage only when the pilot's options pass this test. |
 
 ## OptionTest
 
@@ -119,8 +119,8 @@ A link from a Start page option to a phase, e.g. "Preview the inspection".
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `phase` | text | yes |  |  |
-| `text` | text | yes |  |  |
+| `phase` | text | yes |  | The id of the phase the link opens. |
+| `text` | text | yes |  | The link's text. |
 
 ## StartStyle
 
@@ -128,8 +128,8 @@ How the Start page draws an option: one card per choice, or a segmented row.
 
 | Value | What it means |
 | --- | --- |
-| `cards` |  |
-| `row` |  |
+| `cards` | One card per choice. |
+| `row` | A segmented row of the choices. |
 | `toggle` | An on/off switch, for an option of two values: `on` names the value it sets when on. |
 
 ## SuggestRule
@@ -138,14 +138,14 @@ A weight from the flight, less `minus`, above `more_than` suggests `then`, other
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `field` | [FieldId](#fieldid) | yes |  |  |
-| `minus` | whole number | yes |  |  |
-| `more_than` | whole number | yes |  |  |
-| `near` | whole number |  | `0` |  |
+| `field` | [FieldId](#fieldid) | yes |  | The flight field whose weight is read, e.g. the planned fuel. |
+| `minus` | whole number | yes |  | Taken from the weight before it is compared (what other tanks hold). At 0, nothing is suggested. |
+| `more_than` | whole number | yes |  | The line: what is left above it suggests `then`. |
+| `near` | whole number |  | `0` | How close to the line the suggestion says it is close; 0 never says so. |
 | `other_unit` | [SuggestLine](#suggestline) |  |  | The line and margin for a flight in the other unit, when the choices name both ("More than 1,000 lb (450 kg)"): a pound flight is held to 1,000 lb, not 992. |
-| `otherwise` | text | yes |  |  |
-| `then` | text | yes |  |  |
-| `unit` | [WeightUnit](#weightunit) | yes |  |  |
+| `otherwise` | text | yes |  | The option value suggested when what is left is at or below the line. |
+| `then` | text | yes |  | The option value suggested when what is left is above the line. |
+| `unit` | [WeightUnit](#weightunit) | yes |  | The unit `minus`, `more_than` and `near` are in; a flight in the other unit is converted. |
 
 ## FieldId
 
@@ -157,8 +157,8 @@ A suggestion rule's line and margin in the other unit.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `more_than` | whole number | yes |  |  |
-| `near` | whole number |  | `0` |  |
+| `more_than` | whole number | yes |  | The line, in the other unit. |
+| `near` | whole number |  | `0` | How close to the line counts as close, in the other unit. |
 
 ## WeightUnit
 
@@ -166,6 +166,6 @@ A unit for a suggestion rule's amounts.
 
 | Value | What it means |
 | --- | --- |
-| `kg` |  |
-| `lb` |  |
+| `kg` | Kilograms. |
+| `lb` | Pounds. |
 

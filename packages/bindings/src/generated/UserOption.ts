@@ -6,7 +6,20 @@ import type { Suggests } from "./Suggests";
 /**
  * A choice the pilot makes that decides what is shown, e.g. the power source.
  */
-export type UserOption = { id: string, title: string, values: Array<string>, 
+export type UserOption = { 
+/**
+ * Unique in the pack: `show_if` tests, `ask_in`, `start_page` and saved flights name
+ * the option by it.
+ */
+id: string, 
+/**
+ * The choice's name where it is asked; the Start page may give its own.
+ */
+title: string, 
+/**
+ * The values the pilot chooses among, in order. `show_if` tests compare against them.
+ */
+values: Array<string>, 
 /**
  * The value used until the pilot chooses. Must be one of `values`.
  */

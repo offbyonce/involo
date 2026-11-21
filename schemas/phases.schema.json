@@ -1,22 +1,25 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "PhasesFile",
-  "description": "`phases.yaml`.",
+  "description": "`phases.yaml`: the pilot's options, the stages and phases of a flight with the lists in\neach phase, the turnaround rule and the Start page's order.",
   "type": "object",
   "properties": {
     "options": {
+      "description": "The choices the pilot makes that `show_if` tests read.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/UserOption"
       }
     },
     "phases": {
+      "description": "Every phase, flight and reference, with its lists.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/Phase"
       }
     },
     "stages": {
+      "description": "The stages of a flight, in order, as the rail shows them.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/Stage"
@@ -63,6 +66,7 @@
           ]
         },
         "text": {
+          "description": "The paragraph's text.",
           "type": "string"
         }
       },
@@ -76,15 +80,18 @@
       "type": "object",
       "properties": {
         "description": {
+          "description": "A line shown under the label.",
           "type": [
             "string",
             "null"
           ]
         },
         "label": {
+          "description": "The text shown for the value.",
           "type": "string"
         },
         "value": {
+          "description": "The option value it shows: one of the option's `values`.",
           "type": "string"
         }
       },
@@ -156,6 +163,7 @@
           ]
         },
         "id": {
+          "description": "Unique in the pack: stages, `ask_in`, links and other files name the phase by it.",
           "type": "string"
         },
         "intro": {
@@ -177,6 +185,7 @@
           "type": "boolean"
         },
         "title": {
+          "description": "The phase's name in the rail and at its top.",
           "type": "string"
         }
       },
@@ -239,12 +248,14 @@
           "type": "string"
         },
         "phases": {
+          "description": "Its phases, in the rail's order.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/StagePhase"
           }
         },
         "title": {
+          "description": "The stage's name in the rail.",
           "type": "string"
         }
       },
@@ -260,9 +271,11 @@
       "type": "object",
       "properties": {
         "phase": {
+          "description": "The id of the phase.",
           "type": "string"
         },
         "show_if": {
+          "description": "Shows the phase in this stage only when the pilot's options pass this test.",
           "anyOf": [
             {
               "$ref": "#/$defs/ShowIf"
@@ -283,12 +296,14 @@
       "type": "object",
       "properties": {
         "description": {
+          "description": "Its description on the Start page; the option's own otherwise.",
           "type": [
             "string",
             "null"
           ]
         },
         "link": {
+          "description": "A link under it to a phase.",
           "anyOf": [
             {
               "$ref": "#/$defs/StartLink"
@@ -306,9 +321,11 @@
           ]
         },
         "style": {
+          "description": "How the choice is drawn.",
           "$ref": "#/$defs/StartStyle"
         },
         "title": {
+          "description": "Its title on the Start page; the option's own otherwise.",
           "type": [
             "string",
             "null"
@@ -325,9 +342,11 @@
       "type": "object",
       "properties": {
         "phase": {
+          "description": "The id of the phase the link opens.",
           "type": "string"
         },
         "text": {
+          "description": "The link's text.",
           "type": "string"
         }
       },
@@ -341,11 +360,14 @@
       "description": "How the Start page draws an option: one card per choice, or a segmented row.",
       "oneOf": [
         {
+          "description": "One card per choice.",
           "type": "string",
-          "enum": [
-            "cards",
-            "row"
-          ]
+          "const": "cards"
+        },
+        {
+          "description": "A segmented row of the choices.",
+          "type": "string",
+          "const": "row"
         },
         {
           "description": "An on/off switch, for an option of two values: `on` names the value it sets when on.",
@@ -359,11 +381,13 @@
       "type": "object",
       "properties": {
         "more_than": {
+          "description": "The line, in the other unit.",
           "type": "integer",
           "format": "uint32",
           "minimum": 0
         },
         "near": {
+          "description": "How close to the line counts as close, in the other unit.",
           "type": "integer",
           "format": "uint32",
           "default": 0,
@@ -380,19 +404,23 @@
       "type": "object",
       "properties": {
         "field": {
+          "description": "The flight field whose weight is read, e.g. the planned fuel.",
           "$ref": "#/$defs/FieldId"
         },
         "minus": {
+          "description": "Taken from the weight before it is compared (what other tanks hold). At 0, nothing is\nsuggested.",
           "type": "integer",
           "format": "uint32",
           "minimum": 0
         },
         "more_than": {
+          "description": "The line: what is left above it suggests `then`.",
           "type": "integer",
           "format": "uint32",
           "minimum": 0
         },
         "near": {
+          "description": "How close to the line the suggestion says it is close; 0 never says so.",
           "type": "integer",
           "format": "uint32",
           "default": 0,
@@ -410,12 +438,15 @@
           ]
         },
         "otherwise": {
+          "description": "The option value suggested when what is left is at or below the line.",
           "type": "string"
         },
         "then": {
+          "description": "The option value suggested when what is left is above the line.",
           "type": "string"
         },
         "unit": {
+          "description": "The unit `minus`, `more_than` and `near` are in; a flight in the other unit is\nconverted.",
           "$ref": "#/$defs/WeightUnit"
         }
       },
@@ -433,9 +464,11 @@
       "description": "What suggests an option's answer: a rule (decision 0027), or, as format 4 wrote it, a bare\nflight field, which suggests nothing.",
       "anyOf": [
         {
+          "description": "A rule that suggests an answer.",
           "$ref": "#/$defs/SuggestRule"
         },
         {
+          "description": "A bare flight field, as format 4 wrote it: suggests nothing.",
           "$ref": "#/$defs/FieldId"
         }
       ]
@@ -470,6 +503,7 @@
           ]
         },
         "id": {
+          "description": "Unique in the pack: `show_if` tests, `ask_in`, `start_page` and saved flights name\nthe option by it.",
           "type": "string"
         },
         "start": {
@@ -495,9 +529,11 @@
           ]
         },
         "title": {
+          "description": "The choice's name where it is asked; the Start page may give its own.",
           "type": "string"
         },
         "values": {
+          "description": "The values the pilot chooses among, in order. `show_if` tests compare against them.",
           "type": "array",
           "items": {
             "type": "string"
@@ -514,10 +550,17 @@
     },
     "WeightUnit": {
       "description": "A unit for a suggestion rule's amounts.",
-      "type": "string",
-      "enum": [
-        "kg",
-        "lb"
+      "oneOf": [
+        {
+          "description": "Kilograms.",
+          "type": "string",
+          "const": "kg"
+        },
+        {
+          "description": "Pounds.",
+          "type": "string",
+          "const": "lb"
+        }
       ]
     }
   }

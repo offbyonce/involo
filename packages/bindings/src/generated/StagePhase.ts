@@ -4,4 +4,12 @@ import type { ShowIf } from "./ShowIf";
 /**
  * A phase's place in a stage.
  */
-export type StagePhase = { phase: string, showIf?: ShowIf | null, };
+export type StagePhase = { 
+/**
+ * The id of the phase.
+ */
+phase: string, 
+/**
+ * Shows the phase in this stage only when the pilot's options pass this test.
+ */
+showIf?: ShowIf | null, };

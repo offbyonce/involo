@@ -5,14 +5,27 @@ import type { Stage } from "./Stage";
 import type { UserOption } from "./UserOption";
 
 /**
- * `phases.yaml`.
+ * `phases.yaml`: the pilot's options, the stages and phases of a flight with the lists in
+ * each phase, the turnaround rule and the Start page's order.
  */
-export type PhasesFile = { options?: Array<UserOption>, 
+export type PhasesFile = { 
+/**
+ * The choices the pilot makes that `show_if` tests read.
+ */
+options?: Array<UserOption>, 
 /**
  * Which option choices make a turnaround, for steps in Essentials only on a turnaround
  * (`quick: turnaround`). Required when any step uses it.
  */
-turnaround?: ShowIf | null, stages: Array<Stage>, phases: Array<Phase>, 
+turnaround?: ShowIf | null, 
+/**
+ * The stages of a flight, in order, as the rail shows them.
+ */
+stages: Array<Stage>, 
+/**
+ * Every phase, flight and reference, with its lists.
+ */
+phases: Array<Phase>, 
 /**
  * The Start page's order: the ids of options asked there, and `panel_state` for the
  * panel-state picker. Without it, the options in this file's order, then the picker.

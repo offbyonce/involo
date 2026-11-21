@@ -28,7 +28,7 @@ the JSON Schemas in `schemas/` give editors autocomplete. The guide that explain
 | [`notes.yaml`](notes.md) | `notes.schema.json` | `notes.yaml`. |
 | [`panel-states.yaml`](panel-states.md) | `panel-states.schema.json` | The starting points a pilot can pick on the Start page, each with the steps it counts as already done or skipped. |
 | [`patches.yaml`](patches.md) | `patches.schema.json` | A child pack's changes to its parent's content, by id, applied in order when the child is built (decision 0029). |
-| [`phases.yaml`](phases.md) | `phases.schema.json` | `phases.yaml`. |
+| [`phases.yaml`](phases.md) | `phases.schema.json` | The pilot's options, the stages and phases of a flight with the lists in each phase, the turnaround rule and the Start page's order. |
 | [`lists/<name>.yaml`](lists.md) | `checklist.schema.json` | An ordered list of steps: a checklist, a flow or a non-normal procedure. |
 | [`panels/<name>.yaml`](panels.md) | `panel.schema.json` | One `panels/*.yaml` file: a drawing of one panel, its sections and the items in them, in our own layout. |
 

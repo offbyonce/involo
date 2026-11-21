@@ -6,7 +6,23 @@ import type { StartStyle } from "./StartStyle";
  * An option on the Start page (decision 0029): its control style, and optionally its own
  * title and description there (the option's own are used otherwise) and a link to a phase.
  */
-export type StartControl = { style: StartStyle, title?: string | null, description?: string | null, link?: StartLink | null, 
+export type StartControl = { 
+/**
+ * How the choice is drawn.
+ */
+style: StartStyle, 
+/**
+ * Its title on the Start page; the option's own otherwise.
+ */
+title?: string | null, 
+/**
+ * Its description on the Start page; the option's own otherwise.
+ */
+description?: string | null, 
+/**
+ * A link under it to a phase.
+ */
+link?: StartLink | null, 
 /**
  * With `style: toggle`: the value the switch sets when on; off sets the other.
  */

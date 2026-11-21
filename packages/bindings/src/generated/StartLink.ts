@@ -3,4 +3,12 @@
 /**
  * A link from a Start page option to a phase, e.g. "Preview the inspection".
  */
-export type StartLink = { phase: string, text: string, };
+export type StartLink = { 
+/**
+ * The id of the phase the link opens.
+ */
+phase: string, 
+/**
+ * The link's text.
+ */
+text: string, };

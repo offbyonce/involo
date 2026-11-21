@@ -7,4 +7,8 @@ export type IntroParagraph = {
 /**
  * A short lead-in shown before the text, e.g. "When to use them".
  */
-heading?: string | null, text: string, };
+heading?: string | null, 
+/**
+ * The paragraph's text.
+ */
+text: string, };
