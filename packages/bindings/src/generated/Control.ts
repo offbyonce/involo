@@ -3,11 +3,30 @@
 /**
  * A switch, lever or other control a step refers to.
  */
-export type Control = { id: string, name: string, 
+export type Control = { 
+/**
+ * The control's id, which steps list in `controls` and panel items in theirs.
+ */
+id: string, 
+/**
+ * What the control is called ("Fuel pump switches"), as Find and a panel item's card
+ * show it.
+ */
+name: string, 
 /**
  * Absent for controls with no place in the cockpit, such as a briefing.
  */
-zone?: string | null, location: string, function: string, 
+zone?: string | null, 
+/**
+ * Where the control is, in words; shown with it in Find and in a step's context, and in
+ * Practice's answers.
+ */
+location: string, 
+/**
+ * What the control does; shown in a step's context, and for a panel item with no
+ * `description` of its own.
+ */
+function: string, 
 /**
  * The name is plural ("Fuel pump switches"): Practice asks "Where are the …?".
  */

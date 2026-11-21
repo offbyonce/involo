@@ -4,6 +4,19 @@ import type { Overview } from "./Overview";
 import type { Zone } from "./Zone";
 
 /**
- * `controls.yaml`.
+ * `controls.yaml`: the cockpit's zones, the controls steps refer to, and the overview map
+ * that shows where each zone is.
  */
-export type ControlsFile = { zones: Array<Zone>, controls: Array<Control>, overview?: Overview | null, };
+export type ControlsFile = { 
+/**
+ * The areas of the cockpit.
+ */
+zones: Array<Zone>, 
+/**
+ * Every control a step or panel item names.
+ */
+controls: Array<Control>, 
+/**
+ * The cockpit overview: the step map and the Flight deck page. Without it, neither shows a map.
+ */
+overview?: Overview | null, };

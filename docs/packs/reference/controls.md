@@ -11,13 +11,13 @@ Schema: `schemas/controls.schema.json`. [All files](index.md).
 
 ## The file
 
-`controls.yaml`.
+`controls.yaml`: the cockpit's zones, the controls steps refer to, and the overview map that shows where each zone is.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `controls` | list of [Control](#control) | yes |  |  |
-| `overview` | [Overview](#overview) |  |  |  |
-| `zones` | list of [Zone](#zone) | yes |  |  |
+| `controls` | list of [Control](#control) | yes |  | Every control a step or panel item names. |
+| `overview` | [Overview](#overview) |  |  | The cockpit overview: the step map and the Flight deck page. Without it, neither shows a map. |
+| `zones` | list of [Zone](#zone) | yes |  | The areas of the cockpit. |
 
 ## Control
 
@@ -25,10 +25,10 @@ A switch, lever or other control a step refers to.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `function` | text | yes |  |  |
-| `id` | text | yes |  |  |
-| `location` | text | yes |  |  |
-| `name` | text | yes |  |  |
+| `function` | text | yes |  | What the control does; shown in a step's context, and for a panel item with no `description` of its own. |
+| `id` | text | yes |  | The control's id, which steps list in `controls` and panel items in theirs. |
+| `location` | text | yes |  | Where the control is, in words; shown with it in Find and in a step's context, and in Practice's answers. |
+| `name` | text | yes |  | What the control is called ("Fuel pump switches"), as Find and a panel item's card show it. |
 | `plural` | true or false |  |  | The name is plural ("Fuel pump switches"): Practice asks "Where are the …?". |
 | `zone` | text |  |  | Absent for controls with no place in the cockpit, such as a briefing. |
 
@@ -38,12 +38,12 @@ A schematic of the whole cockpit, in our own layout.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `areas` | list of [OverviewArea](#overviewarea) | yes |  |  |
-| `captions` | list of [OverviewCaption](#overviewcaption) |  |  |  |
-| `height` | number | yes |  |  |
-| `regions` | list of [OverviewRegion](#overviewregion) |  |  |  |
+| `areas` | list of [OverviewArea](#overviewarea) | yes |  | The zones' rectangles. |
+| `captions` | list of [OverviewCaption](#overviewcaption) |  |  | Free captions on the map. The app does not draw them today. |
+| `height` | number | yes |  | The overview's height in its own units. |
+| `regions` | list of [OverviewRegion](#overviewregion) |  |  | The parts of the cockpit a step map shows one at a time. |
 | `views` | [OverviewViews](#overviewviews) |  |  | The side and seat views (decision 0023). |
-| `width` | number | yes |  |  |
+| `width` | number | yes |  | The overview's width in its own units; every region lies inside it. |
 
 ## Zone
 
@@ -51,11 +51,11 @@ An area of the cockpit.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `area` | text | yes |  |  |
-| `id` | text | yes |  |  |
+| `area` | text | yes |  | The part of the cockpit the zone is in ("Overhead"), shown before its title ("Overhead · Fuel"); without overview regions, the step map shows the zones of the same area. |
+| `id` | text | yes |  | The zone's id, which controls name as their `zone` and overview areas as theirs. |
 | `position` | text |  |  | Where the zone sits in its area, for the step map's position line ("Captain side, row nearest the windshield"). |
-| `short_title` | text | yes |  |  |
-| `title` | text | yes |  |  |
+| `short_title` | text | yes |  | The zone's label on the overview map's boxes, in capitals, unless an area gives its own. |
+| `title` | text | yes |  | The zone's name, shown where a control's place is given and on the Flight deck page. |
 
 ## OverviewArea
 
@@ -63,12 +63,12 @@ A rectangle on the cockpit overview map. A zone can have several.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `height` | number | yes |  |  |
+| `height` | number | yes |  | The rectangle's height, in the overview's units. |
 | `label` | text |  |  | Overrides the zone's short title on the map. |
-| `width` | number | yes |  |  |
-| `x` | number | yes |  |  |
-| `y` | number | yes |  |  |
-| `zone` | text | yes |  |  |
+| `width` | number | yes |  | The rectangle's width, in the overview's units. |
+| `x` | number | yes |  | The rectangle's left edge, in the overview's units. Its center decides which region it belongs to. |
+| `y` | number | yes |  | The rectangle's top edge, in the overview's units. |
+| `zone` | text | yes |  | The zone this rectangle stands for. |
 
 ## OverviewCaption
 
@@ -76,9 +76,9 @@ A caption on the cockpit overview map.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `text` | text | yes |  |  |
-| `x` | number | yes |  |  |
-| `y` | number | yes |  |  |
+| `text` | text | yes |  | The caption's text. The app does not draw overview captions today. |
+| `x` | number | yes |  | Its point across, in the overview's units. |
+| `y` | number | yes |  | Its point down, in the overview's units. |
 
 ## OverviewRegion
 
@@ -86,24 +86,24 @@ A part of the cockpit on the overview map, e.g. the forward overhead panel. A ma
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `bottom` | text |  |  |  |
-| `bottom_short` | text |  |  |  |
+| `bottom` | text |  |  | The caption for the bottom edge. |
+| `bottom_short` | text |  |  | The short caption for the bottom edge; the long one when left out. |
 | `code` | text |  |  | A short reference shown after the name, e.g. "P5". |
-| `height` | number | yes |  |  |
-| `left` | text |  |  |  |
-| `left_short` | text |  |  |  |
+| `height` | number | yes |  | The region's height, in the overview's units; more than 0. |
+| `left` | text |  |  | The caption for the left edge. |
+| `left_short` | text |  |  | The short caption for the left edge; the long one when left out. |
 | `locate` | text |  |  | Where to look from the seat, for "Where is this?". |
-| `name` | text | yes |  |  |
-| `right` | text |  |  |  |
-| `right_short` | text |  |  |  |
+| `name` | text | yes |  | The region's name, unique among regions; side and seat view places name it as their `region`, and the maps use it as their name. |
+| `right` | text |  |  | The caption for the right edge. |
+| `right_short` | text |  |  | The short caption for the right edge; the long one when left out. |
 | `short` | text |  |  | The area's short name, e.g. "Overhead", where a picture of a flow names the areas; regions may share one. Without it, the name. |
-| `short_title` | text |  |  |  |
+| `short_title` | text |  |  | The shorter Where is this? title, for phones; the whole one when left out. |
 | `title` | text |  |  | The Where is this? title, as a whole question ("Where is the forward overhead panel?"), and the shorter one phones use ("Where is the forward overhead?"). |
 | `top` | text |  |  | Captions for the edges, saying which way each faces. |
 | `top_short` | text |  |  | Short edge captions for the small step map ("AFT", "FORWARD", "CAPT", "F/O"); the long ones stay for the Flight deck page. |
-| `width` | number | yes |  |  |
-| `x` | number | yes |  |  |
-| `y` | number | yes |  |  |
+| `width` | number | yes |  | The region's width, in the overview's units; more than 0. |
+| `x` | number | yes |  | The region's left edge, in the overview's units. Its rectangle lies inside the overview and holds the areas whose centers fall in it. |
+| `y` | number | yes |  | The region's top edge, in the overview's units. |
 
 ## OverviewViews
 
@@ -111,8 +111,8 @@ The side and seat views for "Where is this?".
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `seat` | [SeatViews](#seatviews) |  |  |  |
-| `side` | [ViewFrame](#viewframe) |  |  |  |
+| `seat` | [SeatViews](#seatviews) |  |  | The view from the seat: one frame, or one per seat. |
+| `side` | [ViewFrame](#viewframe) |  |  | The view from the side, with the sight line from the eye. |
 
 ## SeatViews
 
@@ -124,11 +124,11 @@ A side or seat view of the flight deck, in its own units (decision 0023).
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `height` | number | yes |  |  |
-| `labels` | list of [ViewLabel](#viewlabel) |  |  |  |
-| `places` | list of [ViewPlace](#viewplace) |  |  |  |
-| `shapes` | list of [ViewShape](#viewshape) |  |  |  |
-| `width` | number | yes |  |  |
+| `height` | number | yes |  | The view's height in its own units. |
+| `labels` | list of [ViewLabel](#viewlabel) |  |  | Fixed labels drawn in the view. |
+| `places` | list of [ViewPlace](#viewplace) |  |  | Where each overview region sits in the view. |
+| `shapes` | list of [ViewShape](#viewshape) |  |  | The airplane's shapes: structure, glass, seat and eye. |
+| `width` | number | yes |  | The view's width in its own units; every point in it is inside. |
 
 ## ViewLabel
 
@@ -136,10 +136,10 @@ A fixed label in a side or seat view, e.g. "WINDSHIELD" or "CABIN →".
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `anchor` | [LabelAnchor](#labelanchor) |  | `middle` |  |
-| `text` | text | yes |  |  |
-| `x` | number | yes |  |  |
-| `y` | number | yes |  |  |
+| `anchor` | [LabelAnchor](#labelanchor) |  | `middle` | Which way the text runs from its point. |
+| `text` | text | yes |  | The label's text, drawn as written. |
+| `x` | number | yes |  | Its point across, in the view's units. |
+| `y` | number | yes |  | Its point down, in the view's units. |
 
 ## ViewPlace
 
@@ -150,7 +150,7 @@ Where one overview region sits in a side or seat view: one or more closed outlin
 | `label_at` | list of number |  |  | Where the region's name goes when it is the one shown, if the view names it. |
 | `names` | list of text |  |  | For a region drawn as several outlines, each outline's name on the Flight deck page, front to back ("Forward electronic"); without them, its places' area names as written. |
 | `region` | text | yes |  | The region's `name` on the overview. |
-| `shapes` | list of list of list of number | yes |  |  |
+| `shapes` | list of list of list of number | yes |  | The region's closed outlines, each a list of `[x, y]` points in the view's units. |
 
 ## ViewShape
 
@@ -158,9 +158,9 @@ One shape in a side or seat view: an outline through its points (a curve is give
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `closed` | true or false |  |  |  |
-| `points` | list of list of number | yes |  |  |
-| `role` | [ViewRole](#viewrole) | yes |  |  |
+| `closed` | true or false |  |  | The outline joins its last point back to its first. |
+| `points` | list of list of number | yes |  | The points the outline runs through, `[x, y]` in the view's units. |
+| `role` | [ViewRole](#viewrole) | yes |  | How the shape is drawn. |
 
 ## LabelAnchor
 
@@ -168,9 +168,9 @@ Which way a label runs from its point.
 
 | Value | What it means |
 | --- | --- |
-| `start` |  |
-| `middle` |  |
-| `end` |  |
+| `start` | The label starts at its point. |
+| `middle` | The label is centered on its point; the default. |
+| `end` | The label ends at its point. |
 
 ## ViewRole
 

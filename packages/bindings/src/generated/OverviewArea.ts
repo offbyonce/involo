@@ -3,7 +3,28 @@
 /**
  * A rectangle on the cockpit overview map. A zone can have several.
  */
-export type OverviewArea = { zone: string, x: number, y: number, width: number, height: number, 
+export type OverviewArea = { 
+/**
+ * The zone this rectangle stands for.
+ */
+zone: string, 
+/**
+ * The rectangle's left edge, in the overview's units. Its center decides which region it
+ * belongs to.
+ */
+x: number, 
+/**
+ * The rectangle's top edge, in the overview's units.
+ */
+y: number, 
+/**
+ * The rectangle's width, in the overview's units.
+ */
+width: number, 
+/**
+ * The rectangle's height, in the overview's units.
+ */
+height: number, 
 /**
  * Overrides the zone's short title on the map.
  */

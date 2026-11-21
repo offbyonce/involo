@@ -4,4 +4,20 @@ import type { LabelAnchor } from "./LabelAnchor";
 /**
  * A fixed label in a side or seat view, e.g. "WINDSHIELD" or "CABIN →".
  */
-export type ViewLabel = { text: string, x: number, y: number, anchor: LabelAnchor, };
+export type ViewLabel = { 
+/**
+ * The label's text, drawn as written.
+ */
+text: string, 
+/**
+ * Its point across, in the view's units.
+ */
+x: number, 
+/**
+ * Its point down, in the view's units.
+ */
+y: number, 
+/**
+ * Which way the text runs from its point.
+ */
+anchor: LabelAnchor, };

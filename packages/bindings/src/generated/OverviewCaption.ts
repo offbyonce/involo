@@ -3,4 +3,16 @@
 /**
  * A caption on the cockpit overview map.
  */
-export type OverviewCaption = { text: string, x: number, y: number, };
+export type OverviewCaption = { 
+/**
+ * The caption's text. The app does not draw overview captions today.
+ */
+text: string, 
+/**
+ * Its point across, in the overview's units.
+ */
+x: number, 
+/**
+ * Its point down, in the overview's units.
+ */
+y: number, };
