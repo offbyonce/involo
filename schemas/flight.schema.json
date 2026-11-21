@@ -5,6 +5,7 @@
   "type": "object",
   "properties": {
     "fields": {
+      "description": "Every flight field, in order: the order rows and strip parts follow.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/FlightField"
@@ -18,6 +19,7 @@
       }
     },
     "pages": {
+      "description": "The Flight pages' titles and cards. Without them, each page the fields name holds\nthem, in cards titled by their `group`.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/FlightPage"
@@ -41,6 +43,7 @@
           ]
         },
         "group": {
+          "description": "The card on that page the copy shows in, by its title.",
           "type": "string"
         },
         "label": {
@@ -51,6 +54,7 @@
           ]
         },
         "ofp": {
+          "description": "The side panel's parts for the copy, over the field's own panel.",
           "anyOf": [
             {
               "$ref": "#/$defs/FieldOfp"
@@ -61,6 +65,7 @@
           ]
         },
         "page": {
+          "description": "The Flight page the copy shows on, e.g. `takeoff`.",
           "type": "string"
         }
       },
@@ -75,12 +80,14 @@
       "type": "object",
       "properties": {
         "label": {
+          "description": "The text shown for it; the value otherwise.",
           "type": [
             "string",
             "null"
           ]
         },
         "value": {
+          "description": "The value stored when it is chosen.",
           "type": "string"
         }
       },
@@ -94,13 +101,16 @@
       "type": "object",
       "properties": {
         "round": {
+          "description": "Which way the scaled number is rounded to `step`.",
           "$ref": "#/$defs/Rounding"
         },
         "scale": {
+          "description": "What the plan's number is divided by before it is stored, e.g. 1000.",
           "type": "number",
           "format": "double"
         },
         "step": {
+          "description": "The multiple the scaled number is rounded to, e.g. 0.1 for one decimal.",
           "type": "number",
           "format": "double"
         }
@@ -126,6 +136,7 @@
           "minimum": 0
         },
         "mode": {
+          "description": "What the box takes: it picks the keyboard a phone shows, and a number mode stores the\nvalue without a leading \"FL\" or any \"°\", \"%\", \"+\", comma or space typed with it.",
           "anyOf": [
             {
               "$ref": "#/$defs/InputMode"
@@ -170,6 +181,7 @@
       "type": "object",
       "properties": {
         "body": {
+          "description": "The text under the heading, in place of the app's.",
           "type": [
             "string",
             "null"
@@ -194,6 +206,7 @@
           ]
         },
         "note": {
+          "description": "The note under the plan's close-up, in place of the app's.",
           "type": [
             "string",
             "null"
@@ -207,6 +220,7 @@
           ]
         },
         "title": {
+          "description": "The panel's heading, in place of the app's.",
           "type": [
             "string",
             "null"
@@ -220,6 +234,7 @@
       "type": "object",
       "properties": {
         "max": {
+          "description": "The highest value in range; the Flight pages flag a value above it.",
           "type": "number",
           "format": "double"
         },
@@ -231,10 +246,12 @@
           ]
         },
         "min": {
+          "description": "The lowest value in range; the Flight pages flag a value below it.",
           "type": "number",
           "format": "double"
         },
         "unit": {
+          "description": "The unit this range is for: a value of the field's `unit` field, e.g. `KG`. Left\nout, the range holds in every unit.",
           "type": [
             "string",
             "null"
@@ -252,15 +269,19 @@
       "type": "object",
       "properties": {
         "grouped": {
+          "description": "Show a number with its thousands grouped (18,000). Takes the place of `signed`.",
           "type": "boolean"
         },
         "prefix": {
+          "description": "Text shown before the value, e.g. \"FL\".",
           "type": "string"
         },
         "signed": {
+          "description": "Show a plus sign before a positive number (+2).",
           "type": "boolean"
         },
         "suffix": {
+          "description": "Text shown after the value, e.g. \"%\".",
           "type": "string"
         }
       },
@@ -285,6 +306,7 @@
           }
         },
         "description": {
+          "description": "The text under the row's name.",
           "type": [
             "string",
             "null"
@@ -302,6 +324,7 @@
           ]
         },
         "group": {
+          "description": "The card on its page it shows in: a `pages` card by its title, or, without `pages`,\nthe title of the card it makes.",
           "type": [
             "string",
             "null"
@@ -323,9 +346,11 @@
           ]
         },
         "kind": {
+          "description": "What it holds: a number, any text, or one of its `choices`.",
           "$ref": "#/$defs/FieldKind"
         },
         "label": {
+          "description": "The row's name on the Flight pages.",
           "type": "string"
         },
         "location": {
@@ -365,6 +390,7 @@
           ]
         },
         "ranges": {
+          "description": "For a number: the values in range, per unit or for every unit. A value outside is\nflagged on the Flight pages.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/FieldRange"
@@ -386,6 +412,7 @@
           ]
         },
         "show_in": {
+          "description": "Where else its value shows: the flight strip, the Arrival data box.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/ShowIn"
@@ -482,6 +509,7 @@
           ]
         },
         "title": {
+          "description": "The card's title. Fields name it as their `group`, and `also` copies as theirs.",
           "type": "string"
         },
         "units": {
@@ -506,6 +534,7 @@
       "type": "object",
       "properties": {
         "description": {
+          "description": "The text under the value, as parts joined with a space.",
           "type": "array",
           "items": {
             "type": "string"
@@ -519,6 +548,7 @@
           ]
         },
         "label": {
+          "description": "The row's label.",
           "type": "string"
         },
         "page": {
@@ -526,6 +556,7 @@
           "type": "string"
         },
         "value": {
+          "description": "The row's value, as parts joined with \" · \".",
           "type": "array",
           "items": {
             "type": "string"
@@ -543,12 +574,14 @@
       "type": "object",
       "properties": {
         "groups": {
+          "description": "The page's cards, in order. A card with no rows is left out.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/FlightGroup"
           }
         },
         "id": {
+          "description": "Which of the app's Flight pages this is; fields name it as their `page`.",
           "type": "string"
         },
         "ofp": {
@@ -570,12 +603,14 @@
           ]
         },
         "sub": {
+          "description": "The line under the title.",
           "type": [
             "string",
             "null"
           ]
         },
         "title": {
+          "description": "The page's title.",
           "type": "string"
         }
       },
@@ -591,9 +626,11 @@
       "type": "object",
       "properties": {
         "field": {
+          "description": "The id of the choice field the toggle sets, e.g. `weight_unit`.",
           "type": "string"
         },
         "label": {
+          "description": "The words before the toggle; the field's label otherwise.",
           "type": [
             "string",
             "null"
@@ -630,12 +667,14 @@
       "type": "object",
       "properties": {
         "description": {
+          "description": "The text under the label.",
           "type": [
             "string",
             "null"
           ]
         },
         "label": {
+          "description": "The row's label.",
           "type": "string"
         }
       },
@@ -646,11 +685,22 @@
     },
     "Rounding": {
       "description": "Which way a value is rounded to its `step`.",
-      "type": "string",
-      "enum": [
-        "up",
-        "down",
-        "nearest"
+      "oneOf": [
+        {
+          "description": "To the next multiple of `step` up.",
+          "type": "string",
+          "const": "up"
+        },
+        {
+          "description": "To the next multiple of `step` down.",
+          "type": "string",
+          "const": "down"
+        },
+        {
+          "description": "To the nearest multiple of `step`.",
+          "type": "string",
+          "const": "nearest"
+        }
       ]
     },
     "ShowIn": {
@@ -853,15 +903,18 @@
       "type": "object",
       "properties": {
         "join": {
+          "description": "The text that joins this value to the strip part before it (\" → \", \".\"); without it,\nthe value starts a part of its own.",
           "type": [
             "string",
             "null"
           ]
         },
         "prefix": {
+          "description": "Text written before the value, e.g. \"FL\".",
           "type": "string"
         },
         "suffix": {
+          "description": "Text written after the value.",
           "type": "string"
         }
       },

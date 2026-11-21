@@ -3,4 +3,12 @@
 /**
  * One choice of a choice field, with the text shown for it when it differs from the value.
  */
-export type FieldChoice = { value: string, label?: string | null, };
+export type FieldChoice = { 
+/**
+ * The value stored when it is chosen.
+ */
+value: string, 
+/**
+ * The text shown for it; the value otherwise.
+ */
+label?: string | null, };

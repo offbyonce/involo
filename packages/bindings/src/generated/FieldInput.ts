@@ -9,7 +9,12 @@ export type FieldInput = {
 /**
  * The most characters the box takes.
  */
-maxLength?: number | null, mode?: InputMode | null, 
+maxLength?: number | null, 
+/**
+ * What the box takes: it picks the keyboard a phone shows, and a number mode stores the
+ * value without a leading "FL" or any "°", "%", "+", comma or space typed with it.
+ */
+mode?: InputMode | null, 
 /**
  * What the empty box says, e.g. "From the FMC".
  */

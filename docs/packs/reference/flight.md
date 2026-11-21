@@ -15,9 +15,9 @@ Schema: `schemas/flight.schema.json`. [All files](index.md).
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `fields` | list of [FlightField](#flightfield) | yes |  |  |
+| `fields` | list of [FlightField](#flightfield) | yes |  | Every flight field, in order: the order rows and strip parts follow. |
 | `overview` | list of [FlightOverviewRow](#flightoverviewrow) |  |  | The Overview page's "This flight" rows. Without them, one row per Flight page that has fields: its title, its first two values and its sub-line. |
-| `pages` | list of [FlightPage](#flightpage) |  |  |  |
+| `pages` | list of [FlightPage](#flightpage) |  |  | The Flight pages' titles and cards. Without them, each page the fields name holds them, in cards titled by their `group`. |
 
 ## FlightField
 
@@ -27,22 +27,22 @@ One flight field.
 | --- | --- | --- | --- | --- |
 | `also` | list of [FieldAlso](#fieldalso) |  |  | Read-only copies on other pages. |
 | `choices` | list of [FieldChoice](#fieldchoice) |  |  | For a choice field: its values, in order. |
-| `description` | text |  |  |  |
+| `description` | text |  |  | The text under the row's name. |
 | `display` | [FieldDisplay](#fielddisplay) |  |  | How a number from a plan is stored. |
-| `group` | text |  |  |  |
+| `group` | text |  |  | The card on its page it shows in: a `pages` card by its title, or, without `pages`, the title of the card it makes. |
 | `id` | text | yes |  | Lower-case letters, digits and underscores, e.g. `zfw`. Steps name it in `fill`, `hint` and CDU text, and saved flights key its value by it. |
 | `input` | [FieldInput](#fieldinput) |  |  | The Flight pages' box for it. |
-| `kind` | [FieldKind](#fieldkind) | yes |  |  |
-| `label` | text | yes |  |  |
+| `kind` | [FieldKind](#fieldkind) | yes |  | What it holds: a number, any text, or one of its `choices`. |
+| `label` | text | yes |  | The row's name on the Flight pages. |
 | `location` | text |  |  | Where the value goes in the aircraft, e.g. "Enter on the CDU › PERF INIT". |
 | `needed` | true or false |  |  | Counted in "N to enter" though no step fills it; a field a step fills always is. |
 | `ofp` | [FieldOfp](#fieldofp) |  |  | The side panel's parts for its row. |
 | `page` | text |  |  | The Flight page and group it shows in. |
 | `phase` | text |  |  | The phase that uses it, linked from its row ("Before start ›"). |
-| `ranges` | list of [FieldRange](#fieldrange) |  |  |  |
+| `ranges` | list of [FieldRange](#fieldrange) |  |  | For a number: the values in range, per unit or for every unit. A value outside is flagged on the Flight pages. |
 | `read_only` | true or false |  |  | Shown on its page but not typed there. |
 | `show` | [FieldShow](#fieldshow) |  |  | How its value reads on the Flight pages. |
-| `show_in` | list of [ShowIn](#showin) |  |  |  |
+| `show_in` | list of [ShowIn](#showin) |  |  | Where else its value shows: the flight strip, the Arrival data box. |
 | `simbrief` | list of [SimbriefSource](#simbriefsource) |  |  | The plan values that fill it. More than one are added together (reserve fuel and alternate fuel, for the FMC's reserves). A read-only source (air distance, en route time, trip fuel, taxi fuel) is shown from the plan and never stored. |
 | `spoken` | text |  |  | What a link or a second box calls it ("V1", "runway heading"); its id, in words, otherwise. |
 | `strip` | [StripText](#striptext) |  |  | How it reads in the flight strip, when `show_in` names the strip. |
@@ -57,11 +57,11 @@ A "This flight" row on the Overview page, linking to a Flight page by its title.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `description` | list of text |  |  |  |
+| `description` | list of text |  |  | The text under the value, as parts joined with a space. |
 | `empty` | text |  |  | The description when no description part shows. |
-| `label` | text | yes |  |  |
+| `label` | text | yes |  | The row's label. |
 | `page` | text | yes |  | The Flight page the row links to. |
-| `value` | list of text |  |  |  |
+| `value` | list of text |  |  | The row's value, as parts joined with " · ". |
 
 ## FlightPage
 
@@ -69,12 +69,12 @@ One Flight page: one of the app's (`route`, `fuel`, `cruise`, `clearance`, `take
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `groups` | list of [FlightGroup](#flightgroup) | yes |  |  |
-| `id` | text | yes |  |  |
+| `groups` | list of [FlightGroup](#flightgroup) | yes |  | The page's cards, in order. A card with no rows is left out. |
+| `id` | text | yes |  | Which of the app's Flight pages this is; fields name it as their `page`. |
 | `ofp` | [FieldOfp](#fieldofp) |  |  | The side panel for the page's fields with no source and no panel of their own. |
 | `selected` | text |  |  | The field selected when the page opens; its first otherwise. |
-| `sub` | text |  |  |  |
-| `title` | text | yes |  |  |
+| `sub` | text |  |  | The line under the title. |
+| `title` | text | yes |  | The page's title. |
 
 ## FieldAlso
 
@@ -83,10 +83,10 @@ A read-only copy of a field on another page and group, with a link to the field'
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
 | `description` | text |  |  | The row's description there; the field's own otherwise. |
-| `group` | text | yes |  |  |
+| `group` | text | yes |  | The card on that page the copy shows in, by its title. |
 | `label` | text |  |  | The row's label there; the field's own label otherwise. |
-| `ofp` | [FieldOfp](#fieldofp) |  |  |  |
-| `page` | text | yes |  |  |
+| `ofp` | [FieldOfp](#fieldofp) |  |  | The side panel's parts for the copy, over the field's own panel. |
+| `page` | text | yes |  | The Flight page the copy shows on, e.g. `takeoff`. |
 
 ## FieldChoice
 
@@ -94,8 +94,8 @@ One choice of a choice field, with the text shown for it when it differs from th
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `label` | text |  |  |  |
-| `value` | text | yes |  |  |
+| `label` | text |  |  | The text shown for it; the value otherwise. |
+| `value` | text | yes |  | The value stored when it is chosen. |
 
 ## FieldDisplay
 
@@ -103,9 +103,9 @@ How a number from a plan is stored: divided by `scale` (1000 for thousands, as t
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `round` | [Rounding](#rounding) | yes |  |  |
-| `scale` | number | yes |  |  |
-| `step` | number | yes |  |  |
+| `round` | [Rounding](#rounding) | yes |  | Which way the scaled number is rounded to `step`. |
+| `scale` | number | yes |  | What the plan's number is divided by before it is stored, e.g. 1000. |
+| `step` | number | yes |  | The multiple the scaled number is rounded to, e.g. 0.1 for one decimal. |
 
 ## FieldInput
 
@@ -114,7 +114,7 @@ The box a value is typed in. Every part is optional: without them, the box takes
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
 | `max_length` | whole number |  |  | The most characters the box takes. |
-| `mode` | [InputMode](#inputmode) |  |  |  |
+| `mode` | [InputMode](#inputmode) |  |  | What the box takes: it picks the keyboard a phone shows, and a number mode stores the value without a leading "FL" or any "°", "%", "+", comma or space typed with it. |
 | `placeholder` | text |  |  | What the empty box says, e.g. "From the FMC". |
 
 ## FieldKind
@@ -133,12 +133,12 @@ The side panel beside a selected row: where the flight plan (the OFP) prints the
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `body` | text |  |  |  |
+| `body` | text |  |  | The text under the heading, in place of the app's. |
 | `from` | [SimbriefSource](#simbriefsource) |  |  | Show where the plan prints this source (the plan's close-up of it). |
 | `not_in_plan` | true or false |  |  | The value is not set from the plan (a clearance, a value from the aircraft's own computer), which the panel says. |
-| `note` | text |  |  |  |
+| `note` | text |  |  | The note under the plan's close-up, in place of the app's. |
 | `outline` | true or false |  |  | The panel shows the plan's page outline; false shows the close-up alone. |
-| `title` | text |  |  |  |
+| `title` | text |  |  | The panel's heading, in place of the app's. |
 
 ## FieldRange
 
@@ -146,10 +146,10 @@ The range a number may take, in one unit (a value of the field's `unit` field), 
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `max` | number | yes |  |  |
+| `max` | number | yes |  | The highest value in range; the Flight pages flag a value above it. |
 | `message` | text |  |  | What the Flight pages say under a value outside the range, e.g. "Enter FL100 to FL410"; `{unit}` is the flight's unit in lower case. Without it, "Enter {min} to {max}", in the values as the page shows them. |
-| `min` | number | yes |  |  |
-| `unit` | text |  |  |  |
+| `min` | number | yes |  | The lowest value in range; the Flight pages flag a value below it. |
+| `unit` | text |  |  | The unit this range is for: a value of the field's `unit` field, e.g. `KG`. Left out, the range holds in every unit. |
 
 ## FieldShow
 
@@ -157,10 +157,10 @@ How a value reads on the Flight pages: `prefix`, the value, `suffix` ("FL" 360, 
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `grouped` | true or false |  |  |  |
-| `prefix` | text |  |  |  |
-| `signed` | true or false |  |  |  |
-| `suffix` | text |  |  |  |
+| `grouped` | true or false |  |  | Show a number with its thousands grouped (18,000). Takes the place of `signed`. |
+| `prefix` | text |  |  | Text shown before the value, e.g. "FL". |
+| `signed` | true or false |  |  | Show a plus sign before a positive number (+2). |
+| `suffix` | text |  |  | Text shown after the value, e.g. "%". |
 
 ## ShowIn
 
@@ -219,9 +219,9 @@ How a field's value reads in the flight strip: `prefix`, the value, `suffix`. A 
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `join` | text |  |  |  |
-| `prefix` | text |  |  |  |
-| `suffix` | text |  |  |  |
+| `join` | text |  |  | The text that joins this value to the strip part before it (" → ", "."); without it, the value starts a part of its own. |
+| `prefix` | text |  |  | Text written before the value, e.g. "FL". |
+| `suffix` | text |  |  | Text written after the value. |
 
 ## FlightGroup
 
@@ -232,7 +232,7 @@ One titled card of a Flight page. Its rows are the fields naming this page and g
 | `fields` | list of text |  |  | The order of its rows, by field id (a field naming this page and group, or a copy `also` places here); fields not listed follow in `flight.yaml`'s order. |
 | `note` | text |  |  | A short note in the card's header, e.g. "Same unit as fuel". |
 | `notes` | [NotesRow](#notesrow) |  |  | The flight's notes from ATC, as the card's last row. |
-| `title` | text | yes |  |  |
+| `title` | text | yes |  | The card's title. Fields name it as their `group`, and `also` copies as theirs. |
 | `units` | [GroupUnits](#groupunits) |  |  | A unit toggle in the card's header. |
 
 ## Rounding
@@ -241,9 +241,9 @@ Which way a value is rounded to its `step`.
 
 | Value | What it means |
 | --- | --- |
-| `up` |  |
-| `down` |  |
-| `nearest` |  |
+| `up` | To the next multiple of `step` up. |
+| `down` | To the next multiple of `step` down. |
+| `nearest` | To the nearest multiple of `step`. |
 
 ## InputMode
 
@@ -261,8 +261,8 @@ The flight's notes from ATC, as a row of a group: its label and description.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `description` | text |  |  |  |
-| `label` | text | yes |  |  |
+| `description` | text |  |  | The text under the label. |
+| `label` | text | yes |  | The row's label. |
 
 ## GroupUnits
 
@@ -270,6 +270,6 @@ A field whose group toggles a unit: the choice field it sets, and the words befo
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `field` | text | yes |  |  |
-| `label` | text |  |  |  |
+| `field` | text | yes |  | The id of the choice field the toggle sets, e.g. `weight_unit`. |
+| `label` | text |  |  | The words before the toggle; the field's label otherwise. |
 

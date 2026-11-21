@@ -5,4 +5,20 @@
  * "%"), with thousands grouped (18,000) or a plus sign on a positive number (+2). Content
  * only: the app decides how it looks.
  */
-export type FieldShow = { prefix?: string, suffix?: string, grouped?: boolean, signed?: boolean, };
+export type FieldShow = { 
+/**
+ * Text shown before the value, e.g. "FL".
+ */
+prefix?: string, 
+/**
+ * Text shown after the value, e.g. "%".
+ */
+suffix?: string, 
+/**
+ * Show a number with its thousands grouped (18,000). Takes the place of `signed`.
+ */
+grouped?: boolean, 
+/**
+ * Show a plus sign before a positive number (+2).
+ */
+signed?: boolean, };

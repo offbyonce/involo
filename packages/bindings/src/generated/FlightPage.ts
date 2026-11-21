@@ -7,7 +7,19 @@ import type { FlightGroup } from "./FlightGroup";
  * `approach`), with its title, sub-line and cards. Without `pages`, the app's own page
  * names hold every field, each card titled by the fields' `group`.
  */
-export type FlightPage = { id: string, title: string, sub?: string | null, 
+export type FlightPage = { 
+/**
+ * Which of the app's Flight pages this is; fields name it as their `page`.
+ */
+id: string, 
+/**
+ * The page's title.
+ */
+title: string, 
+/**
+ * The line under the title.
+ */
+sub?: string | null, 
 /**
  * The field selected when the page opens; its first otherwise.
  */
@@ -15,4 +27,8 @@ selected?: string | null,
 /**
  * The side panel for the page's fields with no source and no panel of their own.
  */
-ofp?: FieldOfp | null, groups: Array<FlightGroup>, };
+ofp?: FieldOfp | null, 
+/**
+ * The page's cards, in order. A card with no rows is left out.
+ */
+groups: Array<FlightGroup>, };

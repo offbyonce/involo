@@ -7,11 +7,23 @@
  * unit. A part shows when any field it names has a value, its other fields reading "—";
  * value parts join with " · ", description parts with a space.
  */
-export type FlightOverviewRow = { label: string, 
+export type FlightOverviewRow = { 
+/**
+ * The row's label.
+ */
+label: string, 
 /**
  * The Flight page the row links to.
  */
-page: string, value?: Array<string>, description?: Array<string>, 
+page: string, 
+/**
+ * The row's value, as parts joined with " · ".
+ */
+value?: Array<string>, 
+/**
+ * The text under the value, as parts joined with a space.
+ */
+description?: Array<string>, 
 /**
  * The description when no description part shows.
  */

@@ -43,10 +43,14 @@ data_types! {
     /// `join` follows the strip part before it, after that text (the destination after the
     /// departure with " → ", a transition after its SID with ".").
     pub struct StripText {
+        /// Text written before the value, e.g. "FL".
         #[serde(default, skip_serializing_if = "String::is_empty")]
         pub prefix: String,
+        /// Text written after the value.
         #[serde(default, skip_serializing_if = "String::is_empty")]
         pub suffix: String,
+        /// The text that joins this value to the strip part before it (" → ", "."); without it,
+        /// the value starts a part of its own.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub join: Option<String>,
     }
@@ -55,16 +59,22 @@ data_types! {
     #[derive(Copy, Eq)]
     #[serde(rename_all = "snake_case")]
     pub enum Rounding {
+        /// To the next multiple of `step` up.
         Up,
+        /// To the next multiple of `step` down.
         Down,
+        /// To the nearest multiple of `step`.
         Nearest,
     }
 
     /// How a number from a plan is stored: divided by `scale` (1000 for thousands, as the CDU
     /// takes a weight), then rounded to a multiple of `step` (0.1 keeps one decimal).
     pub struct FieldDisplay {
+        /// What the plan's number is divided by before it is stored, e.g. 1000.
         pub scale: f64,
+        /// Which way the scaled number is rounded to `step`.
         pub round: Rounding,
+        /// The multiple the scaled number is rounded to, e.g. 0.1 for one decimal.
         pub step: f64,
     }
 
@@ -72,9 +82,13 @@ data_types! {
     /// every unit when `unit` is left out. Stored values are checked, so a weight stored in
     /// thousands has its range in thousands.
     pub struct FieldRange {
+        /// The unit this range is for: a value of the field's `unit` field, e.g. `KG`. Left
+        /// out, the range holds in every unit.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub unit: Option<String>,
+        /// The lowest value in range; the Flight pages flag a value below it.
         pub min: f64,
+        /// The highest value in range; the Flight pages flag a value above it.
         pub max: f64,
         /// What the Flight pages say under a value outside the range, e.g. "Enter FL100 to
         /// FL410"; `{unit}` is the flight's unit in lower case. Without it, "Enter {min} to
@@ -102,6 +116,8 @@ data_types! {
         /// The most characters the box takes.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub max_length: Option<u32>,
+        /// What the box takes: it picks the keyboard a phone shows, and a number mode stores the
+        /// value without a leading "FL" or any "°", "%", "+", comma or space typed with it.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub mode: Option<InputMode>,
         /// What the empty box says, e.g. "From the FMC".
@@ -113,12 +129,16 @@ data_types! {
     /// "%"), with thousands grouped (18,000) or a plus sign on a positive number (+2). Content
     /// only: the app decides how it looks.
     pub struct FieldShow {
+        /// Text shown before the value, e.g. "FL".
         #[serde(default, skip_serializing_if = "String::is_empty")]
         pub prefix: String,
+        /// Text shown after the value, e.g. "%".
         #[serde(default, skip_serializing_if = "String::is_empty")]
         pub suffix: String,
+        /// Show a number with its thousands grouped (18,000). Takes the place of `signed`.
         #[serde(default, skip_serializing_if = "std::ops::Not::not")]
         pub grouped: bool,
+        /// Show a plus sign before a positive number (+2).
         #[serde(default, skip_serializing_if = "std::ops::Not::not")]
         pub signed: bool,
     }
@@ -132,10 +152,13 @@ data_types! {
         /// Show where the plan prints this source (the plan's close-up of it).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub from: Option<SimbriefSource>,
+        /// The panel's heading, in place of the app's.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub title: Option<String>,
+        /// The text under the heading, in place of the app's.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub body: Option<String>,
+        /// The note under the plan's close-up, in place of the app's.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub note: Option<String>,
         /// The value is not set from the plan (a clearance, a value from the aircraft's own
@@ -150,7 +173,9 @@ data_types! {
     /// A read-only copy of a field on another page and group, with a link to the field's own
     /// page, e.g. the runway on the Takeoff page.
     pub struct FieldAlso {
+        /// The Flight page the copy shows on, e.g. `takeoff`.
         pub page: String,
+        /// The card on that page the copy shows in, by its title.
         pub group: String,
         /// The row's label there; the field's own label otherwise.
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -158,6 +183,7 @@ data_types! {
         /// The row's description there; the field's own otherwise.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub description: Option<String>,
+        /// The side panel's parts for the copy, over the field's own panel.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub ofp: Option<FieldOfp>,
     }
@@ -165,14 +191,18 @@ data_types! {
     /// A field whose group toggles a unit: the choice field it sets, and the words before the
     /// toggle ("Weights in"); the field's label otherwise.
     pub struct GroupUnits {
+        /// The id of the choice field the toggle sets, e.g. `weight_unit`.
         pub field: String,
+        /// The words before the toggle; the field's label otherwise.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub label: Option<String>,
     }
 
     /// The flight's notes from ATC, as a row of a group: its label and description.
     pub struct NotesRow {
+        /// The row's label.
         pub label: String,
+        /// The text under the label.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub description: Option<String>,
     }
@@ -180,6 +210,7 @@ data_types! {
     /// One titled card of a Flight page. Its rows are the fields naming this page and group,
     /// in `flight.yaml`'s order.
     pub struct FlightGroup {
+        /// The card's title. Fields name it as their `group`, and `also` copies as theirs.
         pub title: String,
         /// A short note in the card's header, e.g. "Same unit as fuel".
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -200,8 +231,11 @@ data_types! {
     /// `approach`), with its title, sub-line and cards. Without `pages`, the app's own page
     /// names hold every field, each card titled by the fields' `group`.
     pub struct FlightPage {
+        /// Which of the app's Flight pages this is; fields name it as their `page`.
         pub id: String,
+        /// The page's title.
         pub title: String,
+        /// The line under the title.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub sub: Option<String>,
         /// The field selected when the page opens; its first otherwise.
@@ -210,12 +244,15 @@ data_types! {
         /// The side panel for the page's fields with no source and no panel of their own.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub ofp: Option<FieldOfp>,
+        /// The page's cards, in order. A card with no rows is left out.
         pub groups: Vec<FlightGroup>,
     }
 
     /// One choice of a choice field, with the text shown for it when it differs from the value.
     pub struct FieldChoice {
+        /// The value stored when it is chosen.
         pub value: String,
+        /// The text shown for it; the value otherwise.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub label: Option<String>,
     }
@@ -226,14 +263,19 @@ data_types! {
         /// Lower-case letters, digits and underscores, e.g. `zfw`. Steps name it in `fill`,
         /// `hint` and CDU text, and saved flights key its value by it.
         pub id: String,
+        /// The row's name on the Flight pages.
         pub label: String,
+        /// The text under the row's name.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub description: Option<String>,
+        /// What it holds: a number, any text, or one of its `choices`.
         pub kind: FieldKind,
         /// For a number: the choice field that holds its unit (`weight_unit`), whose values its
         /// `ranges` name.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub unit: Option<String>,
+        /// For a number: the values in range, per unit or for every unit. A value outside is
+        /// flagged on the Flight pages.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub ranges: Vec<FieldRange>,
         /// For a choice field: its values, in order.
@@ -245,8 +287,11 @@ data_types! {
         /// The Flight page and group it shows in.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub page: Option<String>,
+        /// The card on its page it shows in: a `pages` card by its title, or, without `pages`,
+        /// the title of the card it makes.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub group: Option<String>,
+        /// Where else its value shows: the flight strip, the Arrival data box.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub show_in: Vec<ShowIn>,
         /// How it reads in the flight strip, when `show_in` names the strip.
@@ -299,8 +344,11 @@ data_types! {
     /// `flight.yaml`: the pack's Flight pages and its flight fields, in order. The pack gives
     /// content and grouping only; the app decides how every part looks.
     pub struct FlightFile {
+        /// The Flight pages' titles and cards. Without them, each page the fields name holds
+        /// them, in cards titled by their `group`.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub pages: Vec<FlightPage>,
+        /// Every flight field, in order: the order rows and strip parts follow.
         pub fields: Vec<FlightField>,
         /// The Overview page's "This flight" rows. Without them, one row per Flight page that
         /// has fields: its title, its first two values and its sub-line.
@@ -314,11 +362,14 @@ data_types! {
     /// unit. A part shows when any field it names has a value, its other fields reading "—";
     /// value parts join with " · ", description parts with a space.
     pub struct FlightOverviewRow {
+        /// The row's label.
         pub label: String,
         /// The Flight page the row links to.
         pub page: String,
+        /// The row's value, as parts joined with " · ".
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub value: Vec<String>,
+        /// The text under the value, as parts joined with a space.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub description: Vec<String>,
         /// The description when no description part shows.

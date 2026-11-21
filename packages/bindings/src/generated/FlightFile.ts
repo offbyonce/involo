@@ -7,7 +7,16 @@ import type { FlightPage } from "./FlightPage";
  * `flight.yaml`: the pack's Flight pages and its flight fields, in order. The pack gives
  * content and grouping only; the app decides how every part looks.
  */
-export type FlightFile = { pages?: Array<FlightPage>, fields: Array<FlightField>, 
+export type FlightFile = { 
+/**
+ * The Flight pages' titles and cards. Without them, each page the fields name holds
+ * them, in cards titled by their `group`.
+ */
+pages?: Array<FlightPage>, 
+/**
+ * Every flight field, in order: the order rows and strip parts follow.
+ */
+fields: Array<FlightField>, 
 /**
  * The Overview page's "This flight" rows. Without them, one row per Flight page that
  * has fields: its title, its first two values and its sub-line.

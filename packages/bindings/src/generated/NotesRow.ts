@@ -3,4 +3,12 @@
 /**
  * The flight's notes from ATC, as a row of a group: its label and description.
  */
-export type NotesRow = { label: string, description?: string | null, };
+export type NotesRow = { 
+/**
+ * The row's label.
+ */
+label: string, 
+/**
+ * The text under the label.
+ */
+description?: string | null, };

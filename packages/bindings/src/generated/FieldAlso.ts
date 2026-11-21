@@ -5,7 +5,15 @@ import type { FieldOfp } from "./FieldOfp";
  * A read-only copy of a field on another page and group, with a link to the field's own
  * page, e.g. the runway on the Takeoff page.
  */
-export type FieldAlso = { page: string, group: string, 
+export type FieldAlso = { 
+/**
+ * The Flight page the copy shows on, e.g. `takeoff`.
+ */
+page: string, 
+/**
+ * The card on that page the copy shows in, by its title.
+ */
+group: string, 
 /**
  * The row's label there; the field's own label otherwise.
  */
@@ -13,4 +21,8 @@ label?: string | null,
 /**
  * The row's description there; the field's own otherwise.
  */
-description?: string | null, ofp?: FieldOfp | null, };
+description?: string | null, 
+/**
+ * The side panel's parts for the copy, over the field's own panel.
+ */
+ofp?: FieldOfp | null, };
