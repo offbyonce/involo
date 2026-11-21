@@ -9,6 +9,8 @@
 import type {
   Action,
   AppInfo,
+  BackupParts,
+  BackupRead,
   CatalogEntry,
   Decoded,
   FlatPack,
@@ -21,6 +23,7 @@ import type {
   OpenStep,
   OtherAircraft,
   PackChanges,
+  PackSource,
   PackSummary,
   PhaseModel,
   PlanSource,
@@ -62,6 +65,9 @@ export interface Host {
   /** A saved flight brought in line with the loaded pack's version, through its aliases; the
    * same flight when the versions match. */
   reconcile(pack: string, flight: Flight): Promise<Flight>;
+  /** A flight from a backup (#47), brought in line with the loaded pack as `reconcile` does,
+   * with an update note when it was saved with another version of the pack. */
+  restoreFlight(pack: string, flight: Flight): Promise<Flight>;
   /** Removes an installed pack. Resolves false when the device refused. Its saved flight and
    * plan stay unless removeSaved is called too. */
   removePack(id: string): Promise<boolean>;
@@ -88,6 +94,14 @@ export interface Host {
    * Null when none.
    */
   readSaved(pack: string): Promise<Saved>;
+  /** The packs with a flight saved on this device, installed or not (a flight stays when its
+   * pack is removed, and a restore keeps one for a pack not yet added), by id. */
+  savedPacks(): Promise<string[]>;
+  /** The text of a backup file (#47) with these parts, stamped with this app's version. */
+  backupText(parts: BackupParts): Promise<string>;
+  /** Reads a file chosen to restore from: the backup with every part migrated, or why it is
+   * refused. Changes nothing. */
+  readBackup(text: string): Promise<BackupRead>;
   /** The settings saved on this device, read as readSaved reads them; null when none. They
    * belong to no pack, so the app reads them before it opens one. */
   readSettings(): Promise<SavedItem<Settings>>;
@@ -163,7 +177,7 @@ export interface Host {
 
 /** Where an installed pack came from: the Involo catalog, or a file the pilot chose, which is
  * shown as "Not from the Involo catalog" wherever the pack is named (decision 0028). */
-export type PackSource = "catalog" | "file";
+export type { PackSource };
 /** A practice test as it ended: its title, the right answers out of those answered, and when. */
 export type FinishedTest = { title: string; score: number; total: number; at: number };
 export type InstalledPack = { summary: PackSummary; source: PackSource; installedAt: number };

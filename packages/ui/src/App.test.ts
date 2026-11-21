@@ -188,6 +188,7 @@ function host(overrides: Partial<Host> = {}): Host {
       throw new Error("no updates in tests");
     },
     reconcile: async (_p, f) => f,
+    restoreFlight: async (_p, f) => f,
     newFlight: async () =>
       ({
         pack: "demo",
@@ -202,6 +203,9 @@ function host(overrides: Partial<Host> = {}): Host {
     suggestion: async () => null,
     seatFrame: async () => null,
     readSaved: async () => ({ flight: null, settings: null }),
+    savedPacks: async () => [],
+    backupText: async () => "{}",
+    readBackup: async () => ({ state: "refused", refusal: { kind: "notBackup" } }),
     save: async () => 0,
     setAside: async () => true,
     defaultSettings: async () =>

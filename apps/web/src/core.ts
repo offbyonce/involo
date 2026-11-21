@@ -8,6 +8,8 @@
 import type {
   Action,
   AppInfo,
+  BackupParts,
+  BackupRead,
   CatalogEntry,
   Checklist,
   Decoded,
@@ -91,6 +93,13 @@ export async function comparePacks(old: string, next: string): Promise<PackChang
 export async function reconcile(pack: string, flight: Flight): Promise<Flight> {
   await load();
   return unwrap<Flight>(wasm.reconcile_flight(pack, JSON.stringify(flight)));
+}
+
+/** A flight from a backup, reconciled as loading does, with a note when it came from another
+ * version of the pack (#47). */
+export async function restoreFlight(pack: string, flight: Flight): Promise<Flight> {
+  await load();
+  return unwrap<Flight>(wasm.restore_flight(pack, JSON.stringify(flight)));
 }
 
 /** The seat frame "Where is this?" draws for a step done by `role`, with the chosen seat. */
@@ -277,4 +286,16 @@ export async function editLog(log: Log, edit: LogEdit, packs: string[] = []): Pr
 export async function logCsv(log: Log): Promise<string> {
   await load();
   return unwrap<string>(wasm.log_csv(JSON.stringify(log)));
+}
+
+/** A backup file's text (#47) for these parts, stamped with this app's version. */
+export async function backupText(parts: BackupParts): Promise<string> {
+  await load();
+  return unwrap<string>(wasm.backup_text(JSON.stringify(parts)));
+}
+
+/** Reads a file chosen to restore from: the backup, every part migrated, or why it is refused. */
+export async function readBackup(text: string): Promise<BackupRead> {
+  await load();
+  return unwrap<BackupRead>(wasm.read_backup(text));
 }

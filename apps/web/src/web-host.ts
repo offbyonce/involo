@@ -11,6 +11,7 @@ import { applyBrandTheme } from "./brand-theme";
 import {
   appInfo,
   apply,
+  backupText,
   checkPack,
   comparePacks,
   decodeMetar,
@@ -35,7 +36,9 @@ import {
   planValues,
   practiceResult,
   rail,
+  readBackup,
   reconcile,
+  restoreFlight,
   seatFrame,
   suggestion,
 } from "./core";
@@ -48,7 +51,16 @@ import {
   readCatalog,
 } from "./pack-install.js";
 import { deletePack, readPacks, readPackText, writePack } from "./pack-store.js";
-import { readPlan, readSaved, readSettings, removeSaved, save, savePlan, setAside } from "./saved";
+import {
+  readPlan,
+  readSaved,
+  readSettings,
+  removeSaved,
+  save,
+  savedPacks,
+  savePlan,
+  setAside,
+} from "./saved";
 import { fetchPlanText } from "./simbrief-fetch.js";
 
 /** Whether the browser has been asked this visit to keep the site's data: the log (decision
@@ -139,6 +151,7 @@ export const webHost: Host = {
     return comparePacks(installed, new TextDecoder().decode(got.bytes));
   },
   reconcile,
+  restoreFlight,
   removePack: (id) => deletePack(id),
   removeSaved,
   loadPack: async (id) => {
@@ -154,6 +167,9 @@ export const webHost: Host = {
   seatFrame,
   suggestion,
   readSaved,
+  savedPacks,
+  backupText,
+  readBackup,
   readSettings,
   save,
   setAside,

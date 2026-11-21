@@ -117,6 +117,16 @@ pub fn reconcile_flight(pack: &str, flight: &str) -> String {
     )
 }
 
+/// A flight from a backup, brought in line with the installed pack as loading does, with a note
+/// when it came from another version of the pack (#47).
+#[wasm_bindgen]
+pub fn restore_flight(pack: &str, flight: &str) -> String {
+    reply(
+        read::<Flight>("flight", flight)
+            .and_then(|f| with_pack(pack, |p| Ok(involo_app_core::restore_flight(p, &f)))),
+    )
+}
+
 /// Read the pack catalog, `packs/index.json`.
 #[wasm_bindgen]
 pub fn parse_catalog(json: &str) -> String {
@@ -337,6 +347,21 @@ pub fn edit_log(log: &str, edit: &str, packs: &str) -> String {
             &glossaries(packs)?,
         )
     })())
+}
+
+/// A backup file's text (#47) for these parts (`BackupParts` JSON), stamped with this app's
+/// version.
+#[wasm_bindgen]
+pub fn backup_text(parts: &str) -> String {
+    reply((|| {
+        involo_app_core::backup_text(read("backup", parts)?, &involo_app_core::app_info().version)
+    })())
+}
+
+/// Reads a file chosen to restore from: the backup, every part migrated, or why it is refused.
+#[wasm_bindgen]
+pub fn read_backup(text: &str) -> String {
+    reply(Ok(involo_app_core::read_backup(text)))
 }
 
 /// The log's flights as CSV, one row per flight.
@@ -573,5 +598,33 @@ mod tests {
             json(&phase_model("example-trainer", &flight, &settings, "nope"))["error"]["kind"],
             "InvalidAction"
         );
+    }
+
+    #[test]
+    fn a_backup_saved_here_reads_back_and_a_log_file_is_refused() {
+        let settings = json(&default_settings())["ok"].clone();
+        let parts = serde_json::json!({
+            "savedAt": 1,
+            "flights": [],
+            "settings": settings,
+            "log": json(&new_log())["ok"],
+        });
+        let text = json(&backup_text(&parts.to_string()))["ok"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        let read = json(&read_backup(&text))["ok"].clone();
+        assert_eq!(read["state"], "ready");
+        assert_eq!(
+            read["backup"]["appVersion"],
+            json(&app_info())["ok"]["version"]
+        );
+        assert_eq!(read["backup"]["settings"], settings);
+        let refused = json(&read_backup(&new_log_text()))["ok"].clone();
+        assert_eq!(
+            (&refused["state"], &refused["refusal"]["kind"]),
+            (&serde_json::json!("refused"), &serde_json::json!("logFile"))
+        );
+        assert_eq!(json(&backup_text("{}"))["error"]["kind"], "InvalidAction");
     }
 }

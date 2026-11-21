@@ -306,6 +306,30 @@ pub fn reconcile(pack: &FlatPack, flight: &Flight) -> Flight {
     f
 }
 
+/// A flight restored from a backup (#47), brought in line with `pack` as [`reconcile`] does when
+/// loading. When it was saved with another version of the pack and reconciling left no note, it
+/// gets one naming both versions, so the pilot sees after the restore that the flight was brought
+/// up to this version. The backup holds no copy of the old pack, so the note can't list each
+/// change.
+pub fn restore_flight(pack: &FlatPack, flight: &Flight) -> Flight {
+    let mut f = reconcile(pack, flight);
+    if f.pack_version != flight.pack_version && f.update.is_none() {
+        f.update = Some(UpdateNote {
+            changes: PackChanges {
+                pack_name: pack.manifest.name.clone(),
+                from_version: flight.pack_version.clone(),
+                to_version: f.pack_version.clone(),
+                added: vec![],
+                reworded: vec![],
+                removed: vec![],
+                lost_ticks: 0,
+            },
+            seen: false,
+        });
+    }
+    f
+}
+
 /// Option values through the option aliases; a value or option the pack no longer has goes
 /// (unanswered, so the pack's default or a decision step asks again).
 fn reconcile_options(pack: &FlatPack, f: &mut Flight) {
@@ -543,6 +567,40 @@ mod tests {
         assert_eq!(note.changes.lost_ticks, 1);
         assert_eq!(note.changes.removed, vec![]);
         assert!(!serde_json::to_string(&note).unwrap().contains(DOORS));
+    }
+
+    #[test]
+    fn a_restored_flight_from_another_version_is_reconciled_and_noted() {
+        let old = example_pack();
+        let mut flight = new_flight(&old);
+        flight.session.tick(&old.lists[0], &id(BEACON), 2).unwrap();
+        let new = next();
+        let f = restore_flight(&new, &flight);
+        // Reconciled as loading does, then noted with both versions though no tick was lost.
+        assert_eq!(f.pack_version, new.manifest.version.to_string());
+        assert_eq!(f.session.done_at(&id(BEACON)), Some(2));
+        let note = f.update.expect("a note after the restore");
+        assert_eq!(
+            (
+                note.changes.from_version.as_str(),
+                note.changes.to_version.as_str()
+            ),
+            (flight.pack_version.as_str(), f.pack_version.as_str())
+        );
+        assert_eq!(note.changes.lost_ticks, 0);
+        assert!(!note.seen);
+        // A lost tick keeps the note reconciling made.
+        flight.session.tick(&old.lists[0], &id(DOORS), 3).unwrap();
+        assert_eq!(
+            restore_flight(&new, &flight)
+                .update
+                .unwrap()
+                .changes
+                .lost_ticks,
+            1
+        );
+        // The same version: nothing changes and no note.
+        assert_eq!(restore_flight(&old, &flight), flight);
     }
 
     #[test]
