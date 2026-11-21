@@ -7,11 +7,13 @@ says what each part of the backup will change on this device and changes nothing
 Cancel and Esc change nothing. Every row starts ticked; an unticked row's part stays as it is here,
 and with every row unticked Restore is disabled. A file that can't be restored gets the refusal,
 which always says nothing changed. On a phone the review is the Remove dialog's phone form:
-Download moves under its row's text and the buttons share the bottom row.
+Download moves under its row's text and the buttons share the bottom row. A failed Download says
+why on its row, as the Packs page does, and the row stays ticked, so its flight is still kept.
 -->
 <script lang="ts">
   import type { CatalogEntry } from "@involo/bindings";
   import type { ReviewFlight } from "./backup";
+  import type { PackNotice } from "./packs";
   import Icon from "./Icon.svelte";
   import { trapFocus } from "./trap";
 
@@ -29,6 +31,7 @@ Download moves under its row's text and the buttons share the bottom row.
   let {
     shown,
     downloading = null,
+    problems = {},
     onClose,
     onRestore,
     onDownload,
@@ -36,6 +39,8 @@ Download moves under its row's text and the buttons share the bottom row.
     shown: Review | Refused;
     /** The pack being downloaded from the review, by id. */
     downloading?: string | null;
+    /** A failed Download, on its row, by pack id: what the Packs page says for one. */
+    problems?: Record<string, PackNotice>;
     onClose: () => void;
     onRestore: (chosen: Chosen) => void;
     onDownload: (entry: CatalogEntry) => void;
@@ -98,6 +103,15 @@ Download moves under its row's text and the buttons share the bottom row.
               {#if f.download}
                 {@const entry = f.download}
                 <button class="btn get" type="button" disabled={downloading !== null} onclick={() => onDownload(entry)}><Icon name="download" />{downloading === f.pack ? "Downloading…" : "Download"}</button>
+              {/if}
+              {#if problems[f.pack]}
+                {@const p = problems[f.pack]}
+                <div class="notice" role="alert">
+                  <b>{p?.title}</b>
+                  {#if p?.lines.length === 1}<span>{p.lines[0]}</span>{:else if p && p.lines.length > 1}<ul>
+                      {#each p.lines as line, i (i)}<li>{line}</li>{/each}
+                    </ul>{/if}
+                </div>
               {/if}
             </div>
           {/each}
@@ -206,6 +220,7 @@ Download moves under its row's text and the buttons share the bottom row.
   }
   .item {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     gap: var(--space-3);
     padding: var(--space-3) 0;
@@ -270,6 +285,30 @@ Download moves under its row's text and the buttons share the bottom row.
   }
   .line.muted {
     color: var(--color-text-muted);
+  }
+  /* A failed Download (the Packs page's notice), under the row's text. */
+  .notice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    flex-basis: calc(100% - var(--space-4) - var(--space-1) - var(--space-3));
+    align-items: center;
+    box-sizing: border-box;
+    margin-left: calc(var(--space-4) + var(--space-1) + var(--space-3));
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-thin) solid var(--color-open-border);
+    border-radius: var(--radius-panel);
+    background: var(--color-open-bg);
+    color: var(--color-text);
+    font-size: var(--font-size-secondary);
+  }
+  .notice b {
+    color: var(--color-text-strong);
+  }
+  .notice ul {
+    flex-basis: 100%;
+    margin: 0;
+    padding-left: var(--space-4);
   }
   .btn.get {
     flex: none;

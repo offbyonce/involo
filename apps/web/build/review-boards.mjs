@@ -68,6 +68,7 @@ export const REVIEW_BOARDS = {
   "board-restore-review": { desktop: "RestoreReview", phone: "RestorePhone" },
   "board-restore-refused": { desktop: "RestoreRefused", phone: "RestoreRefused" },
   "board-restore-too-large": { desktop: "RestoreRefused", phone: "RestoreRefused" },
+  "board-restore-download-failed": { desktop: "RestoreReview", phone: "RestorePhone" },
   // Several packs (Packs.dc.html).
   "board-packs-two": { desktop: "PacksDesktop", phone: "PacksPhone" },
   "board-packs-first": { desktop: "PacksFirst" },

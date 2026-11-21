@@ -43,7 +43,7 @@ in Rust. The host saves progress and settings on the device.
   import { backupFileName, logLine, refusalLine, rowFor, savedByLine, TOO_LARGE } from "./lib/backup";
   import { MAX_BACKUP_FILE_BYTES } from "./lib/file-limits";
   import OtherAircraftDialog from "./lib/OtherAircraft.svelte";
-  import { morePacks, savedLine, updateFor } from "./lib/packs";
+  import { downloadFailed, installNotice, morePacks, type PackNotice, savedLine, updateFor } from "./lib/packs";
   import type { SwitchPack } from "./lib/Drawer.svelte";
   import { fetchProblem, fileProblem } from "./lib/problems";
   import { safely } from "./lib/safely";
@@ -383,12 +383,8 @@ in Rust. The host saves progress and settings on the device.
 
   /** What an install said, as the Packs page shows it; true when the pack is installed. */
   function accepted(name: string, result: PackInstall): boolean {
-    if (result.state === "installed") return true;
-    packsNotice =
-      result.state === "refused"
-        ? { title: `${name} wasn’t added.`, lines: result.reasons }
-        : { title: `${name} passed its checks, but this device didn’t keep it.`, lines: ["Storage is blocked or full here, so the pack can’t be installed."] };
-    return false;
+    packsNotice = installNotice(name, result);
+    return result.state === "installed";
   }
 
   async function installing(key: string, name: string, run: () => Promise<PackInstall>, open: (id: string) => boolean): Promise<void> {
@@ -407,7 +403,7 @@ in Rust. The host saves progress and settings on the device.
         await loadPacks();
       }
     } catch (e) {
-      packsNotice = { title: `${name} couldn’t be downloaded.`, lines: [e instanceof Error ? e.message : String(e)] };
+      packsNotice = downloadFailed(name, e);
     } finally {
       packsBusy = null;
     }
@@ -1043,6 +1039,8 @@ in Rust. The host saves progress and settings on the device.
   let restoring = $state<{ backup: Backup | null; shown: Review | Refused } | null>(null);
   /** The pack the review is downloading, by id. */
   let restoreDownload = $state<string | null>(null);
+  /** A failed Download in the review, on its row, by pack id, as the Packs page says it. */
+  let restoreProblems = $state<Record<string, PackNotice>>({});
 
   /** What restoring each part of the backup would do on this device, for the review. */
   async function review(backup: Backup): Promise<Review> {
@@ -1077,6 +1075,7 @@ in Rust. The host saves progress and settings on the device.
       if (file.size > MAX_BACKUP_FILE_BYTES) return refuse(TOO_LARGE);
       const read = await host.readBackup(await file.text());
       if (read.state === "refused") return refuse(refusalLine(read.refusal));
+      restoreProblems = {};
       restoring = { backup: read.backup, shown: await review(read.backup) };
     } catch (e) {
       fail(e);
@@ -1088,13 +1087,21 @@ in Rust. The host saves progress and settings on the device.
   async function restoreDownloadPack(entry: CatalogEntry): Promise<void> {
     if (!restoring?.backup) return;
     restoreDownload = entry.id;
+    const { [entry.id]: _, ...others } = restoreProblems;
+    restoreProblems = others;
     try {
       const result = await host.installCatalogPack(entry);
-      if (result.state === "installed") await loadPacks();
+      const problem = installNotice(entry.name, result);
+      if (problem) {
+        // The row stays as it was, ticked, so its flight is still kept.
+        restoreProblems = { ...restoreProblems, [entry.id]: problem };
+        return;
+      }
+      await loadPacks();
       const backup = restoring?.backup;
       if (backup) restoring = { backup, shown: await review(backup) };
     } catch (e) {
-      fail(e);
+      restoreProblems = { ...restoreProblems, [entry.id]: downloadFailed(entry.name, e) };
     } finally {
       restoreDownload = null;
     }
@@ -1930,6 +1937,7 @@ in Rust. The host saves progress and settings on the device.
     <RestoreDialog
       shown={restoring.shown}
       downloading={restoreDownload}
+      problems={restoreProblems}
       onClose={() => (restoring = null)}
       onRestore={(chosen) => void restore(chosen)}
       onDownload={(entry) => void restoreDownloadPack(entry)}

@@ -84,6 +84,20 @@ describe("RestoreDialog", () => {
     expect(calls.download).toHaveBeenCalledWith(asked.flights[1]?.download);
   });
 
+  it("says why a Download failed on its row, and keeps the row ticked", () => {
+    render(RestoreDialog, {
+      shown: asked as never,
+      problems: { b: { title: "Pack b couldn’t be downloaded.", lines: ["Failed to fetch"] } },
+      onClose: () => {},
+      onRestore: () => {},
+      onDownload: () => {},
+    });
+    const alert = screen.getByRole("alert");
+    expect(alert.textContent).toContain("Pack b couldn’t be downloaded.");
+    expect(alert.textContent).toContain("Failed to fetch");
+    expect((screen.getAllByRole("checkbox")[1] as HTMLInputElement).checked).toBe(true);
+  });
+
   it("leaves the Flight log row out when the backup adds nothing to it", () => {
     show({ ...asked, log: null } as never);
     expect(screen.queryByText("Flight log")).toBeNull();

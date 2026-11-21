@@ -680,6 +680,13 @@ export const chooseBackup = (newer = false) =>
   );
 /** Settings scrolled to Back up and restore, in the middle of the screen. */
 export const scrollToBackup = `new Promise((done) => setTimeout(() => { document.querySelector(".set.backup")?.scrollIntoView({ block: "center" }); setTimeout(() => done(true), 300); }, 300))`;
+/** Download in the restore review, with the pack's download failing as if the connection
+ * dropped: the row says why, as the Packs page does. */
+export const failedDownload = [
+  `(() => { const real = window.fetch; window.fetch = (input, init) => (String(input).endsWith(".involo-pack") ? Promise.reject(new TypeError("Failed to fetch")) : real(input, init)); return true; })()`,
+  click("button.get"),
+  `new Promise((d) => setTimeout(() => d(true), 600))`,
+];
 /** The same device, its flight saved with nothing ticked (its first step ticked, then unticked). */
 export const exampleUntouched = [
   ...noPacks,

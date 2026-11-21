@@ -3223,6 +3223,67 @@ describe("back up and restore (#47)", () => {
     expect(saved.at(-1)).toMatchObject({ theme: "light", lastBackup: 7, currentPack: "demo" });
   });
 
+  it("says on its row why a Download in the review failed, as the Packs page does, and still keeps the flight", async () => {
+    const restart = vi.fn();
+    const saved: [string, string][] = [];
+    const listed = {
+      id: "jet",
+      name: "Other jet",
+      version: "0.2.0",
+      aircraft: { family: "Jet", name: "Other jet", icaoTypes: [] },
+      size: 1,
+      sha256: "",
+    };
+    const backup = {
+      kind: "involo-backup",
+      format: 1,
+      appVersion: "0.1.0",
+      savedAt: 1,
+      flights: [
+        {
+          pack: "jet",
+          name: "Other jet",
+          version: "0.2.0",
+          source: "catalog",
+          place: null,
+          flight: { ...ticked, pack: "jet", packVersion: "0.2.0" },
+          plan: null,
+        },
+      ],
+      settings: stored,
+      log: { format: 3, flights: [], practice: [] },
+    };
+    window.location.hash = "#/settings";
+    const h = host({
+      catalog: async () => [listed as never],
+      readBackup: async () => ({ state: "ready", backup: backup as never }),
+      installCatalogPack: async () => {
+        throw new Error("The connection dropped.");
+      },
+      save: async (p, what) => {
+        saved.push([p, what]);
+        return 1;
+      },
+    });
+    render(App, { props: { onRestart: restart }, context: hostContext(h) });
+    await screen.findByRole("button", { name: "Restore from a file…" });
+    const input = document.querySelector('.set.backup input[type="file"]') as HTMLInputElement;
+    Object.defineProperty(input, "files", { value: [new File(["{}"], "b.json")], configurable: true });
+    await fireEvent.change(input);
+    const dialog = await screen.findByRole("dialog", { name: "Restore from this backup?" });
+    await fireEvent.click(within(dialog).getByRole("button", { name: "Download" }));
+    const alert = await within(dialog).findByRole("alert");
+    // The Packs page's words for a failed catalog download.
+    expect(alert.textContent).toContain("Other jet couldn’t be downloaded.");
+    expect(alert.textContent).toContain("The connection dropped.");
+    const row = within(dialog).getAllByRole("checkbox")[0] as HTMLInputElement;
+    expect(row.checked).toBe(true);
+    // Restored anyway: the flight is kept for when the pack is added.
+    await fireEvent.click(within(dialog).getByRole("button", { name: "Restore" }));
+    await waitFor(() => expect(restart).toHaveBeenCalled());
+    expect(saved).toContainEqual(["jet", "flight"]);
+  });
+
   it("refuses a file over the size limit unread, with its own line", async () => {
     const read = vi.fn(async () => ({ state: "refused" as const, refusal: { kind: "notBackup" as const } }));
     window.location.hash = "#/settings";
