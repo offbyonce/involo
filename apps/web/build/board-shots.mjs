@@ -123,6 +123,7 @@ const SHOTS = [
   ["WherePop", {}, 1440, 900],
   ["Settings", { view: "settings" }, 1440, 900, "Views"],
   ["Flow", { view: "flow" }, 1440, 900, "Views"],
+  ["Timer", { view: "timer" }, 1440, 900, "Views"],
   ["TabL", { orient: "landscape", overlay: "none" }, 1180, 820, "Tablet"],
   ["TabWhere", { orient: "landscape", overlay: "where" }, 1180, 820, "Tablet"],
   ["PhoneWhere", { screen: "where" }, 390, 844, "Mobile"],

@@ -23,6 +23,7 @@ in Rust. The host saves progress and settings on the device.
     type Flight,
     isAppError,
     type StepLayout,
+    type StepTimer,
     type Log,
     type LoggedFlight,
     type PhaseModel,
@@ -88,6 +89,8 @@ in Rust. The host saves progress and settings on the device.
   import { flowAreas, howCountsOf } from "./lib/how-content";
   import { currentRoute, flightHref, phaseHref } from "./route.svelte";
   import { applyPalette, applyScale } from "./theme/tokens";
+  import { chime } from "./lib/chime";
+  import { finishedBetween, running, type Timers } from "./lib/timers";
 
   let {
     pack: wanted = null,
@@ -1232,6 +1235,44 @@ in Rust. The host saves progress and settings on the device.
   $effect(() => {
     answered.options = { ...(flight?.options ?? {}) };
   });
+  // Step timers (#213): the core's timers, refreshed with the flight; a clock that ticks each
+  // second while one runs; and the chime when one reaches zero with the app open.
+  let timerList = $state<StepTimer[]>([]);
+  let clockNow = $state(Date.now());
+  $effect(() => {
+    const f = flight;
+    if (!f) {
+      timerList = [];
+      return;
+    }
+    safely(
+      host.timers(packId, f),
+      (list) => {
+        timerList = list;
+        clockNow = Date.now();
+      },
+      fail,
+    );
+  });
+  $effect(() => {
+    const now = clockNow;
+    if (!timerList.some((t) => running(t, now))) return;
+    const id = setTimeout(() => {
+      const next = Date.now();
+      if (settings?.chime && finishedBetween(timerList, now, next).length) chime();
+      clockNow = next;
+    }, 1000);
+    return () => clearTimeout(id);
+  });
+  let timers = $derived<Timers>({
+    list: timerList,
+    of: (step) => timerList.find((t) => t.step === step),
+    now: clockNow,
+    chime: settings?.chime ?? true,
+    pause: (step) => void act({ type: "pauseTimer", step, at: Date.now() }),
+    resume: (step) => void act({ type: "resumeTimer", step, at: Date.now() }),
+    restart: (step) => void act({ type: "restartTimer", step, at: Date.now() }),
+  });
   let decisions = $derived.by((): Decisions | undefined => {
     const ix = index;
     const f = flight;
@@ -1860,6 +1901,7 @@ in Rust. The host saves progress and settings on the device.
                 onOption={(option, value) => act({ type: "setOption", option, value })}
                 onValue={(field, value) => act({ type: "setValue", field, value })}
                 {decisions}
+                {timers}
                 inline={narrow && pane ? inlinePane : undefined}
                 inlineStep={narrow ? (pane?.step.id ?? null) : null}
                 notice={flight.update ? updateNote : undefined}

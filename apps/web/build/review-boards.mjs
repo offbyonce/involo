@@ -66,6 +66,8 @@ export const REVIEW_BOARDS = {
   "board-roles": { desktop: "RolesDesk", "tablet-landscape": "RolesDesk", tablet: "RolesDesk", phone: "RolesPhone" },
   "board-roles-procedure": { desktop: "RolesDesk", phone: "RolesPhone" },
   "board-seat": { desktop: "SeatSetting", phone: "SeatSetting" },
+  // Step timers (#213, Views.dc.html's timer view). Drawn at desktop size only, so far.
+  "board-timer": { desktop: "Timer" },
   // Light notes and panel-state descriptions (#211, Notes.dc.html).
   "board-light-notes": { desktop: "LightNotes", phone: "LightNotesPhone" },
   "board-state-note": { desktop: "StateNote", phone: "StateNotePhone" },

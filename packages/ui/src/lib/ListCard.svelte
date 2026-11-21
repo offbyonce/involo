@@ -18,6 +18,7 @@ folded to one line with its count until the phase's procedure is done.
   import { messageHref } from "./messages";
   import { stepTitle } from "./names";
   import StepItem from "./StepItem.svelte";
+  import type { Timers } from "./timers";
   import type { Decisions } from "./decision";
 
   let {
@@ -39,6 +40,7 @@ folded to one line with its count until the phase's procedure is done.
     onEssentials,
     folded = false,
     decisions,
+    timers,
     inline,
     inlineStep = null,
     next = null,
@@ -66,6 +68,8 @@ folded to one line with its count until the phase's procedure is done.
     folded?: boolean;
     /** Decision steps and the steps that depend on them (decision 0022). */
     decisions?: Decisions | undefined;
+    /** Step timers (#213). */
+    timers?: Timers | undefined;
     /** Below 900 px: the opened step's details, shown in the row of `inlineStep`. */
     inline?: Snippet | undefined;
     inlineStep?: string | null;
@@ -187,6 +191,7 @@ folded to one line with its count until the phase's procedure is done.
           onSelect={() => onSelect(row.id)}
           onEssentials={onEssentials ? (add) => onEssentials(row.id, add) : undefined}
           {decisions}
+          {timers}
           inline={inlineStep === row.id ? inline : undefined}
         />
       {/if}

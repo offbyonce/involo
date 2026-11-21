@@ -33,6 +33,7 @@ import type {
   Reply,
   SavedPlan,
   Settings,
+  StepTimer,
   Suggestion,
   ViewFrame,
 } from "@involo/bindings";
@@ -149,6 +150,12 @@ export async function openSteps(
 export async function suggestion(pack: string, flight: Flight, option: string): Promise<Suggestion | null> {
   await load();
   return unwrap<Suggestion | null>(wasm.suggestion(pack, JSON.stringify(flight), option));
+}
+
+/** Every step timer in the pack, with when it started and, if paused, the time it had left (#213). */
+export async function timers(pack: string, flight: Flight): Promise<StepTimer[]> {
+  await load();
+  return unwrap<StepTimer[]>(wasm.timers(pack, JSON.stringify(flight)));
 }
 
 export async function phaseModel(

@@ -202,6 +202,7 @@ function host(overrides: Partial<Host> = {}): Host {
     openSteps: async () => [],
     suggestion: async () => null,
     seatFrame: async () => null,
+    timers: async () => [],
     readSaved: async () => ({ flight: null, settings: null }),
     savedPacks: async () => [],
     backupText: async () => "{}",

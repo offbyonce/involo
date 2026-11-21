@@ -24,6 +24,8 @@ row in place. A step that depends on the answer links back to it.
   import BlankFields from "./BlankFields.svelte";
   import Icon from "./Icon.svelte";
   import RoleTag from "./RoleTag.svelte";
+  import TimerChip from "./TimerChip.svelte";
+  import { running, type Timers } from "./timers";
   import { stepTitle } from "./names";
   import { fillParts } from "./value-parts";
   import { SOURCE_WORDS, choices, labelOf, lowerFirst, shortLabel, type Decisions } from "./decision";
@@ -46,6 +48,7 @@ row in place. A step that depends on the answer links back to it.
     onSelect,
     onEssentials,
     decisions,
+    timers,
     inline,
   }: {
     index: PackIndex;
@@ -71,6 +74,9 @@ row in place. A step that depends on the answer links back to it.
     onEssentials?: ((add: boolean) => void) | undefined;
     /** Decision steps and the steps that depend on them (decision 0022). */
     decisions?: Decisions | undefined;
+    /** Step timers (#213, Timer board): a running timer shows as a chip before the menu, and on
+     * the current step with Pause and Restart. */
+    timers?: Timers | undefined;
     /** Below 900 px: the step's details in place (the side pane's content). */
     inline?: Snippet | undefined;
   } = $props();
@@ -90,6 +96,19 @@ row in place. A step that depends on the answer links back to it.
   let fill = $derived(fillParts(dependent?.value ?? step.expect));
   let place = $derived(index.place(step));
   let title = $derived(stepTitle(index, step));
+  /** The step's timer while it runs (the state the Timer board draws). */
+  let timer = $derived.by(() => {
+    const t = timers?.of(row.id);
+    return t && timers && running(t, timers.now) ? t : undefined;
+  });
+  /** The board's words under a running timer on the current step: what started it, and that the
+   * pilot can carry on. */
+  let timerWords = $derived.by(() => {
+    if (!timer) return "";
+    const by = timer.startedBy && timer.startedBy !== row.id ? index.step(timer.startedBy) : undefined;
+    const how = by ? `${timer.label} timer started by itself when you ticked ${stepTitle(index, by)}.` : `${timer.label} timer is running.`;
+    return `${how} You can carry on with other steps${timers?.chime ? "; a chime plays at zero" : ""}.`;
+  });
   let current = $derived(row.state === "current");
   /** Who does the step, and in a challenge-and-response list who answers (decision 0029). */
   let role = $derived(index.role(step.role));
@@ -121,7 +140,7 @@ row in place. A step that depends on the answer links back to it.
 
 <svelte:document onpointerdown={outside} onkeydown={key} />
 
-<li class="it {row.state}" data-step={row.id} class:pair class:sel={selected} class:marked class:large class:current class:changing={decision?.changing}>
+<li class="it {row.state}" data-step={row.id} class:pair class:sel={selected} class:marked class:large class:current class:changing={decision?.changing} class:timed={!!timer}>
   <button class="tick" type="button" aria-label={tickLabel} aria-pressed={row.state === "done"} aria-disabled={decision && decision.answer === null && row.state !== "done" ? "true" : undefined} onclick={tickOrAsk}>
     {#if current && asking && !decision?.changing}
       <!-- A decision step to answer: a diamond, not the circle (Decision.dc.html). -->
@@ -190,6 +209,7 @@ row in place. A step that depends on the answer links back to it.
     {/if}
     {#if row.hint}<small class="hint">{row.hint}</small>{/if}
   </div>
+  {#if timer && timers}<span class="timer"><TimerChip {timer} now={timers.now} /></span>{/if}
   <div class="end" data-menu={row.id}>
     <button class="more" class:on={menu} type="button" aria-label="More actions for {title}" aria-expanded={menu} aria-haspopup="menu" onclick={() => (menu = !menu)}>···</button>
     {#if menu}
@@ -222,6 +242,12 @@ row in place. A step that depends on the answer links back to it.
         <span class="fill"></span>
         <span class="keys">{suggested ? "Space confirm · " : ""}{numbers} answer · S skip</span>
       {:else}
+        {#if timer && timers}
+          {@const t = timer.step}
+          <span class="timer-words">{timerWords}</span>
+          <button class="timerb" type="button" onclick={() => timers?.pause(t)}>Pause</button>
+          <button class="timerb" type="button" onclick={() => timers?.restart(t)}>Restart</button>
+        {/if}
         <button class="donebtn" type="button" onclick={onTick}>Done</button>
         <button class="skipb" type="button" onclick={onSkip}>Skip for now</button>
         <span class="fill"></span>
@@ -693,6 +719,43 @@ row in place. A step that depends on the answer links back to it.
   }
   /* Tablet and phone rows show no location line; tablet portrait and phone show it in the opened
      step, tablet landscape in the side pane (Tablet and Mobile boards). */
+  /* A running step timer (Timer board, drawn at 1440): the chip before the menu, and on the
+     current step the board's words with Pause and Restart before Done. Tablet and phone wait for
+     their boards, so the timer shows from 1440 px only. */
+  .timer,
+  .timer-words,
+  .timerb {
+    display: none;
+  }
+  @media (min-width: 1440px) {
+    .it.timed {
+      grid-template-columns: calc(var(--size-touch-min) - var(--space-1)) minmax(0, 1fr) 34% auto var(--size-touch-min);
+    }
+    .it.timed .actions {
+      grid-column: 2 / 6;
+    }
+    .timer {
+      display: block;
+      justify-self: end;
+    }
+    .timer-words {
+      display: inline;
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-secondary);
+    }
+    .timerb {
+      display: inline-block;
+      height: var(--size-touch-min);
+      padding: 0 calc(var(--space-3) + var(--border-thick));
+      border: var(--border-thin) solid var(--color-border);
+      border-radius: var(--radius-control);
+      background: var(--color-button-bg);
+      box-shadow: var(--color-button-shadow);
+      color: var(--color-text);
+      font: inherit;
+      font-size: var(--font-size-secondary);
+    }
+  }
   @media (max-width: 1439px) {
     .where-line {
       display: none;

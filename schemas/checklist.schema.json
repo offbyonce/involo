@@ -70,18 +70,18 @@
   ],
   "$defs": {
     "AutoStart": {
-      "description": "Steps whose ticks would start a timer. The app doesn't show timers yet; `check` makes\nsure each step named exists.",
+      "description": "Steps whose ticks start a timer by itself; `check` makes sure each step named exists.",
       "type": "object",
       "properties": {
         "from": {
-          "description": "The steps whose ticks would start the timer; `check` makes sure each is a step in the\npack.",
+          "description": "The steps whose ticks start the timer; `check` makes sure each is a step in the pack.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/StepId"
           }
         },
         "pick": {
-          "description": "Which of those ticks would start it: the `earliest` or the `latest`.",
+          "description": "Which of those ticks starts it: the `earliest` or the `latest`.",
           "$ref": "#/$defs/AutoStartPick"
         }
       },
@@ -92,7 +92,7 @@
       ]
     },
     "AutoStartPick": {
-      "description": "Which of several ticked steps starts a timer. The app doesn't show timers yet.",
+      "description": "Which of several ticked steps starts a timer.",
       "oneOf": [
         {
           "description": "The step ticked first.",
@@ -587,7 +587,7 @@
           "type": "string"
         },
         "timer": {
-          "description": "A wait attached to the step. The app doesn't show timers yet.",
+          "description": "A wait attached to the step: a timer the step's tick, or its trigger steps' ticks,\nstart.",
           "anyOf": [
             {
               "$ref": "#/$defs/Timer"
@@ -694,11 +694,11 @@
       ]
     },
     "Timer": {
-      "description": "A wait attached to a step. The app doesn't show timers yet.",
+      "description": "A wait attached to a step: a timer chip on the step's row and in the running-timers bar\nwhile it runs. Without `auto_start`, the step's own tick starts it.",
       "type": "object",
       "properties": {
         "auto_start": {
-          "description": "The earlier steps whose ticks would start the timer.",
+          "description": "The earlier steps whose ticks start the timer.",
           "anyOf": [
             {
               "$ref": "#/$defs/AutoStart"
@@ -709,18 +709,18 @@
           ]
         },
         "label": {
-          "description": "The timer's name, e.g. `Warm-up`. Not shown yet.",
+          "description": "The timer's name, e.g. `Warm-up`: on the chip and in the running-timers bar.",
           "type": "string"
         },
         "note": {
-          "description": "A note about the wait. Not shown yet.",
+          "description": "A note about the wait, for whoever writes the pack; the app doesn't show it.",
           "type": [
             "string",
             "null"
           ]
         },
         "seconds": {
-          "description": "How long the wait is, in seconds. Not shown yet.",
+          "description": "How long the wait is, in seconds.",
           "type": "integer",
           "format": "uint32",
           "minimum": 0

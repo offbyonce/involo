@@ -40,6 +40,20 @@ describe("SettingsPage", () => {
     { id: "right", label: "Right seat · First officer" },
   ];
 
+  it("Timer chime (#213): on or off, saying what it does", async () => {
+    const changed: Settings[] = [];
+    render(SettingsPage, {
+      settings: { ...settings, chime: true },
+      version: null,
+      onChange: (s: Settings) => changed.push(s),
+    });
+    const chime = screen.getByRole("switch", { name: "Timer chime" });
+    expect(chime.getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByText("Plays when a step timer reaches zero.")).toBeTruthy();
+    await fireEvent.click(chime);
+    expect(changed.map((s) => s.chime)).toEqual([false]);
+  });
+
   it("Your seat (#133): after Panel preview, the pack's seats, the first chosen until the pilot picks", async () => {
     const changed: Settings[] = [];
     const { rerender } = render(SettingsPage, {
@@ -105,9 +119,11 @@ describe("SettingsPage", () => {
       onRestore: (f: File) => chosen.push(f),
     });
     const titles = [...container.querySelectorAll(".set b")].map((b) => b.textContent);
-    expect(titles.slice(titles.indexOf("Your seat"), titles.indexOf("Your seat") + 3)).toEqual([
+    // Then Timer chime (#213), before Dimming.
+    expect(titles.slice(titles.indexOf("Your seat"), titles.indexOf("Your seat") + 4)).toEqual([
       "Your seat",
       "Back up and restore",
+      "Timer chime",
       "Dimming",
     ]);
     expect(screen.getByText("Last backup: never")).toBeTruthy();

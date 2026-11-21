@@ -488,6 +488,22 @@ const SHOTS = [
   // The Flight deck (Deck, PhoneDeck): the forward overhead with the fuel panel selected, as
   // the boards show; at 1280 px, the area list and the area, the panel in its slide-out.
   { name: "board-deck", only: ["desktop", "phone", "laptop"], app: { hash: "#/deck/forward-overhead/fuel" } },
+  // A running step timer (#213, Timer board): both start levers ticked, so the engine warm-up
+  // runs on the takeoff phase's first step, with the running-timers bar under the list.
+  {
+    name: "board-timer",
+    only: ["desktop"],
+    app: {
+      hash: "#/phase/before-start",
+      before: [
+        go("#/phase/engine-start"),
+        `new Promise((d) => setTimeout(() => d(true), 400))`,
+        `(() => { for (const n of [1, 2]) [...document.querySelectorAll("button.tick")].find((b) => new RegExp("^Confirm Engine " + n + " start lever", "i").test(b.getAttribute("aria-label") ?? ""))?.click(); return true; })()`,
+        `new Promise((d) => setTimeout(() => d(true), 400))`,
+        go("#/phase/takeoff"),
+      ],
+    },
+  },
   // A light's notes (#211, LightNotes): the fuel panel, whose lights say when they come on and
   // what to do; and the chosen panel state's description under Start's picker (StateNote), with
   // GPU Connected chosen, as the boards show.
