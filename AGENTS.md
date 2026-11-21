@@ -99,6 +99,7 @@ engine never names an aircraft. **The app never connects to the simulator** (dec
 | `apps/desktop` | Tauri shell (`src-tauri`) and its host. Parked: not in the workspace (0010) |
 | `packages/ui` | The shared Svelte 5 interface and its host interface (`src/host.ts`) |
 | `packages/bindings` | TypeScript types generated from Rust (`src/generated`), and `isAppError` |
+| `tools/generated-check.mjs` | `just generated-check`'s check that generated files match what is committed and are all added to git |
 | `tools/import-3x` | One-way converter from the 3.0 checklist to pack YAML (retired, kept for reference) |
 | `packs/` | Content packs (CC BY-NC-SA 4.0); `packs/examples` holds invented example packs, checked and tested but never published (decision 0030) |
 | `schemas/` | Generated JSON Schemas |
