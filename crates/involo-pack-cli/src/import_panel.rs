@@ -1089,6 +1089,12 @@ fn once(used: &mut BTreeSet<String>, id: &str) -> String {
     out
 }
 
+/// The comment on a value read from the drawing (a light's color, a legend), for the author to
+/// check.
+const INFERRED: &str = "  # from the drawing; check it";
+/// The comment on a color the drawing doesn't give, written as white for the author to set.
+const UNREADABLE: &str = "  # not readable in the drawing; set it";
+
 /// One control in the file, at `center` in its section's units.
 fn item_yaml(
     item: &ItemFound,
@@ -1114,7 +1120,11 @@ fn item_yaml(
                 "{what}: its color is not one a light has; `color` is set to white"
             ));
         }
-        let _ = writeln!(yaml, "        color: {}", color.unwrap_or("white"));
+        let _ = writeln!(
+            yaml,
+            "        color: {}",
+            color.map_or(format!("white{UNREADABLE}"), |c| format!("{c}{INFERRED}"))
+        );
     }
     let _ = writeln!(yaml, "        x: {}", num(center[0]));
     let _ = writeln!(yaml, "        y: {}", num(center[1]));
@@ -1137,13 +1147,16 @@ fn item_yaml(
             }
             yaml.push_str("        legends:\n");
             for (_, text, fill) in texts.iter().take(2) {
-                let light = fill.as_deref().and_then(role).unwrap_or_else(|| {
-                    warnings.push(format!(
-                        "{what}: legend `{text}` has no color a light has; it is white"
-                    ));
-                    "white"
-                });
-                let _ = writeln!(yaml, "          - text: {}", scalar(text));
+                let light = fill.as_deref().and_then(role).map_or_else(
+                    || {
+                        warnings.push(format!(
+                            "{what}: legend `{text}` has no color a light has; it is white"
+                        ));
+                        format!("white{UNREADABLE}")
+                    },
+                    |l| format!("{l}{INFERRED}"),
+                );
+                let _ = writeln!(yaml, "          - text: {}{INFERRED}", scalar(text));
                 let _ = writeln!(yaml, "            light: {light}");
             }
         }

@@ -202,6 +202,66 @@ mod tests {
     }
 
     #[test]
+    fn every_value_read_from_the_drawing_is_marked_for_the_author_to_check() {
+        let out = run(&["import-panel", &drawing("inkscape.svg")]);
+        let yaml = stdout(&out);
+        let marked: Vec<&str> = yaml
+            .lines()
+            .filter(|l| l.ends_with("  # from the drawing; check it"))
+            .map(|l| l.split("  #").next().unwrap().trim())
+            .collect();
+        // The light's color, and each legend's text and light; nothing else.
+        assert_eq!(
+            marked,
+            [
+                "color: amber",
+                "- text: FAULT",
+                "light: amber",
+                "- text: \"OFF\"",
+                "light: white"
+            ],
+            "{yaml}"
+        );
+
+        // A color the drawing doesn't give: white, marked to set, and still a warning.
+        let dir = scratch("unreadable");
+        let file = dir.join("panel.svg");
+        std::fs::write(
+            &file,
+            r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g id="section:a"><rect width="50" height="50"/><circle id="light:LOW" cx="10" cy="10" r="3"/><g id="legend_pushbutton:PUMP"><rect x="20" y="20" width="10" height="10"/><text x="21" y="25">FAULT</text></g></g></svg>"#,
+        )
+        .unwrap();
+        let out = run(&["import-panel", &file.to_string_lossy()]);
+        assert!(out.status.success(), "{}", stderr(&out));
+        let yaml = stdout(&out);
+        assert!(
+            yaml.contains("color: white  # not readable in the drawing; set it"),
+            "{yaml}"
+        );
+        assert!(
+            yaml.contains("light: white  # not readable in the drawing; set it"),
+            "{yaml}"
+        );
+        assert!(
+            yaml.contains("- text: FAULT  # from the drawing; check it"),
+            "{yaml}"
+        );
+        let warnings = stderr(&out);
+        assert!(
+            warnings.contains("`light:LOW` (`light:LOW`): its color is not one a light has"),
+            "{warnings}"
+        );
+        assert!(
+            warnings.contains("legend `FAULT` has no color a light has"),
+            "{warnings}"
+        );
+        // The comments don't change what the file says.
+        let panel: Panel = serde_saphyr::from_str(&yaml).unwrap();
+        assert_eq!(panel.sections[0].items[0].color, Some(LightColor::White));
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
     fn an_imported_panel_passes_check_once_positions_are_filled_in() {
         let dir = scratch("check");
         let pack = dir.join("demo");
