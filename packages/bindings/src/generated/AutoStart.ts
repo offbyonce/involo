@@ -3,6 +3,16 @@ import type { AutoStartPick } from "./AutoStartPick";
 import type { StepId } from "./StepId";
 
 /**
- * Starts a timer from the time earlier steps were ticked.
+ * Steps whose ticks would start a timer. The app doesn't show timers yet; `check` makes
+ * sure each step named exists.
  */
-export type AutoStart = { from: Array<StepId>, pick: AutoStartPick, };
+export type AutoStart = { 
+/**
+ * The steps whose ticks would start the timer; `check` makes sure each is a step in the
+ * pack.
+ */
+from: Array<StepId>, 
+/**
+ * Which of those ticks would start it: the `earliest` or the `latest`.
+ */
+pick: AutoStartPick, };

@@ -25,6 +25,7 @@
           "type": "string"
         },
         "kind": {
+          "description": "The kind of source it was confirmed against.",
           "$ref": "#/$defs/ConfirmationKind"
         }
       },

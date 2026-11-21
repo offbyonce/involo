@@ -38,7 +38,7 @@ An internal maintenance record (decision 0013): the kind of source and the day i
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
 | `date` | text | yes |  | `YYYY-MM-DD`. |
-| `kind` | [ConfirmationKind](#confirmationkind) | yes |  |  |
+| `kind` | [ConfirmationKind](#confirmationkind) | yes |  | The kind of source it was confirmed against. |
 
 ## ConfirmationKind
 

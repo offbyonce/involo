@@ -16,12 +16,12 @@ An ordered list of steps: a checklist, a flow or a non-normal procedure.
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
 | `basis` | list of text | yes |  | Kinds of material this list was checked against, from the tags the pack declares. Never a document name or a link. |
-| `id` | text | yes |  |  |
-| `kind` | [ListKind](#listkind) | yes |  |  |
+| `id` | text | yes |  | The list's id, unique in the pack; other files and patches name the list by it. |
+| `kind` | [ListKind](#listkind) | yes |  | `checklist`, `flow` or `non-normal`. |
 | `memory` | true or false |  |  | Part of the memory items. |
 | `method` | [ListMethod](#listmethod) |  |  | How the list is used. Optional. |
-| `steps` | list of [Step](#step) | yes |  |  |
-| `title` | text | yes |  |  |
+| `steps` | list of [Step](#step) | yes |  | The steps, in order. |
+| `title` | text | yes |  | The list's title, as the app shows it. |
 | `when` | text |  |  | When to use this list. |
 | `why` | text |  |  | Why this list matters. |
 
@@ -54,8 +54,8 @@ One challenge and response line.
 | --- | --- | --- | --- | --- |
 | `branch` | true or false |  |  | The step opens a case of its own ("IF RUNAWAY CONTINUES"): which case applies decides what follows, so Practice never asks across it. Never on a list's first step. |
 | `callout` | text |  |  | What the crew says. |
-| `check` | text |  |  |  |
-| `check_detail` | text |  |  |  |
+| `check` | text |  |  | How to tell the step worked, shown under Check. Takes the place of the shared explanation's. |
+| `check_detail` | text |  |  | More on Check, shown after it. Used only with the step's own `check`. |
 | `confirmed_by` | list of [Confirmation](#confirmation) |  |  | Internal record of what this step was confirmed against (decision 0013). |
 | `controls` | list of text |  |  | Ids from the pack's controls file. |
 | `decide` | text |  |  | A decision step: it asks the pilot this option (by id), and the answer sets it for the flight. Targets elsewhere may depend on the answer (decision 0022). |
@@ -65,11 +65,11 @@ One challenge and response line.
 | `fill` | list of [FieldId](#fieldid) |  |  | One field per `___` in `expect`, in order. |
 | `hint` | list of [HintPart](#hintpart) |  |  | Flight values shown beside the expected response. |
 | `how` | text |  |  | Id of a shared "how to do it" note. |
-| `id` | [StepId](#stepid) | yes |  |  |
-| `if_not` | text |  |  |  |
-| `if_not_detail` | text |  |  |  |
+| `id` | [StepId](#stepid) | yes |  | The step's id, `<prefix>.<phase>.<short-name>`, unique in the pack. It never changes once published; a renamed id gets a `step` alias in `aliases.yaml`. |
+| `if_not` | text |  |  | What to do when Check fails, shown under If not. Takes the place of the shared explanation's. |
+| `if_not_detail` | text |  |  | More on If not, shown after it. Used only with the step's own `if_not`. |
 | `location` | text |  |  | Overrides the location text of the step's first control. |
-| `look_for` | text |  |  |  |
+| `look_for` | text |  |  | What to look for, shown as "Look for" when the step is open. |
 | `non_recall` | true or false |  |  | In a memory list: read this step rather than recalling it. |
 | `not_simulated` | true or false |  |  | The simulator does not model this step, so it is left out of progress. |
 | `note` | text |  |  | Optional note shown under the step. |
@@ -77,19 +77,19 @@ One challenge and response line.
 | `number` | whole number |  |  | Printed number; absent for steps that are not numbered. |
 | `opens` | text |  |  | Id of a CDU walkthrough this step can open. |
 | `panel_lights` | map of list of text |  |  | Panel lights this step refers to: control id, then light labels. |
-| `quick` | [Quick](#quick) |  |  |  |
+| `quick` | [Quick](#quick) |  |  | Puts the step in Essentials: `always`, or `turnaround`. Without it, the step shows only when the pilot sees every step. |
 | `respond` | text |  |  | In a challenge-and-response list, who answers the challenge: a role id from the pack's labels. |
 | `role` | text |  |  | Who does the step: a role id from the pack's labels (decision 0029). Optional. |
 | `section` | text |  |  | Starts a new titled section at this step. |
-| `show_if` | [ShowIf](#showif) |  |  |  |
+| `show_if` | [ShowIf](#showif) |  |  | Shows the step only when the pilot's option choices pass this test. |
 | `sim_simplified` | true or false |  |  | The simulator simplifies the real aircraft here. |
 | `simulator_model` | true or false |  |  | The step's note describes how the simulator behaves, not the real aircraft. |
 | `targets` | list of [StepTarget](#steptarget) |  |  | The panel items the step involves and the state it asks of each, which the control drawings show exactly (decision 0018). `involo-pack check` holds them to the step's wording. |
 | `terms` | list of text |  |  | Glossary terms the step uses, shown under Why (each must be in the glossary). |
 | `text` | text | yes |  | The challenge, e.g. "IRS mode selectors". |
-| `timer` | [Timer](#timer) |  |  |  |
-| `walkaround` | [WalkaroundPoint](#walkaroundpoint) |  |  |  |
-| `why` | text |  |  |  |
+| `timer` | [Timer](#timer) |  |  | A wait attached to the step. The app doesn't show timers yet. |
+| `walkaround` | [WalkaroundPoint](#walkaroundpoint) |  |  | The step's point on a walkaround drawing. The app doesn't read it yet. |
+| `why` | text |  |  | Why the step matters, shown under Why. Takes the place of the shared explanation's. |
 
 ## Confirmation
 
@@ -98,7 +98,7 @@ An internal maintenance record (decision 0013): the kind of source and the day i
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
 | `date` | text | yes |  | `YYYY-MM-DD`. |
-| `kind` | [ConfirmationKind](#confirmationkind) | yes |  |  |
+| `kind` | [ConfirmationKind](#confirmationkind) | yes |  | The kind of source it was confirmed against. |
 
 ## ExpectWhen
 
@@ -106,9 +106,9 @@ A step's value once a decision has answered an option with this value (decision 
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `equals` | text | yes |  |  |
-| `expect` | text | yes |  |  |
-| `option` | text | yes |  |  |
+| `equals` | text | yes |  | The answer this value is for. |
+| `expect` | text | yes |  | The step's value once the option has that answer. |
+| `option` | text | yes |  | The option's id. |
 
 ## FieldId
 
@@ -120,7 +120,7 @@ One piece of a hint shown beside a step, e.g. `GND` and the ground frequency.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `field` | [FieldId](#fieldid) | yes |  |  |
+| `field` | [FieldId](#fieldid) | yes |  | The flight field whose value follows the prefix. |
 | `prefix` | text | yes |  | Literal text before the value, including any space, e.g. `SQUAWK `. |
 
 ## StepId
@@ -133,8 +133,8 @@ When a step still shows in quick mode.
 
 | Value | What it means |
 | --- | --- |
-| `always` |  |
-| `turnaround` |  |
+| `always` | In Essentials on every flight. |
+| `turnaround` | In Essentials only when the start options make a turnaround (`turnaround` in `phases.yaml`). |
 
 ## ShowIf
 
@@ -154,23 +154,23 @@ One panel item a step involves, and what the step asks of it (decision 0018).
 
 ## Timer
 
-A wait attached to a step.
+A wait attached to a step. The app doesn't show timers yet.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `auto_start` | [AutoStart](#autostart) |  |  |  |
-| `label` | text | yes |  |  |
-| `note` | text |  |  |  |
-| `seconds` | whole number | yes |  |  |
+| `auto_start` | [AutoStart](#autostart) |  |  | The earlier steps whose ticks would start the timer. |
+| `label` | text | yes |  | The timer's name, e.g. `Warm-up`. Not shown yet. |
+| `note` | text |  |  | A note about the wait. Not shown yet. |
+| `seconds` | whole number | yes |  | How long the wait is, in seconds. Not shown yet. |
 
 ## WalkaroundPoint
 
-A stop on the walkaround drawing.
+A point for a step on a walkaround drawing. The app doesn't read it yet.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `x` | whole number | yes |  |  |
-| `y` | whole number | yes |  |  |
+| `x` | whole number | yes |  | The point's horizontal place. The app doesn't read it yet. |
+| `y` | whole number | yes |  | The point's vertical place. The app doesn't read it yet. |
 
 ## ConfirmationKind
 
@@ -191,8 +191,8 @@ The state a step expects a light in.
 
 | Value | What it means |
 | --- | --- |
-| `on` |  |
-| `out` |  |
+| `on` | The light is lit. |
+| `out` | The light is out. |
 
 ## TargetWhen
 
@@ -200,24 +200,24 @@ The answer a target depends on: an option and one of its values (decision 0022).
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `equals` | text | yes |  |  |
-| `option` | text | yes |  |  |
+| `equals` | text | yes |  | The value that makes the target apply. |
+| `option` | text | yes |  | The option's id. |
 
 ## AutoStart
 
-Starts a timer from the time earlier steps were ticked.
+Steps whose ticks would start a timer. The app doesn't show timers yet; `check` makes sure each step named exists.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `from` | list of [StepId](#stepid) | yes |  |  |
-| `pick` | [AutoStartPick](#autostartpick) | yes |  |  |
+| `from` | list of [StepId](#stepid) | yes |  | The steps whose ticks would start the timer; `check` makes sure each is a step in the pack. |
+| `pick` | [AutoStartPick](#autostartpick) | yes |  | Which of those ticks would start it: the `earliest` or the `latest`. |
 
 ## AutoStartPick
 
-Which of several ticked steps starts a timer.
+Which of several ticked steps starts a timer. The app doesn't show timers yet.
 
 | Value | What it means |
 | --- | --- |
-| `earliest` |  |
-| `latest` |  |
+| `earliest` | The step ticked first. |
+| `latest` | The step ticked last. |
 

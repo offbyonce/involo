@@ -5,7 +5,11 @@ import type { ConfirmationKind } from "./ConfirmationKind";
  * An internal maintenance record (decision 0013): the kind of source and the day it was
  * recorded, never who or which document. The app never shows it.
  */
-export type Confirmation = { kind: ConfirmationKind, 
+export type Confirmation = { 
+/**
+ * The kind of source it was confirmed against.
+ */
+kind: ConfirmationKind, 
 /**
  * `YYYY-MM-DD`.
  */

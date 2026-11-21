@@ -98,12 +98,15 @@
       "description": "One test against a pilot-chosen option. The options are declared by the pack.",
       "anyOf": [
         {
+          "description": "Passes when the option has this value.",
           "type": "object",
           "properties": {
             "equals": {
+              "description": "The value it must have.",
               "type": "string"
             },
             "option": {
+              "description": "The option's id.",
               "type": "string"
             }
           },
@@ -114,15 +117,18 @@
           ]
         },
         {
+          "description": "Passes when the option has one of these values.",
           "type": "object",
           "properties": {
             "one_of": {
+              "description": "The values, any one of which passes.",
               "type": "array",
               "items": {
                 "type": "string"
               }
             },
             "option": {
+              "description": "The option's id.",
               "type": "string"
             }
           },
@@ -185,12 +191,15 @@
       "description": "When something is shown. Deliberately small: tests combine one level deep, with no\nnegation, comparisons, step state or expressions.",
       "anyOf": [
         {
+          "description": "One test.",
           "$ref": "#/$defs/OptionTest"
         },
         {
+          "description": "Shown when every test passes.",
           "type": "object",
           "properties": {
             "all_of": {
+              "description": "The tests, all of which must pass.",
               "type": "array",
               "items": {
                 "$ref": "#/$defs/OptionTest"
@@ -203,9 +212,11 @@
           ]
         },
         {
+          "description": "Shown when any test passes.",
           "type": "object",
           "properties": {
             "any_of": {
+              "description": "The tests, one of which must pass.",
               "type": "array",
               "items": {
                 "$ref": "#/$defs/OptionTest"

@@ -123,6 +123,7 @@ data_types! {
     /// An internal maintenance record (decision 0013): the kind of source and the day it was
     /// recorded, never who or which document. The app never shows it.
     pub struct Confirmation {
+        /// The kind of source it was confirmed against.
         pub kind: ConfirmationKind,
         /// `YYYY-MM-DD`.
         pub date: String,
@@ -132,7 +133,10 @@ data_types! {
     #[derive(Copy, Eq)]
     #[serde(rename_all = "snake_case")]
     pub enum Quick {
+        /// In Essentials on every flight.
         Always,
+        /// In Essentials only when the start options make a turnaround (`turnaround` in
+        /// `phases.yaml`).
         Turnaround,
     }
 
@@ -140,8 +144,20 @@ data_types! {
     #[serde(untagged)]
     #[cfg_attr(feature = "ts", ts(rename_all_fields = "camelCase"))]
     pub enum OptionTest {
-        Equals { option: String, equals: String },
-        OneOf { option: String, one_of: Vec<String> },
+        /// Passes when the option has this value.
+        Equals {
+            /// The option's id.
+            option: String,
+            /// The value it must have.
+            equals: String,
+        },
+        /// Passes when the option has one of these values.
+        OneOf {
+            /// The option's id.
+            option: String,
+            /// The values, any one of which passes.
+            one_of: Vec<String>,
+        },
     }
 
     /// When something is shown. Deliberately small: tests combine one level deep, with no
@@ -149,9 +165,18 @@ data_types! {
     #[serde(untagged)]
     #[cfg_attr(feature = "ts", ts(rename_all_fields = "camelCase"))]
     pub enum ShowIf {
+        /// One test.
         Test(OptionTest),
-        AllOf { all_of: Vec<OptionTest> },
-        AnyOf { any_of: Vec<OptionTest> },
+        /// Shown when every test passes.
+        AllOf {
+            /// The tests, all of which must pass.
+            all_of: Vec<OptionTest>,
+        },
+        /// Shown when any test passes.
+        AnyOf {
+            /// The tests, one of which must pass.
+            any_of: Vec<OptionTest>,
+        },
     }
 
 
@@ -159,36 +184,49 @@ data_types! {
     pub struct HintPart {
         /// Literal text before the value, including any space, e.g. `SQUAWK `.
         pub prefix: String,
+        /// The flight field whose value follows the prefix.
         pub field: FieldId,
     }
 
-    /// A stop on the walkaround drawing.
+    /// A point for a step on a walkaround drawing. The app doesn't read it yet.
     pub struct WalkaroundPoint {
+        /// The point's horizontal place. The app doesn't read it yet.
         pub x: u32,
+        /// The point's vertical place. The app doesn't read it yet.
         pub y: u32,
     }
 
-    /// Which of several ticked steps starts a timer.
+    /// Which of several ticked steps starts a timer. The app doesn't show timers yet.
     #[derive(Copy, Eq)]
     #[serde(rename_all = "snake_case")]
     pub enum AutoStartPick {
+        /// The step ticked first.
         Earliest,
+        /// The step ticked last.
         Latest,
     }
 
-    /// Starts a timer from the time earlier steps were ticked.
+    /// Steps whose ticks would start a timer. The app doesn't show timers yet; `check` makes
+    /// sure each step named exists.
     pub struct AutoStart {
+        /// The steps whose ticks would start the timer; `check` makes sure each is a step in the
+        /// pack.
         pub from: Vec<StepId>,
+        /// Which of those ticks would start it: the `earliest` or the `latest`.
         pub pick: AutoStartPick,
     }
 
-    /// A wait attached to a step.
+    /// A wait attached to a step. The app doesn't show timers yet.
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct Timer {
+        /// How long the wait is, in seconds. Not shown yet.
         pub seconds: u32,
+        /// The timer's name, e.g. `Warm-up`. Not shown yet.
         pub label: String,
+        /// A note about the wait. Not shown yet.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub note: Option<String>,
+        /// The earlier steps whose ticks would start the timer.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub auto_start: Option<AutoStart>,
     }
@@ -197,7 +235,9 @@ data_types! {
     #[derive(Copy, Eq)]
     #[serde(rename_all = "snake_case")]
     pub enum LightState {
+        /// The light is lit.
         On,
+        /// The light is out.
         Out,
     }
 
@@ -227,7 +267,9 @@ data_types! {
 
     /// The answer a target depends on: an option and one of its values (decision 0022).
     pub struct TargetWhen {
+        /// The option's id.
         pub option: String,
+        /// The value that makes the target apply.
         pub equals: String,
     }
 
@@ -235,8 +277,11 @@ data_types! {
     /// e.g. "MAIN PUMPS ON · CENTER PUMPS OFF". Until it is answered, the step's own `expect`
     /// shows.
     pub struct ExpectWhen {
+        /// The option's id.
         pub option: String,
+        /// The answer this value is for.
         pub equals: String,
+        /// The step's value once the option has that answer.
         pub expect: String,
     }
 
@@ -245,6 +290,8 @@ data_types! {
     #[allow(clippy::struct_excessive_bools)]
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct Step {
+        /// The step's id, `<prefix>.<phase>.<short-name>`, unique in the pack. It never changes
+        /// once published; a renamed id gets a `step` alias in `aliases.yaml`.
         pub id: StepId,
         /// Printed number; absent for steps that are not numbered.
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -276,8 +323,11 @@ data_types! {
         /// In a memory list: read this step rather than recalling it.
         #[serde(default, skip_serializing_if = "std::ops::Not::not")]
         pub non_recall: bool,
+        /// Puts the step in Essentials: `always`, or `turnaround`. Without it, the step shows only
+        /// when the pilot sees every step.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub quick: Option<Quick>,
+        /// Shows the step only when the pilot's option choices pass this test.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub show_if: Option<ShowIf>,
         /// A decision step: it asks the pilot this option (by id), and the answer sets it for the
@@ -308,14 +358,21 @@ data_types! {
         /// Glossary terms the step uses, shown under Why (each must be in the glossary).
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub terms: Vec<String>,
+        /// Why the step matters, shown under Why. Takes the place of the shared explanation's.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub why: Option<String>,
+        /// How to tell the step worked, shown under Check. Takes the place of the shared
+        /// explanation's.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub check: Option<String>,
+        /// More on Check, shown after it. Used only with the step's own `check`.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub check_detail: Option<String>,
+        /// What to do when Check fails, shown under If not. Takes the place of the shared
+        /// explanation's.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub if_not: Option<String>,
+        /// More on If not, shown after it. Used only with the step's own `if_not`.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub if_not_detail: Option<String>,
         /// Id of a shared "how to do it" note.
@@ -324,8 +381,10 @@ data_types! {
         /// Id of a shared explanation.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub explain: Option<String>,
+        /// The step's point on a walkaround drawing. The app doesn't read it yet.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub walkaround: Option<WalkaroundPoint>,
+        /// What to look for, shown as "Look for" when the step is open.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub look_for: Option<String>,
         /// Overrides the location text of the step's first control.
@@ -334,6 +393,7 @@ data_types! {
         /// What the crew says.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub callout: Option<String>,
+        /// A wait attached to the step. The app doesn't show timers yet.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub timer: Option<Timer>,
         /// Panel lights this step refers to: control id, then light labels.
@@ -355,8 +415,11 @@ data_types! {
 
     /// An ordered list of steps: a checklist, a flow or a non-normal procedure.
     pub struct Checklist {
+        /// The list's id, unique in the pack; other files and patches name the list by it.
         pub id: String,
+        /// The list's title, as the app shows it.
         pub title: String,
+        /// `checklist`, `flow` or `non-normal`.
         pub kind: ListKind,
         /// Kinds of material this list was checked against, from the tags the pack declares.
         /// Never a document name or a link.
@@ -373,6 +436,7 @@ data_types! {
         /// How the list is used. Optional.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub method: Option<ListMethod>,
+        /// The steps, in order.
         pub steps: Vec<Step>,
     }
 }

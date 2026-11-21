@@ -5,4 +5,16 @@
  * e.g. "MAIN PUMPS ON · CENTER PUMPS OFF". Until it is answered, the step's own `expect`
  * shows.
  */
-export type ExpectWhen = { option: string, equals: string, expect: string, };
+export type ExpectWhen = { 
+/**
+ * The option's id.
+ */
+option: string, 
+/**
+ * The answer this value is for.
+ */
+equals: string, 
+/**
+ * The step's value once the option has that answer.
+ */
+expect: string, };

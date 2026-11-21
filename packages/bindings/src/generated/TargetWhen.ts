@@ -3,4 +3,12 @@
 /**
  * The answer a target depends on: an option and one of its values (decision 0022).
  */
-export type TargetWhen = { option: string, equals: string, };
+export type TargetWhen = { 
+/**
+ * The option's id.
+ */
+option: string, 
+/**
+ * The value that makes the target apply.
+ */
+equals: string, };
