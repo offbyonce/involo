@@ -20,6 +20,9 @@ export const REVIEW_BOARDS = {
   "board-flight-winds": { desktop: "R6Winds", "tablet-landscape": "WindsTabL" },
   "board-flight-invalid": { desktop: "FSInvalid" },
   "board-flight-start": { desktop: "Start" },
+  // Start on a phone (#198): the Start board is drawn at desktop width; the phone shots go beside it.
+  "board-flight-start-phone": { phone: "Start" },
+  "board-flight-start-panel-state": { phone: "Start" },
   "board-flight-simbrief": { desktop: "SimBrief" },
   "board-strip-open": { desktop: "StripOpen" },
   "board-strip-freq": { desktop: "StripFreq" },
