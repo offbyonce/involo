@@ -33,13 +33,6 @@ export const KNOWN_FINDINGS: KnownFinding[] = [
     issue: "#198",
   },
   {
-    screen: "How",
-    check: "layout",
-    finding: /^the "Start ›" link is \d+ px wide$/,
-    packs: TWINS,
-    issue: "#198",
-  },
-  {
     screen: "Practice",
     check: "shown",
     finding: /^getByRole\('heading', \{ level: 1 \}\)\.first\(\) doesn't show$/,

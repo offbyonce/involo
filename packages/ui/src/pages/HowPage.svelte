@@ -577,6 +577,16 @@ Each part ends in an "In Involo" box whose link goes to the real place: the pilo
     text-decoration: none;
     white-space: nowrap;
   }
+  /* A short link ("Start ›") has a tap area 44 px wide, with nothing drawn: it reaches into the
+     box's padding and the gap beside it. */
+  .inv a {
+    position: relative;
+  }
+  .inv a::before {
+    position: absolute;
+    inset: 0 min(0px, calc((100% - var(--size-touch-min)) / 2));
+    content: "";
+  }
   /* Phone (HowPhone): one part, 16 px padding, 14 px between lines. */
   .page {
     display: flex;
