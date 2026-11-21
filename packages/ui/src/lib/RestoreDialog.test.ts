@@ -22,7 +22,7 @@ const flight = (pack: string, more: Partial<ReviewFlight> = {}): ReviewFlight =>
   download: null,
   ...more,
 });
-const review = {
+const asked = {
   kind: "review" as const,
   saved: "Backup saved Nov 18, 2026 at 10:14 by Involo 0.1.0. Untick anything you want to leave as it is.",
   flights: [
@@ -32,7 +32,7 @@ const review = {
   log: "Adds 3 flights and 2 practice results that aren’t on this device. Nothing is removed.",
 };
 
-function show(shown = review as never) {
+function show(shown = asked as never) {
   const calls = { close: vi.fn(), restore: vi.fn(), download: vi.fn() };
   render(RestoreDialog, {
     shown,
@@ -47,11 +47,11 @@ describe("RestoreDialog", () => {
   it("lists every part ticked, and restores them all on Restore", async () => {
     const calls = show();
     const dialog = screen.getByRole("dialog", { name: "Restore from this backup?" });
-    expect(within(dialog).getByText(review.saved)).toBeTruthy();
+    expect(within(dialog).getByText(asked.saved)).toBeTruthy();
     const boxes = within(dialog).getAllByRole("checkbox") as HTMLInputElement[];
     expect(boxes.map((b) => b.checked)).toEqual([true, true, true, true]);
     expect(within(dialog).getByText("Not installed")).toBeTruthy();
-    expect(within(dialog).getByText(review.log)).toBeTruthy();
+    expect(within(dialog).getByText(asked.log)).toBeTruthy();
     // Nothing is restored until Restore.
     expect(calls.restore).not.toHaveBeenCalled();
     await fireEvent.click(within(dialog).getByRole("button", { name: "Restore" }));
@@ -81,11 +81,11 @@ describe("RestoreDialog", () => {
   it("offers Download for a catalog pack that isn't installed", async () => {
     const calls = show();
     await fireEvent.click(screen.getByRole("button", { name: "Download" }));
-    expect(calls.download).toHaveBeenCalledWith(review.flights[1]?.download);
+    expect(calls.download).toHaveBeenCalledWith(asked.flights[1]?.download);
   });
 
   it("leaves the Flight log row out when the backup adds nothing to it", () => {
-    show({ ...review, log: null } as never);
+    show({ ...asked, log: null } as never);
     expect(screen.queryByText("Flight log")).toBeNull();
     expect(screen.getAllByRole("checkbox")).toHaveLength(3);
   });

@@ -88,7 +88,7 @@ export type ReviewFlight = {
  * The review's row for one of the backup's flights. `here` is this device's flight for the pack:
  * where it is, true when one is saved but can't be shown that way, or null for none.
  */
-export function reviewFlight(
+export function rowFor(
   entry: BackupFlight,
   installed: InstalledPack | undefined,
   here: FlightPlace | true | null,

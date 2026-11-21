@@ -40,7 +40,7 @@ in Rust. The host saves progress and settings on the device.
   import PacksPage, { type PackRow, type PacksNotice } from "./pages/PacksPage.svelte";
   import UpdateNote from "./lib/UpdateNote.svelte";
   import RestoreDialog, { type Chosen, type Refused, type Review } from "./lib/RestoreDialog.svelte";
-  import { backupFileName, logLine, refusalLine, reviewFlight, savedByLine } from "./lib/backup";
+  import { backupFileName, logLine, refusalLine, rowFor, savedByLine } from "./lib/backup";
   import { MAX_BACKUP_FILE_BYTES } from "./lib/file-limits";
   import OtherAircraftDialog from "./lib/OtherAircraft.svelte";
   import { morePacks, savedLine, updateFor } from "./lib/packs";
@@ -1052,7 +1052,7 @@ in Rust. The host saves progress and settings on the device.
       const saved = pack ? (await host.readSaved(entry.pack)).flight : null;
       const line = entry.pack === packId ? openLine : (savedLines[entry.pack] ?? null);
       const here = !saved ? null : line ? { place: line.where, done: line.done, total: line.total } : true;
-      flights.push(reviewFlight(entry, pack, here, catalog));
+      flights.push(rowFor(entry, pack, here, catalog));
     }
     let logText: string | null = null;
     if (log && !logBlocked) {

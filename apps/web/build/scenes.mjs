@@ -622,6 +622,70 @@ export const noPacks = [
   `new Promise((done) => { const r = indexedDB.open("involo"); r.onsuccess = () => { const db = r.result; const tx = db.transaction("packs", "readwrite"); tx.objectStore("packs").clear(); tx.oncomplete = () => { db.close(); location.reload(); done(true); }; }; })`,
   `new Promise((done) => { let n = 0; const t = setInterval(() => { if (document.querySelector(".packs.first [data-app-ready], .packs.first") || ++n > 150) { clearInterval(t); setTimeout(() => done(true), 600); } }, 100); })`,
 ];
+/** The frozen format 2 flight log, as a backup's log with entries this device doesn't have. */
+const logFixture = JSON.parse(
+  fs.readFileSync(path.resolve(web, "../../crates/involo-app-core/tests/fixtures/log-format-2.json"), "utf8"),
+);
+/** The Backup boards' time: Nov 18, 2026 at 10:14, in the browser's time zone. */
+const BACKUP_AT = [2026, 10, 18, 10, 14];
+/** Settings that say this device last saved a backup at the boards' time (BackupSetting). */
+export const lastBackupSaved = [
+  call((at) => {
+    const k = "involo.settings";
+    const s = JSON.parse(localStorage.getItem(k) ?? "null");
+    if (!s) return true;
+    s.lastBackup = new Date(...at).getTime();
+    localStorage.setItem(k, JSON.stringify(s));
+    location.reload();
+    return true;
+  }, BACKUP_AT),
+  restarted,
+];
+/**
+ * Chooses a backup file in Settings › Restore from a file… (RestoreReview): this device's example
+ * flight saved with an older version of the pack, an iFly flight (a catalog pack this device
+ * doesn't have), a flight for a pack added from a file elsewhere, the settings, and a log with
+ * entries this device doesn't have. `newer`: the file a newer Involo saved (RestoreRefused).
+ */
+export const chooseBackup = (newer = false) =>
+  call(
+    ({ at, log, newer }) => {
+      const mine = JSON.parse(localStorage.getItem("involo.flight.example-trainer"));
+      const settings = JSON.parse(localStorage.getItem("involo.settings"));
+      const flight = (pack, packVersion) => ({ ...mine, pack, packVersion });
+      const backup = {
+        kind: "involo-backup",
+        format: newer ? 2 : 1,
+        appVersion: newer ? "0.3.0" : "0.1.0",
+        savedAt: new Date(...at).getTime(),
+        flights: [
+          { pack: "example-trainer", name: "Example trainer (format demo)", version: "0.0.9", source: "file", place: { place: "Preflight › Before start", done: 4, total: 10 }, flight: flight("example-trainer", "0.0.9"), plan: null },
+          { pack: "ifly-737-max8", name: "iFly 737 MAX 8", version: "0.1.0", source: "catalog", place: { place: "Departure › Before taxi", done: 30, total: 357 }, flight: flight("ifly-737-max8", "0.1.0"), plan: null },
+          { pack: "example-twin", name: "Example twin-jet", version: "0.1.0", source: "file", place: { place: "Preflight › Power up", done: 6, total: 88 }, flight: flight("example-twin", "0.1.0"), plan: null },
+        ],
+        settings,
+        log,
+      };
+      const input = document.querySelector('.set.backup input[type="file"]');
+      const dt = new DataTransfer();
+      dt.items.add(new File([JSON.stringify(backup)], "involo-backup-2026-11-18.json", { type: "application/json" }));
+      input.files = dt.files;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      return new Promise((done) => setTimeout(() => done(true), 600));
+    },
+    { at: BACKUP_AT, log: logFixture, newer },
+  );
+/** Settings scrolled to Back up and restore, in the middle of the screen. */
+export const scrollToBackup = `new Promise((done) => setTimeout(() => { document.querySelector(".set.backup")?.scrollIntoView({ block: "center" }); setTimeout(() => done(true), 300); }, 300))`;
+/** A device with only the example pack, added from a file, its first step ticked, on Settings
+ * (the Backup boards: Your seat shows, then Back up and restore). */
+export const exampleOnly = [
+  ...noPacks,
+  ...addExample,
+  go("#/phase/before-start"),
+  click('[data-step="example-trainer.before-start.battery"] .tick'),
+  go("#/settings"),
+];
 
 /**
  * Makes the installed iFly pack an older version that differs from the catalog's (PacksUpdate):

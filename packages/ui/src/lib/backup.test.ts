@@ -4,7 +4,7 @@
 import type { BackupFlight, CatalogEntry, Flight } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import type { InstalledPack } from "../host";
-import { backupFileName, lastBackupLine, logLine, refusalLine, reviewFlight, savedByLine } from "./backup";
+import { backupFileName, lastBackupLine, logLine, refusalLine, rowFor, savedByLine } from "./backup";
 
 // Back up and restore (#47, Backup board): the words the card and the dialogs show.
 
@@ -60,12 +60,9 @@ describe("back up and restore words", () => {
   });
 
   it("says what each flight replaces, and when it is brought up to the installed version", () => {
-    const row = reviewFlight(
-      entry(),
-      installed("0.1.0"),
-      { place: "Preflight › Power up", done: 3, total: 357 },
-      [listed],
-    );
+    const row = rowFor(entry(), installed("0.1.0"), { place: "Preflight › Power up", done: 3, total: 357 }, [
+      listed,
+    ]);
     expect(row).toMatchObject({
       name: "iFly 737 MAX 8",
       version: "0.0.9",
@@ -75,7 +72,7 @@ describe("back up and restore words", () => {
       installed: true,
       download: null,
     });
-    const fresh = reviewFlight(
+    const fresh = rowFor(
       entry({ flight: { pack: "ifly", packVersion: "0.1.0" } as Flight }),
       installed("0.1.0"),
       null,
@@ -89,15 +86,15 @@ describe("back up and restore words", () => {
   });
 
   it("keeps a flight for a pack that isn't installed, offering Download only for a catalog pack", () => {
-    const missing = reviewFlight(entry(), undefined, null, [listed]);
+    const missing = rowFor(entry(), undefined, null, [listed]);
     expect(missing.device).toEqual({
       text: "Not on this device. The flight is kept and appears when you add the pack.",
       replaces: false,
     });
     expect(missing.installed).toBe(false);
     expect(missing.download).toBe(listed);
-    expect(reviewFlight(entry({ source: "file" }), undefined, null, [listed]).download).toBeNull();
-    expect(reviewFlight(entry(), undefined, null, []).download).toBeNull();
-    expect(reviewFlight(entry({ place: null }), undefined, null, []).inBackup).toBeNull();
+    expect(rowFor(entry({ source: "file" }), undefined, null, [listed]).download).toBeNull();
+    expect(rowFor(entry(), undefined, null, []).download).toBeNull();
+    expect(rowFor(entry({ place: null }), undefined, null, []).inBackup).toBeNull();
   });
 });

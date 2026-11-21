@@ -63,6 +63,10 @@ export const REVIEW_BOARDS = {
   "board-roles": { desktop: "RolesDesk", "tablet-landscape": "RolesDesk", tablet: "RolesDesk", phone: "RolesPhone" },
   "board-roles-procedure": { desktop: "RolesDesk", phone: "RolesPhone" },
   "board-seat": { desktop: "SeatSetting", phone: "SeatSetting" },
+  // Back up and restore (#47, Backup.dc.html).
+  "board-backup-setting": { desktop: "BackupSetting", phone: "BackupSettingPhone" },
+  "board-restore-review": { desktop: "RestoreReview", phone: "RestorePhone" },
+  "board-restore-refused": { desktop: "RestoreRefused", phone: "RestoreRefused" },
   // Several packs (Packs.dc.html).
   "board-packs-two": { desktop: "PacksDesktop", phone: "PacksPhone" },
   "board-packs-first": { desktop: "PacksFirst" },

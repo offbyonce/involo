@@ -303,6 +303,9 @@ Download moves under its row's text and the buttons share the bottom row.
     .item {
       flex-wrap: wrap;
     }
+    .tick {
+      flex-basis: 100%;
+    }
     .btn.get {
       margin-left: calc(var(--space-4) + var(--space-1) + var(--space-3));
     }
