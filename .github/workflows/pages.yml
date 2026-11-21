@@ -55,7 +55,7 @@ jobs:
           tool: just,wasm-bindgen@0.2.130
 
       # pnpm first (version from package.json "packageManager"), so setup-node can find it.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v7
         with:
