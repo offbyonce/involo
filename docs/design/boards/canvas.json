@@ -2281,6 +2281,78 @@
       "h": 900,
       "title": "Shared source: back up and restore (tweaks: layout, theme)",
       "page": "b15"
+    },
+    "LightNotes.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 440,
+      "title": "Light card with its notes (dark)",
+      "page": "b16"
+    },
+    "LightNotesLight.dc.html": {
+      "x": 480,
+      "y": 0,
+      "w": 400,
+      "h": 440,
+      "title": "Light card with its notes (light)",
+      "page": "b16"
+    },
+    "LightNotesPhone.dc.html": {
+      "x": 1000,
+      "y": 0,
+      "w": 390,
+      "h": 460,
+      "title": "Light card with its notes, phone (dark)",
+      "page": "b16"
+    },
+    "LightNotesPhoneLight.dc.html": {
+      "x": 1470,
+      "y": 0,
+      "w": 390,
+      "h": 460,
+      "title": "Light card with its notes, phone (light)",
+      "page": "b16"
+    },
+    "StateNote.dc.html": {
+      "x": 0,
+      "y": 560,
+      "w": 900,
+      "h": 220,
+      "title": "Panel state with its description (dark)",
+      "page": "b16"
+    },
+    "StateNoteLight.dc.html": {
+      "x": 980,
+      "y": 560,
+      "w": 900,
+      "h": 220,
+      "title": "Panel state with its description (light)",
+      "page": "b16"
+    },
+    "StateNotePhone.dc.html": {
+      "x": 2000,
+      "y": 560,
+      "w": 390,
+      "h": 380,
+      "title": "Panel state with its description, phone (dark)",
+      "page": "b16"
+    },
+    "StateNotePhoneLight.dc.html": {
+      "x": 2470,
+      "y": 560,
+      "w": 390,
+      "h": 380,
+      "title": "Panel state with its description, phone (light)",
+      "page": "b16"
+    },
+    "Notes.dc.html": {
+      "x": 0,
+      "y": 1100,
+      "w": 900,
+      "h": 460,
+      "title": "Shared source: light notes and panel states (tweaks: layout, theme)",
+      "page": "b16"
     }
   },
   "createdOnFiles": {
@@ -2289,7 +2361,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b15",
+    "page": "b16",
     "view": "canvas"
   },
   "notes": {},
@@ -2578,7 +2650,16 @@
     "RestorePhoneLight.dc.html",
     "RestoreRefused.dc.html",
     "RestoreRefusedLight.dc.html",
-    "Backup.dc.html"
+    "Backup.dc.html",
+    "LightNotes.dc.html",
+    "LightNotesLight.dc.html",
+    "LightNotesPhone.dc.html",
+    "LightNotesPhoneLight.dc.html",
+    "StateNote.dc.html",
+    "StateNoteLight.dc.html",
+    "StateNotePhone.dc.html",
+    "StateNotePhoneLight.dc.html",
+    "Notes.dc.html"
   ],
   "pages": [
     {
@@ -2672,6 +2753,10 @@
     {
       "id": "b15",
       "name": "Beta 1: back up and restore"
+    },
+    {
+      "id": "b16",
+      "name": "Beta 1: light notes and panel states"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"

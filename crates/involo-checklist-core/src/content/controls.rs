@@ -43,16 +43,6 @@ data_types! {
         pub plural: bool,
     }
 
-    /// A caption on the cockpit overview map.
-    pub struct OverviewCaption {
-        /// The caption's text. The app does not draw overview captions today.
-        pub text: String,
-        /// Its point across, in the overview's units.
-        pub x: f64,
-        /// Its point down, in the overview's units.
-        pub y: f64,
-    }
-
     /// A rectangle on the cockpit overview map. A zone can have several.
     pub struct OverviewArea {
         /// The zone this rectangle stands for.
@@ -244,9 +234,6 @@ data_types! {
         pub width: f64,
         /// The overview's height in its own units.
         pub height: f64,
-        /// Free captions on the map. The app does not draw them today.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub captions: Vec<OverviewCaption>,
         /// The zones' rectangles.
         pub areas: Vec<OverviewArea>,
         /// The parts of the cockpit a step map shows one at a time.

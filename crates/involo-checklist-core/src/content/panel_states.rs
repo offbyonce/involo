@@ -14,7 +14,7 @@ data_types! {
         pub id: String,
         /// Its name in the Start page's panel-state picker.
         pub title: String,
-        /// What it starts from, in words. The app does not show it today.
+        /// What it starts from, in words; shown under the Start page's picker once it is chosen.
         pub description: String,
         /// Options this start selects.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]

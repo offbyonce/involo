@@ -97,7 +97,7 @@ pub(crate) fn saved_text_name(text: &str, glossary: Option<&BTreeSet<String>>) -
 pub fn pack_glossaries(texts: &[String]) -> Glossaries {
     texts
         .iter()
-        .filter_map(|text| serde_json::from_str::<FlatPack>(text).ok())
+        .filter_map(|text| crate::packs::parse_built(text).ok())
         .map(|pack| {
             let terms = glossary(&pack).map(str::to_owned).collect();
             (pack.manifest.id.clone(), terms)

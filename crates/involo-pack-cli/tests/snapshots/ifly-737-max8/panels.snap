@@ -4,7 +4,6 @@ source: crates/involo-pack-cli/tests/snapshot.rs
 [
   {
     "id": "oh",
-    "title": "Forward overhead",
     "width": 1128.0,
     "height": 1640.0,
     "sections": [
@@ -2960,7 +2959,6 @@ source: crates/involo-pack-cli/tests/snapshot.rs
   },
   {
     "id": "aft",
-    "title": "Aft overhead",
     "width": 1262.0,
     "height": 520.0,
     "sections": [
@@ -3683,7 +3681,6 @@ source: crates/involo-pack-cli/tests/snapshot.rs
   },
   {
     "id": "gl",
-    "title": "Glareshield",
     "width": 1501.0,
     "height": 240.0,
     "sections": [
@@ -4424,7 +4421,6 @@ source: crates/involo-pack-cli/tests/snapshot.rs
   },
   {
     "id": "mn",
-    "title": "Main panel",
     "width": 2027.0,
     "height": 610.0,
     "sections": [
@@ -5073,7 +5069,6 @@ source: crates/involo-pack-cli/tests/snapshot.rs
   },
   {
     "id": "con",
-    "title": "Center console",
     "width": 838.0,
     "height": 1301.0,
     "sections": [
@@ -6297,7 +6292,6 @@ source: crates/involo-pack-cli/tests/snapshot.rs
   },
   {
     "id": "seat",
-    "title": "Pilot station",
     "width": 640.0,
     "height": 140.0,
     "sections": [

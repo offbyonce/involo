@@ -4,7 +4,6 @@
 # yaml-language-server: $schema=../../../../schemas/panel.schema.json
 # Invented content that shows the pack format (an Airbus-style example). Not a real aircraft panel.
 id: glareshield
-title: Glareshield
 width: 560
 height: 152
 sections:

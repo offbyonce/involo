@@ -9,7 +9,6 @@ lights:
     meaning: The battery is running low.
     when: Abnormal at any time.
     action: Connect external power.
-    normal: false
     confirmed_by:
       - kind: vendor-docs
         date: 2026-11-08
@@ -17,4 +16,3 @@ lights:
     meaning: The parking brake is set.
     when: Normal on the ground, before taxi.
     action: Release it before you taxi.
-    normal: true

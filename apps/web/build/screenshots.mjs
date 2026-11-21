@@ -488,6 +488,44 @@ const SHOTS = [
   // The Flight deck (Deck, PhoneDeck): the forward overhead with the fuel panel selected, as
   // the boards show; at 1280 px, the area list and the area, the panel in its slide-out.
   { name: "board-deck", only: ["desktop", "phone", "laptop"], app: { hash: "#/deck/forward-overhead/fuel" } },
+  // A light's notes (#211, LightNotes): the fuel panel, whose lights say when they come on and
+  // what to do; and the chosen panel state's description under Start's picker (StateNote), with
+  // GPU Connected chosen, as the boards show.
+  {
+    name: "board-light-notes",
+    only: ["desktop", "phone"],
+    app: {
+      hash: "#/deck/forward-overhead/fuel",
+      before: [`(() => { document.querySelector('section.lights .light')?.scrollIntoView({ block: "start" }); return true; })()`],
+    },
+  },
+  // The same notes where there is no board of their own: in a drawn light's card, and in the
+  // area's list of light meanings.
+  { name: "deck-light-card", only: ["desktop"], app: { hash: "#/deck/forward-overhead/fuel", before: [pick("ENG VALVE CLOSED")] } },
+  {
+    name: "deck-area-lights",
+    only: ["desktop"],
+    app: {
+      hash: "#/deck/forward-overhead/fuel",
+      before: [
+        `(() => { const b = [...document.querySelectorAll("button.disclose")].find((x) => x.textContent.startsWith("Light meanings")); b.click(); return true; })()`,
+        `new Promise((d) => setTimeout(() => { document.querySelector(".list.lights")?.scrollIntoView({ block: "start" }); d(true); }, 300))`,
+      ],
+    },
+  },
+  {
+    name: "board-state-note",
+    full: true,
+    only: ["desktop", "phone"],
+    app: {
+      hash: "#/phase/before-start",
+      before: [
+        ...BOARD_FLIGHT,
+        go("#/flight/start"),
+        `(() => { const select = document.querySelector(".pick select"); const gpu = [...select.options].find((o) => o.text === "GPU Connected"); select.value = gpu.value; select.dispatchEvent(new Event("change", { bubbles: true })); return true; })()`,
+      ],
+    },
+  },
   // The panel-highlight bug: the aft overhead's test switches with MACH TEST 1 picked, by
   // pointer and from the keyboard (its focus ring shown).
   { name: "deck-picked", only: ["desktop"], app: { hash: "#/deck/aft-overhead/atest", before: [pick("MACH TEST 1")] } },

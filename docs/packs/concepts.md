@@ -23,7 +23,7 @@ The data files are YAML. Each holds one part of the content:
 | `phases.yaml` | The flight's stages and phases, the options a pilot answers, and the Start page |
 | `controls.yaml` | The controls steps refer to, the flight deck zones, and the overview map |
 | `panels/*.yaml` | The panel drawings: sections and the controls in them ([panels](panels.md)) |
-| `lights.yaml` | What each annunciator light means |
+| `lights.yaml` | What each annunciator light means, when it comes on and what to do |
 | `flight.yaml` | The flight's values (fields) and the Flight pages |
 | `cdu.yaml` | CDU walkthroughs, screen by screen |
 | `notes.yaml` | The Explain and How notes on steps |
@@ -119,6 +119,19 @@ the app's own word, so write only what differs.
 - `glossary_exceptions` are terms whose first sentence is not shown as their expansion.
 - `position_words` (`DN: [DOWN]`) are other words for a position, merged over the defaults;
   `check` and `suggest-targets` read a step's wording with them.
+
+## Accepted but not shown yet
+
+The format has room for four things the app doesn't show yet. Each has an approved design, and
+the app will show it as written; `involo-pack check` checks them now, so write them as you would
+anything else.
+
+| What | Where | Designed as |
+| --- | --- | --- |
+| Step timers | a step's `timer`, with `auto_start` | A timer chip on the step, started by the step that triggers it, and a bar of running timers |
+| Walkaround points | a step's `walkaround` | The exterior inspection: a top view of the airplane with numbered stops |
+| CDU walkthroughs | `cdu.yaml`, and a step's `opens` | A CDU walkthrough, page by page, with the flight's values filled in |
+| Briefings | `briefings.yaml` | A briefing step in the flow; today, Practice asks about a briefing's mnemonic |
 
 ## Other things Practice and the overview read
 

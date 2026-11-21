@@ -11,6 +11,7 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
   import type { Zone } from "@involo/bindings";
   import type { PackIndex } from "../pack-index";
   import { zoneControls, zoneLights, zoneSections, zoneSteps } from "./deck";
+  import LightNotes from "./LightNotes.svelte";
   import { sharedScale } from "./panel-layout";
   import PanelNavigator from "./PanelNavigator.svelte";
   import PanelSchematic from "./PanelSchematic.svelte";
@@ -50,7 +51,7 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
   let lights = $derived.by(() => {
     const seen = new Set<string>();
     return zoneLights(index, zone).filter((l) => {
-      const k = `${l.label}|${l.meaning}`;
+      const k = `${l.label}|${l.meaning}|${l.when}|${l.action}`;
       if (seen.has(k)) return false;
       seen.add(k);
       return true;
@@ -149,7 +150,7 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
       {#each lights as l (l.label + l.meaning)}
         <div class="light">
           <span class="chip {l.color ?? 'amber'}">{l.label}</span>
-          <span class="meaning">{l.meaning}</span>
+          <span class="body"><span class="meaning">{l.meaning}</span><LightNotes when={l.when} action={l.action} /></span>
         </div>
       {/each}
     </section>
@@ -298,6 +299,14 @@ draw lists its controls instead, as a panel with no drawing does elsewhere.
   .chip.blue {
     background: var(--color-accent);
     color: var(--color-on-accent);
+  }
+  /* The meaning, then the light's notes (the LightNotes board). */
+  .body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-2) + var(--border-thick));
   }
   .meaning {
     color: var(--color-text-secondary);

@@ -165,9 +165,6 @@ data_types! {
     pub struct Panel {
         /// The panel's id, unique in the pack; the first part of a locator or step target.
         pub id: String,
-        /// The panel's name. The app names what it shows by its sections and zones, and does not
-        /// show this today.
-        pub title: String,
         /// The panel's width in panel units; its outline, when it has one, lies inside.
         pub width: f64,
         /// The panel's height in panel units.

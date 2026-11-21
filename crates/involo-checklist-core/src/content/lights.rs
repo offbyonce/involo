@@ -18,12 +18,11 @@ data_types! {
         /// What the light means when it is on; shown in the Flight deck page's light list and
         /// asked in Practice.
         pub meaning: String,
-        /// When the light comes on. The app does not show it today.
+        /// When the light comes on, and when that is normal; shown under the meaning as "When
+        /// it comes on".
         pub when: String,
-        /// What to do when it is on. The app does not show it today.
+        /// What to do when it is on; shown under the meaning as "What to do".
         pub action: String,
-        /// True when seeing this light is normal.
-        pub normal: bool,
         /// Internal record of what this note was confirmed against (decision 0013).
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub confirmed_by: Vec<Confirmation>,

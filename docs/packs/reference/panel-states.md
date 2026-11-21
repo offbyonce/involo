@@ -23,7 +23,7 @@ A ready-made point to start from, with earlier steps already accounted for.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `description` | text | yes |  | What it starts from, in words. The app does not show it today. |
+| `description` | text | yes |  | What it starts from, in words; shown under the Start page's picker once it is chosen. |
 | `done` | list of [StepId](#stepid) |  |  | Steps ticked when this state is chosen, unless already ticked or skipped; choosing another state takes those ticks back. |
 | `id` | text | yes |  | The state's id, which a flight records and aliases can rename. |
 | `phase` | text | yes |  | The phase to open. |

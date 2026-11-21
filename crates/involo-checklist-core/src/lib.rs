@@ -33,12 +33,11 @@ pub use content::{
     FieldShow, FlightField, FlightFile, FlightGroup, FlightOverviewRow, FlightPage, GlossaryEntry,
     GlossaryFile, GroupLabel, GroupUnits, HowNote, InputMode, IntroParagraph, LabelAnchor, Labels,
     LabelsFile, Legend, LightColor, LightNote, LightsFile, Message, MessageLevel, MessagesFile,
-    NotesFile, NotesRow, OptionChoice, Overview, OverviewArea, OverviewCaption, OverviewRegion,
-    OverviewViews, Panel, PanelItem, PanelItemKind, PanelSection, PanelState, PanelStatesFile,
-    Phase, PhasesFile, RoleLabel, Rounding, RouteLegCount, RouteLegPart, SeatLabel, SeatViews,
-    ShowIn, SimbriefSource, Stage, StagePhase, StartControl, StartLink, StartStyle, StripText,
-    SuggestLine, SuggestRule, Suggests, UserOption, ViewFrame, ViewLabel, ViewPlace, ViewRole,
-    ViewShape, WeightUnit, Zone,
+    NotesFile, NotesRow, OptionChoice, Overview, OverviewArea, OverviewRegion, OverviewViews,
+    Panel, PanelItem, PanelItemKind, PanelSection, PanelState, PanelStatesFile, Phase, PhasesFile,
+    RoleLabel, Rounding, RouteLegCount, RouteLegPart, SeatLabel, SeatViews, ShowIn, SimbriefSource,
+    Stage, StagePhase, StartControl, StartLink, StartStyle, StripText, SuggestLine, SuggestRule,
+    Suggests, UserOption, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, WeightUnit, Zone,
 };
 pub use model::{
     AutoStart, AutoStartPick, Checklist, Confirmation, ConfirmationKind, ExpectWhen, FieldId,

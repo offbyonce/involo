@@ -304,9 +304,9 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     // Only the drawing that holds it shows its card: tiles of one panel share `picked`.
     const item = drawn.find((s) => s.id === picked?.section)?.items[picked.item];
     if (!item) return null;
-    const meaning = item.kind === "light" ? index.lightMeaning(panel.id, picked.section, picked.item) : undefined;
+    const note = item.kind === "light" ? index.lightNote(panel.id, picked.section, picked.item) : undefined;
     const does = (item.controls ?? []).map((c) => index?.control(c)?.function).find(Boolean);
-    return { item, meaning, does };
+    return { item, meaning: note?.meaning, when: note?.when.trim(), action: note?.action.trim(), does };
   });
 
   let described = $derived(
@@ -360,6 +360,8 @@ smallest size that keeps 11 px labels, scrolls sideways, and offers a full-width
     </div>
     {#if card.item.description}<p>{card.item.description}</p>{/if}
     {#if card.meaning}<p><b>When lit</b> {card.meaning}</p>{/if}
+    {#if card.when}<p><b>When it comes on</b> {card.when}</p>{/if}
+    {#if card.action}<p><b>What to do</b> {card.action}</p>{/if}
     {#if card.does}<p><b>What it does</b> {card.does}</p>{/if}
   </div>
 {/if}

@@ -14,7 +14,7 @@ id: string,
  */
 title: string, 
 /**
- * What it starts from, in words. The app does not show it today.
+ * What it starts from, in words; shown under the Start page's picker once it is chosen.
  */
 description: string, 
 /**

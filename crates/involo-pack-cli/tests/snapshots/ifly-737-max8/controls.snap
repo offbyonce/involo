@@ -1584,38 +1584,6 @@ source: crates/involo-pack-cli/tests/snapshot.rs
   "overview": {
     "width": 520.0,
     "height": 772.0,
-    "captions": [
-      {
-        "text": "AFT OVERHEAD",
-        "x": 60.0,
-        "y": 14.0
-      },
-      {
-        "text": "FORWARD OVERHEAD",
-        "x": 20.0,
-        "y": 108.0
-      },
-      {
-        "text": "GLARESHIELD",
-        "x": 20.0,
-        "y": 300.0
-      },
-      {
-        "text": "MAIN PANEL",
-        "x": 20.0,
-        "y": 352.0
-      },
-      {
-        "text": "PEDESTAL",
-        "x": 130.0,
-        "y": 444.0
-      },
-      {
-        "text": "SIDE",
-        "x": 20.0,
-        "y": 444.0
-      }
-    ],
     "areas": [
       {
         "zone": "aelt",

@@ -66,6 +66,9 @@ export const REVIEW_BOARDS = {
   "board-roles": { desktop: "RolesDesk", "tablet-landscape": "RolesDesk", tablet: "RolesDesk", phone: "RolesPhone" },
   "board-roles-procedure": { desktop: "RolesDesk", phone: "RolesPhone" },
   "board-seat": { desktop: "SeatSetting", phone: "SeatSetting" },
+  // Light notes and panel-state descriptions (#211, Notes.dc.html).
+  "board-light-notes": { desktop: "LightNotes", phone: "LightNotesPhone" },
+  "board-state-note": { desktop: "StateNote", phone: "StateNotePhone" },
   // Back up and restore (#47, Backup.dc.html).
   "board-backup-setting": { desktop: "BackupSetting", phone: "BackupSettingPhone" },
   "board-restore-review": { desktop: "RestoreReview", phone: "RestorePhone" },

@@ -23,6 +23,13 @@ import type {
 } from "@involo/bindings";
 import { kindOf, methodOf } from "./lib/list-words";
 
+/** What a light note says: its meaning, when the light comes on, and what to do (#211). */
+export interface LightNoteText {
+  meaning: string;
+  when: string;
+  action: string;
+}
+
 export type PackIndex = {
   name: string;
   step(id: string): Step | undefined;
@@ -57,6 +64,9 @@ export type PackIndex = {
   glossary(term: string): string | undefined;
   /** A light's meaning (its note), by panel, section and item index. */
   lightMeaning(panel: string, section: string, item: number): string | undefined;
+  /** A light's whole note: its meaning, when it comes on and what to do, by panel, section and
+   * item index. */
+  lightNote(panel: string, section: string, item: number): LightNoteText | undefined;
   /** The phase a step's list is in, by id. */
   phaseOf(stepId: string): string | undefined;
   /** A step's name as the app shows it, by id: Rust works it out when it reads the pack. */
@@ -151,7 +161,12 @@ export function indexPack(pack: FlatPack): PackIndex {
         if (z) drawnZones.add(z);
       }
   const glossary = new Map((pack.content.glossary?.terms ?? []).map((t) => [t.term, t.meaning]));
-  const lightNotes = new Map((pack.content.lights?.lights ?? []).map((n) => [n.locator, n.meaning]));
+  const lightNotes = new Map(
+    (pack.content.lights?.lights ?? []).map((n) => [
+      n.locator,
+      { meaning: n.meaning, when: n.when, action: n.action },
+    ]),
+  );
 
   /** The locator a step target uses for an item: "oh/fuel/AFT 1/1", the n-th of its label. */
   const locator = (panel: string, section: string, item: number) => {
@@ -211,6 +226,9 @@ export function indexPack(pack: FlatPack): PackIndex {
     stepName: (id) => pack.names?.steps[id],
     controlName: (id) => pack.names?.controls[id],
     lightMeaning(panel, section, item) {
+      return this.lightNote(panel, section, item)?.meaning;
+    },
+    lightNote(panel, section, item) {
       // The n-th item with that label in the section, counted from 1, as light notes name them.
       const at = locator(panel, section, item);
       return at ? lightNotes.get(at) : undefined;

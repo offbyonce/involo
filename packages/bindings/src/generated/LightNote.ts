@@ -20,17 +20,14 @@ which?: string | null,
  */
 meaning: string, 
 /**
- * When the light comes on. The app does not show it today.
+ * When the light comes on, and when that is normal; shown under the meaning as "When
+ * it comes on".
  */
 when: string, 
 /**
- * What to do when it is on. The app does not show it today.
+ * What to do when it is on; shown under the meaning as "What to do".
  */
 action: string, 
-/**
- * True when seeing this light is normal.
- */
-normal: boolean, 
 /**
  * Internal record of what this note was confirmed against (decision 0013).
  */

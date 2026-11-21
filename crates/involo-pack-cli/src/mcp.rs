@@ -354,8 +354,7 @@ impl Server {
                     .context("`width` is the panel's width in panel units, such as 400")?,
             ),
         };
-        let imported =
-            import_panel::import_file(&svg, &id, text("title").map(str::to_owned), width)?;
+        let imported = import_panel::import_file(&svg, &id, width)?;
         if let Some(out) = &out {
             import_panel::write_new(out, &imported.yaml)?;
         }
@@ -580,12 +579,6 @@ const TOOLS: &[Tool] = &[
                 "string",
                 false,
                 "The panel id; the drawing's file name otherwise.",
-            ),
-            (
-                "title",
-                "string",
-                false,
-                "The panel's title; the id in words otherwise.",
             ),
             (
                 "width",

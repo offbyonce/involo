@@ -23,12 +23,11 @@ What a panel light means.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `action` | text | yes |  | What to do when it is on. The app does not show it today. |
+| `action` | text | yes |  | What to do when it is on; shown under the meaning as "What to do". |
 | `confirmed_by` | list of [Confirmation](#confirmation) |  |  | Internal record of what this note was confirmed against (decision 0013). |
 | `locator` | text | yes |  | `<panel>/<section>/<label>/<n>`, where n counts items with that label from 1. |
 | `meaning` | text | yes |  | What the light means when it is on; shown in the Flight deck page's light list and asked in Practice. |
-| `normal` | true or false | yes |  | True when seeing this light is normal. |
-| `when` | text | yes |  | When the light comes on. The app does not show it today. |
+| `when` | text | yes |  | When the light comes on, and when that is normal; shown under the meaning as "When it comes on". |
 | `which` | text |  |  | Which one of the lights sharing its label on a section this is ("transfer bus 1"), as Practice names it; every light that shares its label needs one, each different. |
 
 ## Confirmation

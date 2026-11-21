@@ -305,6 +305,22 @@ be worse; each difference from a board is listed in its pull request.
 The same canvas sets the light theme's done green to `#1a7a4b` on every board, as `tokens.json`
 has it, and SeatSetting's description to "Panel views show what you see from this seat.".
 
+**Light notes and panel-state descriptions (2026-11-21).** `Notes.dc.html` draws #211's two
+additions, dark and light: `LightNotes` and `LightNotesPhone` (a light's card) and `StateNote` and
+`StateNotePhone` (Start's panel-state picker). The build may improve on these boards but never be
+worse; each difference from a board is listed in its pull request.
+
+- **The light card** keeps the Deck board's form, the light then its meaning, wherever a light's
+  meaning is shown. Under the meaning, each note the pack writes, as a short bold label and the
+  pack's text: **When it comes on** (the light note's `when`) and **What to do** (its `action`).
+  A note the pack doesn't write is left out, with no empty label. The boards' third note,
+  **Normally**, is not built: a light note's `normal` was a yes or no, which `when` already
+  explains, so the format drops it rather than the app inventing a sentence for it (#211).
+- **The panel-state description:** once a panel state is chosen, its `description` shows under
+  the picker in muted text, wrapping within the picker's width on desktop and full width on a
+  phone. Nothing shows while "Choose a panel state" is selected, or for a state without one.
+- Existing tokens only.
+
 ## Read in this order
 
 1. `rules.md`: what the tokens mean and the rules every screen follows.

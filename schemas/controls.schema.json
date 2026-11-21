@@ -107,13 +107,6 @@
             "$ref": "#/$defs/OverviewArea"
           }
         },
-        "captions": {
-          "description": "Free captions on the map. The app does not draw them today.",
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/OverviewCaption"
-          }
-        },
         "height": {
           "description": "The overview's height in its own units.",
           "type": "number",
@@ -193,32 +186,6 @@
         "y",
         "width",
         "height"
-      ]
-    },
-    "OverviewCaption": {
-      "description": "A caption on the cockpit overview map.",
-      "type": "object",
-      "properties": {
-        "text": {
-          "description": "The caption's text. The app does not draw overview captions today.",
-          "type": "string"
-        },
-        "x": {
-          "description": "Its point across, in the overview's units.",
-          "type": "number",
-          "format": "double"
-        },
-        "y": {
-          "description": "Its point down, in the overview's units.",
-          "type": "number",
-          "format": "double"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "text",
-        "x",
-        "y"
       ]
     },
     "OverviewRegion": {

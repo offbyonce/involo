@@ -244,6 +244,11 @@ const SHOTS = [
   ["RestoreReview", { layout: "review" }, 1440, 900, "Backup"],
   ["RestorePhone", { layout: "reviewPhone" }, 390, 1200, "Backup"],
   ["RestoreRefused", { layout: "refused" }, 1440, 900, "Backup"],
+  // Light notes and panel-state descriptions (docs/design/boards/Notes.dc.html).
+  ["LightNotes", { layout: "lights" }, 400, 440, "Notes"],
+  ["LightNotesPhone", { layout: "lightsPhone" }, 390, 460, "Notes"],
+  ["StateNote", { layout: "state" }, 900, 220, "Notes"],
+  ["StateNotePhone", { layout: "statePhone" }, 390, 380, "Notes"],
 ];
 
 async function main() {

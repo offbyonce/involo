@@ -1149,25 +1149,6 @@ controls:
 overview:
   width: 520
   height: 772
-  captions:
-    - text: AFT OVERHEAD
-      x: 60
-      "y": 14
-    - text: FORWARD OVERHEAD
-      x: 20
-      "y": 108
-    - text: GLARESHIELD
-      x: 20
-      "y": 300
-    - text: MAIN PANEL
-      x: 20
-      "y": 352
-    - text: PEDESTAL
-      x: 130
-      "y": 444
-    - text: SIDE
-      x: 20
-      "y": 444
   areas:
     - zone: aelt
       x: 60

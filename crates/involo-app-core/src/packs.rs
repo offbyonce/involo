@@ -46,6 +46,52 @@ pub fn load_pack(json: &str) -> Result<FlatPack, AppError> {
     Ok(flat)
 }
 
+/// A built pack's JSON as a pack, with the fields format 6 dropped left out
+/// ([`without_dropped_fields`]), or why it can't be read. Every reader of a built or installed
+/// pack goes through it.
+pub(crate) fn parse_built(json: &str) -> Result<FlatPack, String> {
+    let mut value: serde_json::Value =
+        serde_json::from_str(json).map_err(|e| format!("the pack file could not be read: {e}"))?;
+    without_dropped_fields(&mut value);
+    serde_json::from_value(value).map_err(|e| format!("the pack file could not be read: {e}"))
+}
+
+/// Leaves out the fields format 6 dropped before v0.1.0 (#211) from a pack built before then: the
+/// overview's `captions`, a panel's `title` and a light note's `normal`. The app never read them,
+/// and a pack installed from an earlier catalog still has them; without this, it would not open
+/// until it is updated. `involo-pack check` refuses them in a pack's source.
+fn without_dropped_fields(pack: &mut serde_json::Value) {
+    let Some(content) = pack.get_mut("content") else {
+        return;
+    };
+    if let Some(overview) = content
+        .pointer_mut("/controls/overview")
+        .and_then(serde_json::Value::as_object_mut)
+    {
+        overview.remove("captions");
+    }
+    for panel in content
+        .get_mut("panels")
+        .and_then(serde_json::Value::as_array_mut)
+        .into_iter()
+        .flatten()
+    {
+        if let Some(panel) = panel.as_object_mut() {
+            panel.remove("title");
+        }
+    }
+    for note in content
+        .pointer_mut("/lights/lights")
+        .and_then(serde_json::Value::as_array_mut)
+        .into_iter()
+        .flatten()
+    {
+        if let Some(note) = note.as_object_mut() {
+            note.remove("normal");
+        }
+    }
+}
+
 /// The pack in `json`, or why it can't be opened: its format, then the whole file, then its kind.
 fn read_flat(json: &str) -> Result<FlatPack, String> {
     let format = serde_json::from_str::<serde_json::Value>(json)
@@ -55,8 +101,7 @@ fn read_flat(json: &str) -> Result<FlatPack, String> {
     {
         return Err(problem);
     }
-    let flat: FlatPack =
-        serde_json::from_str(json).map_err(|e| format!("the pack file could not be read: {e}"))?;
+    let flat = parse_built(json)?;
     // Before anything reads the lists and content (naming every step looks for each glossary
     // term in it).
     if let Some((at, what)) = involo_pack::limits::over_limits(&flat.lists, &flat.content)
@@ -237,6 +282,33 @@ mod tests {
     fn example_json() -> String {
         let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packs/examples/example-twin");
         serde_json::to_string(&FlatPack::from(involo_pack::load_pack_dir(&dir).unwrap())).unwrap()
+    }
+
+    #[test]
+    fn a_pack_built_with_the_fields_format_6_dropped_still_opens() {
+        // As an earlier catalog built it: overview captions, panel titles and light `normal`.
+        let mut old: serde_json::Value = serde_json::from_str(&example_json()).unwrap();
+        old["content"]["controls"]["overview"]["captions"] =
+            serde_json::json!([{ "text": "OVERHEAD", "x": 10, "y": 10 }]);
+        for panel in old["content"]["panels"].as_array_mut().unwrap() {
+            panel["title"] = serde_json::json!("Overhead panel");
+        }
+        for note in old["content"]["lights"]["lights"].as_array_mut().unwrap() {
+            note["normal"] = serde_json::json!(false);
+        }
+        let old = old.to_string();
+        // Without the leaving out, the strict reader refuses it.
+        assert!(serde_json::from_str::<FlatPack>(&old).is_err());
+        let flat = load_pack(&old).unwrap();
+        assert_eq!(flat.manifest.id, "example-twin");
+        // The Flight log names its entries with the installed pack's glossary.
+        assert!(
+            crate::names::pack_glossaries(std::slice::from_ref(&old)).contains_key("example-twin")
+        );
+        // Any other unknown field is still refused.
+        let mut other: serde_json::Value = serde_json::from_str(&example_json()).unwrap();
+        other["content"]["panels"][0]["subtitle"] = serde_json::json!("x");
+        assert!(load_pack(&other.to_string()).is_err());
     }
 
     #[test]

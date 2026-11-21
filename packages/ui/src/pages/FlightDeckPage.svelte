@@ -23,6 +23,7 @@ before, with no control.
   import { tick } from "svelte";
   import { type DeckArea, areaOf, deckAreas, deckHref, zoneLights, zoneSections } from "../lib/deck";
   import Icon from "../lib/Icon.svelte";
+  import LightNotes from "../lib/LightNotes.svelte";
   import { messageHref } from "../lib/messages";
   import MessagesView from "../lib/MessagesView.svelte";
   import Toggle from "../lib/Toggle.svelte";
@@ -110,7 +111,7 @@ before, with no control.
     const seen = new Set<string>();
     return (area?.zones ?? []).flatMap((z) =>
       zoneLights(index, z).filter((l) => {
-        const k = `${l.label}|${l.meaning}`;
+        const k = `${l.label}|${l.meaning}|${l.when}|${l.action}`;
         if (seen.has(k)) return false;
         seen.add(k);
         return true;
@@ -219,7 +220,7 @@ before, with no control.
       {#if lightsOpen}
         <ul class="list lights">
           {#each areaLights as l (l.label + l.meaning)}
-            <li><b>{l.label}</b> {l.meaning}</li>
+            <li><span><b>{l.label}</b> {l.meaning}</span><LightNotes when={l.when} action={l.action} /></li>
           {/each}
         </ul>
       {/if}
@@ -531,6 +532,9 @@ before, with no control.
     font-weight: var(--weight-semibold);
   }
   .list.lights li {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-2) + var(--border-thick));
     padding: var(--space-2) calc(var(--space-3) + var(--border-thick));
     border-bottom: var(--border-thin) solid var(--color-line);
     color: var(--color-text-secondary);

@@ -548,7 +548,6 @@ pub(super) mod tests {
         });
         p.content.panels = vec![Panel {
             id: "oh".into(),
-            title: "Overhead".into(),
             width: 100.0,
             height: 100.0,
             outline: vec![],
@@ -703,7 +702,6 @@ pub(super) mod tests {
                 meaning: "M".into(),
                 when: "W".into(),
                 action: "A".into(),
-                normal: false,
                 confirmed_by: vec![],
             }],
         }
@@ -850,7 +848,6 @@ pub(super) mod tests {
             file.overview = Some(Overview {
                 width: 100.0,
                 height: 100.0,
-                captions: vec![],
                 areas: vec![area("overhead"), area("overhead"), area("ghost")],
                 regions: vec![],
                 views: None,
@@ -888,7 +885,6 @@ pub(super) mod tests {
             file.overview = Some(Overview {
                 width: 100.0,
                 height: 100.0,
-                captions: vec![],
                 areas: vec![],
                 regions: vec![
                     region("Overhead", 0.0),
@@ -933,7 +929,6 @@ pub(super) mod tests {
             file.overview = Some(Overview {
                 width: 100.0,
                 height: 100.0,
-                captions: vec![],
                 areas: vec![],
                 regions: vec![OverviewRegion {
                     name: "Overhead".into(),
@@ -1022,7 +1017,6 @@ pub(super) mod tests {
             file.overview = Some(Overview {
                 width: 100.0,
                 height: 100.0,
-                captions: vec![],
                 areas: vec![],
                 regions: vec![OverviewRegion {
                     name: "Overhead".into(),
