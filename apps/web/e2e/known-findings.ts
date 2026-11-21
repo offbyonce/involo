@@ -20,17 +20,7 @@ export type KnownFinding = {
   issue: string;
 };
 
-const TWINS = ["Example Twin", "Example Twin LR"];
-
 export const KNOWN_FINDINGS: KnownFinding[] = [
-  {
-    screen: "Flight deck",
-    check: "label-content-name-mismatch",
-    finding:
-      /^label-content-name-mismatch \(serious\): .* at \.on \(<g role="button" tabindex="0" class="box /,
-    packs: TWINS,
-    issue: "#198",
-  },
   {
     screen: "Start",
     check: "layout",

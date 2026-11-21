@@ -40,11 +40,46 @@ describe("DeckMap map rules", () => {
     const { container } = render(DeckMap, { ...base, onPick: (z: string) => picked.push(z) });
     expect(screen.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual([
       "Wide panel",
-      "Thin panel",
-      "Twin panel",
+      "THIN PANEL NAME, Thin panel",
+      "TW, Twin panel",
     ]);
-    await fireEvent.keyDown(screen.getByRole("button", { name: "Thin panel" }), { key: "Enter" });
+    await fireEvent.keyDown(screen.getByRole("button", { name: /Thin panel$/ }), { key: "Enter" });
     await fireEvent.click(container.querySelectorAll("g.box")[3] as Element);
     expect(picked).toEqual(["thin", "twin"]);
+  });
+
+  it("leads each box's name with the name it shows, when its place's title doesn't hold its words (#198)", () => {
+    const short = [
+      { id: "elec", title: "Electrical panel", shortTitle: "ELEC", area: "Top", position: "Left" },
+      { id: "fuel", title: "Fuel panel", shortTitle: "FUEL", area: "Top", position: "Right" },
+    ] as Zone[];
+    const two = [
+      { zone: "elec", x: 0, y: 0, width: 200, height: 60 },
+      { zone: "fuel", x: 210, y: 0, width: 200, height: 60, label: "FUEL" },
+    ] as OverviewArea[];
+    const { container } = render(DeckMap, {
+      ...base,
+      boxes: two,
+      zones: short,
+      selected: "elec",
+      names: true,
+    });
+    for (const g of container.querySelectorAll("g.box[role=button]")) {
+      const shown = g.querySelector("text.name")?.textContent ?? "";
+      expect(shown, "the box shows its name").not.toBe("");
+      expect(g.getAttribute("aria-label")?.toUpperCase()).toContain(shown);
+    }
+    expect(screen.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual([
+      "ELEC, Electrical panel",
+      "Fuel panel",
+    ]);
+  });
+
+  it("names the full-size control that selects the same places, for every box (#198)", () => {
+    const { container } = render(DeckMap, { ...base, equivalent: "deck-list" });
+    const named = [...container.querySelectorAll("g.box[role=button]")].map((g) =>
+      g.getAttribute("data-equivalent"),
+    );
+    expect(named).toEqual(["deck-list", "deck-list", "deck-list"]);
   });
 });
