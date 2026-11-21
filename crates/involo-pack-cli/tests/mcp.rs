@@ -389,6 +389,159 @@ mod tests {
         let _ = std::fs::remove_dir_all(dir);
     }
 
+    /// One raw 2026-07-28 reply for each kind of result the server gives, by name.
+    fn every_modern_result(client: &mut Client) -> Vec<(&'static str, Value)> {
+        let mut call = |name: &'static str, method: &str, params: Value| {
+            let reply = client.request(method, params);
+            let result = reply.get("result").cloned();
+            (name, result.unwrap_or_else(|| panic!("{name}: {reply}")))
+        };
+        vec![
+            call("server/discover", "server/discover", json!({})),
+            call("tools/list", "tools/list", json!({})),
+            call(
+                "tools/call",
+                "tools/call",
+                json!({ "name": "explain", "arguments": { "code": "P0205" } }),
+            ),
+            call(
+                "tools/call (a failing tool)",
+                "tools/call",
+                json!({ "name": "explain", "arguments": { "code": "nope" } }),
+            ),
+            call(
+                "tools/call (text)",
+                "tools/call",
+                json!({ "name": "describe", "arguments": { "file": "flight.yaml" } }),
+            ),
+            call("resources/list", "resources/list", json!({})),
+            call(
+                "resources/read",
+                "resources/read",
+                json!({ "uri": "involo://examples/example-twin/pack.json" }),
+            ),
+        ]
+    }
+
+    #[test]
+    fn every_2026_07_28_result_is_complete() {
+        let dir = scratch("result-type");
+        let mut client = Client::start(&dir.join("work"));
+        for (name, result) in every_modern_result(&mut client) {
+            assert_eq!(result["resultType"], "complete", "{name}: {result}");
+        }
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn lists_and_resources_say_how_long_they_may_be_kept() {
+        let dir = scratch("cacheable");
+        let mut client = Client::start(&dir.join("work"));
+        for (name, result) in every_modern_result(&mut client) {
+            if ["tools/list", "resources/list", "resources/read"].contains(&name) {
+                assert_eq!(result["ttlMs"], 3_600_000, "{name}");
+                assert_eq!(result["cacheScope"], "public", "{name}");
+            }
+        }
+        // The earlier revisions have neither field.
+        let mut old = Client::start(&dir.join("work"));
+        old.plain("initialize", json!({ "protocolVersion": "2025-11-25", "capabilities": {}, "clientInfo": { "name": "old", "version": "1" } }));
+        let tools = old.plain("tools/list", json!({}));
+        assert!(
+            tools["result"].get("ttlMs").is_none() && tools["result"].get("cacheScope").is_none()
+        );
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn a_missing_resource_is_invalid_params_with_its_uri() {
+        let dir = scratch("missing");
+        let mut client = Client::start(&dir.join("work"));
+        for uri in [
+            "involo://guide/nope.md",
+            "involo://examples/example-twin/nope.yaml",
+            "involo://examples/nope/pack.json",
+            "file:///etc/hostname",
+        ] {
+            let reply = client.request("resources/read", json!({ "uri": uri }));
+            assert_eq!(
+                reply["error"],
+                json!({ "code": -32602, "message": "Resource not found", "data": { "uri": uri } }),
+                "{uri}"
+            );
+            assert!(reply.get("result").is_none(), "never an empty `contents`");
+        }
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn ping_is_only_for_clients_of_the_earlier_revisions() {
+        let dir = scratch("ping");
+        let mut client = Client::start(&dir.join("work"));
+        let reply = client.request("ping", json!({}));
+        assert_eq!(reply["error"]["code"], -32601, "{reply}");
+        assert_eq!(reply["error"]["message"], "no method `ping`");
+        let mut old = Client::start(&dir.join("work"));
+        old.plain("initialize", json!({ "protocolVersion": "2025-11-25", "capabilities": {}, "clientInfo": { "name": "old", "version": "1" } }));
+        assert_eq!(
+            old.plain("ping", json!({})),
+            json!({ "jsonrpc": "2.0", "id": 2, "result": {} })
+        );
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn tools_are_listed_in_one_fixed_order() {
+        let dir = scratch("order");
+        let names = |client: &mut Client| -> Vec<String> {
+            client.result("tools/list", json!({}))["tools"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|t| t["name"].as_str().unwrap().to_owned())
+                .collect()
+        };
+        let mut first = Client::start(&dir.join("work"));
+        let order = names(&mut first);
+        assert_eq!(
+            order,
+            [
+                "format_overview",
+                "file_schema",
+                "panel_item_kinds",
+                "simbrief_sources",
+                "new",
+                "check",
+                "build",
+                "import_panel",
+                "describe",
+                "explain"
+            ]
+        );
+        // The same list on every request, after other calls, and from a new server.
+        first.tool("new", json!({ "folder": "demo" })).unwrap();
+        first.tool("check", json!({ "path": "demo" })).unwrap();
+        let whole = first.result("tools/list", json!({}))["tools"].clone();
+        assert_eq!(names(&mut first), order);
+        let mut second = Client::start(&dir.join("work"));
+        assert_eq!(second.result("tools/list", json!({}))["tools"], whole);
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn every_2026_07_28_result_names_the_server() {
+        let dir = scratch("server-info");
+        let mut client = Client::start(&dir.join("work"));
+        for (name, result) in every_modern_result(&mut client) {
+            assert_eq!(
+                result["_meta"]["io.modelcontextprotocol/serverInfo"],
+                json!({ "name": "involo-pack", "version": env!("CARGO_PKG_VERSION") }),
+                "{name}: {result}"
+            );
+        }
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
     #[test]
     fn paths_outside_the_folder_are_refused() {
         let dir = scratch("paths");
