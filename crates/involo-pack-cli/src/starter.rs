@@ -167,8 +167,11 @@ pub fn words(id: &str) -> String {
     })
 }
 
-/// One of an example's files as a new pack's: its id and name replaced, and its schema link (a
-/// path into the repository) left out.
+/// One of an example's files as a new pack's: its id and name replaced, and what belongs to the
+/// example rather than to the author's pack left out: the schema link (a path into the
+/// repository), and in a YAML file its opening comments (the example's copyright and license
+/// lines, and the note that its content is invented) and any other comment line saying what is
+/// invented.
 fn starter_text(
     path: &str,
     text: &str,
@@ -177,14 +180,18 @@ fn starter_text(
     old_name: &str,
     name: &str,
 ) -> String {
-    let link = if path == "pack.json" {
-        "\"$schema\""
+    let kept: Vec<&str> = if path == "pack.json" {
+        text.lines()
+            .filter(|l| !l.trim_start().starts_with("\"$schema\""))
+            .collect()
     } else {
-        "# yaml-language-server:"
+        text.lines()
+            .skip_while(|l| l.trim().is_empty() || l.trim_start().starts_with('#'))
+            .filter(|l| !l.trim_start().starts_with("# Invented"))
+            .collect()
     };
-    let mut out = text
-        .lines()
-        .filter(|l| !l.trim_start().starts_with(link))
+    let mut out = kept
+        .iter()
         .fold(String::with_capacity(text.len()), |mut out, l| {
             out.push_str(l);
             out.push('\n');

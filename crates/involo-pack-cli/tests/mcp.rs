@@ -216,8 +216,9 @@ mod tests {
         assert_eq!(issue["code"], "P0205");
         assert_eq!(issue["severity"], "error");
         assert_eq!(issue["file"], "lists/before-start.yaml");
-        // Line 14: `new` leaves out the example's schema link, the line above it.
-        assert_eq!(issue["line"], 14);
+        // Line 10: `new` leaves out the example's opening comments (its copyright and license
+        // lines, schema link and note), the lines above it.
+        assert_eq!(issue["line"], 10);
         assert!(
             issue["message"]
                 .as_str()

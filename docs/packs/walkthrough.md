@@ -58,8 +58,21 @@ ok   my-twin 0.1.0 (4 checklists, 19 steps)
 
 Open `pack.json`. Change the `aircraft` block to your aircraft: its `family` and `name`, its ICAO
 type codes in `icaoTypes`, the `simulator` and the add-on's `developer`. Leave `schemaVersion` and
-`engine` as they are. `basisTags` lists the kinds of material your lists may be checked against;
-`attribution` is the line the app shows for the pack.
+`engine` as they are.
+
+The rest of the manifest is about your pack, not the example's:
+
+- `license` is the license you publish your pack under, as an SPDX identifier. The starter keeps
+  the example's, `CC-BY-NC-SA-4.0`, which packs in the Involo catalog use; choose your own for a
+  pack you keep elsewhere.
+- `attribution` is the line the app shows for the pack: replace the example's note with yours.
+- `basisTags` lists the kinds of material your lists may be checked against. The starter's
+  `invented-example` marks the example's invented content: replace it with the kinds you check
+  against (see [the basis of each list](content-rules.md#the-basis-of-each-list)), here and in
+  each list's `basis`.
+
+The pack's files are yours: `new` leaves out the example's copyright lines and its notes that
+the content is invented.
 
 Every file says what it takes: `involo-pack describe pack.json` lists the manifest's fields, and
 the [format reference](reference/index.md) has a page for each file. With the schemas in an
@@ -87,7 +100,7 @@ involo-pack check my-twin
 
 ```
 FAIL my-twin 0.1.0 (4 checklists, 20 steps)
-  error P0410: lists/before-start.yaml:79: my-twin.before-start.parking-brake: the step's controls are drawn, but it has no `targets`
+  error P0410: lists/before-start.yaml:75: my-twin.before-start.parking-brake: the step's controls are drawn, but it has no `targets`
     hint: Add `targets`. `involo-pack suggest-targets <pack>` drafts them from the wording.
 ```
 
