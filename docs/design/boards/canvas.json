@@ -2193,6 +2193,94 @@
       "h": 1100,
       "title": "Shared source: several packs (tweaks: layout, theme)",
       "page": "b14"
+    },
+    "BackupSetting.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 720,
+      "h": 320,
+      "title": "Settings: back up and restore (dark)",
+      "page": "b15"
+    },
+    "BackupSettingLight.dc.html": {
+      "x": 800,
+      "y": 0,
+      "w": 720,
+      "h": 320,
+      "title": "Settings: back up and restore (light)",
+      "page": "b15"
+    },
+    "BackupSettingPhone.dc.html": {
+      "x": 1600,
+      "y": 0,
+      "w": 390,
+      "h": 420,
+      "title": "Settings: back up and restore, phone (dark)",
+      "page": "b15"
+    },
+    "BackupSettingPhoneLight.dc.html": {
+      "x": 2070,
+      "y": 0,
+      "w": 390,
+      "h": 420,
+      "title": "Settings: back up and restore, phone (light)",
+      "page": "b15"
+    },
+    "RestoreReview.dc.html": {
+      "x": 0,
+      "y": 480,
+      "w": 1440,
+      "h": 900,
+      "title": "Restoring a backup: what it replaces (dark)",
+      "page": "b15"
+    },
+    "RestoreReviewLight.dc.html": {
+      "x": 1520,
+      "y": 480,
+      "w": 1440,
+      "h": 900,
+      "title": "Restoring a backup: what it replaces (light)",
+      "page": "b15"
+    },
+    "RestorePhone.dc.html": {
+      "x": 3040,
+      "y": 480,
+      "w": 390,
+      "h": 1200,
+      "title": "Restoring a backup: phone (dark)",
+      "page": "b15"
+    },
+    "RestorePhoneLight.dc.html": {
+      "x": 3510,
+      "y": 480,
+      "w": 390,
+      "h": 1200,
+      "title": "Restoring a backup: phone (light)",
+      "page": "b15"
+    },
+    "RestoreRefused.dc.html": {
+      "x": 0,
+      "y": 1500,
+      "w": 1440,
+      "h": 900,
+      "title": "A backup that can’t be restored (dark)",
+      "page": "b15"
+    },
+    "RestoreRefusedLight.dc.html": {
+      "x": 1520,
+      "y": 1500,
+      "w": 1440,
+      "h": 900,
+      "title": "A backup that can’t be restored (light)",
+      "page": "b15"
+    },
+    "Backup.dc.html": {
+      "x": 0,
+      "y": 2520,
+      "w": 1440,
+      "h": 900,
+      "title": "Shared source: back up and restore (tweaks: layout, theme)",
+      "page": "b15"
     }
   },
   "createdOnFiles": {
@@ -2201,7 +2289,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b14",
+    "page": "b15",
     "view": "canvas"
   },
   "notes": {},
@@ -2479,7 +2567,18 @@
     "PacksUpdateLight.dc.html",
     "PacksLog.dc.html",
     "PacksLogLight.dc.html",
-    "Packs.dc.html"
+    "Packs.dc.html",
+    "BackupSetting.dc.html",
+    "BackupSettingLight.dc.html",
+    "BackupSettingPhone.dc.html",
+    "BackupSettingPhoneLight.dc.html",
+    "RestoreReview.dc.html",
+    "RestoreReviewLight.dc.html",
+    "RestorePhone.dc.html",
+    "RestorePhoneLight.dc.html",
+    "RestoreRefused.dc.html",
+    "RestoreRefusedLight.dc.html",
+    "Backup.dc.html"
   ],
   "pages": [
     {
@@ -2569,6 +2668,10 @@
     {
       "id": "b14",
       "name": "Beta 1: several packs"
+    },
+    {
+      "id": "b15",
+      "name": "Beta 1: back up and restore"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"

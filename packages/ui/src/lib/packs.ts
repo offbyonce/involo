@@ -6,7 +6,7 @@
 // this device. All from the pack, the catalog and the flight.
 
 import type { AircraftInfo, CatalogEntry, Rail } from "@involo/bindings";
-import type { InstalledPack } from "../host";
+import type { InstalledPack, PackInstall } from "../host";
 
 const MB = 1024 * 1024;
 
@@ -70,4 +70,23 @@ export function updateFor(pack: InstalledPack, catalog: CatalogEntry[]): Catalog
 export function morePacks(installed: InstalledPack[], catalog: CatalogEntry[]): CatalogEntry[] {
   const here = new Set(installed.map((p) => p.summary.id));
   return catalog.filter((e) => !here.has(e.id));
+}
+
+/** A problem installing a pack, as the Packs page shows it: a title and its lines. */
+export type PackNotice = { title: string; lines: string[] };
+
+/** What a refused or unkept install says, or null when the pack was installed. */
+export function installNotice(name: string, result: PackInstall): PackNotice | null {
+  if (result.state === "installed") return null;
+  return result.state === "refused"
+    ? { title: `${name} wasn’t added.`, lines: result.reasons }
+    : {
+        title: `${name} passed its checks, but this device didn’t keep it.`,
+        lines: ["Storage is blocked or full here, so the pack can’t be installed."],
+      };
+}
+
+/** What a catalog download that failed says, with the reason. */
+export function downloadFailed(name: string, e: unknown): PackNotice {
+  return { title: `${name} couldn’t be downloaded.`, lines: [e instanceof Error ? e.message : String(e)] };
 }

@@ -14,7 +14,7 @@ pre-commit:
       run: cargo clippy --workspace --all-targets -- -D warnings
     biome:
       glob: "*.{ts,js,json}"
-      run: pnpm exec biome check --error-on-warnings {staged_files}
+      run: pnpm exec biome check --error-on-warnings --no-errors-on-unmatched {staged_files}
     overlap:
       glob: "packs/**"
       run: just overlap

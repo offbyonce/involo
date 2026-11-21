@@ -6,6 +6,7 @@
 
 mod actions;
 mod app;
+mod backup;
 mod boundary;
 mod error;
 mod flight;
@@ -30,6 +31,10 @@ mod weather;
 
 pub use actions::{Action, apply};
 pub use app::{AppInfo, app_info, example_checklist};
+pub use backup::{
+    BACKUP_FORMAT, BACKUP_KIND, Backup, BackupFlight, BackupParts, BackupRead, BackupRefusal,
+    FlightPlace, PackSource, backup_text, read_backup,
+};
 pub use boundary::to_interface_json;
 pub use error::AppError;
 pub use flight::{AnswerSource, FLIGHT_FORMAT, Flight, new_flight};
@@ -56,6 +61,7 @@ pub use suggest::{Suggestion, suggestion};
 pub use targets::{ItemTarget, step_targets};
 pub use update::{
     ChangedStep, PackChanges, RewordedStep, Rewording, UpdateNote, pack_changes, reconcile,
+    restore_flight,
 };
 pub use visibility::{
     Shown, has_essentials, in_essentials, passes, shown_steps, step_shows, visible_steps,

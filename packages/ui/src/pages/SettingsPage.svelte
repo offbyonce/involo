@@ -6,8 +6,10 @@ Settings, laid out as in 3.0: one row per choice with a segmented control. The h
 on the device (decision 0012).
 -->
 <script lang="ts">
-  import Toggle from "../lib/Toggle.svelte";
   import type { Settings } from "@involo/bindings";
+  import { lastBackupLine } from "../lib/backup";
+  import Icon from "../lib/Icon.svelte";
+  import Toggle from "../lib/Toggle.svelte";
 
   let {
     settings,
@@ -15,6 +17,8 @@ on the device (decision 0012).
     seats = [],
     hasEssentials = true,
     onChange,
+    onBackup = () => {},
+    onRestore = () => {},
   }: {
     settings: Settings;
     version: string | null;
@@ -23,7 +27,12 @@ on the device (decision 0012).
     /** The pack marks quick steps; without them the Steps row (Full or Essentials) is left out. */
     hasEssentials?: boolean;
     onChange: (s: Settings) => void;
+    /** Save a backup file (#47): written at once, no dialog. */
+    onBackup?: () => void;
+    /** Restore from a file: the file the pilot chose, for the review. */
+    onRestore?: (file: File) => void;
   } = $props();
+  let picker = $state<HTMLInputElement | null>(null);
   /** No seat chosen yet: "Where is this?" shows the first seat's view, so that one is selected. */
   let seat = $derived(seats.some((s) => s.id === settings.seat) ? settings.seat : (seats[0]?.id ?? null));
   /** The release notes, on the project's own releases page. */
@@ -122,6 +131,29 @@ on the device (decision 0012).
       <p>Panel views show what you see from this seat.</p>
     </div>
   {/if}
+  <!-- Settings › Back up and restore (#47, BackupSetting board): after Your seat, or after Panel
+       preview when there is no seat setting. On a phone the buttons stack, full width. -->
+  <div class="set backup">
+    <b id="set-backup">Back up and restore</b>
+    <p>One file holds every pack’s flight and plan, your settings and the flight log. Keep a copy somewhere safe: clearing this browser’s site data removes everything saved here.</p>
+    <div class="acts" role="group" aria-labelledby="set-backup">
+      <button class="btn" type="button" onclick={onBackup}><Icon name="download" />Save a backup file</button>
+      <button class="btn" type="button" onclick={() => picker?.click()}><Icon name="file-add" />Restore from a file…</button>
+    </div>
+    <span class="last">{lastBackupLine(settings.lastBackup ?? null)}</span>
+    <input
+      bind:this={picker}
+      type="file"
+      accept=".json,application/json"
+      hidden
+      onchange={(e) => {
+        const input = e.currentTarget;
+        const file = input.files?.[0];
+        input.value = "";
+        if (file) onRestore(file);
+      }}
+    />
+  </div>
 {/snippet}
 <div class="card">
   {#each ROWS.filter((r) => hasEssentials || r.key !== "essentials") as row (row.key)}
@@ -235,6 +267,27 @@ on the device (decision 0012).
     padding-block: var(--space-2);
     text-align: center;
   }
+  /* Back up and restore: stacked like Your seat; the buttons side by side, stacked on a phone. */
+  .set.backup {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+  .set.backup p {
+    margin: 0;
+  }
+  .set.backup .acts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .set.backup .btn :global(svg) {
+    width: calc(var(--size-icon-small) + var(--border-thick));
+    height: calc(var(--size-icon-small) + var(--border-thick));
+  }
+  .last {
+    color: var(--color-text-muted);
+    font-size: calc(var(--font-size-caption) + var(--border-thin));
+  }
   /* The toggle switch (rules.md components; R6Settings). */
   .done {
     display: flex;
@@ -243,6 +296,12 @@ on the device (decision 0012).
   @media (max-width: 599px) {
     .set {
       grid-template-columns: 1fr;
+    }
+    .set.backup .acts {
+      flex-direction: column;
+    }
+    .set.backup .btn {
+      justify-content: center;
     }
   }
 </style>

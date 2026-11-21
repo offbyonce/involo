@@ -238,6 +238,12 @@ const SHOTS = [
   ["RolesDesk", { layout: "desktop" }, 1440, 900, "Roles"],
   ["RolesPhone", { layout: "phone" }, 390, 844, "Roles"],
   ["SeatSetting", { layout: "settings" }, 720, 300, "Roles"],
+  // Back up and restore (docs/design/boards/Backup.dc.html).
+  ["BackupSetting", { layout: "settings" }, 720, 320, "Backup"],
+  ["BackupSettingPhone", { layout: "settingsPhone" }, 390, 420, "Backup"],
+  ["RestoreReview", { layout: "review" }, 1440, 900, "Backup"],
+  ["RestorePhone", { layout: "reviewPhone" }, 390, 1200, "Backup"],
+  ["RestoreRefused", { layout: "refused" }, 1440, 900, "Backup"],
 ];
 
 async function main() {

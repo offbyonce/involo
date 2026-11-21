@@ -88,4 +88,47 @@ describe("SettingsPage", () => {
     expect(screen.queryByRole("radiogroup", { name: "Steps" })).toBeNull();
     expect(screen.queryByText("Essentials")).toBeNull();
   });
+
+  it("backs up and restores from after Your seat, saying when this device last saved a backup (#47)", async () => {
+    const backups: number[] = [];
+    const chosen: File[] = [];
+    const seats = [
+      { id: "left", label: "Left seat · Captain" },
+      { id: "right", label: "Right seat · First officer" },
+    ];
+    const { container } = render(SettingsPage, {
+      settings: { ...settings, lastBackup: null },
+      version: null,
+      seats,
+      onChange: () => {},
+      onBackup: () => backups.push(1),
+      onRestore: (f: File) => chosen.push(f),
+    });
+    const titles = [...container.querySelectorAll(".set b")].map((b) => b.textContent);
+    expect(titles.slice(titles.indexOf("Your seat"), titles.indexOf("Your seat") + 3)).toEqual([
+      "Your seat",
+      "Back up and restore",
+      "Dimming",
+    ]);
+    expect(screen.getByText("Last backup: never")).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "Save a backup file" }));
+    expect(backups).toEqual([1]);
+    const file = new File(["{}"], "involo-backup.json", { type: "application/json" });
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    Object.defineProperty(input, "files", { value: [file], configurable: true });
+    await fireEvent.change(input);
+    expect(chosen).toEqual([file]);
+  });
+
+  it("puts Back up and restore after Panel preview when there is no seat setting, with the last backup's time", () => {
+    const at = new Date(2026, 10, 18, 10, 14).getTime();
+    const { container } = render(SettingsPage, {
+      settings: { ...settings, lastBackup: at },
+      version: null,
+      onChange: () => {},
+    });
+    const titles = [...container.querySelectorAll(".set b")].map((b) => b.textContent);
+    expect(titles[titles.indexOf("Panel preview in steps") + 1]).toBe("Back up and restore");
+    expect(screen.getByText("Last backup: Nov 18 at 10:14")).toBeTruthy();
+  });
 });

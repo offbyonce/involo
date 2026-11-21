@@ -13,6 +13,8 @@ in Rust. The host saves progress and settings on the device.
   import {
     type Action,
     type AppInfo,
+    type Backup,
+    type BackupFlight,
     type CatalogEntry,
     type Checklist,
     type PackChanges,
@@ -37,8 +39,11 @@ in Rust. The host saves progress and settings on the device.
   import { getHost, type InstalledPack, type Kept, type PackInstall, type SavedItem } from "./host";
   import PacksPage, { type PackRow, type PacksNotice } from "./pages/PacksPage.svelte";
   import UpdateNote from "./lib/UpdateNote.svelte";
+  import RestoreDialog, { type Chosen, type Refused, type Review } from "./lib/RestoreDialog.svelte";
+  import { backupFileName, logLine, refusalLine, rowFor, savedByLine, TOO_LARGE } from "./lib/backup";
+  import { MAX_BACKUP_FILE_BYTES } from "./lib/file-limits";
   import OtherAircraftDialog from "./lib/OtherAircraft.svelte";
-  import { morePacks, savedLine, updateFor } from "./lib/packs";
+  import { downloadFailed, installNotice, morePacks, type PackNotice, savedLine, updateFor } from "./lib/packs";
   import type { SwitchPack } from "./lib/Drawer.svelte";
   import { fetchProblem, fileProblem } from "./lib/problems";
   import { safely } from "./lib/safely";
@@ -378,12 +383,8 @@ in Rust. The host saves progress and settings on the device.
 
   /** What an install said, as the Packs page shows it; true when the pack is installed. */
   function accepted(name: string, result: PackInstall): boolean {
-    if (result.state === "installed") return true;
-    packsNotice =
-      result.state === "refused"
-        ? { title: `${name} wasn’t added.`, lines: result.reasons }
-        : { title: `${name} passed its checks, but this device didn’t keep it.`, lines: ["Storage is blocked or full here, so the pack can’t be installed."] };
-    return false;
+    packsNotice = installNotice(name, result);
+    return result.state === "installed";
   }
 
   async function installing(key: string, name: string, run: () => Promise<PackInstall>, open: (id: string) => boolean): Promise<void> {
@@ -402,7 +403,7 @@ in Rust. The host saves progress and settings on the device.
         await loadPacks();
       }
     } catch (e) {
-      packsNotice = { title: `${name} couldn’t be downloaded.`, lines: [e instanceof Error ? e.message : String(e)] };
+      packsNotice = downloadFailed(name, e);
     } finally {
       packsBusy = null;
     }
@@ -991,6 +992,158 @@ in Rust. The host saves progress and settings on the device.
       return isAppError(e) ? e.message : String(e);
     }
   }
+  // Back up and restore (#47). A backup holds every pack's saved flight and plan, the settings
+  // and the flight log; a restore says what it will change before it changes anything.
+
+  /** The saved plan a backup takes for a pack: ready only; a plan this version can't read stays
+   * on the device as it is. */
+  const readyPlan = (item: SavedItem<SavedPlan>) => (item?.loaded.state === "ready" ? item.loaded.value : null);
+
+  /** Save a backup file: written at once, then Last backup is this moment. */
+  async function saveBackup(): Promise<void> {
+    if (!settings) return;
+    try {
+      const now = Date.now();
+      // Every pack with a flight saved here: the installed packs', and any kept for a pack not
+      // added (a restore keeps those, and so does removing a pack).
+      const ids = [...new Set([...installed.map((p) => p.summary.id), ...(await host.savedPacks())])];
+      const flights: BackupFlight[] = [];
+      for (const id of ids) {
+        const saved = (await host.readSaved(id)).flight;
+        if (saved?.loaded.state !== "ready") continue;
+        const f = id === packId && flight ? flight : saved.loaded.value;
+        if (f.pack !== id) continue;
+        const pack = installed.find((p) => p.summary.id === id);
+        const line = id === packId ? openLine : (savedLines[id] ?? null);
+        flights.push({
+          pack: id,
+          name: pack?.summary.name ?? id,
+          version: pack?.summary.version ?? f.packVersion,
+          source: pack?.source ?? (catalog.some((c) => c.id === id) ? "catalog" : "file"),
+          place: line ? { place: line.where, done: line.done, total: line.total } : null,
+          flight: f,
+          plan: id === packId ? plan : readyPlan(await host.readPlan(id)),
+        });
+      }
+      const saved = await host.readLog();
+      const kept = saved?.loaded.state === "ready" ? saved.loaded.value : logBlocked ? await host.newLog() : (log ?? (await host.newLog()));
+      const text = await host.backupText({ savedAt: now, flights, settings: { ...settings, lastBackup: now }, log: kept });
+      download(backupFileName(now), text, "application/json");
+      await changeSettings({ ...settings, lastBackup: now });
+    } catch (e) {
+      fail(e);
+    }
+  }
+
+  /** The restore's dialog: the review of a backup, or why a file can't be restored. */
+  let restoring = $state<{ backup: Backup | null; shown: Review | Refused } | null>(null);
+  /** The pack the review is downloading, by id. */
+  let restoreDownload = $state<string | null>(null);
+  /** A failed Download in the review, on its row, by pack id, as the Packs page says it. */
+  let restoreProblems = $state<Record<string, PackNotice>>({});
+
+  /** What restoring each part of the backup would do on this device, for the review. */
+  async function review(backup: Backup): Promise<Review> {
+    const flights = [];
+    for (const entry of backup.flights) {
+      const pack = installed.find((p) => p.summary.id === entry.pack);
+      const saved = pack ? (await host.readSaved(entry.pack)).flight : null;
+      const line = entry.pack === packId ? openLine : (savedLines[entry.pack] ?? null);
+      const here = !saved ? null : line ? { place: line.where, done: line.done, total: line.total } : true;
+      flights.push(rowFor(entry, pack, here, catalog));
+    }
+    let logText: string | null = null;
+    if (log && !logBlocked) {
+      const saved = await host.readLog();
+      const base = saved?.loaded.state === "ready" ? saved.loaded.value : log;
+      try {
+        const c = await host.editLog(base, { type: "merge", text: JSON.stringify(backup.log) });
+        logText = logLine(c.addedFlights, c.addedPractice);
+      } catch {
+        logText = null;
+      }
+    }
+    return { kind: "review", saved: savedByLine(backup.savedAt, backup.appVersion), flights, log: logText };
+  }
+
+  /** Restore from a file: the review, or the refusal. Nothing changes here. */
+  async function startRestore(file: File): Promise<void> {
+    try {
+      const refuse = (line: string) => {
+        restoring = { backup: null, shown: { kind: "refused", line } };
+      };
+      if (file.size > MAX_BACKUP_FILE_BYTES) return refuse(TOO_LARGE);
+      const read = await host.readBackup(await file.text());
+      if (read.state === "refused") return refuse(refusalLine(read.refusal));
+      restoreProblems = {};
+      restoring = { backup: read.backup, shown: await review(read.backup) };
+    } catch (e) {
+      fail(e);
+    }
+  }
+
+  /** Download in the review: installs the pack from the catalog as the Packs page does, and its
+   * row then reads as installed. */
+  async function restoreDownloadPack(entry: CatalogEntry): Promise<void> {
+    if (!restoring?.backup) return;
+    restoreDownload = entry.id;
+    const { [entry.id]: _, ...others } = restoreProblems;
+    restoreProblems = others;
+    try {
+      const result = await host.installCatalogPack(entry);
+      const problem = installNotice(entry.name, result);
+      if (problem) {
+        // The row stays as it was, ticked, so its flight is still kept.
+        restoreProblems = { ...restoreProblems, [entry.id]: problem };
+        return;
+      }
+      await loadPacks();
+      const backup = restoring?.backup;
+      if (backup) restoring = { backup, shown: await review(backup) };
+    } catch (e) {
+      restoreProblems = { ...restoreProblems, [entry.id]: downloadFailed(entry.name, e) };
+    } finally {
+      restoreDownload = null;
+    }
+  }
+
+  /** Restores the ticked parts. Each flight goes through the same reconcile as loading, so one
+   * from another version of its pack is brought up to the installed version with a note; a
+   * flight for a pack that isn't installed is kept as it is. Settings replace this device's,
+   * keeping its Last backup and the pack it has open; the log merges as Load log file does. The
+   * app then starts again on the open pack, from what is saved. */
+  async function restore(chosen: Chosen): Promise<void> {
+    const backup = restoring?.backup;
+    restoring = null;
+    if (!backup || !settings) return;
+    try {
+      for (const entry of backup.flights) {
+        if (!chosen.flights.includes(entry.pack)) continue;
+        const id = entry.pack;
+        let f = entry.flight;
+        if (installed.some((p) => p.summary.id === id)) {
+          await host.loadPack(id);
+          f = await host.restoreFlight(id, f);
+        }
+        // Saved text this version can't read is set aside, never written over.
+        const saved = (await host.readSaved(id)).flight;
+        if (saved && saved.loaded.state !== "ready" && !(await host.setAside(id, "flight"))) throw new Error(NOT_RESTORED);
+        if (typeof (await host.save(id, "flight", f)) !== "number") throw new Error(NOT_RESTORED);
+        if (entry.plan) await host.savePlan(id, entry.plan);
+      }
+      if (chosen.settings) {
+        await host.readSettings();
+        const next = { ...backup.settings, lastBackup: settings.lastBackup, currentPack: settings.currentPack };
+        if (typeof (await host.save(packId, "settings", next)) !== "number") throw new Error(NOT_RESTORED);
+      }
+      if (chosen.log && !(await changeLog({ type: "merge", text: JSON.stringify(backup.log) }))) throw new Error(NOT_RESTORED);
+      onRestart(packId || null);
+    } catch (e) {
+      fail(e);
+    }
+  }
+  const NOT_RESTORED = "The backup couldn’t be fully restored on this device. Check that this browser allows saving site data, then try again.";
+
   /** Deletes a flight, or brings a deleted one back (Undo). */
   async function deleteLogged(id: string): Promise<boolean> {
     try {
@@ -1647,7 +1800,15 @@ in Rust. The host saves progress and settings on the device.
             </div>
           {/if}
           {#if screen === "settings"}
-            <SettingsPage {settings} version={info?.version ?? null} seats={index?.seats ?? []} hasEssentials={index?.hasEssentials ?? true} onChange={(s) => void changeSettings(s)} />
+            <SettingsPage
+              {settings}
+              version={info?.version ?? null}
+              seats={index?.seats ?? []}
+              hasEssentials={index?.hasEssentials ?? true}
+              onChange={(s) => void changeSettings(s)}
+              onBackup={() => void saveBackup()}
+              onRestore={(file) => void startRestore(file)}
+            />
           {:else if screen === "open"}
             <OpenStepsPage
               {index}
@@ -1769,6 +1930,19 @@ in Rust. The host saves progress and settings on the device.
     onUse={() => o.answer(true)}
     onCancel={() => o.answer(false)}
   />
+{/if}
+
+{#if restoring}
+  {#key restoring.backup}
+    <RestoreDialog
+      shown={restoring.shown}
+      downloading={restoreDownload}
+      problems={restoreProblems}
+      onClose={() => (restoring = null)}
+      onRestore={(chosen) => void restore(chosen)}
+      onDownload={(entry) => void restoreDownloadPack(entry)}
+    />
+  {/key}
 {/if}
 
 <style>

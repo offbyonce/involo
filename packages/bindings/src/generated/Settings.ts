@@ -43,4 +43,9 @@ currentPack: string | null,
 /**
  * The pilot's seat, by one of the pack's seat ids; None until chosen.
  */
-seat: string | null, };
+seat: string | null, 
+/**
+ * When this device last saved a backup file (#47), in milliseconds since 1970 (UTC); None
+ * before the first. Restoring settings from a backup keeps this device's.
+ */
+lastBackup: number | null, };

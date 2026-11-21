@@ -124,3 +124,20 @@ export async function savePlan(pack: string, plan: SavedPlan | null): Promise<vo
     }
   }
 }
+
+/** The packs with a flight saved on this device, by id; set-aside copies don't count. */
+export async function savedPacks(): Promise<string[]> {
+  const s = storage();
+  if (!s) return [];
+  const prefix = storageKey("flight.");
+  const ids: string[] = [];
+  try {
+    for (let i = 0; i < s.length; i++) {
+      const k = s.key(i);
+      if (k?.startsWith(prefix) && !k.includes(".kept-")) ids.push(k.slice(prefix.length));
+    }
+  } catch {
+    return [];
+  }
+  return ids.sort();
+}

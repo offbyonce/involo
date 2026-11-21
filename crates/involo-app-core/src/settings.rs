@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// The saved format of [`Settings`]. Raise it, with a migration and tests, when the shape changes.
-pub const SETTINGS_FORMAT: u32 = 7;
+pub const SETTINGS_FORMAT: u32 = 8;
 
 /// The highest dimming step; 0 is full brightness.
 pub const MAX_DIMMING: u8 = 4;
@@ -118,6 +118,10 @@ pub struct Settings {
     pub current_pack: Option<String>,
     /// The pilot's seat, by one of the pack's seat ids; None until chosen.
     pub seat: Option<String>,
+    /// When this device last saved a backup file (#47), in milliseconds since 1970 (UTC); None
+    /// before the first. Restoring settings from a backup keeps this device's.
+    #[ts(type = "number | null")]
+    pub last_backup: Option<i64>,
 }
 
 impl Default for Settings {
@@ -139,6 +143,7 @@ impl Default for Settings {
             tour_seen: false,
             current_pack: None,
             seat: None,
+            last_backup: None,
         }
     }
 }
