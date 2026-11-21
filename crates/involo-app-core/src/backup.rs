@@ -407,7 +407,11 @@ mod tests {
         };
         let written: Value =
             serde_json::from_str(&backup_text(again, &backup.app_version).unwrap()).unwrap();
-        assert_eq!(written, frozen());
+        // Written back as it was read, except that a flight is written in today's flight format,
+        // as a saved flight is once read (format 6 saves paused timers, #213).
+        let mut expected = frozen();
+        expected["flights"][0]["flight"]["format"] = Value::from(crate::flight::FLIGHT_FORMAT);
+        assert_eq!(written, expected);
     }
 
     #[test]

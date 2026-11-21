@@ -1,0 +1,64 @@
+{
+  "format": 5,
+  "pack": "ifly-737-max8",
+  "packVersion": "0.1.0",
+  "options": {
+    "approach": "ils",
+    "exterior": "on",
+    "power": "gpu",
+    "start": "cold"
+  },
+  "panelState": "gpu",
+  "stateTicks": [
+    "ifly-737-max8.cold-dark.alternate-flaps-switches",
+    "ifly-737-max8.cold-dark.hydraulic-pump-switches",
+    "ifly-737-max8.cold-dark.landing-gear-lever",
+    "ifly-737-max8.cold-dark.standby-power-switch",
+    "ifly-737-max8.cold-dark.wiper-selectors",
+    "ifly-737-max8.gpu-power.ground-power-cart-efb",
+    "ifly-737-max8.gpu-power.parking-brake"
+  ],
+  "session": {
+    "done": {
+      "ifly-737-max8.cold-dark.alternate-flaps-switches": 1763110000000,
+      "ifly-737-max8.cold-dark.battery-switch": 1763110005000,
+      "ifly-737-max8.cold-dark.hydraulic-pump-switches": 1763110000000,
+      "ifly-737-max8.cold-dark.landing-gear-lever": 1763110000000,
+      "ifly-737-max8.cold-dark.standby-power-switch": 1763110000000,
+      "ifly-737-max8.cold-dark.wiper-selectors": 1763110000000,
+      "ifly-737-max8.gpu-power.ground-power-cart-efb": 1763110000000,
+      "ifly-737-max8.gpu-power.parking-brake": 1763110000000
+    },
+    "skipped": {}
+  },
+  "values": {
+    "origin": "KSEA",
+    "destination": "KSFO",
+    "runway": "16L",
+    "sid": "SUMMA2",
+    "transition": "SEA",
+    "squawk": "4521",
+    "qnh": "30.12",
+    "takeoff_flaps": "5",
+    "v1": "145",
+    "vr": "150",
+    "v2": "155",
+    "minimums": "200",
+    "fuel": "18400",
+    "zfw": "128.4",
+    "reserves": "6.2",
+    "cost_index": "35",
+    "cruise_level": "360",
+    "assumed_temperature": "42",
+    "weight_unit": "LB",
+    "qnh_unit": "inHg",
+    "minimums_type": "BARO",
+    "fuel_thousands": "18.4"
+  },
+  "blanks": {},
+  "notes": "Taxi via A, hold short 16L",
+  "timers": {
+    "ifly-737-max8.preflight.irs": 1763400600000
+  },
+  "answers": {}
+}

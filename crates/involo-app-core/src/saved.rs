@@ -40,8 +40,19 @@ pub enum Loaded<T> {
 pub(crate) type Migration = fn(Value) -> Result<Value, String>;
 
 /// Migrations for [`Flight`]: entry `i` turns format `i + 1` into format `i + 2`.
-const FLIGHT_MIGRATIONS: &[Migration] =
-    &[flight_1_to_2, flight_2_to_3, flight_3_to_4, flight_4_to_5];
+const FLIGHT_MIGRATIONS: &[Migration] = &[
+    flight_1_to_2,
+    flight_2_to_3,
+    flight_3_to_4,
+    flight_4_to_5,
+    flight_5_to_6,
+];
+
+/// Format 6 saves paused step timers (#213); an older flight has none paused, so nothing changes.
+fn flight_5_to_6(value: Value) -> Result<Value, String> {
+    value.as_object().ok_or("the flight is not an object")?;
+    Ok(value)
+}
 
 /// Format 5 adds the note a pack update leaves (decision 0028); an older flight has none, so
 /// nothing changes.
@@ -289,6 +300,28 @@ mod tests {
             serde_json::to_value(&value).unwrap()["values"],
             saved["values"]
         );
+    }
+
+    #[test]
+    fn a_frozen_format_5_flight_keeps_its_timers_and_has_none_paused() {
+        // Format 5, before paused timers were saved (#213); kept as it was, never regenerated.
+        let text = include_str!("../tests/fixtures/flight-format-5.json");
+        let Loaded::Ready {
+            value,
+            migrated_from,
+        } = load_flight(text)
+        else {
+            panic!("the format 5 flight did not load");
+        };
+        assert_eq!(migrated_from, Some(5));
+        assert_eq!(value.format, FLIGHT_FORMAT);
+        assert_eq!(
+            value.timers.get(&involo_checklist_core::StepId::new(
+                "ifly-737-max8.preflight.irs"
+            )),
+            Some(&1_763_400_600_000)
+        );
+        assert!(value.timer_pauses.is_empty());
     }
 
     #[test]

@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// The saved format of a [`Flight`]. Raise it, with a migration and tests, when the shape changes.
-pub const FLIGHT_FORMAT: u32 = 5;
+pub const FLIGHT_FORMAT: u32 = 6;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -39,9 +39,14 @@ pub struct Flight {
     pub blanks: BTreeMap<String, String>,
     /// Clearance and other notes from the flight strip.
     pub notes: String,
-    /// Timers the pilot started by hand: step to start time.
+    /// Step timers the pilot restarted or resumed: step to the start time that counts, over the
+    /// tick that started it (#213).
     #[ts(type = "Record<string, number>")]
     pub timers: BTreeMap<StepId, Millis>,
+    /// Paused step timers: step to the time it had left, in milliseconds (format 6, #213).
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[ts(type = "Record<string, number>")]
+    pub timer_pauses: BTreeMap<StepId, u64>,
     /// How each option a decision step asks was answered (format 3, decision 0027).
     #[serde(default)]
     pub answers: BTreeMap<String, AnswerSource>,
@@ -108,6 +113,7 @@ pub fn new_flight(pack: &FlatPack) -> Flight {
         blanks: BTreeMap::new(),
         notes: String::new(),
         timers: BTreeMap::new(),
+        timer_pauses: BTreeMap::new(),
         answers: BTreeMap::new(),
         update: None,
     }

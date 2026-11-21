@@ -91,6 +91,56 @@ pub enum Action {
     SeeUpdateNote,
     /// The pilot dismissed the update note; it doesn't come back.
     DismissUpdateNote,
+    /// Pause a running step timer: it keeps the time it has left (#213).
+    PauseTimer {
+        step: StepId,
+        #[ts(type = "number")]
+        at: Millis,
+    },
+    /// Run a paused step timer on from the time it had left.
+    ResumeTimer {
+        step: StepId,
+        #[ts(type = "number")]
+        at: Millis,
+    },
+    /// Start a step timer again from its whole time, now.
+    RestartTimer {
+        step: StepId,
+        #[ts(type = "number")]
+        at: Millis,
+    },
+}
+
+/// Pause, resume or restart a step timer (#213): a pause keeps the time it had left, and a resume
+/// or restart sets the start that counts, over the tick that started it.
+fn change_timer(pack: &FlatPack, flight: &mut Flight, action: Action) -> Result<(), AppError> {
+    match action {
+        Action::PauseTimer { step, at } => {
+            let timer = crate::timers::timer_of(pack, flight, &step).map_err(invalid)?;
+            if timer.started_at.is_none() || timer.paused_left.is_some() {
+                return Err(invalid(format!("the timer on `{step}` is not running")));
+            }
+            flight.timer_pauses.insert(step, timer.left_at(at));
+        }
+        Action::ResumeTimer { step, at } => {
+            let timer = crate::timers::timer_of(pack, flight, &step).map_err(invalid)?;
+            let Some(left) = timer.paused_left else {
+                return Err(invalid(format!("the timer on `{step}` is not paused")));
+            };
+            let whole = u64::from(timer.seconds) * 1000;
+            flight.timer_pauses.remove(&step);
+            flight
+                .timers
+                .insert(step, at.saturating_sub(whole - left.min(whole)));
+        }
+        Action::RestartTimer { step, at } => {
+            crate::timers::timer_of(pack, flight, &step).map_err(invalid)?;
+            flight.timer_pauses.remove(&step);
+            flight.timers.insert(step, at);
+        }
+        _ => {}
+    }
+    Ok(())
 }
 
 fn invalid(message: impl Into<String>) -> AppError {
@@ -330,6 +380,7 @@ pub fn apply(pack: &FlatPack, mut flight: Flight, action: Action) -> Result<Flig
             flight.blanks.clear();
             flight.notes.clear();
             flight.timers.clear();
+            flight.timer_pauses.clear();
             // A decision belongs to its flight: the next one asks again.
             for option in decided(pack) {
                 flight.options.remove(option);
@@ -339,6 +390,9 @@ pub fn apply(pack: &FlatPack, mut flight: Flight, action: Action) -> Result<Flig
         note @ (Action::NoteUpdate { .. } | Action::SeeUpdateNote | Action::DismissUpdateNote) => {
             crate::update::apply_note(&mut flight, note);
         }
+        timer @ (Action::PauseTimer { .. }
+        | Action::ResumeTimer { .. }
+        | Action::RestartTimer { .. }) => change_timer(pack, &mut flight, timer)?,
     }
     Ok(flight)
 }
