@@ -64,6 +64,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "nav_active_dates",
+                    "form": "month_day_range",
                     "style": "data"
                   }
                 ]
@@ -185,6 +186,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "left": [
                   {
                     "field": "utc_time",
+                    "form": "utc_time",
                     "style": "data"
                   }
                 ],
@@ -194,6 +196,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "utc_date",
+                    "form": "month_day_year",
                     "style": "data"
                   }
                 ]
@@ -296,6 +299,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "left": [
                   {
                     "field": "utc_time",
+                    "form": "utc_time",
                     "style": "data"
                   }
                 ],
@@ -305,6 +309,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "utc_date",
+                    "form": "month_day_year",
                     "style": "data"
                   }
                 ]
@@ -1215,6 +1220,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "cruise_wind",
+                    "form": "wind",
                     "style": "user",
                     "empty": "---°/---"
                   }
@@ -1237,6 +1243,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "isa_deviation",
+                    "form": "temperature_change",
                     "style": "user",
                     "empty": "---°F---°C"
                   }
@@ -1259,6 +1266,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "top_of_climb_oat",
+                    "form": "temperature",
                     "style": "accent",
                     "empty": "---°F---°C"
                   }
@@ -1382,6 +1390,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "cruise_wind",
+                    "form": "wind",
                     "style": "user",
                     "empty": "---°/---"
                   }
@@ -1404,6 +1413,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "isa_deviation",
+                    "form": "temperature_change",
                     "style": "user",
                     "empty": "---°F---°C"
                   }
@@ -1426,6 +1436,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "top_of_climb_oat",
+                    "form": "temperature",
                     "style": "accent",
                     "empty": "---°F---°C"
                   }

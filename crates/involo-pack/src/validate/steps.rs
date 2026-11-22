@@ -460,6 +460,7 @@ mod tests {
                     action: vec![CduPart::Field(CduField {
                         field: FieldId::from("manual"),
                         style: None,
+                        form: None,
                         before: None,
                         after: None,
                         empty: None,

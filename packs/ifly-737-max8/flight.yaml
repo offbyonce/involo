@@ -898,12 +898,18 @@ fields:
 - id: nav_active_dates
   label: Navigation database dates
   kind: text
+  simbrief:
+  - nav_database_dates
 - id: utc_time
   label: UTC time
   kind: text
+  simbrief:
+  - departure_time
 - id: utc_date
   label: UTC date
   kind: text
+  simbrief:
+  - departure_date
 - id: planned_distance
   label: Distance
   description: Planned air distance, which allows for the wind.

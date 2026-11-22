@@ -1565,7 +1565,19 @@ expression: flat
                       }
                     ]
                   },
-                  {},
+                  {
+                    "right_label": [
+                      "CRZ WIND"
+                    ],
+                    "right": [
+                      {
+                        "field": "cruise_wind",
+                        "form": "wind",
+                        "style": "user",
+                        "empty": "---°/---"
+                      }
+                    ]
+                  },
                   {
                     "separator": "",
                     "left": [
@@ -1752,6 +1764,14 @@ expression: flat
           },
           "simbrief": [
             "block_fuel"
+          ]
+        },
+        {
+          "id": "cruise_wind",
+          "label": "Cruise wind",
+          "kind": "text",
+          "simbrief": [
+            "cruise_wind"
           ]
         }
       ]

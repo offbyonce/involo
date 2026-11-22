@@ -208,6 +208,9 @@ A value the app reads from a SimBrief plan. The list is the app's: it describes 
 | `altimeter_unit` | The altimeter setting's unit, `inHg` or `hPa`. |
 | `origin_position` | The departure airport's position, latitude and longitude. |
 | `nav_database` | The AIRAC cycle. |
+| `nav_database_dates` | The AIRAC cycle's dates: when it takes effect and when the next one does, as `2025-10-30/2025-11-27`. |
+| `departure_time` | The planned time out of the gate, in UTC, as `10:00`. |
+| `departure_date` | The planned date out of the gate, in UTC, as `2025-11-13`. |
 | `air_distance` | The planned air distance, read-only. |
 | `enroute_time` | The planned time en route, read-only. |
 | `trip_fuel` | Trip fuel, read-only. |

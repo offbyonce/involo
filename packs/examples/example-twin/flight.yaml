@@ -69,3 +69,8 @@ fields:
     step: 0.1
   simbrief:
   - block_fuel
+- id: cruise_wind
+  label: Cruise wind
+  kind: text
+  simbrief:
+  - cruise_wind

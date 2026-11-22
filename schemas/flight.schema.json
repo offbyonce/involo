@@ -877,6 +877,21 @@
           "const": "nav_database"
         },
         {
+          "description": "The AIRAC cycle's dates: when it takes effect and when the next one does, as\n`2025-10-30/2025-11-27`.",
+          "type": "string",
+          "const": "nav_database_dates"
+        },
+        {
+          "description": "The planned time out of the gate, in UTC, as `10:00`.",
+          "type": "string",
+          "const": "departure_time"
+        },
+        {
+          "description": "The planned date out of the gate, in UTC, as `2025-11-13`.",
+          "type": "string",
+          "const": "departure_date"
+        },
+        {
           "description": "The planned air distance, read-only.",
           "type": "string",
           "const": "air_distance"

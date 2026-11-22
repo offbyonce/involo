@@ -138,9 +138,14 @@ Text is a list of parts, joined in order. A field part shows the flight's value,
 Write `empty` as words the pilot can act on ("the departure airport ICAO code"), since with no
 flight added every page reads them. A `when_known` part shows one group of parts or the other.
 On the screen, `data` is what the airplane shows, `accent` what it calculated or accepted, and
-`user` what the pilot types; the app draws a legend for them. The app calculates nothing a pack
-doesn't name: the only numbers it works out are a route's rows (`route_leg`), split from the
-flight's route as 3.0 did, and the counts made from them (`route_legs`). The page the pilot is on
+`user` what the pilot types; the app draws a legend for them. A field part's `form` writes the
+value the way the CDU does where that differs from the Flight pages: a wind as `270°/045`, a
+temperature or a difference in both scales (`-62°F -52°C`, `+4°F +2°C`), a time as `1000.0z`, a
+date as `NOV13/25` and two dates as `OCT30NOV27/25`. The forms are the app's list. The app
+calculates nothing a pack doesn't name: the only numbers it works out are a route's rows
+(`route_leg`) and the counts made from them (`route_legs`). The route is split without the SID it
+starts with or the STAR it ends with, since DEP/ARR enters them; an airway joins the waypoint after
+it, and a waypoint on its own is flown DIRECT. The page the pilot is on
 is saved with the flight by the walkthrough's `id`, so it never changes once published.
 
 ## The exterior inspection

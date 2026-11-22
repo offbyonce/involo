@@ -256,6 +256,7 @@ mod tests {
         CduField {
             field,
             style: None,
+            form: None,
             before: None,
             after: None,
             empty: None,

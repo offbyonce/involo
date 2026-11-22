@@ -142,7 +142,7 @@ involo-pack build my-twin dist
 ```
 
 ```
-built dist/my-twin-0.1.0.involo-pack (19772 bytes)
+built dist/my-twin-0.1.0.involo-pack (19965 bytes)
 wrote dist/index.json (1 packs)
 ```
 

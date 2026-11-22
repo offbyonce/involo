@@ -1299,17 +1299,26 @@ source: crates/involo-pack-cli/tests/snapshot.rs
     {
       "id": "nav_active_dates",
       "label": "Navigation database dates",
-      "kind": "text"
+      "kind": "text",
+      "simbrief": [
+        "nav_database_dates"
+      ]
     },
     {
       "id": "utc_time",
       "label": "UTC time",
-      "kind": "text"
+      "kind": "text",
+      "simbrief": [
+        "departure_time"
+      ]
     },
     {
       "id": "utc_date",
       "label": "UTC date",
-      "kind": "text"
+      "kind": "text",
+      "simbrief": [
+        "departure_date"
+      ]
     },
     {
       "id": "planned_distance",

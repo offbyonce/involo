@@ -57,6 +57,17 @@
           "description": "The flight field whose value is shown, which the pack must define. `route_leg` shows\none route row and needs `index` and `part`; `manual` is not allowed here.",
           "$ref": "#/$defs/FieldId"
         },
+        "form": {
+          "description": "How the value is written, when the CDU writes it differently from the Flight pages.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CduForm"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "index": {
           "description": "For `route_leg`: the row, from 1 to `MAX_ROUTE_LEG`.",
           "type": [
@@ -92,6 +103,41 @@
       "additionalProperties": false,
       "required": [
         "field"
+      ]
+    },
+    "CduForm": {
+      "description": "How a value is written on the CDU screen. The forms are the app's: they describe ways of\nwriting a value, not an aircraft. A value that doesn't read as its form shows as it is.",
+      "oneOf": [
+        {
+          "description": "A wind, `ddd/sss`, with a degree sign after the direction: `270°/045`.",
+          "type": "string",
+          "const": "wind"
+        },
+        {
+          "description": "A temperature in degrees Celsius, in Fahrenheit then Celsius: `-62°F -52°C`.",
+          "type": "string",
+          "const": "temperature"
+        },
+        {
+          "description": "A temperature difference in degrees Celsius, signed, in Fahrenheit then Celsius:\n`+4°F +2°C`.",
+          "type": "string",
+          "const": "temperature_change"
+        },
+        {
+          "description": "A UTC time, `10:00`, as hours, minutes and tenths of a minute: `1000.0z`.",
+          "type": "string",
+          "const": "utc_time"
+        },
+        {
+          "description": "A date, `2025-11-13`, as month, day and year: `NOV13/25`.",
+          "type": "string",
+          "const": "month_day_year"
+        },
+        {
+          "description": "Two dates, `2025-10-30/2025-11-27`, as month and day each, then the second's year:\n`OCT30NOV27/25`.",
+          "type": "string",
+          "const": "month_day_range"
+        }
       ]
     },
     "CduInline": {

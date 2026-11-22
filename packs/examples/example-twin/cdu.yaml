@@ -48,7 +48,9 @@ walkthroughs:
               right_label: [TO]
               right:
                 - {field: route_leg, index: 1, part: to, style: user, empty: '------'}
-            - {}
+            - right_label: [CRZ WIND]
+              right:
+                - {field: cruise_wind, form: wind, style: user, empty: '---°/---'}
             - separator: ''
               left: ['<INDEX']
               right:

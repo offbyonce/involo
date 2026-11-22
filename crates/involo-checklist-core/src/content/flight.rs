@@ -444,6 +444,13 @@ data_types! {
         OriginPosition,
         /// The AIRAC cycle.
         NavDatabase,
+        /// The AIRAC cycle's dates: when it takes effect and when the next one does, as
+        /// `2025-10-30/2025-11-27`.
+        NavDatabaseDates,
+        /// The planned time out of the gate, in UTC, as `10:00`.
+        DepartureTime,
+        /// The planned date out of the gate, in UTC, as `2025-11-13`.
+        DepartureDate,
         /// The planned air distance, read-only.
         AirDistance,
         /// The planned time en route, read-only.

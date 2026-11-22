@@ -77,6 +77,7 @@ A live flight value. Calculations happen in the app, never in the pack.
 | `empty` | text |  |  | Shown when the value is not known. |
 | `empty_style` | [CduStyle](#cdustyle) |  |  | The style `empty` is drawn in. |
 | `field` | [FieldId](#fieldid) | yes |  | The flight field whose value is shown, which the pack must define. `route_leg` shows one route row and needs `index` and `part`; `manual` is not allowed here. |
+| `form` | [CduForm](#cduform) |  |  | How the value is written, when the CDU writes it differently from the Flight pages. |
 | `index` | whole number |  |  | For `route_leg`: the row, from 1 to `MAX_ROUTE_LEG`. |
 | `part` | [RouteLegPart](#routelegpart) |  |  | For `route_leg`: which half of the row. |
 | `style` | [CduStyle](#cdustyle) |  |  | The style the value is drawn in. |
@@ -129,6 +130,19 @@ How text appears on the CDU screen.
 ## FieldId
 
 A flight field's id, e.g. `zfw`: one of the fields the pack defines in `flight.yaml` (decision 0029), or one of the app's own, [`FieldId::MANUAL`] and [`FieldId::ROUTE_LEG`]. Saved flights key their values by it, as text.
+
+## CduForm
+
+How a value is written on the CDU screen. The forms are the app's: they describe ways of writing a value, not an aircraft. A value that doesn't read as its form shows as it is.
+
+| Value | What it means |
+| --- | --- |
+| `wind` | A wind, `ddd/sss`, with a degree sign after the direction: `270°/045`. |
+| `temperature` | A temperature in degrees Celsius, in Fahrenheit then Celsius: `-62°F -52°C`. |
+| `temperature_change` | A temperature difference in degrees Celsius, signed, in Fahrenheit then Celsius: `+4°F +2°C`. |
+| `utc_time` | A UTC time, `10:00`, as hours, minutes and tenths of a minute: `1000.0z`. |
+| `month_day_year` | A date, `2025-11-13`, as month, day and year: `NOV13/25`. |
+| `month_day_range` | Two dates, `2025-10-30/2025-11-27`, as month and day each, then the second's year: `OCT30NOV27/25`. |
 
 ## RouteLegPart
 
