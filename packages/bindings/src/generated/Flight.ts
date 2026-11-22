@@ -50,6 +50,11 @@ timerPauses?: Record<string, number>,
  */
 briefings?: { [key in string]: BriefingMark }, 
 /**
+ * The page each CDU walkthrough the pilot opened is on, from 0, by walkthrough id (format 8,
+ * #215). A walkthrough that isn't here hasn't been started.
+ */
+walkthroughs?: { [key in string]: number }, 
+/**
  * How each option a decision step asks was answered (format 3, decision 0027).
  */
 answers: { [key in string]: AnswerSource }, 

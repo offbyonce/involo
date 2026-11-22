@@ -21,7 +21,7 @@ A pack's manifest, `pack.json`. Field names: the manifest is camelCase (`schemaV
 | `attribution` | list of text |  | `[]` | Credit and terms notes. A built child carries its parents' notes first, then its own, each once. |
 | `basisTags` | list of text |  | `[]` | The `basis` tags this pack's lists may use: kinds of material, never document names. A built child may use its parents' tags and its own: theirs first, then its own, each once. |
 | `briefings` | text |  |  | Briefings, each with its items (`briefings.yaml`), shown at the top of their phases; Practice asks about their mnemonics. |
-| `cdu` | text |  |  | CDU walkthroughs, screen by screen (`cdu.yaml`). The app doesn't show them yet. |
+| `cdu` | text |  |  | CDU walkthroughs, screen by screen (`cdu.yaml`), each opened from the step that names it. |
 | `checklists` | list of text | yes |  | Checklist files, in display order, relative to the pack folder. |
 | `contentHash` | text |  |  | Written by `involo-pack build`, never by an author: the SHA-256 of the built pack's content (its lists and content files, flattened), in hex. |
 | `controls` | text |  |  | The controls steps name, where they are, and the flight deck overview (`controls.yaml`). |

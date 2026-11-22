@@ -261,6 +261,18 @@ const SHOTS = [
     [`Brief${s}`, { layout: s.toLowerCase() }, 920, s === "Open" ? 900 : 600, "Briefings"],
     [`Brief${s}Phone`, { layout: `${s.toLowerCase()}Phone` }, 390, s === "Open" ? 900 : 700, "BriefingsPhone"],
   ]),
+  // CDU walkthroughs (docs/design/boards/CduWalk.dc.html and CduWalkPhone.dc.html): the step, not
+  // started and in progress, and the slide-out on a page with values, with no flight and the last.
+  ...[
+    ["StepStart", "stepStart", 560, 600],
+    ["StepResume", "stepResume", 560, 600],
+    ["Page", "values", 732, 844],
+    ["PageEmpty", "novalues", 732, 844],
+    ["PageLast", "last", 732, 844],
+  ].flatMap(([s, layout, desk, phone]) => [
+    [`Cdu${s}`, { layout }, 920, desk, "CduWalk"],
+    [`Cdu${s}Phone`, { layout: `${layout}Phone` }, 390, phone, "CduWalkPhone"],
+  ]),
 ];
 
 async function main() {

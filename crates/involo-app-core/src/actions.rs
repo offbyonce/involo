@@ -80,7 +80,8 @@ pub enum Action {
         #[ts(type = "number")]
         at: Millis,
     },
-    /// A new flight: ticks, values, notes, timers and briefings are cleared; option choices are kept.
+    /// A new flight: ticks, values, notes, timers, briefings and walkthrough pages are cleared;
+    /// option choices are kept.
     Clear,
     /// The pack is updating while this flight is saved: keep what changed as the update note
     /// (decision 0028), in place of any earlier note.
@@ -125,6 +126,42 @@ pub enum Action {
     UnmarkBriefing {
         briefing: String,
     },
+    /// A CDU walkthrough is open on this page, from 0 (#215): opening it starts it, and the page
+    /// is where Continue picks up.
+    WalkthroughPage {
+        walkthrough: String,
+        page: u32,
+    },
+    /// A CDU walkthrough was finished with Done: it starts from its first page again.
+    EndWalkthrough {
+        walkthrough: String,
+    },
+}
+
+/// Saves the page a CDU walkthrough is on, or forgets it (#215). An unknown walkthrough or a page
+/// past its last is refused.
+fn walkthrough_page(pack: &FlatPack, flight: &mut Flight, action: Action) -> Result<(), AppError> {
+    let pages = |id: &str| -> Result<usize, AppError> {
+        crate::cdu::walkthrough(pack, id)
+            .map(|w| w.pages.len())
+            .ok_or_else(|| invalid(format!("no CDU walkthrough `{id}`")))
+    };
+    match action {
+        Action::WalkthroughPage { walkthrough, page } => {
+            if page as usize >= pages(&walkthrough)? {
+                return Err(invalid(format!(
+                    "the CDU walkthrough `{walkthrough}` has no page {page}"
+                )));
+            }
+            flight.walkthroughs.insert(walkthrough, page);
+        }
+        Action::EndWalkthrough { walkthrough } => {
+            pages(&walkthrough)?;
+            flight.walkthroughs.remove(&walkthrough);
+        }
+        _ => {}
+    }
+    Ok(())
 }
 
 /// Marks a briefing given or skipped, or takes the mark away (#214).
@@ -201,6 +238,7 @@ fn clear(pack: &FlatPack, flight: &mut Flight) {
     flight.timers.clear();
     flight.timer_pauses.clear();
     flight.briefings.clear();
+    flight.walkthroughs.clear();
     // A decision belongs to its flight: the next one asks again.
     for option in decided(pack) {
         flight.options.remove(option);
@@ -446,6 +484,9 @@ pub fn apply(pack: &FlatPack, mut flight: Flight, action: Action) -> Result<Flig
         brief @ (Action::Brief { .. }
         | Action::SkipBriefing { .. }
         | Action::UnmarkBriefing { .. }) => mark_briefing(pack, &mut flight, brief)?,
+        walk @ (Action::WalkthroughPage { .. } | Action::EndWalkthrough { .. }) => {
+            walkthrough_page(pack, &mut flight, walk)?;
+        }
     }
     Ok(flight)
 }
@@ -736,6 +777,70 @@ mod tests {
             Action::Brief {
                 briefing: "departure".into(),
                 at: 4
+            }
+        );
+    }
+
+    #[test]
+    fn a_walkthrough_page_is_saved_ended_and_cleared_with_the_flight() {
+        // #215: the page the pilot is on; Done forgets it; a new flight starts with none.
+        let pack = example_pack();
+        let walk = |flight, action| apply(&pack, flight, action);
+        let f = walk(
+            new_flight(&pack),
+            Action::WalkthroughPage {
+                walkthrough: "example-setup".into(),
+                page: 0,
+            },
+        )
+        .unwrap();
+        assert_eq!(f.walkthroughs.get("example-setup"), Some(&0));
+        let ended = walk(
+            f.clone(),
+            Action::EndWalkthrough {
+                walkthrough: "example-setup".into(),
+            },
+        )
+        .unwrap();
+        assert!(ended.walkthroughs.is_empty());
+        assert!(
+            walk(f.clone(), Action::Clear)
+                .unwrap()
+                .walkthroughs
+                .is_empty()
+        );
+        // A page past the last, or a walkthrough the pack lacks, is refused.
+        let pages = crate::cdu::walkthrough(&pack, "example-setup")
+            .unwrap()
+            .pages
+            .len();
+        for action in [
+            Action::WalkthroughPage {
+                walkthrough: "example-setup".into(),
+                page: u32::try_from(pages).unwrap(),
+            },
+            Action::WalkthroughPage {
+                walkthrough: "nope".into(),
+                page: 0,
+            },
+            Action::EndWalkthrough {
+                walkthrough: "nope".into(),
+            },
+        ] {
+            assert!(matches!(
+                walk(f.clone(), action),
+                Err(AppError::InvalidAction(_))
+            ));
+        }
+        let action: Action = serde_json::from_str(
+            r#"{"type":"walkthroughPage","walkthrough":"example-setup","page":2}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            action,
+            Action::WalkthroughPage {
+                walkthrough: "example-setup".into(),
+                page: 2
             }
         );
     }

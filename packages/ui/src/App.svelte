@@ -24,6 +24,8 @@ in Rust. The host saves progress and settings on the device.
     isAppError,
     type StepLayout,
     type StepTimer,
+    type CduWalk,
+    type Step,
     type Log,
     type LoggedFlight,
     type PhaseModel,
@@ -50,6 +52,8 @@ in Rust. The host saves progress and settings on the device.
   import { safely } from "./lib/safely";
   import type { Opening } from "./lib/opening";
   import Slideout from "./lib/Slideout.svelte";
+  import CduWalkthrough from "./lib/CduWalkthrough.svelte";
+  import type { Walkthroughs } from "./lib/walkthroughs";
   import Toast from "./lib/Toast.svelte";
   import { answered } from "./lib/answers.svelte";
   import { changedText, dependsOn, labelOf, lowerFirst, shortLabel, type DecisionSource, type Decisions } from "./lib/decision";
@@ -712,7 +716,7 @@ in Rust. The host saves progress and settings on the device.
     if (findOpen) return;
     if (t?.closest("input, textarea, select, [contenteditable]") || e.ctrlKey || e.metaKey || e.altKey) return;
     // Not under the menu, the stage picker or the open-steps list.
-    if (menuOpen || pickerOpen || openSteps.shown) return;
+    if (menuOpen || pickerOpen || openSteps.shown || cdu) return;
     if (e.key === "Escape" && slide) {
       e.preventDefault();
       closeSlide();
@@ -1295,6 +1299,71 @@ in Rust. The host saves progress and settings on the device.
     resume: (step) => void act({ type: "resumeTimer", step, at: Date.now() }),
     restart: (step) => void act({ type: "restartTimer", step, at: Date.now() }),
   });
+  // CDU walkthroughs (#215, CduWalk boards): the core's walkthroughs with the flight's values,
+  // refreshed with the flight, and the one open in the slide-out on its page. The page is saved
+  // with the flight as it changes; Done on the last page forgets it and ticks the step.
+  let walks = $state<Record<string, CduWalk>>({});
+  $effect(() => {
+    const f = flight;
+    const ids = index?.walkthroughs ?? [];
+    if (!f || !ids.length) {
+      walks = {};
+      return;
+    }
+    safely(
+      Promise.all(ids.map((id) => host.cduWalkthrough(packId, f, id))),
+      (list) => {
+        walks = Object.fromEntries(list.flatMap((w) => (w ? [[w.id, w] as const] : [])));
+      },
+      fail,
+    );
+  });
+  let cdu = $state<{ step: Step; number: number; page: number } | null>(null);
+  let cduWalk = $derived(cdu?.step.opens ? walks[cdu.step.opens] : undefined);
+  let cduOpener: HTMLElement | null = null;
+  let walkthroughs = $derived<Walkthroughs>({
+    of: (step) => (step.opens ? walks[step.opens] : undefined),
+    open: (step, number) => {
+      const w = step.opens ? walks[step.opens] : undefined;
+      if (!w) return;
+      cduOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      slide = null;
+      const page = w.at ?? 0;
+      cdu = { step, number, page };
+      void act({ type: "walkthroughPage", walkthrough: w.id, page });
+    },
+    layout: rowLayout,
+  });
+  function cduPage(page: number): void {
+    const c = cdu;
+    if (!c?.step.opens) return;
+    cdu = { ...c, page };
+    void act({ type: "walkthroughPage", walkthrough: c.step.opens, page });
+  }
+  /** Closing returns to the step: focus goes back to its button, drawn again since it opened. */
+  function closeCdu(): void {
+    const id = cdu?.step.id;
+    const opener = cduOpener;
+    cdu = null;
+    cduOpener = null;
+    requestAnimationFrame(() => {
+      const button = document.querySelector<HTMLElement>(`li[data-step="${id}"] .walkb`);
+      (opener?.isConnected ? opener : button)?.focus();
+    });
+  }
+  async function cduDone(): Promise<void> {
+    const c = cdu;
+    if (!c?.step.opens) return;
+    closeCdu();
+    await act({ type: "endWalkthrough", walkthrough: c.step.opens });
+    if (flight && flight.session.done[c.step.id] === undefined) await tick(c.step.id, false);
+  }
+  /** Add your flight in a walkthrough: the flight strip's own action, with the walkthrough closed. */
+  let strip = $state<{ show: (field: FieldId | null) => void } | null>(null);
+  function cduAddFlight(): void {
+    closeCdu();
+    strip?.show(null);
+  }
   let decisions = $derived.by((): Decisions | undefined => {
     const ix = index;
     const f = flight;
@@ -1837,6 +1906,7 @@ in Rust. The host saves progress and settings on the device.
     {/if}
     {#if view && screen !== "settings" && screen !== "open" && screen !== "reference"}
       <FlightStrip
+        bind:this={strip}
         values={flight.values ?? {}}
         notes={flight.notes ?? ""}
         {provenance}
@@ -1925,6 +1995,7 @@ in Rust. The host saves progress and settings on the device.
                 onValue={(field, value) => act({ type: "setValue", field, value })}
                 {decisions}
                 {timers}
+                {walkthroughs}
                 inline={narrow && pane ? inlinePane : undefined}
                 inlineStep={narrow ? (pane?.step.id ?? null) : null}
                 notice={flight.update ? updateNote : undefined}
@@ -1982,6 +2053,22 @@ in Rust. The host saves progress and settings on the device.
             {/key}
           </div>
         {/if}
+      {/if}
+      {#if cdu && cduWalk && index}
+        <!-- A CDU walkthrough (#215) in the slide-out: the same box and scrim. -->
+        <button class="slide-scrim" type="button" aria-label="Close the CDU walkthrough" tabindex="-1" onclick={closeCdu}></button>
+        <div class="slide-box">
+          <CduWalkthrough
+            walk={cduWalk}
+            page={cdu.page}
+            step={`Step ${cdu.number} · ${stepTitle(index, cdu.step)}`}
+            list={index.list(index.listOf(cdu.step.id) ?? "")?.title ?? ""}
+            onPage={cduPage}
+            onClose={closeCdu}
+            onDone={() => void cduDone()}
+            onAddFlight={cduAddFlight}
+          />
+        </div>
       {/if}
     </div>
   {/if}

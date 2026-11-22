@@ -12,6 +12,7 @@ import type {
   BackupParts,
   BackupRead,
   CatalogEntry,
+  CduWalk,
   Decoded,
   FlatPack,
   Flight,
@@ -88,6 +89,9 @@ export interface Host {
   /** Every step timer in the pack, with when it started and, if paused, the time it had left
    * (#213). */
   timers(pack: string, flight: Flight): Promise<StepTimer[]>;
+  /** A CDU walkthrough with the flight's values filled in, or null when the pack has none by that
+   * id (#215). */
+  cduWalkthrough(pack: string, flight: Flight, id: string): Promise<CduWalk | null>;
   /** The seat frame "Where is this?" draws for a step done by `role`, with the pilot's `chosen`
    * seat: the role's seat, then the chosen one, then the first (decision 0029). Null when the
    * pack draws no seat view. */

@@ -54,8 +54,8 @@ fill?: Array<FieldId>,
  */
 hint?: Array<HintPart>, 
 /**
- * The id of the CDU walkthrough for this step; `check` makes sure it exists. The app
- * doesn't show walkthroughs yet.
+ * The id of the CDU walkthrough for this step; `check` makes sure it exists. The step,
+ * when it's current, opens it.
  */
 opens?: string | null, 
 /**

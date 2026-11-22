@@ -18,6 +18,9 @@ row in place. A step that depends on the answer links back to it.
 A step timer (Timers boards) adds a chip under the value, a line of text and, once it has started,
 Pause or Resume and Restart: under the location line on the desktop's current step, under the chip
 on the tablet's and phone's, and on the row's second line elsewhere. Done and Skip for now stay put.
+A step that opens a CDU walkthrough (#215, CduWalk boards) has Open CDU walkthrough on its current
+row, with how many pages it has, or Continue CDU walkthrough with where it stopped: under the
+location line on desktop, under the value on the tablet and phone.
 -->
 <script lang="ts">
   import type { Snippet } from "svelte";
@@ -29,6 +32,7 @@ on the tablet's and phone's, and on the row's second line elsewhere. Done and Sk
   import RoleTag from "./RoleTag.svelte";
   import TimerChip from "./TimerChip.svelte";
   import { stateAt, stepAction, timerWords, type Timers } from "./timers";
+  import { stepLine, type Walkthroughs } from "./walkthroughs";
   import { stepTitle } from "./names";
   import { fillParts } from "./value-parts";
   import { SOURCE_WORDS, choices, labelOf, lowerFirst, shortLabel, type Decisions } from "./decision";
@@ -52,6 +56,7 @@ on the tablet's and phone's, and on the row's second line elsewhere. Done and Sk
     onEssentials,
     decisions,
     timers,
+    walkthroughs,
     inline,
   }: {
     index: PackIndex;
@@ -80,6 +85,8 @@ on the tablet's and phone's, and on the row's second line elsewhere. Done and Sk
     /** Step timers (#213, Timers boards): the chip under the value, a line of text, and Pause or
      * Resume and Restart once it has started. */
     timers?: Timers | undefined;
+    /** CDU walkthroughs (#215): the button on the current step that opens its walkthrough. */
+    walkthroughs?: Walkthroughs | undefined;
     /** Below 900 px: the step's details in place (the side pane's content). */
     inline?: Snippet | undefined;
   } = $props();
@@ -128,6 +135,8 @@ on the tablet's and phone's, and on the row's second line elsewhere. Done and Sk
   /** Where the line of text goes: under the location line on the desktop's current step, under
    * the chip on the tablet's and phone's, and on the row's second line elsewhere. */
   let wordsAt = $derived<"name" | "value" | "line">(!current ? "line" : timers?.layout === "desktop" ? "name" : "value");
+  /** The walkthrough the current step opens (#215). */
+  let walk = $derived(current && !asking ? walkthroughs?.of(step) : undefined);
   /** A phone's done row puts the chip on its value line, before the menu. */
   let chipAtEnd = $derived(!current && timers?.layout === "phone");
   /** Who does the step, and in a challenge-and-response list who answers (decision 0029). */
@@ -159,6 +168,18 @@ on the tablet's and phone's, and on the row's second line elsewhere. Done and Sk
 </script>
 
 <svelte:document onpointerdown={outside} onkeydown={key} />
+
+{#snippet walkButton()}
+  {#if walk}
+    {@const w = walk}
+    <div class="walk {walkthroughs?.layout === 'desktop' ? 'name' : 'value'}">
+      <button class="walkb" type="button" onclick={() => walkthroughs?.open(step, row.number)}>
+        <span class="wicon"><Icon name="walkthrough" /></span>{w.at === undefined ? "Open CDU walkthrough" : "Continue CDU walkthrough"}
+      </button>
+      <span class="wline">{stepLine(w)}</span>
+    </div>
+  {/if}
+{/snippet}
 
 {#snippet timerLine()}
   {#if timer}
@@ -208,6 +229,7 @@ on the tablet's and phone's, and on the row's second line elsewhere. Done and Sk
       {#if detail === "expanded" && step.lookFor}<span class="look"><b>Look for:</b> {step.lookFor}</span>{/if}
     </button>
     {#if row.state === "skipped"}<button class="do-now" type="button" onclick={onSelect}>Do it now</button>{/if}
+    {#if walkthroughs?.layout === "desktop"}{@render walkButton()}{/if}
     {#if wordsAt === "name"}{@render timerLine()}{/if}
   </div>
   {#if pair}<span class="answers">{#if responder}<RoleTag role={responder} /><span class="sr-only">, answers</span>{/if}</span>{/if}
@@ -246,6 +268,7 @@ on the tablet's and phone's, and on the row's second line elsewhere. Done and Sk
     {/if}
     {#if row.hint}<small class="hint">{row.hint}</small>{/if}
     {#if timer && timers && !chipAtEnd}<TimerChip {timer} now={timers.now} />{/if}
+    {#if walkthroughs && walkthroughs.layout !== "desktop"}{@render walkButton()}{/if}
     {#if wordsAt === "value"}{@render timerLine()}{/if}
   </div>
   {#if timer && timers && chipAtEnd}<span class="tchip"><TimerChip {timer} now={timers.now} /></span>{/if}
@@ -804,6 +827,55 @@ on the tablet's and phone's, and on the row's second line elsewhere. Done and Sk
   .tw.line {
     grid-column: 2 / 5;
     margin-bottom: var(--space-1);
+  }
+  /* The step's CDU walkthrough (CduWalk boards): a 44 px secondary button with the walkthrough
+     icon in accent, and its line in muted text beside it, 6 px under the location line. */
+  .walk {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--space-1) + var(--border-thick)) var(--space-3);
+  }
+  .walk.name {
+    flex-basis: 100%;
+    padding-top: calc(var(--space-1) + var(--border-thick));
+  }
+  .walkb {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    height: var(--size-touch-min);
+    padding: 0 calc(var(--space-3) + var(--border-thick));
+    border: var(--border-thin) solid var(--color-border);
+    border-radius: var(--radius-control);
+    background: var(--color-button-bg);
+    box-shadow: var(--color-button-shadow);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--font-size-value-mono);
+    font-weight: var(--weight-medium);
+  }
+  .wicon {
+    display: inline-flex;
+    color: var(--color-accent);
+  }
+  .wicon :global(.icon) {
+    width: var(--size-icon-small);
+    height: var(--size-icon-small);
+  }
+  .wline {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-secondary);
+  }
+  /* The tablet's and phone's current step: under the value, the button across the column and its
+     line under it. */
+  .walk.value {
+    flex-direction: column;
+    align-items: stretch;
+    padding-top: var(--space-1);
   }
   .it.timed:not(.current) {
     row-gap: calc(var(--space-1) + var(--border-thick));

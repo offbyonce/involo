@@ -810,3 +810,51 @@ export const briefingIn = (state) =>
     },
     state,
   );
+
+/**
+ * The CduWalk boards' states (#215) on Preliminary preflight, with every step before the CDU step
+ * done so it is current: "start", not opened yet; "resume", stopped at page 10 (PERF INIT) and
+ * closed; "values", open on page 10; "novalues", open on page 2 with no flight; "last", open on
+ * the last page. Run after the board flight for every state but "novalues".
+ */
+export const cduIn = (state) =>
+  call(
+    async (state) => {
+      const wait = (ms) => new Promise((go) => setTimeout(go, ms));
+      location.hash = "#/phase/preflight";
+      await wait(700);
+      const cdu = 'li[data-step="ifly-737-max8.preflight.cdu"]';
+      for (let i = 0; i < 60; i++) {
+        const rows = [...document.querySelectorAll(".it")];
+        const at = rows.findIndex((r) => r.matches(cdu));
+        const b = rows.slice(0, at).map((r) => r.querySelector("button.tick")).find((t) => t && t.getAttribute("aria-pressed") !== "true");
+        if (!b) break;
+        b.click();
+        await wait(120);
+      }
+      const show = () => {
+        document.querySelector(cdu)?.scrollIntoView({ block: "start" });
+        window.scrollBy(0, -(innerWidth < 600 ? 200 : 260));
+      };
+      show();
+      await wait(300);
+      if (state === "start") return true;
+      const open = () => [...document.querySelectorAll(`${cdu} button.walkb`)][0]?.click();
+      open();
+      await wait(500);
+      const next = () => [...document.querySelectorAll(".walk .foot button")].find((b) => b.textContent.trim() === "Next")?.click();
+      const pages = { resume: 9, values: 9, novalues: 1, last: 14 }[state];
+      for (let i = 0; i < pages; i++) {
+        next();
+        await wait(150);
+      }
+      if (state === "resume") {
+        document.querySelector('.walk button[aria-label="Close the CDU walkthrough"]')?.click();
+        await wait(400);
+        show();
+      }
+      await wait(400);
+      return true;
+    },
+    state,
+  );

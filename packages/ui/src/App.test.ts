@@ -3,6 +3,7 @@
 
 import type {
   Action,
+  CduWalk,
   ControlsFile,
   FlatPack,
   Flight,
@@ -203,6 +204,7 @@ function host(overrides: Partial<Host> = {}): Host {
     suggestion: async () => null,
     seatFrame: async () => null,
     timers: async () => [],
+    cduWalkthrough: async () => null,
     readSaved: async () => ({ flight: null, settings: null }),
     savedPacks: async () => [],
     backupText: async () => "{}",
@@ -1672,6 +1674,74 @@ describe("App", () => {
     expect(actions[0]).toMatchObject({ type: "brief", briefing: "power" });
     await fireEvent.click(screen.getByRole("button", { name: "Skip briefing" }));
     expect(actions[1]).toMatchObject({ type: "skipBriefing", briefing: "power" });
+  });
+
+  // #215: the current step that opens a CDU walkthrough, and the walkthrough in the slide-out.
+  const withCdu = {
+    ...pack,
+    lists: pack.lists.map((l) => ({
+      ...l,
+      steps: l.steps.map((s) => (s.id === "standby" ? { ...s, opens: "setup" } : s)),
+    })),
+    content: {
+      ...pack.content,
+      cdu: { walkthroughs: [{ id: "setup", title: "CDU walkthrough", pages: [] }] },
+    },
+  } as unknown as FlatPack;
+  const span = (text: string) => ({ text, value: false });
+  const cduPage = (name: string, title: string) => ({
+    page: name,
+    title,
+    action: [span(`Do ${title}.`)],
+    check: [],
+    note: [],
+    screen: { title: [span(name)], page: [], rows: [], highlight: [], scratchpad: [] },
+  });
+  const cduWalk = (at?: number): CduWalk => ({
+    id: "setup",
+    title: "CDU walkthrough",
+    flightAdded: false,
+    pages: [cduPage("IDENT", "Check the database"), cduPage("RTE", "Enter the route")],
+    ...(at === undefined ? {} : { at }),
+  });
+
+  it("opens the current step's CDU walkthrough, saves its page, and ticks the step with Done", async () => {
+    const actions: Action[] = [];
+    let at: number | undefined;
+    const h = host({
+      loadPack: async () => withCdu,
+      cduWalkthrough: async (_pack, _flight, id) => (id === "setup" ? cduWalk(at) : null),
+      apply: async (_pack, flight, action) => {
+        actions.push(action);
+        if (action.type === "walkthroughPage") at = action.page;
+        if (action.type === "endWalkthrough") at = undefined;
+        return { ...flight };
+      },
+    });
+    render(App, { context: hostContext(h) });
+    const open = await screen.findByRole("button", { name: "Open CDU walkthrough" });
+    expect(screen.getByText("2 pages, IDENT to RTE.")).toBeTruthy();
+    await fireEvent.click(open);
+    const dialog = await screen.findByRole("dialog", { name: "CDU walkthrough" });
+    expect(within(dialog).getByText("Step 2 · Standby power")).toBeTruthy();
+    expect(within(dialog).getByText("Power up flow · 2 pages, IDENT to RTE")).toBeTruthy();
+    expect(actions[0]).toEqual({ type: "walkthroughPage", walkthrough: "setup", page: 0 });
+    await fireEvent.click(within(dialog).getByRole("button", { name: "Next" }));
+    expect(actions[1]).toEqual({ type: "walkthroughPage", walkthrough: "setup", page: 1 });
+    // Closed part way, the step says where it stopped.
+    await fireEvent.click(within(dialog).getByRole("button", { name: "Close the CDU walkthrough" }));
+    expect(await screen.findByRole("button", { name: "Continue CDU walkthrough" })).toBeTruthy();
+    expect(screen.getByText("Stopped at page 2 of 2, RTE.")).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "Continue CDU walkthrough" }));
+    const again = await screen.findByRole("dialog", { name: "CDU walkthrough" });
+    expect(within(again).getByText("Enter the route")).toBeTruthy();
+    await fireEvent.click(within(again).getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "CDU walkthrough" })).toBeNull());
+    await waitFor(() => expect(actions.at(-1)?.type).toBe("tick"));
+    expect(actions.slice(-2)).toEqual([
+      { type: "endWalkthrough", walkthrough: "setup" },
+      expect.objectContaining({ type: "tick", step: "standby" }),
+    ]);
   });
 
   it("lists a skipped briefing in Open steps, to give or put back", async () => {

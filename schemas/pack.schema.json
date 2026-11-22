@@ -53,7 +53,7 @@
       ]
     },
     "cdu": {
-      "description": "CDU walkthroughs, screen by screen (`cdu.yaml`). The app doesn't show them yet.",
+      "description": "CDU walkthroughs, screen by screen (`cdu.yaml`), each opened from the step that names it.",
       "type": [
         "string",
         "null"

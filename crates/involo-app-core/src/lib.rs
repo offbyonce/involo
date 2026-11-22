@@ -8,6 +8,7 @@ mod actions;
 mod app;
 mod backup;
 mod boundary;
+mod cdu;
 mod error;
 mod flight;
 mod log;
@@ -37,6 +38,7 @@ pub use backup::{
     FlightPlace, PackSource, backup_text, read_backup,
 };
 pub use boundary::to_interface_json;
+pub use cdu::{CduPageView, CduRowView, CduScreenView, CduSpan, CduWalk, cdu_walkthrough};
 pub use error::AppError;
 pub use flight::{AnswerSource, BriefingMark, FLIGHT_FORMAT, Flight, new_flight};
 pub use log::{

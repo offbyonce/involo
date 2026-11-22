@@ -123,7 +123,7 @@ briefings?: string | null,
  */
 panelStates?: string | null, 
 /**
- * CDU walkthroughs, screen by screen (`cdu.yaml`). The app doesn't show them yet.
+ * CDU walkthroughs, screen by screen (`cdu.yaml`), each opened from the step that names it.
  */
 cdu?: string | null, 
 /**
