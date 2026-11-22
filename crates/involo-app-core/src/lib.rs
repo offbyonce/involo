@@ -67,6 +67,7 @@ pub use update::{
     ChangedStep, PackChanges, RewordedStep, Rewording, UpdateNote, pack_changes, reconcile,
     restore_flight,
 };
+pub use values::calculated;
 pub use visibility::{
     Shown, has_essentials, in_essentials, passes, shown_steps, step_shows, visible_steps,
 };

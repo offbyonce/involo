@@ -229,9 +229,12 @@ fn procedure(word: &str) -> bool {
         }
 }
 
-/// The flight's values, as CDU text reads them.
+/// The flight's values, as CDU text reads them, with the pack's calculated fields.
 struct Values<'a> {
     flight: &'a Flight,
+    calculated: std::collections::BTreeMap<FieldId, String>,
+    /// The pack's calculated fields, which are never read from what the flight saved.
+    calculated_ids: std::collections::BTreeSet<String>,
     legs: Vec<(String, String)>,
     /// The departure procedure is known: it takes a row of the legs.
     sid_known: bool,
@@ -249,17 +252,25 @@ impl<'a> Values<'a> {
         let star = get(SimbriefSource::Star);
         Self {
             flight,
+            calculated: crate::values::calculated(pack, flight),
+            calculated_ids: crate::values::fields(pack)
+                .filter(|f| f.calculated.is_some())
+                .map(|f| f.id.clone())
+                .collect(),
             legs: get(SimbriefSource::Route).map_or_else(Vec::new, |r| route_legs(r, sid, star)),
             sid_known: sid.is_some(),
         }
     }
 
     fn known(&self, id: &FieldId) -> Option<&str> {
-        self.flight
-            .values
-            .get(id.as_str())
-            .map(|v| v.trim())
-            .filter(|v| !v.is_empty())
+        // A calculated field is never stored, so a value saved under its id is stale.
+        if self.calculated_ids.contains(id.as_str()) {
+            self.calculated.get(id)
+        } else {
+            self.flight.values.get(id.as_str())
+        }
+        .map(|v| v.trim())
+        .filter(|v| !v.is_empty())
     }
 
     fn text(&self, text: &CduText) -> Vec<CduSpan> {
@@ -392,6 +403,29 @@ fn written(form: CduForm, v: &str) -> Option<String> {
             let sign = if c > 0.0 { "+" } else { "" };
             Some(format!("{sign}{}°F {sign}{c}°C", (c * 1.8).round()))
         }
+        CduForm::Position => {
+            let mut p = v.split_whitespace();
+            let (lat, lon) = (
+                p.next()?.parse::<f64>().ok()?,
+                p.next()?.parse::<f64>().ok()?,
+            );
+            if p.next().is_some() || lat.abs() > 90.0 || lon.abs() > 180.0 {
+                return None;
+            }
+            // Degrees, then minutes to a tenth; 59.96 minutes round up to the next degree.
+            let part = |v: f64, pos: char, neg: char, width: usize| {
+                let tenths = (v.abs() * 600.0).round();
+                let deg = (tenths / 600.0).floor();
+                let min = (tenths - deg * 600.0) / 10.0;
+                let hemi = if v < 0.0 { neg } else { pos };
+                format!("{hemi}{deg:0width$}°{min:04.1}")
+            };
+            Some(format!(
+                "{} {}",
+                part(lat, 'N', 'S', 2),
+                part(lon, 'E', 'W', 3)
+            ))
+        }
         CduForm::UtcTime => {
             let (h, m) = v.trim().split_once(':')?;
             (digits(h, 2) && digits(m, 2)).then(|| format!("{h}{m}.0z"))
@@ -499,6 +533,20 @@ mod tests {
             w(CduForm::Temperature, "\u{2212}50").as_deref(),
             Some("-58°F -50°C")
         );
+        assert_eq!(
+            w(CduForm::Position, "47.449 -122.309").as_deref(),
+            Some("N47°26.9 W122°18.5")
+        );
+        assert_eq!(
+            w(CduForm::Position, "-33.9461 151.1772").as_deref(),
+            Some("S33°56.8 E151°10.6")
+        );
+        assert_eq!(
+            w(CduForm::Position, "0.0999 -0.9999").as_deref(),
+            Some("N00°06.0 W001°00.0")
+        );
+        assert_eq!(w(CduForm::Position, "91 0"), None);
+        assert_eq!(w(CduForm::Position, "position"), None);
         assert_eq!(w(CduForm::UtcTime, "10:00").as_deref(), Some("1000.0z"));
         assert_eq!(w(CduForm::UtcTime, "1000"), None);
         assert_eq!(
@@ -541,7 +589,8 @@ mod tests {
             "nothing when there's no empty text"
         );
 
-        flight.values.insert("fuel_thousands".into(), "12.4".into());
+        // Fuel in thousands is worked out from the block fuel (decision 0033).
+        flight.values.insert("fuel".into(), "12400".into());
         flight.values.insert("zfw".into(), "126.5".into());
         flight.values.insert("runway".into(), "16L".into());
         flight.walkthroughs.insert("example-setup".into(), 0);
@@ -574,6 +623,69 @@ mod tests {
         );
         assert_eq!(page.screen.rows[0].left[0].style, Some(CduStyle::User));
         assert!(cdu_walkthrough(&pack, &flight, "nope").is_none());
+    }
+
+    #[test]
+    fn perf_init_and_pos_init_show_the_board_flight_in_the_cdus_forms() {
+        let pack = ifly_pack();
+        let mut flight = crate::new_flight(&pack);
+        let page = |f: &Flight, name: &str| {
+            cdu_walkthrough(&pack, f, "preflight-setup")
+                .unwrap()
+                .pages
+                .into_iter()
+                .find(|p| p.page == name)
+                .unwrap()
+        };
+        let row = |p: &CduPageView, n: usize| {
+            let r = &p.screen.rows[n];
+            format!("{} | {}", text(&r.left), text(&r.right))
+        };
+        // Nothing known: the empty text.
+        let perf = page(&flight, "PERF INIT");
+        assert_eq!(row(&perf, 0), "□□□.□/--.-% | □□□□□");
+        assert_eq!(row(&perf, 1), "---.-/--.-SENS | ---°/---");
+        assert_eq!(row(&perf, 2), "□□□.□ | ---°F---°C");
+        assert!(row(&perf, 3).ends_with("| ---°F---°C"));
+
+        for (k, v) in [
+            ("fuel", "12400"),
+            ("zfw", "126.5"),
+            ("cruise_level", "350"),
+            ("isa_deviation", "2"),
+            ("cruise_wind", "270/045"),
+            ("origin_position", "47.449 -122.309"),
+            ("utc_time", "10:00"),
+            ("utc_date", "2025-11-13"),
+            ("nav_active_dates", "2025-10-30/2025-11-27"),
+            // A value saved under a calculated field's id is stale, never shown.
+            ("gross_weight", "999.9"),
+        ] {
+            flight.values.insert(k.into(), v.into());
+        }
+        let perf = page(&flight, "PERF INIT");
+        // Gross weight is ZFW plus plan fuel in thousands, rounded up: 126.5 + 12.4.
+        assert_eq!(row(&perf, 0), "138.9/--.-% | FL350");
+        assert_eq!(row(&perf, 1), "12.4/--.-SENS | 270°/045");
+        assert_eq!(row(&perf, 2), "126.5 | +4°F +2°C");
+        // FL350 is −54.3 °C in the standard atmosphere; 2 warmer is −52 °C.
+        assert!(
+            row(&perf, 3).ends_with("| -62°F -52°C"),
+            "{}",
+            row(&perf, 3)
+        );
+        assert!(perf.screen.rows[0].left[0].value);
+
+        let pos = page(&flight, "POS INIT");
+        assert_eq!(text(&pos.screen.rows[0].right), "N47°26.9 W122°18.5");
+        assert_eq!(row(&pos, 4), "1000.0z | NOV13/25");
+        let ident = page(&flight, "IDENT");
+        assert_eq!(text(&ident.screen.rows[1].right), "OCT30NOV27/25");
+
+        // Without fuel, neither plan fuel nor gross weight is known.
+        flight.values.remove("fuel");
+        let perf = page(&flight, "PERF INIT");
+        assert_eq!(row(&perf, 0), "□□□.□/--.-% | FL350");
     }
 
     #[test]

@@ -14,6 +14,7 @@ import type {
   CduWalk,
   Checklist,
   Decoded,
+  FieldId,
   FlatPack,
   Flight,
   Loaded,
@@ -151,6 +152,12 @@ export async function openSteps(
 export async function suggestion(pack: string, flight: Flight, option: string): Promise<Suggestion | null> {
   await load();
   return unwrap<Suggestion | null>(wasm.suggestion(pack, JSON.stringify(flight), option));
+}
+
+/** The pack's calculated fields' values for this flight, by field id (decision 0033). */
+export async function calculated(pack: string, flight: Flight): Promise<Partial<Record<FieldId, string>>> {
+  await load();
+  return unwrap<Partial<Record<FieldId, string>>>(wasm.calculated(pack, JSON.stringify(flight)));
 }
 
 /** Every step timer in the pack, with when it started and, if paused, the time it had left (#213). */

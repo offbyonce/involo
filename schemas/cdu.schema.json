@@ -124,6 +124,11 @@
           "const": "temperature_change"
         },
         {
+          "description": "A position, `47.449 -122.309` (latitude and longitude in degrees), as degrees and\nminutes to a tenth: `N47°26.9 W122°18.5`.",
+          "type": "string",
+          "const": "position"
+        },
+        {
           "description": "A UTC time, `10:00`, as hours, minutes and tenths of a minute: `1000.0z`.",
           "type": "string",
           "const": "utc_time"

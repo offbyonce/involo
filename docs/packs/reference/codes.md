@@ -9,7 +9,7 @@ doc comments in the Rust types (or crates/involo-pack/src/codes.rs) and run `jus
 
 Every problem `involo-pack check` (and the app, when it installs a pack) can report has a stable code.
 A code never changes meaning and is never reused. `involo-pack explain <code>` prints the same entry.
-There are 128 codes. [All files](index.md).
+There are 130 codes. [All files](index.md).
 
 ## P00xx: Reading the files and building the pack
 
@@ -596,6 +596,18 @@ How to fix it: Give `display` a `scale` and a `step` above 0.
 `strip` is the text a field shows in the strip, so it is only for a field whose `show_in` includes the strip.
 
 How to fix it: Add `strip` to `show_in`, or remove the field's `strip`.
+
+### P0713: A calculation's inputs
+
+A calculated field reads other fields (decision 0033): each must exist and be a number, the fields of a `sum` share a unit field, a `scale` has a `scale` and a `step` above 0, and no field reads itself, directly or through other calculated fields.
+
+How to fix it: Name number fields from flight.yaml, give a `sum`'s fields the same `unit`, and break any loop.
+
+### P0714: A calculated field that is typed or filled
+
+A calculated field is worked out each time the flight is read, so it is a number with no `simbrief`, `input` or `display` of its own.
+
+How to fix it: Make the field `kind: number` and remove its `simbrief`, `input` and `display`, or remove `calculated`.
 
 ## P08xx: Panels, lights and the flight deck overview
 

@@ -78,6 +78,46 @@ data_types! {
         pub step: f64,
     }
 
+    /// A field's value worked out from other fields, as one of the app's calculations
+    /// (decision 0033): exactly one of `sum`, `scale` or `isa_temperature`. A pack chooses among
+    /// them but cannot add one.
+    #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
+    pub struct Calculation {
+        /// Two or more number fields added together, which share a unit field. The result keeps
+        /// the most decimals any of them has (126.5 + 12.4 = 138.9).
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub sum: Vec<String>,
+        /// One number field divided by `scale` and rounded to a multiple of `step`, by
+        /// `display`'s rules (fuel in thousands, rounded up to a tenth).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub scale: Option<ScaleCalculation>,
+        /// The standard atmosphere's temperature at a flight level, plus a deviation, in whole
+        /// degrees Celsius: 15 °C at sea level, falling 1.98 °C per 1,000 ft, down to −56.5 °C
+        /// from 36,089 ft.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub isa_temperature: Option<IsaTemperature>,
+    }
+
+    /// `scale`: a number field, divided and rounded.
+    pub struct ScaleCalculation {
+        /// The number field it divides, e.g. `fuel`.
+        pub field: String,
+        /// What the number is divided by, e.g. 1000.
+        pub scale: f64,
+        /// Which way the result is rounded to `step`.
+        pub round: Rounding,
+        /// The multiple the result is rounded to, e.g. 0.1 for one decimal.
+        pub step: f64,
+    }
+
+    /// `isa_temperature`: the fields holding the flight level and the ISA deviation.
+    pub struct IsaTemperature {
+        /// The number field holding the flight level, e.g. `cruise_level` (350 for FL350).
+        pub level: String,
+        /// The number field holding the deviation from standard, in degrees Celsius.
+        pub deviation: String,
+    }
+
     /// The range a number may take, in one unit (a value of the field's `unit` field), or in
     /// every unit when `unit` is left out. Stored values are checked, so a weight stored in
     /// thousands has its range in thousands.
@@ -305,6 +345,10 @@ data_types! {
         /// time, trip fuel, taxi fuel) is shown from the plan and never stored.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub simbrief: Vec<SimbriefSource>,
+        /// Worked out from other fields each time the flight is read, never stored or typed
+        /// (decision 0033). A calculated field has no `simbrief`, `input` or `display`.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub calculated: Option<Calculation>,
         /// The Flight pages' box for it.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub input: Option<FieldInput>,

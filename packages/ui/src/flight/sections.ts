@@ -32,6 +32,9 @@ export type Ctx = {
   /** Each option's suggestion, as its row shows it ("1,262 kg"), by option id; none without a
    * plan (decision 0027). */
   suggested?: Record<string, string | null>;
+  /** The calculated fields' values, by field id; a field with an unknown input is missing
+   * (decision 0033). */
+  calculated?: Partial<Record<FieldId, string>>;
 };
 
 /** A stretch of a close-up, marked when it is the value. */
@@ -667,6 +670,13 @@ function readOf(f: FlightField): Row["read"] {
   if (f.suggestedBy) {
     const option = f.suggestedBy;
     return (c) => c.suggested?.[option] ?? "—";
+  }
+  if (f.calculated) {
+    const show = f.show ? showOf(f.show) : (x: string) => x;
+    return (c) => {
+      const x = c.calculated?.[f.id as FieldId];
+      return x ? show(x) : "—";
+    };
   }
   if (!f.readOnly) return undefined;
   switch (f.simbrief?.[0]) {

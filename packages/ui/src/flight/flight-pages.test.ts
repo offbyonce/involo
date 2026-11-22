@@ -94,7 +94,13 @@ describe("the Flight pages for any pack", () => {
     expect(pages.map((p) => p.id)).toEqual(["route"]);
     const rows = pages[0]?.groups.flatMap((g) => g.rows) ?? [];
     expect(pages[0]?.groups.map((g) => g.title)).toEqual(["Flight values"]);
-    expect(rows.map((r) => r.field)).toEqual(twinPack().content.flight?.fields.map((f) => f.id));
+    expect(rows.map((r) => r.id)).toEqual(twinPack().content.flight?.fields.map((f) => f.id));
+    // Calculated fields are read, not typed (decision 0033).
+    expect(rows.filter((r) => !r.field).map((r) => r.id)).toEqual([
+      "fuel_thousands",
+      "gross_weight",
+      "top_of_climb_temperature",
+    ]);
     expect(rows.find((r) => r.field === "takeoff_flaps")?.choices).toEqual(["1", "5"]);
     expect(rows.every((r) => r.ofp.title && r.desc !== undefined)).toBe(true);
     // A range without words of its own says "Enter {min} to {max}".

@@ -14,6 +14,7 @@ import type {
   CatalogEntry,
   CduWalk,
   Decoded,
+  FieldId,
   FlatPack,
   Flight,
   Loaded,
@@ -86,6 +87,9 @@ export interface Host {
   openSteps(pack: string, flight: Flight, settings: Settings, before?: string): Promise<OpenStep[]>;
   /** The answer an option's rule suggests from the flight's values, or null (decision 0027). */
   suggestion(pack: string, flight: Flight, option: string): Promise<Suggestion | null>;
+  /** The pack's calculated fields' values for this flight, by field id; a field any of whose
+   * inputs is unknown is left out (decision 0033). */
+  calculated(pack: string, flight: Flight): Promise<Partial<Record<FieldId, string>>>;
   /** Every step timer in the pack, with when it started and, if paused, the time it had left
    * (#213). */
   timers(pack: string, flight: Flight): Promise<StepTimer[]>;

@@ -368,6 +368,30 @@ describe("FlightPage", () => {
     expect(screen.queryByRole("textbox", { name: /Center tank/ })).toBeNull();
   });
 
+  it("a calculated field on a page is a read-only row of the core's value (decision 0033)", async () => {
+    const pack = structuredClone(iflyPack());
+    const gw = pack.content.flight?.fields.find((f) => f.id === "gross_weight");
+    if (!gw) throw new Error("no gross_weight");
+    gw.page = "fuel";
+    gw.group = "Weights";
+    useFlightPack(pack);
+    try {
+      page({ section: "fuel", flight: flight({}), calculated: { gross_weight: "138.9" } });
+      const row =
+        (await screen.findByText("Gross weight")).closest(".row, li, tr, [data-row]") ?? document.body;
+      expect(row.textContent).toContain("138.9");
+      expect(screen.queryByRole("textbox", { name: /Gross weight/ })).toBeNull();
+      cleanup();
+      // Unknown, as when an input has no value: a dash.
+      page({ section: "fuel", flight: flight({}) });
+      const empty =
+        (await screen.findByText("Gross weight")).closest(".row, li, tr, [data-row]") ?? document.body;
+      expect(empty.textContent).toContain("—");
+    } finally {
+      useFlightPack(iflyPack());
+    }
+  });
+
   it("Weather without a plan: the empty state, and the Altimeter still to enter", async () => {
     page({ section: "weather", focus: "qnh" });
     expect(

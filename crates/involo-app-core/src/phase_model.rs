@@ -124,12 +124,17 @@ pub fn phase_model(
     settings: &Settings,
     id: &str,
 ) -> Result<PhaseModel, AppError> {
-    view(
-        pack,
-        &crate::flight::with_defaults(pack, flight),
-        settings,
-        id,
-    )
+    let mut flight = crate::flight::with_defaults(pack, flight);
+    // Steps' blanks and hints read calculated fields as worked out, never as saved (0033).
+    let calculated = crate::values::calculated(pack, &flight);
+    for f in crate::values::fields(pack).filter(|f| f.calculated.is_some()) {
+        let key = involo_checklist_core::FieldId::new(f.id.as_str());
+        match calculated.get(&key) {
+            Some(v) => flight.values.insert(key, v.clone()),
+            None => flight.values.remove(&key),
+        };
+    }
+    view(pack, &flight, settings, id)
 }
 
 /// [`phase_model`] for a flight with every option at a value.
@@ -289,6 +294,37 @@ mod tests {
             .unwrap();
         assert_eq!(row.values, ["145", "163", "5000"]);
         assert_eq!(row.hint, "");
+    }
+
+    #[test]
+    fn a_step_s_blank_reads_a_calculated_field_as_worked_out() {
+        let mut pack = ifly_pack();
+        let id = "ifly-737-max8.before-start.mcp-check";
+        let step = pack
+            .lists
+            .iter_mut()
+            .flat_map(|l| &mut l.steps)
+            .find(|s| s.id.as_str() == id)
+            .unwrap();
+        step.fill[0] = involo_checklist_core::FieldId::from("gross_weight");
+        let mut flight = new_flight(&pack);
+        let blank = |f: &Flight| {
+            phase_model(&pack, f, &Settings::default(), "before-start")
+                .unwrap()
+                .lists
+                .iter()
+                .flat_map(|l| &l.steps)
+                .find(|s| s.id.as_str() == id)
+                .unwrap()
+                .values[0]
+                .clone()
+        };
+        // A stale saved value is never shown; with ZFW and fuel, the sum is.
+        flight.values.insert("gross_weight".into(), "1.0".into());
+        assert_eq!(blank(&flight), "");
+        flight.values.insert("zfw".into(), "126.5".into());
+        flight.values.insert("fuel".into(), "12400".into());
+        assert_eq!(blank(&flight), "138.9");
     }
 
     #[test]

@@ -4,4 +4,4 @@
  * How a value is written on the CDU screen. The forms are the app's: they describe ways of
  * writing a value, not an aircraft. A value that doesn't read as its form shows as it is.
  */
-export type CduForm = "wind" | "temperature" | "temperature_change" | "utc_time" | "month_day_year" | "month_day_range";
+export type CduForm = "wind" | "temperature" | "temperature_change" | "position" | "utc_time" | "month_day_year" | "month_day_range";

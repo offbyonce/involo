@@ -26,19 +26,19 @@ pub mod positions;
 mod session;
 
 pub use content::{
-    Alias, AliasKind, AliasesFile, BasisTagLabel, BriefItem, Briefing, BriefingsFile, CduField,
-    CduFile, CduForm, CduInline, CduPage, CduPart, CduRouteCount, CduRow, CduScreen, CduStyle,
-    CduStyled, CduText, CduWalkthrough, CduWhen, Control, ControlsFile, ExplainNote, FIELD_PAGES,
-    Fault, FaultsFile, FieldAlso, FieldChoice, FieldDisplay, FieldInput, FieldKind, FieldOfp,
-    FieldRange, FieldShow, FlightField, FlightFile, FlightGroup, FlightOverviewRow, FlightPage,
-    GlossaryEntry, GlossaryFile, GroupLabel, GroupUnits, HowNote, InputMode, IntroParagraph,
-    LabelAnchor, Labels, LabelsFile, Legend, LightColor, LightNote, LightsFile, Message,
-    MessageLevel, MessagesFile, NotesFile, NotesRow, OptionChoice, Overview, OverviewArea,
-    OverviewRegion, OverviewViews, Panel, PanelItem, PanelItemKind, PanelSection, PanelState,
-    PanelStatesFile, Phase, PhasesFile, RoleLabel, Rounding, RouteLegCount, RouteLegPart,
-    SeatLabel, SeatViews, ShowIn, SimbriefSource, Stage, StagePhase, StartControl, StartLink,
-    StartStyle, StripText, SuggestLine, SuggestRule, Suggests, UserOption, ViewFrame, ViewLabel,
-    ViewPlace, ViewRole, ViewShape, WeightUnit, Zone,
+    Alias, AliasKind, AliasesFile, BasisTagLabel, BriefItem, Briefing, BriefingsFile, Calculation,
+    CduField, CduFile, CduForm, CduInline, CduPage, CduPart, CduRouteCount, CduRow, CduScreen,
+    CduStyle, CduStyled, CduText, CduWalkthrough, CduWhen, Control, ControlsFile, ExplainNote,
+    FIELD_PAGES, Fault, FaultsFile, FieldAlso, FieldChoice, FieldDisplay, FieldInput, FieldKind,
+    FieldOfp, FieldRange, FieldShow, FlightField, FlightFile, FlightGroup, FlightOverviewRow,
+    FlightPage, GlossaryEntry, GlossaryFile, GroupLabel, GroupUnits, HowNote, InputMode,
+    IntroParagraph, IsaTemperature, LabelAnchor, Labels, LabelsFile, Legend, LightColor, LightNote,
+    LightsFile, Message, MessageLevel, MessagesFile, NotesFile, NotesRow, OptionChoice, Overview,
+    OverviewArea, OverviewRegion, OverviewViews, Panel, PanelItem, PanelItemKind, PanelSection,
+    PanelState, PanelStatesFile, Phase, PhasesFile, RoleLabel, Rounding, RouteLegCount,
+    RouteLegPart, ScaleCalculation, SeatLabel, SeatViews, ShowIn, SimbriefSource, Stage,
+    StagePhase, StartControl, StartLink, StartStyle, StripText, SuggestLine, SuggestRule, Suggests,
+    UserOption, ViewFrame, ViewLabel, ViewPlace, ViewRole, ViewShape, WeightUnit, Zone,
 };
 pub use model::{
     AutoStart, AutoStartPick, Checklist, Confirmation, ConfirmationKind, ExpectWhen, FieldId,

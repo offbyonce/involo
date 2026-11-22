@@ -140,6 +140,7 @@ How a value is written on the CDU screen. The forms are the app's: they describe
 | `wind` | A wind, `ddd/sss`, with a degree sign after the direction: `270°/045`. |
 | `temperature` | A temperature in degrees Celsius, in Fahrenheit then Celsius: `-62°F -52°C`. |
 | `temperature_change` | A temperature difference in degrees Celsius, signed, in Fahrenheit then Celsius: `+4°F +2°C`. |
+| `position` | A position, `47.449 -122.309` (latitude and longitude in degrees), as degrees and minutes to a tenth: `N47°26.9 W122°18.5`. |
 | `utc_time` | A UTC time, `10:00`, as hours, minutes and tenths of a minute: `1000.0z`. |
 | `month_day_year` | A date, `2025-11-13`, as month, day and year: `NOV13/25`. |
 | `month_day_range` | Two dates, `2025-10-30/2025-11-27`, as month and day each, then the second's year: `OCT30NOV27/25`. |

@@ -82,6 +82,9 @@ export const REVIEW_BOARDS = {
   "board-cdu-values": { desktop: "CduPage", phone: "CduPagePhone" },
   "board-cdu-novalues": { desktop: "CduPageEmpty", phone: "CduPageEmptyPhone" },
   "board-cdu-last": { desktop: "CduPageLast", phone: "CduPageLastPhone" },
+  // The flight's values on POS INIT and RTE (#222), beside the page board they share.
+  "board-cdu-pos": { desktop: "CduPage", phone: "CduPagePhone" },
+  "board-cdu-route": { desktop: "CduPage", phone: "CduPagePhone" },
   // The exterior inspection's top view (#216, Walkaround.dc.html and WalkaroundPhone.dc.html).
   "board-walk-first": { desktop: "WalkFirst", phone: "WalkFirstPhone" },
   "board-walk-mid": { desktop: "WalkMid", phone: "WalkMidPhone" },

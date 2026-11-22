@@ -183,6 +183,15 @@ pub fn suggestion(pack: &str, flight: &str, option: &str) -> String {
     })())
 }
 
+/// The pack's calculated fields' values for this flight, by field id (decision 0033).
+#[wasm_bindgen]
+pub fn calculated(pack: &str, flight: &str) -> String {
+    reply((|| {
+        let flight: Flight = read("flight", flight)?;
+        with_pack(pack, |p| Ok(involo_app_core::calculated(p, &flight)))
+    })())
+}
+
 /// Every step timer in the pack, with when it started, and the time it had left if paused (#213).
 #[wasm_bindgen]
 pub fn timers(pack: &str, flight: &str) -> String {

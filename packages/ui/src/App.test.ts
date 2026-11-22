@@ -202,6 +202,7 @@ function host(overrides: Partial<Host> = {}): Host {
     phaseModel: async () => view(["skipped", "current"]),
     openSteps: async () => [],
     suggestion: async () => null,
+    calculated: async () => ({}),
     seatFrame: async () => null,
     timers: async () => [],
     cduWalkthrough: async () => null,

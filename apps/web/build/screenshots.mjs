@@ -516,8 +516,9 @@ const SHOTS = [
     app: { hash: "#/phase/before-start", before: [briefingIn(state)] },
   })),
   // A CDU walkthrough (#215, CduWalk boards): the CDU step not started and stopped part way, and
-  // the walkthrough open on a page with the flight's values, with no flight, and on its last page.
-  ...["start", "resume", "values", "novalues", "last"].map((state) => ({
+  // the walkthrough open on a page with the flight's values, with no flight, and on its last page;
+  // and (#222) POS INIT and RTE with the flight's values.
+  ...["start", "resume", "values", "novalues", "last", "pos", "route"].map((state) => ({
     name: `board-cdu-${state}`,
     only: ["desktop", "phone"],
     app: {

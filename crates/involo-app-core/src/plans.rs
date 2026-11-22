@@ -452,17 +452,22 @@ fn shown(field: &FlightField, n: i32) -> String {
     let Some(d) = &field.display else {
         return n.to_string();
     };
-    let steps = f64::from(n) / d.scale / d.step;
+    rounded(f64::from(n) / d.scale, d.round, d.step)
+}
+
+/// A number rounded to a multiple of `step`, written with the step's decimals.
+pub(crate) fn rounded(n: f64, round: Rounding, step: f64) -> String {
+    let steps = n / step;
     // A hair's margin, so a value already on a step is not pushed to the next one.
-    let steps = match d.round {
+    let steps = match round {
         Rounding::Up => (steps - 1e-9).ceil(),
         Rounding::Down => (steps + 1e-9).floor(),
         Rounding::Nearest => steps.round(),
     };
-    let decimals = format!("{}", d.step)
+    let decimals = format!("{step}")
         .split_once('.')
         .map_or(0, |(_, f)| f.len());
-    format!("{:.*}", decimals, steps * d.step)
+    format!("{:.*}", decimals, steps * step)
 }
 
 /// A field's value from the plan's sources: one source as read, or several numbers added

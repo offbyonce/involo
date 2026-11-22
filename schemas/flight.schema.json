@@ -31,6 +31,42 @@
     "fields"
   ],
   "$defs": {
+    "Calculation": {
+      "description": "A field's value worked out from other fields, as one of the app's calculations\n(decision 0033): exactly one of `sum`, `scale` or `isa_temperature`. A pack chooses among\nthem but cannot add one.",
+      "type": "object",
+      "properties": {
+        "isa_temperature": {
+          "description": "The standard atmosphere's temperature at a flight level, plus a deviation, in whole\ndegrees Celsius: 15 °C at sea level, falling 1.98 °C per 1,000 ft, down to −56.5 °C\nfrom 36,089 ft.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IsaTemperature"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scale": {
+          "description": "One number field divided by `scale` and rounded to a multiple of `step`, by\n`display`'s rules (fuel in thousands, rounded up to a tenth).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScaleCalculation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sum": {
+          "description": "Two or more number fields added together, which share a unit field. The result keeps\nthe most decimals any of them has (126.5 + 12.4 = 138.9).",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "FieldAlso": {
       "description": "A read-only copy of a field on another page and group, with a link to the field's own\npage, e.g. the runway on the Takeoff page.",
       "type": "object",
@@ -297,6 +333,17 @@
           "items": {
             "$ref": "#/$defs/FieldAlso"
           }
+        },
+        "calculated": {
+          "description": "Worked out from other fields each time the flight is read, never stored or typed\n(decision 0033). A calculated field has no `simbrief`, `input` or `display`.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Calculation"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "choices": {
           "description": "For a choice field: its values, in order.",
@@ -662,6 +709,25 @@
         }
       ]
     },
+    "IsaTemperature": {
+      "description": "`isa_temperature`: the fields holding the flight level and the ISA deviation.",
+      "type": "object",
+      "properties": {
+        "deviation": {
+          "description": "The number field holding the deviation from standard, in degrees Celsius.",
+          "type": "string"
+        },
+        "level": {
+          "description": "The number field holding the flight level, e.g. `cruise_level` (350 for FL350).",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "level",
+        "deviation"
+      ]
+    },
     "NotesRow": {
       "description": "The flight's notes from ATC, as a row of a group: its label and description.",
       "type": "object",
@@ -701,6 +767,37 @@
           "type": "string",
           "const": "nearest"
         }
+      ]
+    },
+    "ScaleCalculation": {
+      "description": "`scale`: a number field, divided and rounded.",
+      "type": "object",
+      "properties": {
+        "field": {
+          "description": "The number field it divides, e.g. `fuel`.",
+          "type": "string"
+        },
+        "round": {
+          "description": "Which way the result is rounded to `step`.",
+          "$ref": "#/$defs/Rounding"
+        },
+        "scale": {
+          "description": "What the number is divided by, e.g. 1000.",
+          "type": "number",
+          "format": "double"
+        },
+        "step": {
+          "description": "The multiple the result is rounded to, e.g. 0.1 for one decimal.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "field",
+        "scale",
+        "round",
+        "step"
       ]
     },
     "ShowIn": {

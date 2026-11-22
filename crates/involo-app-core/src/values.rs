@@ -4,6 +4,8 @@
 //! Flight values as steps show them (decision 0019): the text of each blank and a step's hint,
 //! and the values a unit choice may take.
 
+use std::collections::BTreeMap;
+
 use involo_checklist_core::{FieldId, FlightField, ShowIn, SimbriefSource, Step};
 use involo_pack::FlatPack;
 use serde::Serialize;
@@ -83,6 +85,74 @@ pub fn last_note(flight: &Flight) -> String {
         .unwrap_or_default()
         .trim()
         .to_owned()
+}
+
+/// The values of the pack's calculated fields for this flight (decision 0033), by field id. A field
+/// is left out when any field it reads has no value. Worked out on every read, never stored.
+pub fn calculated(pack: &FlatPack, flight: &Flight) -> BTreeMap<FieldId, String> {
+    let mut out = BTreeMap::new();
+    for f in fields(pack).filter(|f| f.calculated.is_some()) {
+        if let Some(v) = calculate(pack, flight, &f.id, 0) {
+            out.insert(FieldId::new(f.id.as_str()), v);
+        }
+    }
+    out
+}
+
+/// A field's value: typed or from a plan, or worked out when it is calculated. `depth` stops a
+/// loop that `pack check` would have refused.
+fn calculate(pack: &FlatPack, flight: &Flight, id: &str, depth: usize) -> Option<String> {
+    let field = fields(pack).find(|f| f.id == id)?;
+    let Some(calc) = &field.calculated else {
+        return flight
+            .values
+            .get(id)
+            .map(|v| v.trim().to_owned())
+            .filter(|v| !v.is_empty());
+    };
+    if depth > 16 {
+        return None;
+    }
+    let number = |id: &str| -> Option<(f64, usize)> {
+        let v = calculate(pack, flight, id, depth + 1)?;
+        let v = v.replace(',', "");
+        let n: f64 = v
+            .trim_start_matches('+')
+            .replace('\u{2212}', "-")
+            .parse()
+            .ok()?;
+        let decimals = v.split_once('.').map_or(0, |(_, d)| d.len());
+        n.is_finite().then_some((n, decimals))
+    };
+    if let Some(sc) = &calc.scale {
+        let (n, _) = number(&sc.field)?;
+        return (sc.scale > 0.0 && sc.step > 0.0)
+            .then(|| crate::plans::rounded(n / sc.scale, sc.round, sc.step));
+    }
+    if let Some(t) = &calc.isa_temperature {
+        let (level, _) = number(&t.level)?;
+        let (deviation, _) = number(&t.deviation)?;
+        let feet = level * 100.0;
+        let standard = if feet < 36_089.0 {
+            15.0 - 1.98 * feet / 1000.0
+        } else {
+            -56.5
+        };
+        let c = (standard + deviation).round();
+        // No minus sign on zero.
+        return Some(format!("{}", if c == 0.0 { 0.0 } else { c }));
+    }
+    if calc.sum.is_empty() {
+        return None;
+    }
+    let mut total = 0.0;
+    let mut decimals = 0;
+    for id in &calc.sum {
+        let (n, d) = number(id)?;
+        total += n;
+        decimals = decimals.max(d);
+    }
+    Some(format!("{total:.decimals$}"))
 }
 
 /// The key of a step's n-th blank (from 0) in [`Flight::blanks`].

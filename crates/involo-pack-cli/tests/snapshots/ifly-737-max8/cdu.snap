@@ -139,6 +139,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "origin_position",
+                    "form": "position",
                     "style": "data",
                     "empty": "position",
                     "empty_style": "data"
@@ -159,6 +160,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "origin_position",
+                    "form": "position",
                     "style": "accent"
                   }
                 ]
@@ -248,6 +250,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "origin_position",
+                    "form": "position",
                     "style": "data",
                     "empty": "position",
                     "empty_style": "data"
@@ -268,6 +271,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "origin_position",
+                    "form": "position",
                     "style": "accent"
                   }
                 ]
@@ -287,6 +291,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "right": [
                   {
                     "field": "origin_position",
+                    "form": "position",
                     "style": "user",
                     "empty": "□□□°□□.□ □□□□°□□.□"
                   }
@@ -330,7 +335,8 @@ source: crates/involo-pack-cli/tests/snapshot.rs
             ],
             "scratchpad": [
               {
-                "field": "origin_position"
+                "field": "origin_position",
+                "form": "position"
               }
             ]
           }

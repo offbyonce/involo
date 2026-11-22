@@ -82,6 +82,7 @@ walkthroughs:
                 - LAST POS
               right:
                 - field: origin_position
+                  form: position
                   style: data
                   empty: position
                   empty_style: data
@@ -93,6 +94,7 @@ walkthroughs:
                   empty: "----"
               right:
                 - field: origin_position
+                  form: position
                   style: accent
             - left_label:
                 - GATE
@@ -141,6 +143,7 @@ walkthroughs:
                 - LAST POS
               right:
                 - field: origin_position
+                  form: position
                   style: data
                   empty: position
                   empty_style: data
@@ -152,6 +155,7 @@ walkthroughs:
                   empty: "----"
               right:
                 - field: origin_position
+                  form: position
                   style: accent
             - left_label:
                 - GATE
@@ -161,6 +165,7 @@ walkthroughs:
                 - SET IRS POS
               right:
                 - field: origin_position
+                  form: position
                   style: user
                   empty: "□□□°□□.□ □□□□°□□.□"
             - left_label:
@@ -185,6 +190,7 @@ walkthroughs:
             - "4R"
           scratchpad:
             - field: origin_position
+              form: position
       - page: RTE
         key: RTE
         title: Origin and destination

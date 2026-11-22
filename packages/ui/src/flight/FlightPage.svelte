@@ -26,6 +26,7 @@ it. Every field of the old Flight setup lives in one section.
     settings,
     plan,
     suggested = {},
+    calculated = {},
     options,
     states,
     panelStateLabels,
@@ -49,6 +50,8 @@ it. Every field of the old Flight setup lives in one section.
     /** The center tank's share of the block fuel, from the suggestion rule ("1,262 kg"). */
     /** Each option's suggestion as its row shows it, by option id (decision 0027). */
     suggested?: Record<string, string | null>;
+    /** The calculated fields' values, by field id (decision 0033). */
+    calculated?: Partial<Record<FieldId, string>>;
     options: UserOption[];
     states: PanelState[];
     /** The panel state row's words, from the pack's labels. */
@@ -87,7 +90,7 @@ it. Every field of the old Flight setup lives in one section.
   };
 
   let wxPanel = $state<Ofp | null>(null);
-  let ctx = $derived<Ctx>({ values: flight.values ?? {}, plan, notes: flight.notes ?? "", unit: unitOf(flight), suggested });
+  let ctx = $derived<Ctx>({ values: flight.values ?? {}, plan, notes: flight.notes ?? "", unit: unitOf(flight), suggested, calculated });
   let def = $derived(sections().find((s) => s.id === section) ?? null);
   /** The Flight pages the pack fills; a field page it gives no field is left out. */
   let shownSections = $derived(FLIGHT_SECTIONS.filter((id) => !FIELD_PAGES.has(id) || sections().some((s) => s.id === id)));

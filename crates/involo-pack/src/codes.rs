@@ -601,6 +601,16 @@ codes! {
         explain: "`strip` is the text a field shows in the strip, so it is only for a field whose `show_in` includes the strip.",
         hint: "Add `strip` to `show_in`, or remove the field's `strip`.",
     }
+    CalculationInputs = "P0713" {
+        title: "A calculation's inputs",
+        explain: "A calculated field reads other fields (decision 0033): each must exist and be a number, the fields of a `sum` share a unit field, a `scale` has a `scale` and a `step` above 0, and no field reads itself, directly or through other calculated fields.",
+        hint: "Name number fields from flight.yaml, give a `sum`'s fields the same `unit`, and break any loop.",
+    }
+    CalculatedTyped = "P0714" {
+        title: "A calculated field that is typed or filled",
+        explain: "A calculated field is worked out each time the flight is read, so it is a number with no `simbrief`, `input` or `display` of its own.",
+        hint: "Make the field `kind: number` and remove its `simbrief`, `input` and `display`, or remove `calculated`.",
+    }
 
     // P08xx: panels, lights and the flight deck overview.
     RegionBounds = "P0801" {

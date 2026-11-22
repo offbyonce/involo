@@ -26,6 +26,7 @@ One flight field.
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
 | `also` | list of [FieldAlso](#fieldalso) |  |  | Read-only copies on other pages. |
+| `calculated` | [Calculation](#calculation) |  |  | Worked out from other fields each time the flight is read, never stored or typed (decision 0033). A calculated field has no `simbrief`, `input` or `display`. |
 | `choices` | list of [FieldChoice](#fieldchoice) |  |  | For a choice field: its values, in order. |
 | `description` | text |  |  | The text under the row's name. |
 | `display` | [FieldDisplay](#fielddisplay) |  |  | How a number from a plan is stored. |
@@ -87,6 +88,16 @@ A read-only copy of a field on another page and group, with a link to the field'
 | `label` | text |  |  | The row's label there; the field's own label otherwise. |
 | `ofp` | [FieldOfp](#fieldofp) |  |  | The side panel's parts for the copy, over the field's own panel. |
 | `page` | text | yes |  | The Flight page the copy shows on, e.g. `takeoff`. |
+
+## Calculation
+
+A field's value worked out from other fields, as one of the app's calculations (decision 0033): exactly one of `sum`, `scale` or `isa_temperature`. A pack chooses among them but cannot add one.
+
+| Field | Takes | Required | Default | What it is |
+| --- | --- | --- | --- | --- |
+| `isa_temperature` | [IsaTemperature](#isatemperature) |  |  | The standard atmosphere's temperature at a flight level, plus a deviation, in whole degrees Celsius: 15 °C at sea level, falling 1.98 °C per 1,000 ft, down to −56.5 °C from 36,089 ft. |
+| `scale` | [ScaleCalculation](#scalecalculation) |  |  | One number field divided by `scale` and rounded to a multiple of `step`, by `display`'s rules (fuel in thousands, rounded up to a tenth). |
+| `sum` | list of text |  |  | Two or more number fields added together, which share a unit field. The result keeps the most decimals any of them has (126.5 + 12.4 = 138.9). |
 
 ## FieldChoice
 
@@ -237,6 +248,26 @@ One titled card of a Flight page. Its rows are the fields naming this page and g
 | `notes` | [NotesRow](#notesrow) |  |  | The flight's notes from ATC, as the card's last row. |
 | `title` | text | yes |  | The card's title. Fields name it as their `group`, and `also` copies as theirs. |
 | `units` | [GroupUnits](#groupunits) |  |  | A unit toggle in the card's header. |
+
+## IsaTemperature
+
+`isa_temperature`: the fields holding the flight level and the ISA deviation.
+
+| Field | Takes | Required | Default | What it is |
+| --- | --- | --- | --- | --- |
+| `deviation` | text | yes |  | The number field holding the deviation from standard, in degrees Celsius. |
+| `level` | text | yes |  | The number field holding the flight level, e.g. `cruise_level` (350 for FL350). |
+
+## ScaleCalculation
+
+`scale`: a number field, divided and rounded.
+
+| Field | Takes | Required | Default | What it is |
+| --- | --- | --- | --- | --- |
+| `field` | text | yes |  | The number field it divides, e.g. `fuel`. |
+| `round` | [Rounding](#rounding) | yes |  | Which way the result is rounded to `step`. |
+| `scale` | number | yes |  | What the number is divided by, e.g. 1000. |
+| `step` | number | yes |  | The multiple the result is rounded to, e.g. 0.1 for one decimal. |
 
 ## Rounding
 
