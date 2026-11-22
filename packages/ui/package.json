@@ -6,7 +6,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./app.css": "./src/app.css"
+    "./app.css": "./src/app.css",
+    "./gallery": "./src/gallery/index.ts"
   },
   "scripts": {
     "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
