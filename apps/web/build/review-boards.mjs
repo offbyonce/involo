@@ -82,6 +82,9 @@ export const REVIEW_BOARDS = {
   "board-cdu-values": { desktop: "CduPage", phone: "CduPagePhone" },
   "board-cdu-novalues": { desktop: "CduPageEmpty", phone: "CduPageEmptyPhone" },
   "board-cdu-last": { desktop: "CduPageLast", phone: "CduPageLastPhone" },
+  // The exterior inspection's top view (#216, Walkaround.dc.html and WalkaroundPhone.dc.html).
+  "board-walk-first": { desktop: "WalkFirst", phone: "WalkFirstPhone" },
+  "board-walk-mid": { desktop: "WalkMid", phone: "WalkMidPhone" },
   // Light notes and panel-state descriptions (#211, Notes.dc.html).
   "board-light-notes": { desktop: "LightNotes", phone: "LightNotesPhone" },
   "board-state-note": { desktop: "StateNote", phone: "StateNotePhone" },

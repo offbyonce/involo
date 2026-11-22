@@ -138,7 +138,8 @@ how?: string | null,
  */
 explain?: string | null, 
 /**
- * The step's point on a walkaround drawing. The app doesn't read it yet.
+ * The step's stop on the exterior inspection's top view: the step pane and the phone's
+ * step card draw every stop of the list there, numbered by step `number`.
  */
 walkaround?: WalkaroundPoint | null, 
 /**

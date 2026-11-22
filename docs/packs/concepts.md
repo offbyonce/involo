@@ -143,6 +143,19 @@ doesn't name: the only numbers it works out are a route's rows (`route_leg`), sp
 flight's route as 3.0 did, and the counts made from them (`route_legs`). The page the pilot is on
 is saved with the flight by the walkthrough's `id`, so it never changes once published.
 
+## The exterior inspection
+
+A step with a `walkaround` point is a stop on the exterior inspection. Its step pane, and on a
+phone its card when it's current, shows the step's `look_for` as Look for, its `location` line, and
+a top view of the airplane with every stop of the list numbered by its step `number`: the current
+one, done, skipped and to do, with a legend.
+
+The airplane comes from the overview's `top` view in `controls.yaml`, beside `side` and `seat`
+(decision 0032): the airplane from above, nose up, as `structure` and `glass` shapes, each of three
+points or more, in the view's own units. Give a curve or an ellipse as many points. The walkaround
+points are in the same units, and each must lie inside the view. Without a top view, `check` warns
+and the steps show as an ordinary list.
+
 ## Labels
 
 Words the interface shows that belong to the aircraft (list kind names, the reference area's title
@@ -162,16 +175,6 @@ the app's own word, so write only what differs.
 - `glossary_exceptions` are terms whose first sentence is not shown as their expansion.
 - `position_words` (`DN: [DOWN]`) are other words for a position, merged over the defaults;
   `check` and `suggest-targets` read a step's wording with them.
-
-## Accepted but not shown yet
-
-The format has room for one thing the app doesn't show yet. It has an approved design, and the
-app will show it as written; `involo-pack check` checks it now, so write it as you would anything
-else.
-
-| What | Where | Designed as |
-| --- | --- | --- |
-| Walkaround points | a step's `walkaround` | The exterior inspection: a top view of the airplane with numbered stops |
 
 ## Other things Practice and the overview read
 

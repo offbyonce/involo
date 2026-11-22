@@ -59,6 +59,7 @@ in Rust. The host saves progress and settings on the device.
   import { changedText, dependsOn, labelOf, lowerFirst, shortLabel, type DecisionSource, type Decisions } from "./lib/decision";
   import { stepTitle } from "./lib/names";
   import StepPane from "./lib/StepPane.svelte";
+  import type { Stop } from "./lib/TopView.svelte";
   import Drawer from "./lib/Drawer.svelte";
   import SaveFailedNotice from "./lib/SaveFailedNotice.svelte";
   import Find from "./lib/Find.svelte";
@@ -652,7 +653,16 @@ in Rust. The host saves progress and settings on the device.
       .filter((u): u is { step: NonNullable<typeof u.step>; state: typeof u.state } => !!u.step);
     const list = view.lists.find((l) => l.steps.some((r) => r.id === row.id));
     const previous = at > 0 ? index.step(rows[at - 1]?.id ?? "") : undefined;
-    return { step, row, upcoming, total: list?.steps.length ?? rows.length, previous };
+    // The exterior inspection's stops (#216): every step of the list with a walkaround point.
+    const stops: Stop[] = step.walkaround
+      ? (list?.steps ?? []).flatMap((r) => {
+          const s = index?.step(r.id);
+          if (!s?.walkaround || !index) return [];
+          const state = r.id === step.id ? "here" : r.state === "done" || r.state === "skipped" ? r.state : "to_do";
+          return [{ id: r.id, number: String(s.number ?? r.number), name: stepTitle(index, s), x: s.walkaround.x, y: s.walkaround.y, state }];
+        })
+      : [];
+    return { step, row, upcoming, total: list?.steps.length ?? rows.length, previous, stops };
   });
 
   /**
@@ -1849,6 +1859,7 @@ in Rust. The host saves progress and settings on the device.
         targets={pane.row.targets}
         number={pane.row.number}
         total={pane.total}
+        stops={pane.stops}
         preview={settings?.panelPreview ?? true}
         onOpen={openSlide}
         inline
@@ -2029,7 +2040,9 @@ in Rust. The host saves progress and settings on the device.
       <div class="page-fade down" class:on={pageMore.down} aria-hidden="true"></div>
       {#if pane}
         {#if !narrow}
-        <aside class="pane" class:more-up={paneMore.up} class:more-down={paneMore.down} aria-label="About the step" use:fades>
+        <!-- A pane taller than the screen scrolls, so it takes focus for the keyboard (a stop's top view). -->
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+        <aside class="pane" class:more-up={paneMore.up} class:more-down={paneMore.down} aria-label="About the step" tabindex={paneMore.up || paneMore.down ? 0 : undefined} use:fades>
           {#key pane.step.id}
             <StepPane
               {index}
@@ -2038,6 +2051,7 @@ in Rust. The host saves progress and settings on the device.
               number={pane.row.number}
               total={pane.total}
               upcoming={pane.upcoming}
+              stops={pane.stops}
               preview={settings?.panelPreview ?? true}
               onOpen={openSlide}
               {flow}

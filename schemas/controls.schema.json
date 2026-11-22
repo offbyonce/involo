@@ -318,7 +318,7 @@
       ]
     },
     "OverviewViews": {
-      "description": "The side and seat views for \"Where is this?\".",
+      "description": "The side and seat views for \"Where is this?\", and the top view for the exterior inspection.",
       "type": "object",
       "properties": {
         "seat": {
@@ -334,6 +334,17 @@
         },
         "side": {
           "description": "The view from the side, with the sight line from the eye.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ViewFrame"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "top": {
+          "description": "The airplane from above, nose up, for the exterior inspection (decision 0032): `structure`\nand `glass` shapes and labels, no places. Steps' `walkaround` points are in its units.",
           "anyOf": [
             {
               "$ref": "#/$defs/ViewFrame"
@@ -363,7 +374,7 @@
       ]
     },
     "ViewFrame": {
-      "description": "A side or seat view of the flight deck, in its own units (decision 0023).",
+      "description": "A side or seat view of the flight deck (decision 0023), or the top view of the airplane\n(decision 0032), in its own units.",
       "type": "object",
       "properties": {
         "height": {
@@ -487,10 +498,10 @@
       ]
     },
     "ViewRole": {
-      "description": "How the renderer draws a shape in a side or seat view (decision 0023). Roles name no\naircraft part, so any pack can draw its own airplane.",
+      "description": "How the renderer draws a shape in a side, seat or top view (decisions 0023 and 0032). Roles\nname no aircraft part, so any pack can draw its own airplane.",
       "oneOf": [
         {
-          "description": "The airplane's outline (fuselage, walls): filled with the fuselage color.",
+          "description": "The airplane's outline (fuselage, walls; from above, also the wings, tail and engines):\nfilled.",
           "type": "string",
           "const": "structure"
         },
@@ -512,7 +523,7 @@
       ]
     },
     "ViewShape": {
-      "description": "One shape in a side or seat view: an outline through its points (a curve is given as many\npoints), closed when `closed`. An `eye` is one point.",
+      "description": "One shape in a side, seat or top view: an outline through its points (a curve is given as many\npoints), closed when `closed`. An `eye` is one point.",
       "type": "object",
       "properties": {
         "closed": {

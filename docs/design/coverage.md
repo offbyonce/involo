@@ -19,7 +19,7 @@ Every 3.0 feature and where it lives at each size. Use this as a release check: 
 | Check, If not, Why | Side pane, never hidden | Side pane | Inline | Inline |
 | How to do it | Why row | Why row | Why row | Why row |
 | Terms a step uses | Terms ⌄ and tappable terms | Same | Same | Same |
-| Exterior inspection (18 stops) | Stage view; Start options toggle and Preview | Same | Same | Same |
+| Exterior inspection (18 stops) | Stage view; Start options toggle and Preview; Look for and the top view in the step pane, where the panel preview goes (walkaround boards) | Same | Same, in the expanded step | Same, in the current step's card under its value (WalkaroundPhone) |
 | Ground power or APU | Start options; Power up step | Same | Same | Same |
 | iFly panel states (7) | Start options | Same | Same | Same |
 | Turnaround | Start options | Same | Same | Same |

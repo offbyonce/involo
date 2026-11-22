@@ -858,3 +858,40 @@ export const cduIn = (state) =>
     },
     state,
   );
+
+/**
+ * The walkaround boards' states (#216) on the exterior inspection: "first", the first stop current;
+ * "mid", stop 5 current with stops 1, 2 and 4 done and 3 skipped.
+ */
+export const walkIn = (state) =>
+  call(
+    async (state) => {
+      const wait = (ms) => new Promise((go) => setTimeout(go, ms));
+      const show = async () => {
+        if (innerWidth >= 600) return;
+        document.querySelector("li.it.current")?.scrollIntoView({ block: "start" });
+        window.scrollBy(0, -150);
+        await wait(300);
+      };
+      location.hash = "#/phase/exterior";
+      await wait(700);
+      if (state === "first") {
+        await show();
+        return true;
+      }
+      const stop = (id) => document.querySelector(`li.it[data-step="ifly-737-max8.exterior.${id}"]`);
+      const tick = (id) => stop(id)?.querySelector("button.tick")?.click();
+      const skip = () => [...document.querySelectorAll("li.it.current button")].find((b) => b.textContent.trim().startsWith("Skip for now"))?.click();
+      tick("left-forward-fuselage");
+      await wait(250);
+      tick("nose");
+      await wait(250);
+      skip();
+      await wait(250);
+      tick("right-wing-root");
+      await wait(500);
+      await show();
+      return true;
+    },
+    state,
+  );

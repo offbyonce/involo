@@ -3,7 +3,7 @@ import type { SeatViews } from "./SeatViews";
 import type { ViewFrame } from "./ViewFrame";
 
 /**
- * The side and seat views for "Where is this?".
+ * The side and seat views for "Where is this?", and the top view for the exterior inspection.
  */
 export type OverviewViews = { 
 /**
@@ -13,4 +13,9 @@ side?: ViewFrame | null,
 /**
  * The view from the seat: one frame, or one per seat.
  */
-seat?: SeatViews | null, };
+seat?: SeatViews | null, 
+/**
+ * The airplane from above, nose up, for the exterior inspection (decision 0032): `structure`
+ * and `glass` shapes and labels, no places. Steps' `walkaround` points are in its units.
+ */
+top?: ViewFrame | null, };

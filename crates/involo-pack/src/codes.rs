@@ -670,13 +670,23 @@ codes! {
     }
     ViewShape = "P0814" {
         title: "An overview view's drawing",
-        explain: "An overview view has a size; its shapes, outlines and labels have their points inside it; each place has a name for each outline; a side view with places has one `eye` point.",
+        explain: "An overview view has a size; its shapes, outlines and labels have their points inside it; each place has a name for each outline; a side view with places has one `eye` point. A top view has only `structure` and `glass` shapes, each of three points or more, and no places.",
         hint: "Fix the part of the view the message names.",
     }
     UnknownRegion = "P0815" {
         title: "A region that doesn't exist",
         explain: "A view's place names an overview region that the overview doesn't have.",
         hint: "Check the spelling against the overview's regions.",
+    }
+    WalkaroundOutside = "P0816" {
+        title: "A walkaround point outside the top view",
+        explain: "A step's `walkaround` point is in the units of the overview's top view, and lies inside it, so its stop is drawn on the airplane.",
+        hint: "Move the point inside the top view, or make the top view larger.",
+    }
+    NoTopView = "P0817" {
+        title: "Walkaround points with no top view",
+        explain: "Steps have `walkaround` points, but the overview has no `top` view to draw their stops on, so the exterior inspection shows as an ordinary list.",
+        hint: "Add a `top` view under the overview's `views`.",
     }
 
     // P09xx: panel item kinds and outlines.
