@@ -9,6 +9,7 @@
 
 import { readFileSync } from "node:fs";
 import type { Page } from "@playwright/test";
+import { dropOfp } from "../build/scenes.mjs";
 import { expect, saved, test } from "./fixtures";
 import { checkScreen } from "./layout";
 
@@ -135,3 +136,49 @@ test("a flight saved before walkthrough pages (format 7) loads with its values i
   expect(flight.walkthroughs?.["preflight-setup"]).toBe(1);
   expect(flight.briefings?.["takeoff-briefing-items-gate-stand"]?.state).toBe("briefed");
 });
+
+test("with the board flight imported, the walkthrough shows its values the way the CDU writes them", async ({
+  app,
+  page,
+}) => {
+  await app.firstRun();
+  await app.open("#/flight/simbrief");
+  await app.ready();
+  await app.scene(dropOfp);
+  await app.open("#/phase/preflight");
+  await app.ready();
+  await cduCurrent(page);
+  await page.locator(CDU).getByRole("button", { name: "Open CDU walkthrough" }).click();
+  const walk = page.getByRole("dialog", { name: "CDU walkthrough" });
+  const screen = walk.getByRole("img").first();
+  const next = async (n: number) => {
+    for (let i = 0; i < n; i++) await walk.getByRole("button", { name: "Next" }).click();
+  };
+
+  // IDENT: the plan's cycle and its dates.
+  await expect(walk).toContainText("IDENT · page 1 of 15");
+  await expect(screen).toHaveAttribute("aria-label", /OCT30NOV27\/25/);
+  // POS INIT: the departure's position in degrees and minutes, the plan's time and date.
+  await next(2);
+  await expect(walk).toContainText("POS INIT");
+  await expect(screen).toHaveAttribute("aria-label", /N47°26\.9 W122°18\.5/);
+  await expect(screen).toHaveAttribute("aria-label", /1000\.0z/);
+  await expect(screen).toHaveAttribute("aria-label", /NOV13\/25/);
+  // RTE: the STAR at the end is DEP/ARR's, not an airway.
+  await next(3);
+  await expect(walk).toContainText("Enter the route");
+  await expect(screen).toHaveAttribute("aria-label", /MLBEC/);
+  await expect(screen).not.toHaveAttribute("aria-label", /BDEGA4/);
+  // PERF INIT: gross weight and plan fuel worked out, wind, ISA and the top-of-climb temperature.
+  await next(4);
+  await expect(walk).toContainText("PERF INIT · page 10 of 15");
+  for (const value of ["138.9", "12.4", "270°/045", "+4°F +2°C", "-62°F -52°C"]) {
+    await expect(screen).toHaveAttribute("aria-label", new RegExp(escapeRegExp(value)));
+  }
+  await checkScreen(page, "PERF INIT with the board flight", [walk]);
+});
+
+/** `text` as a regular expression that matches it literally: every special character escaped. */
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+}

@@ -8,7 +8,7 @@
 
 use std::collections::BTreeMap;
 
-use involo_checklist_core::{FieldId, FlightField, Rounding, SimbriefSource as Src};
+use involo_checklist_core::{FieldId, FlightField, Millis, Rounding, SimbriefSource as Src};
 use involo_pack::FlatPack;
 use involo_simbrief::{Plan, Units};
 use serde::{Deserialize, Serialize};
@@ -338,9 +338,53 @@ fn sources(plan: &Plan, origin: &str, destination: &str) -> BTreeMap<Src, String
         .filter(|a| a.len() == 4 && a.chars().all(|c| c.is_ascii_digit()))
     {
         v.insert(Src::NavDatabase, a.to_owned());
+        if let Some((from, to)) = airac_dates(a) {
+            v.insert(Src::NavDatabaseDates, format!("{from}/{to}"));
+        }
+    }
+    // Before 2000 or past 9999 isn't a plan's departure.
+    if let Some(out) = plan
+        .times
+        .sched_out
+        .filter(|t| (946_684_800..253_402_300_800).contains(t))
+        .and_then(|t| u64::try_from(t).ok())
+    {
+        let (date, time) = crate::log::utc(out * 1000);
+        v.insert(Src::DepartureDate, date);
+        v.insert(Src::DepartureTime, time);
     }
     arrival(plan, &mut v);
     v
+}
+
+/// The dates of an AIRAC cycle (`2511`): the day it takes effect and the day the next one does.
+/// Cycles last 28 days from cycle 2001 on 2 January 2020, numbered from 01 in each year; cycles
+/// before 2020 aren't read.
+fn airac_dates(cycle: &str) -> Option<(String, String)> {
+    const DAY: Millis = 86_400_000;
+    let date = |day: u64| crate::log::utc(day * DAY).0;
+    let year = |day: u64| date(day)[..4].parse::<u32>().ok();
+    let want: u32 = cycle.parse().ok()?;
+    let (want_year, want_n) = (2000 + want / 100, want % 100);
+    if want_year < 2020 || want_n == 0 {
+        return None;
+    }
+    // 2020-01-02, in days since 1970.
+    let mut day: u64 = 18_263;
+    let (mut y, mut n) = (2020, 1);
+    while y <= want_year {
+        if (y, n) == (want_year, want_n) {
+            return Some((date(day), date(day + 28)));
+        }
+        day += 28;
+        let next = year(day)?;
+        if next == y {
+            n += 1;
+        } else {
+            (y, n) = (next, 1);
+        }
+    }
+    None
 }
 
 /// The alternate, the arrival and each airport's altimeter setting (decision 0019, amended).
@@ -408,17 +452,22 @@ fn shown(field: &FlightField, n: i32) -> String {
     let Some(d) = &field.display else {
         return n.to_string();
     };
-    let steps = f64::from(n) / d.scale / d.step;
+    rounded(f64::from(n) / d.scale, d.round, d.step)
+}
+
+/// A number rounded to a multiple of `step`, written with the step's decimals.
+pub(crate) fn rounded(n: f64, round: Rounding, step: f64) -> String {
+    let steps = n / step;
     // A hair's margin, so a value already on a step is not pushed to the next one.
-    let steps = match d.round {
+    let steps = match round {
         Rounding::Up => (steps - 1e-9).ceil(),
         Rounding::Down => (steps + 1e-9).floor(),
         Rounding::Nearest => steps.round(),
     };
-    let decimals = format!("{}", d.step)
+    let decimals = format!("{step}")
         .split_once('.')
         .map_or(0, |(_, f)| f.len());
-    format!("{:.*}", decimals, steps * d.step)
+    format!("{:.*}", decimals, steps * step)
 }
 
 /// A field's value from the plan's sources: one source as read, or several numbers added
@@ -478,7 +527,14 @@ pub fn plan_values(pack: &FlatPack, plan: &Plan) -> Result<PlanValues, AppError>
             continue;
         };
         // The pilot's fields, as 3.0 counted them: not the position, the database or the unit.
-        let quiet = [Src::OriginPosition, Src::NavDatabase, Src::WeightUnit];
+        let quiet = [
+            Src::OriginPosition,
+            Src::NavDatabase,
+            Src::NavDatabaseDates,
+            Src::DepartureTime,
+            Src::DepartureDate,
+            Src::WeightUnit,
+        ];
         if !field.simbrief.iter().all(|s| quiet.contains(s)) {
             filled += 1;
         }
@@ -575,6 +631,46 @@ mod tests {
             !pv.values.contains_key(&FieldId::from("transition")),
             "the plan's SID has no transition"
         );
+    }
+
+    #[test]
+    fn a_plan_gives_its_departure_time_and_date_and_the_cycles_dates() {
+        let mut plan = parse_plan(&fixture("ofp-sample.json")).unwrap();
+        plan.general.airac = Some("2511".into());
+        // 2025-11-13 10:00 UTC.
+        plan.times.sched_out = Some(1_763_028_000);
+        let read = sources(&plan, "KSEA", "KSFO");
+        assert_eq!(
+            read.get(&Src::DepartureTime).map(String::as_str),
+            Some("10:00")
+        );
+        assert_eq!(
+            read.get(&Src::DepartureDate).map(String::as_str),
+            Some("2025-11-13")
+        );
+        assert_eq!(
+            read.get(&Src::NavDatabaseDates).map(String::as_str),
+            Some("2025-10-30/2025-11-27")
+        );
+        // Cycle 2001 is 2 January 2020; 2021 has 13 cycles, the last on 30 December, and 2201
+        // follows it; there's no cycle 00 and none before 2020.
+        assert_eq!(
+            airac_dates("2001"),
+            Some(("2020-01-02".into(), "2020-01-30".into()))
+        );
+        assert_eq!(
+            airac_dates("2113"),
+            Some(("2021-12-30".into(), "2022-01-27".into()))
+        );
+        assert_eq!(
+            airac_dates("2201"),
+            Some(("2022-01-27".into(), "2022-02-24".into()))
+        );
+        assert_eq!(airac_dates("2500"), None);
+        assert_eq!(airac_dates("1913"), None);
+        assert_eq!(airac_dates("2514"), None, "2025 has 13 cycles");
+        plan.times.sched_out = Some(0);
+        assert!(!sources(&plan, "KSEA", "KSFO").contains_key(&Src::DepartureTime));
     }
 
     #[test]
@@ -817,7 +913,12 @@ mod tests {
                 .keys()
                 .chain(now["values"].as_object().unwrap().keys())
                 .collect();
+            // Fields the fixed list never had, which the pack fills since #222.
+            let added = ["nav_active_dates", "utc_time", "utc_date"];
             for f in fields {
+                if before["values"][f].is_null() && added.contains(&f.as_str()) {
+                    continue;
+                }
                 assert_eq!(now["values"][f], before["values"][f], "{name}: {f}");
             }
             for key in ["filled", "origin", "destination", "checkClearance"] {

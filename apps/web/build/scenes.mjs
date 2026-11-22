@@ -815,7 +815,8 @@ export const briefingIn = (state) =>
  * The CduWalk boards' states (#215) on Preliminary preflight, with every step before the CDU step
  * done so it is current: "start", not opened yet; "resume", stopped at page 10 (PERF INIT) and
  * closed; "values", open on page 10; "novalues", open on page 2 with no flight; "last", open on
- * the last page. Run after the board flight for every state but "novalues".
+ * the last page; "pos" and "route", open on POS INIT's position (page 3) and the route (page 6).
+ * Run after the board flight for every state but "novalues".
  */
 export const cduIn = (state) =>
   call(
@@ -843,7 +844,7 @@ export const cduIn = (state) =>
       open();
       await wait(500);
       const next = () => [...document.querySelectorAll(".walk .foot button")].find((b) => b.textContent.trim() === "Next")?.click();
-      const pages = { resume: 9, values: 9, novalues: 1, last: 14 }[state];
+      const pages = { resume: 9, values: 9, novalues: 1, last: 14, pos: 2, route: 5 }[state];
       for (let i = 0; i < pages; i++) {
         next();
         await wait(150);

@@ -59,13 +59,49 @@ fields:
     step: 0.1
   simbrief:
   - zero_fuel_weight
+- id: fuel
+  label: Block fuel
+  kind: number
+  unit: weight_unit
+  simbrief:
+  - block_fuel
 - id: fuel_thousands
   label: Fuel in thousands
   kind: number
   unit: weight_unit
-  display:
-    scale: 1000
-    round: nearest
-    step: 0.1
+  calculated:
+    scale:
+      field: fuel
+      scale: 1000
+      round: nearest
+      step: 0.1
+- id: gross_weight
+  label: Gross weight
+  kind: number
+  unit: weight_unit
+  calculated:
+    sum:
+    - zfw
+    - fuel_thousands
+- id: cruise_level
+  label: Cruise level
+  kind: number
   simbrief:
-  - block_fuel
+  - cruise_level
+- id: isa_deviation
+  label: ISA deviation
+  kind: number
+  simbrief:
+  - isa_deviation
+- id: top_of_climb_temperature
+  label: Top of climb temperature
+  kind: number
+  calculated:
+    isa_temperature:
+      level: cruise_level
+      deviation: isa_deviation
+- id: cruise_wind
+  label: Cruise wind
+  kind: text
+  simbrief:
+  - cruise_wind

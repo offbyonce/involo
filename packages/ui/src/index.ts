@@ -5,9 +5,6 @@
 // Styles: import "@involo/ui/app.css" in the entry point.
 
 export { default as App } from "./App.svelte";
-export { default as DecisionGallery } from "./gallery/DecisionGallery.svelte";
-export { default as DrawingGallery } from "./gallery/DrawingGallery.svelte";
-export { default as GateGallery } from "./gallery/GateGallery.svelte";
 export {
   getHost,
   type Host,

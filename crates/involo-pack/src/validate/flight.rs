@@ -31,6 +31,7 @@ pub(super) fn check_flight(pack: &Pack, issues: &mut Vec<Issue>) {
     for field in &file.fields {
         check_field(field, &file.fields, &ids, issues);
     }
+    check_calculated(&file.fields, issues);
     check_pages(pack, file, issues);
     check_overview(file, &ids, issues);
 }
@@ -247,6 +248,109 @@ fn check_field_links(
     }
 }
 
+/// Calculated fields (decision 0033): number inputs that exist, a shared unit for a sum, a
+/// scale above 0, no loop, and nothing typed or filled.
+fn check_calculated(all: &[FlightField], issues: &mut Vec<Issue>) {
+    use involo_checklist_core::Calculation;
+    let find = |id: &str| all.iter().find(|f| f.id == id);
+    let inputs = |c: &Calculation| -> Vec<String> {
+        let mut out = c.sum.clone();
+        out.extend(c.scale.iter().map(|s| s.field.clone()));
+        if let Some(t) = &c.isa_temperature {
+            out.extend([t.level.clone(), t.deviation.clone()]);
+        }
+        out
+    };
+    for field in all {
+        let Some(calc) = &field.calculated else {
+            continue;
+        };
+        let at = &field.id;
+        if field.kind != FieldKind::Number
+            || !field.simbrief.is_empty()
+            || field.input.is_some()
+            || field.display.is_some()
+        {
+            issues.push(error(
+                Code::CalculatedTyped,
+                at,
+                "a calculated field is a number with no `simbrief`, `input` or `display`",
+            ));
+        }
+        let kinds = usize::from(!calc.sum.is_empty())
+            + usize::from(calc.scale.is_some())
+            + usize::from(calc.isa_temperature.is_some());
+        if kinds != 1 {
+            issues.push(error(
+                Code::CalculationInputs,
+                at,
+                "`calculated` is exactly one of `sum`, `scale` or `isa_temperature`",
+            ));
+        }
+        for input in inputs(calc) {
+            match find(&input) {
+                None => issues.push(error(
+                    Code::CalculationInputs,
+                    at,
+                    format!("`calculated` reads `{input}`, which is not a field"),
+                )),
+                Some(f) if f.kind != FieldKind::Number => issues.push(error(
+                    Code::CalculationInputs,
+                    at,
+                    format!("`calculated` reads `{input}`, which is not a number"),
+                )),
+                Some(_) => {}
+            }
+        }
+        if !calc.sum.is_empty() {
+            let units: BTreeSet<Option<&str>> = calc
+                .sum
+                .iter()
+                .filter_map(|id| find(id))
+                .map(|f| f.unit.as_deref())
+                .collect();
+            if calc.sum.len() < 2 || units.len() > 1 {
+                issues.push(error(
+                    Code::CalculationInputs,
+                    at,
+                    "a `sum` adds two or more fields that share a unit field",
+                ));
+            }
+        }
+        if let Some(s) = &calc.scale
+            && (s.scale <= 0.0 || s.step <= 0.0)
+        {
+            issues.push(error(
+                Code::CalculationInputs,
+                at,
+                "a `scale` needs a `scale` and a `step` above 0",
+            ));
+        }
+        // Follow the inputs through other calculated fields; reaching this field again is a loop.
+        let mut seen = BTreeSet::new();
+        let mut next = inputs(calc);
+        let mut looped = false;
+        while let Some(id) = next.pop() {
+            if id == field.id {
+                looped = true;
+                break;
+            }
+            if seen.insert(id.clone())
+                && let Some(c) = find(&id).and_then(|f| f.calculated.as_ref())
+            {
+                next.extend(inputs(c));
+            }
+        }
+        if looped {
+            issues.push(error(
+                Code::CalculationInputs,
+                at,
+                "`calculated` reads itself, through the fields it reads",
+            ));
+        }
+    }
+}
+
 fn check_field(
     field: &FlightField,
     all: &[FlightField],
@@ -431,6 +535,110 @@ mod tests {
                 });
             }),
             "`units` names `fuel`, which is not a choice field",
+        );
+    }
+
+    #[test]
+    fn a_calculated_field_reads_numbers_that_exist_with_no_loop() {
+        use involo_checklist_core::{Calculation, IsaTemperature, Rounding, ScaleCalculation};
+        // fields: 0 fuel and 1 minimum_takeoff_fuel (weights), 3 qnh and 4 v1 (no unit),
+        // 5 runway (text).
+        let calc = |id: &str, c: Calculation| {
+            let mut f = flight().fields[3].clone();
+            f.id = id.into();
+            f.calculated = Some(c);
+            f
+        };
+        let none = Calculation {
+            sum: vec![],
+            scale: None,
+            isa_temperature: None,
+        };
+        let sum = |ids: &[&str]| Calculation {
+            sum: ids.iter().map(|i| (*i).into()).collect(),
+            ..none.clone()
+        };
+        let add = |fields: Vec<involo_checklist_core::FlightField>| {
+            with(move |f| f.fields.extend(fields))
+        };
+        let scale = ScaleCalculation {
+            field: "fuel".into(),
+            scale: 1000.0,
+            round: Rounding::Up,
+            step: 0.1,
+        };
+        let thousands = Calculation {
+            scale: Some(scale.clone()),
+            ..none.clone()
+        };
+        let isa = Calculation {
+            isa_temperature: Some(IsaTemperature {
+                level: "v1".into(),
+                deviation: "qnh".into(),
+            }),
+            ..none.clone()
+        };
+        let mut gross = calc("gross", sum(&["fuel", "minimum_takeoff_fuel"]));
+        gross.unit = Some("weight_unit".into());
+        assert_eq!(
+            messages(&add(vec![
+                gross,
+                calc("fuel_k", thousands.clone()),
+                calc("oat", isa),
+                calc("chain", sum(&["qnh", "fuel_k"])),
+            ])),
+            ""
+        );
+        assert_flags(
+            &add(vec![calc("x", sum(&["fuel", "nope"]))]),
+            "`calculated` reads `nope`, which is not a field",
+        );
+        assert_flags(
+            &add(vec![calc("x", sum(&["fuel", "runway"]))]),
+            "`calculated` reads `runway`, which is not a number",
+        );
+        assert_flags(
+            &add(vec![calc("x", sum(&["fuel", "qnh"]))]),
+            "a `sum` adds two or more fields that share a unit field",
+        );
+        assert_flags(
+            &add(vec![calc("x", sum(&["fuel"]))]),
+            "a `sum` adds two or more fields that share a unit field",
+        );
+        let zero = Calculation {
+            scale: Some(ScaleCalculation { step: 0.0, ..scale }),
+            ..none.clone()
+        };
+        assert_flags(
+            &add(vec![calc("x", zero)]),
+            "a `scale` needs a `scale` and a `step` above 0",
+        );
+        assert_flags(
+            &add(vec![calc("x", none.clone())]),
+            "exactly one of `sum`, `scale` or `isa_temperature`",
+        );
+        assert_flags(
+            &add(vec![calc(
+                "x",
+                Calculation {
+                    sum: vec!["qnh".into(), "v1".into()],
+                    ..thousands.clone()
+                },
+            )]),
+            "exactly one of `sum`, `scale` or `isa_temperature`",
+        );
+        assert_flags(
+            &add(vec![
+                calc("a", sum(&["qnh", "b"])),
+                calc("b", sum(&["v1", "a"])),
+            ]),
+            "`calculated` reads itself",
+        );
+        let mut typed = calc("x", sum(&["qnh", "v1"]));
+        typed.simbrief = vec![involo_checklist_core::SimbriefSource::CostIndex];
+        assert_flags(
+            &add(vec![typed]),
+            "a calculated field is a number with no `simbrief`",
         );
     }
 

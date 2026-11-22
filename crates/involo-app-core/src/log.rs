@@ -782,7 +782,7 @@ fn csv_cell(text: &str) -> String {
 }
 
 /// The UTC date ("2026-11-14") and time ("09:48") of a moment.
-fn utc(ms: Millis) -> (String, String) {
+pub(crate) fn utc(ms: Millis) -> (String, String) {
     let secs = ms / 1000;
     let days = i64::try_from(secs / 86_400).unwrap_or(0);
     let rem = secs % 86_400;

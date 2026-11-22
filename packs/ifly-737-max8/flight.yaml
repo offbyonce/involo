@@ -878,13 +878,27 @@ fields:
   label: Fuel in thousands
   kind: number
   unit: weight_unit
+  calculated:
+    scale:
+      field: fuel
+      scale: 1000
+      round: up
+      step: 0.1
 - id: gross_weight
   label: Gross weight
   kind: number
   unit: weight_unit
+  calculated:
+    sum:
+    - zfw
+    - fuel_thousands
 - id: top_of_climb_oat
   label: Top of climb outside air temperature
   kind: number
+  calculated:
+    isa_temperature:
+      level: cruise_level
+      deviation: isa_deviation
 - id: origin_position
   label: Departure position
   kind: text
@@ -898,12 +912,18 @@ fields:
 - id: nav_active_dates
   label: Navigation database dates
   kind: text
+  simbrief:
+  - nav_database_dates
 - id: utc_time
   label: UTC time
   kind: text
+  simbrief:
+  - departure_time
 - id: utc_date
   label: UTC date
   kind: text
+  simbrief:
+  - departure_date
 - id: planned_distance
   label: Distance
   description: Planned air distance, which allows for the wind.

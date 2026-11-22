@@ -65,12 +65,6 @@ pub fn app_info() -> String {
     reply(Ok(involo_app_core::app_info()))
 }
 
-/// The bundled format-demo checklist.
-#[wasm_bindgen]
-pub fn example_checklist() -> String {
-    reply(involo_app_core::example_checklist())
-}
-
 /// Parse a flattened pack, as written by `involo-pack build`, and keep it for the calls below.
 #[wasm_bindgen]
 pub fn parse_pack(json: &str) -> String {
@@ -180,6 +174,15 @@ pub fn suggestion(pack: &str, flight: &str, option: &str) -> String {
         with_pack(pack, |p| {
             Ok(involo_app_core::suggestion(p, &flight, option))
         })
+    })())
+}
+
+/// The pack's calculated fields' values for this flight, by field id (decision 0033).
+#[wasm_bindgen]
+pub fn calculated(pack: &str, flight: &str) -> String {
+    reply((|| {
+        let flight: Flight = read("flight", flight)?;
+        with_pack(pack, |p| Ok(involo_app_core::calculated(p, &flight)))
     })())
 }
 
@@ -422,7 +425,6 @@ mod tests {
     #[test]
     fn answers_are_ok_or_a_tagged_error() {
         assert_eq!(json(&app_info())["ok"]["name"], "Involo");
-        assert_eq!(json(&example_checklist())["ok"]["id"], "before-start");
         assert_eq!(
             json(&plan_url(" ")),
             json(

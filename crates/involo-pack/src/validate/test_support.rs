@@ -116,6 +116,7 @@ pub(super) fn flight() -> involo_checklist_core::FlightFile {
         strip: None,
         display: None,
         simbrief: vec![],
+        calculated: None,
         input: None,
         show: None,
         spoken: None,

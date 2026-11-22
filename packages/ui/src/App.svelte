@@ -1270,6 +1270,27 @@ in Rust. The host saves progress and settings on the device.
   $effect(() => {
     answered.options = { ...(flight?.options ?? {}) };
   });
+  // Calculated fields (decision 0033), worked out by the core whenever the flight changes, for
+  // the Flight pages' read-only rows.
+  let calculatedValues = $state<Partial<Record<FieldId, string>>>({});
+  $effect(() => {
+    const f = flight;
+    if (!f) {
+      calculatedValues = {};
+      return;
+    }
+    let live = true;
+    safely(
+      host.calculated(packId, f),
+      (values) => {
+        if (live) calculatedValues = values;
+      },
+      fail,
+    );
+    return () => {
+      live = false;
+    };
+  });
   // Step timers (#213): the core's timers, refreshed with the flight; a clock that ticks each
   // second while one runs; and the chime when one reaches zero with the app open.
   let timerList = $state<StepTimer[]>([]);
@@ -1815,6 +1836,7 @@ in Rust. The host saves progress and settings on the device.
       settings={s}
       {plan}
       suggested={Object.fromEntries(Object.entries(suggestions).map(([id, s]) => [id, s ? `${s.amount.toLocaleString("en-US")} ${s.unit}` : null]))}
+      calculated={calculatedValues}
       options={index.options}
       states={index.panelStates}
       panelStateLabels={index.labels.panelStates}

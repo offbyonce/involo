@@ -22,8 +22,8 @@ mod phases;
 pub use aliases::{Alias, AliasKind, AliasesFile};
 pub use briefings::{BriefItem, Briefing, BriefingsFile};
 pub use cdu::{
-    CduField, CduFile, CduInline, CduPage, CduPart, CduRouteCount, CduRow, CduScreen, CduStyle,
-    CduStyled, CduText, CduWalkthrough, CduWhen, RouteLegCount, RouteLegPart,
+    CduField, CduFile, CduForm, CduInline, CduPage, CduPart, CduRouteCount, CduRow, CduScreen,
+    CduStyle, CduStyled, CduText, CduWalkthrough, CduWhen, RouteLegCount, RouteLegPart,
 };
 pub use controls::{
     Control, ControlsFile, LabelAnchor, Overview, OverviewArea, OverviewRegion, OverviewViews,
@@ -31,9 +31,10 @@ pub use controls::{
 };
 pub use faults::{Fault, FaultsFile};
 pub use flight::{
-    FIELD_PAGES, FieldAlso, FieldChoice, FieldDisplay, FieldInput, FieldKind, FieldOfp, FieldRange,
-    FieldShow, FlightField, FlightFile, FlightGroup, FlightOverviewRow, FlightPage, GroupUnits,
-    InputMode, NotesRow, Rounding, ShowIn, SimbriefSource, StripText,
+    Calculation, FIELD_PAGES, FieldAlso, FieldChoice, FieldDisplay, FieldInput, FieldKind,
+    FieldOfp, FieldRange, FieldShow, FlightField, FlightFile, FlightGroup, FlightOverviewRow,
+    FlightPage, GroupUnits, InputMode, IsaTemperature, NotesRow, Rounding, ScaleCalculation,
+    ShowIn, SimbriefSource, StripText,
 };
 pub use glossary::{GlossaryEntry, GlossaryFile};
 pub use labels::{

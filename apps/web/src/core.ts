@@ -12,8 +12,8 @@ import type {
   BackupRead,
   CatalogEntry,
   CduWalk,
-  Checklist,
   Decoded,
+  FieldId,
   FlatPack,
   Flight,
   Loaded,
@@ -57,11 +57,6 @@ function unwrap<T>(answer: string): T {
 export async function appInfo(): Promise<AppInfo> {
   await load();
   return unwrap<AppInfo>(wasm.app_info());
-}
-
-export async function exampleChecklist(): Promise<Checklist> {
-  await load();
-  return unwrap<Checklist>(wasm.example_checklist());
 }
 
 /** Reads a flattened pack's JSON text, as written by `involo-pack build`; the module keeps it loaded. */
@@ -151,6 +146,12 @@ export async function openSteps(
 export async function suggestion(pack: string, flight: Flight, option: string): Promise<Suggestion | null> {
   await load();
   return unwrap<Suggestion | null>(wasm.suggestion(pack, JSON.stringify(flight), option));
+}
+
+/** The pack's calculated fields' values for this flight, by field id (decision 0033). */
+export async function calculated(pack: string, flight: Flight): Promise<Partial<Record<FieldId, string>>> {
+  await load();
+  return unwrap<Partial<Record<FieldId, string>>>(wasm.calculated(pack, JSON.stringify(flight)));
 }
 
 /** Every step timer in the pack, with when it started and, if paused, the time it had left (#213). */

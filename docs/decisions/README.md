@@ -41,5 +41,6 @@ Never rewrite an accepted record; add a new one that supersedes it.
 | [0030](0030-pack-authoring-kit.md) | A pack authoring kit for people and agents | Accepted |
 | [0031](0031-desktop-app.md) | A desktop app beside the web app, for Windows and macOS | Accepted |
 | [0032](0032-exterior-top-view.md) | A top view of the airplane for the exterior inspection | Accepted |
+| [0033](0033-calculated-flight-values.md) | Calculated flight values | Accepted |
 
 Template: Context, Decision, Consequences. Keep it under a page.

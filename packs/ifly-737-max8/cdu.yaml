@@ -41,6 +41,7 @@ walkthroughs:
                 - ACTIVE
               right:
                 - field: nav_active_dates
+                  form: month_day_range
                   style: data
             - {}
             - left_label:
@@ -81,6 +82,7 @@ walkthroughs:
                 - LAST POS
               right:
                 - field: origin_position
+                  form: position
                   style: data
                   empty: position
                   empty_style: data
@@ -92,6 +94,7 @@ walkthroughs:
                   empty: "----"
               right:
                 - field: origin_position
+                  form: position
                   style: accent
             - left_label:
                 - GATE
@@ -105,11 +108,13 @@ walkthroughs:
                 - UTC (GPS)
               left:
                 - field: utc_time
+                  form: utc_time
                   style: data
               right_label:
                 - MMMDD/YY
               right:
                 - field: utc_date
+                  form: month_day_year
                   style: data
             - separator: ""
               left:
@@ -138,6 +143,7 @@ walkthroughs:
                 - LAST POS
               right:
                 - field: origin_position
+                  form: position
                   style: data
                   empty: position
                   empty_style: data
@@ -149,6 +155,7 @@ walkthroughs:
                   empty: "----"
               right:
                 - field: origin_position
+                  form: position
                   style: accent
             - left_label:
                 - GATE
@@ -158,17 +165,20 @@ walkthroughs:
                 - SET IRS POS
               right:
                 - field: origin_position
+                  form: position
                   style: user
                   empty: "□□□°□□.□ □□□□°□□.□"
             - left_label:
                 - UTC (GPS)
               left:
                 - field: utc_time
+                  form: utc_time
                   style: data
               right_label:
                 - MMMDD/YY
               right:
                 - field: utc_date
+                  form: month_day_year
                   style: data
             - separator: ""
               left:
@@ -180,6 +190,7 @@ walkthroughs:
             - "4R"
           scratchpad:
             - field: origin_position
+              form: position
       - page: RTE
         key: RTE
         title: Origin and destination
@@ -674,6 +685,7 @@ walkthroughs:
                 - CRZ WIND
               right:
                 - field: cruise_wind
+                  form: wind
                   style: user
                   empty: "---°/---"
             - left_label:
@@ -686,6 +698,7 @@ walkthroughs:
                 - ISA DEV
               right:
                 - field: isa_deviation
+                  form: temperature_change
                   style: user
                   empty: "---°F---°C"
             - left_label:
@@ -698,6 +711,7 @@ walkthroughs:
                 - T/C OAT
               right:
                 - field: top_of_climb_oat
+                  form: temperature
                   style: accent
                   empty: "---°F---°C"
             - left_label:
@@ -770,6 +784,7 @@ walkthroughs:
                 - CRZ WIND
               right:
                 - field: cruise_wind
+                  form: wind
                   style: user
                   empty: "---°/---"
             - left_label:
@@ -782,6 +797,7 @@ walkthroughs:
                 - ISA DEV
               right:
                 - field: isa_deviation
+                  form: temperature_change
                   style: user
                   empty: "---°F---°C"
             - left_label:
@@ -794,6 +810,7 @@ walkthroughs:
                 - T/C OAT
               right:
                 - field: top_of_climb_oat
+                  form: temperature
                   style: accent
                   empty: "---°F---°C"
             - left_label:
