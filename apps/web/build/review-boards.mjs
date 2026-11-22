@@ -72,6 +72,10 @@ export const REVIEW_BOARDS = {
   "board-timer-paused": { desktop: "TimerPaused", phone: "TimerPausedPhone" },
   "board-timer-finished": { desktop: "TimerFinished", phone: "TimerFinishedPhone" },
   "board-timer-bar": { desktop: "TimerRunning" },
+  // Briefings (#214, Briefings.dc.html and BriefingsPhone.dc.html): the three states.
+  "board-briefing-open": { desktop: "BriefOpen", phone: "BriefOpenPhone" },
+  "board-briefing-briefed": { desktop: "BriefBriefed", phone: "BriefBriefedPhone" },
+  "board-briefing-skipped": { desktop: "BriefSkipped", phone: "BriefSkippedPhone" },
   // Light notes and panel-state descriptions (#211, Notes.dc.html).
   "board-light-notes": { desktop: "LightNotes", phone: "LightNotesPhone" },
   "board-state-note": { desktop: "StateNote", phone: "StateNotePhone" },

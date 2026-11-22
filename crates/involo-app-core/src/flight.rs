@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// The saved format of a [`Flight`]. Raise it, with a migration and tests, when the shape changes.
-pub const FLIGHT_FORMAT: u32 = 6;
+pub const FLIGHT_FORMAT: u32 = 7;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -47,6 +47,10 @@ pub struct Flight {
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     #[ts(type = "Record<string, number>")]
     pub timer_pauses: BTreeMap<StepId, u64>,
+    /// Briefings the pilot gave or skipped, by briefing id (format 7, #214). A briefing that isn't
+    /// here is still to give.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub briefings: BTreeMap<String, BriefingMark>,
     /// How each option a decision step asks was answered (format 3, decision 0027).
     #[serde(default)]
     pub answers: BTreeMap<String, AnswerSource>,
@@ -54,6 +58,23 @@ pub struct Flight {
     /// (format 5, decision 0028).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub update: Option<crate::update::UpdateNote>,
+}
+
+/// What the pilot did with a briefing (#214), and when.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(tag = "state", rename_all = "snake_case", deny_unknown_fields)]
+#[ts(export)]
+pub enum BriefingMark {
+    /// Given: Briefed.
+    Briefed {
+        #[ts(type = "number")]
+        at: Millis,
+    },
+    /// Skipped: it stays open, as a skipped step does.
+    Skipped {
+        #[ts(type = "number")]
+        at: Millis,
+    },
 }
 
 /// How a decision was answered: by the pilot, confirmed from the flight plan's suggestion, or
@@ -114,6 +135,7 @@ pub fn new_flight(pack: &FlatPack) -> Flight {
         notes: String::new(),
         timers: BTreeMap::new(),
         timer_pauses: BTreeMap::new(),
+        briefings: BTreeMap::new(),
         answers: BTreeMap::new(),
         update: None,
     }

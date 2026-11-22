@@ -828,6 +828,12 @@ in Rust. The host saves progress and settings on the device.
     return () => window.removeEventListener("storage", onStorage);
   });
 
+  /** Briefed, Skip briefing, or back to give (#214). */
+  function briefingChange(briefing: string, change: "brief" | "skip" | "unmark"): void {
+    if (change === "brief") void act({ type: "brief", briefing, at: Date.now() });
+    else if (change === "skip") void act({ type: "skipBriefing", briefing, at: Date.now() });
+    else void act({ type: "unmarkBriefing", briefing });
+  }
   async function act(action: Action): Promise<void> {
     if (!flight) return;
     try {
@@ -1872,6 +1878,7 @@ in Rust. The host saves progress and settings on the device.
               {open}
               onTick={(id) => act({ type: "tick", step: id, at: Date.now() })}
               onUnskip={(id) => act({ type: "unskip", step: id })}
+              onBriefing={briefingChange}
             />
           {:else if screen === "reference"}
             <ReferencePage
@@ -1921,6 +1928,7 @@ in Rust. The host saves progress and settings on the device.
                 inline={narrow && pane ? inlinePane : undefined}
                 inlineStep={narrow ? (pane?.step.id ?? null) : null}
                 notice={flight.update ? updateNote : undefined}
+                onBriefing={briefingChange}
               />
             {/if}
           {:else}

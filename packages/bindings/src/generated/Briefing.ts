@@ -2,8 +2,9 @@
 import type { BriefItem } from "./BriefItem";
 
 /**
- * A crew briefing for one phase. The app doesn't show briefings yet; Practice asks about a
- * briefing's mnemonic and its items.
+ * A crew briefing for one phase. The app shows it at the top of its phase, above the
+ * phase's lists, to be marked Briefed or skipped; Practice asks about its mnemonic and its
+ * items.
  */
 export type Briefing = { 
 /**
@@ -20,7 +21,8 @@ title: string,
  */
 mnemonic: string, 
 /**
- * The phase it belongs to, which must exist; Practice links to it.
+ * The phase it belongs to, which must exist. It shows at the top of that phase, after any
+ * earlier briefing for the same phase in this file; Practice links to it.
  */
 phase: string, 
 /**

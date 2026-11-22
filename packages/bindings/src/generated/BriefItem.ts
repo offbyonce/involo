@@ -18,6 +18,6 @@ lead: string,
  */
 rest: string, 
 /**
- * What to cover under this line.
+ * What to cover under this line, shown under its word.
  */
 detail?: string | null, };

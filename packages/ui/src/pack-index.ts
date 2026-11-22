@@ -5,6 +5,7 @@
 // live here: what shows, what counts and what is current all come from the host.
 
 import type {
+  Briefing,
   Control,
   ExplainNote,
   FlatPack,
@@ -115,6 +116,10 @@ export type PackIndex = {
   /** Whether the pack marks any step for Essentials (`quick`); without one there is no Essentials
    * to choose (#133). */
   hasEssentials: boolean;
+  /** A phase's briefings, in the pack's order. */
+  briefings(phase: string): Briefing[];
+  /** A briefing by id. */
+  briefing(id: string): Briefing | undefined;
 };
 
 export type MapRegion = { region: OverviewRegion | null; areas: OverviewArea[] };
@@ -137,6 +142,7 @@ export function splitArea(area: string): [string, string | null] {
 
 export function indexPack(pack: FlatPack): PackIndex {
   const messages = pack.content.messages?.messages ?? [];
+  const briefings = pack.content.briefings?.briefings ?? [];
   const steps = new Map<string, Step>();
   for (const list of pack.lists) for (const step of list.steps) steps.set(step.id, step);
   const controls = new Map((pack.content.controls?.controls ?? []).map((c) => [c.id, c]));
@@ -271,6 +277,8 @@ export function indexPack(pack: FlatPack): PackIndex {
     role: (id) => (id ? pack.content.labels.roles.find((r) => r.id === id) : undefined),
     seats: seatChoices(pack),
     hasEssentials: pack.lists.some((l) => l.steps.some((st) => st.quick)),
+    briefings: (phase) => briefings.filter((b) => b.phase === phase),
+    briefing: (id) => briefings.find((b) => b.id === id),
     list: (id) => {
       const l = pack.lists.find((x) => x.id === id);
       return l ? { title: l.title, steps: l.steps } : undefined;

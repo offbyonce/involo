@@ -255,6 +255,12 @@ const SHOTS = [
     [`Timer${s}`, { layout: s.toLowerCase() }, 920, 640, "Timers"],
     [`Timer${s}Phone`, { layout: `${s.toLowerCase()}Phone` }, 390, 700, "TimersPhone"],
   ]),
+  // Briefings (docs/design/boards/Briefings.dc.html and BriefingsPhone.dc.html): to give, briefed
+  // and skipped.
+  ...["Open", "Briefed", "Skipped"].flatMap((s) => [
+    [`Brief${s}`, { layout: s.toLowerCase() }, 920, s === "Open" ? 900 : 600, "Briefings"],
+    [`Brief${s}Phone`, { layout: `${s.toLowerCase()}Phone` }, 390, s === "Open" ? 900 : 700, "BriefingsPhone"],
+  ]),
 ];
 
 async function main() {

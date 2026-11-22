@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
 A phase in List view (Checklist board): where the phase sits and its title, "N open steps"
-with the open-steps list, the lists as cards (a challenge-and-response checklist folded until
+with the open-steps list, the phase's briefings (Briefings boards), the lists as cards (a challenge-and-response checklist folded until
 the procedure is done), and buttons to the phases either side. Step by step view shows the same phase one
 step at a time (lib/FlowView.svelte).
 -->
@@ -19,6 +19,7 @@ step at a time (lib/FlowView.svelte).
   import { flightHref, phaseHref } from "../route.svelte";
   import { decisionKey, type Decisions } from "../lib/decision";
   import RunningTimers from "../lib/RunningTimers.svelte";
+  import BriefingCard from "../lib/BriefingCard.svelte";
   import type { Timers } from "../lib/timers";
 
   let {
@@ -46,6 +47,7 @@ step at a time (lib/FlowView.svelte).
     inline,
     inlineStep = null,
     notice,
+    onBriefing,
   }: {
     index: PackIndex;
     view: PhaseModel;
@@ -79,7 +81,11 @@ step at a time (lib/FlowView.svelte).
     inlineStep?: string | null;
     /** Shown under the title, above the lists: the note after a pack update (PacksUpdate). */
     notice?: Snippet | undefined;
+    /** Marks a briefing Briefed or skipped, or takes the mark away (#214). */
+    onBriefing?: ((briefing: string, change: "brief" | "skip" | "unmark") => void) | undefined;
   } = $props();
+  /** The phase's briefings, above its lists (Briefings boards). */
+  let briefings = $derived(onBriefing ? index.briefings(view.id) : []);
   /** The phase's procedure is not done yet: its checklist stays folded (Checklist board). */
   let procedureOpen = $derived(view.lists.some((l) => l.kind === "flow" && !l.complete));
 
@@ -153,6 +159,16 @@ step at a time (lib/FlowView.svelte).
   <!-- Arrival values live only in Flight › Approach (decision 0019, amended). -->
   <a class="arrival" href={flightHref("approach")}>Arrival data is in Flight › Approach <Icon name="chevron-right" /></a>
 {/if}
+
+{#each briefings as b (b.id)}
+  <BriefingCard
+    briefing={b}
+    mark={flight.briefings?.[b.id]}
+    onBrief={() => onBriefing?.(b.id, "brief")}
+    onSkip={() => onBriefing?.(b.id, "skip")}
+    onUnmark={() => onBriefing?.(b.id, "unmark")}
+  />
+{/each}
 
 {#each view.lists as list, n (list.id)}
   <ListCard

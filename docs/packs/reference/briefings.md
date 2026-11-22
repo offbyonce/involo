@@ -11,7 +11,7 @@ Schema: `schemas/briefings.schema.json`. [All files](index.md).
 
 ## The file
 
-`briefings.yaml`: the crew briefings and their mnemonics, which Practice asks about.
+`briefings.yaml`: the crew briefings and their mnemonics, shown in their phases and asked about in Practice.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
@@ -19,14 +19,14 @@ Schema: `schemas/briefings.schema.json`. [All files](index.md).
 
 ## Briefing
 
-A crew briefing for one phase. The app doesn't show briefings yet; Practice asks about a briefing's mnemonic and its items.
+A crew briefing for one phase. The app shows it at the top of its phase, above the phase's lists, to be marked Briefed or skipped; Practice asks about its mnemonic and its items.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
 | `id` | text | yes |  | Unique in the pack. |
 | `items` | list of [BriefItem](#briefitem) | yes |  | Its lines, in order. |
 | `mnemonic` | text | yes |  | The word its lines' letters spell. Practice asks about briefings that have one, and leaves out one whose mnemonic is empty. |
-| `phase` | text | yes |  | The phase it belongs to, which must exist; Practice links to it. |
+| `phase` | text | yes |  | The phase it belongs to, which must exist. It shows at the top of that phase, after any earlier briefing for the same phase in this file; Practice links to it. |
 | `title` | text | yes |  | Its name, e.g. `Departure`: Practice calls it "the Departure briefing". |
 
 ## BriefItem
@@ -35,7 +35,7 @@ One line of a briefing: the letter of its mnemonic and the rest of the word.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `detail` | text |  |  | What to cover under this line. |
+| `detail` | text |  |  | What to cover under this line, shown under its word. |
 | `id` | text | yes |  | Unique in the pack. Saved progress uses it, so it never changes once published. |
 | `lead` | text | yes |  | The letters of the mnemonic this line stands for, e.g. `R`; with `rest` it makes the line's word as Practice shows it. |
 | `rest` | text | yes |  | The rest of the word after `lead`, e.g. `unway`. |

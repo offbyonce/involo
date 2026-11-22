@@ -13,13 +13,14 @@ data_types! {
         pub lead: String,
         /// The rest of the word after `lead`, e.g. `unway`.
         pub rest: String,
-        /// What to cover under this line.
+        /// What to cover under this line, shown under its word.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub detail: Option<String>,
     }
 
-    /// A crew briefing for one phase. The app doesn't show briefings yet; Practice asks about a
-    /// briefing's mnemonic and its items.
+    /// A crew briefing for one phase. The app shows it at the top of its phase, above the
+    /// phase's lists, to be marked Briefed or skipped; Practice asks about its mnemonic and its
+    /// items.
     pub struct Briefing {
         /// Unique in the pack.
         pub id: String,
@@ -28,13 +29,15 @@ data_types! {
         /// The word its lines' letters spell. Practice asks about briefings that have one, and
         /// leaves out one whose mnemonic is empty.
         pub mnemonic: String,
-        /// The phase it belongs to, which must exist; Practice links to it.
+        /// The phase it belongs to, which must exist. It shows at the top of that phase, after any
+        /// earlier briefing for the same phase in this file; Practice links to it.
         pub phase: String,
         /// Its lines, in order.
         pub items: Vec<BriefItem>,
     }
 
-    /// `briefings.yaml`: the crew briefings and their mnemonics, which Practice asks about.
+    /// `briefings.yaml`: the crew briefings and their mnemonics, shown in their phases and asked
+    /// about in Practice.
     pub struct BriefingsFile {
         /// Every briefing.
         pub briefings: Vec<Briefing>,

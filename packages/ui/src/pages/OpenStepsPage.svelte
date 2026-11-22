@@ -3,8 +3,8 @@ SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
 Open steps for the whole flight: on every phase the pilot started, the steps not yet done,
-marked Skipped or Missed (decision 0012). Each can be ticked here, a skipped one put back to do,
-or found in its phase.
+marked Skipped or Missed (decision 0012), and skipped briefings (#214). Each can be ticked or
+briefed here, a skipped one put back to do, or found in its phase.
 -->
 <script lang="ts">
   import { stepValue } from "../lib/answers.svelte";
@@ -18,11 +18,14 @@ or found in its phase.
     open,
     onTick,
     onUnskip,
+    onBriefing,
   }: {
     index: PackIndex;
     open: OpenStep[];
     onTick: (id: string) => void;
     onUnskip: (id: string) => void;
+    /** Gives a skipped briefing, or puts it back to give (#214). */
+    onBriefing: (briefing: string, change: "brief" | "unmark") => void;
   } = $props();
 
   let groups = $derived.by(() => {
@@ -55,6 +58,23 @@ or found in its phase.
     <ul>
       {#each g.steps as o (o.step)}
         {@const step = index.step(o.step)}
+        {#if o.briefing}
+          <!-- A skipped briefing (#214): Unskip puts it back to give; Briefed gives it. -->
+          <li>
+            <div class="txt">
+              <b>{o.listTitle}</b>
+              <span class="val">{index.briefing(o.step)?.mnemonic ?? ""}</span>
+              <small>Briefing</small>
+            </div>
+            <span class="badge sk">Skipped</span>
+            <div class="acts">
+              <button class="btn" type="button" onclick={() => onBriefing(o.step, "unmark")}>Unskip</button>
+              <button class="btn primary" type="button" onclick={() => onBriefing(o.step, "brief")}>
+                <Icon name="check" /> Briefed
+              </button>
+            </div>
+          </li>
+        {:else}
         <li>
           <div class="txt">
             <b>{step?.text ?? o.step}</b>
@@ -69,6 +89,7 @@ or found in its phase.
             </button>
           </div>
         </li>
+        {/if}
       {/each}
     </ul>
   </section>

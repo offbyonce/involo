@@ -41,6 +41,7 @@ import {
   exampleFile,
   closeWelcome,
   timerIn,
+  briefingIn,
   finishPhase,
   finishSkippingLast,
   go,
@@ -505,6 +506,13 @@ const SHOTS = [
       before: [timerIn("running"), `(() => { document.querySelector(".run-bar")?.scrollIntoView({ block: "end" }); return true; })()`],
     },
   },
+  // A briefing at the top of its phase (#214, Briefings): the takeoff briefing on Before start,
+  // to give, briefed and skipped, at desktop and phone.
+  ...["open", "briefed", "skipped"].map((state) => ({
+    name: `board-briefing-${state}`,
+    only: ["desktop", "phone"],
+    app: { hash: "#/phase/before-start", before: [briefingIn(state)] },
+  })),
   // A light's notes (#211, LightNotes): the fuel panel, whose lights say when they come on and
   // what to do; and the chosen panel state's description under Start's picker (StateNote), with
   // GPU Connected chosen, as the boards show.
