@@ -28,6 +28,8 @@ pub struct StepTimer {
     pub note: Option<String>,
     /// Started by its trigger steps' ticks (`auto_start`), rather than its own step's.
     pub auto: bool,
+    /// Its trigger steps, in the pack's order; empty without `auto_start`.
+    pub from: Vec<StepId>,
     /// When it started, or `None` while nothing has started it. A paused timer keeps its start.
     #[ts(type = "number | null")]
     pub started_at: Option<Millis>,
@@ -84,6 +86,11 @@ pub fn timers(pack: &FlatPack, flight: &Flight) -> Vec<StepTimer> {
                 seconds: timer.seconds,
                 note: timer.note.clone(),
                 auto: timer.auto_start.is_some(),
+                from: timer
+                    .auto_start
+                    .as_ref()
+                    .map(|a| a.from.clone())
+                    .unwrap_or_default(),
                 started_at,
                 started_by,
                 paused_left: started_at.and_then(|_| flight.timer_pauses.get(&step.id).copied()),
@@ -189,6 +196,14 @@ mod tests {
         );
         let warm = timer(&pack, &flight, WARM_UP);
         assert_eq!((warm.started_at, warm.auto), (Some(9_000), true));
+        assert_eq!(
+            warm.from,
+            [
+                step("ifly-737-max8.engine-start.engine-2-start-lever"),
+                step("ifly-737-max8.engine-start.engine-1-start-lever"),
+            ],
+            "its trigger steps, for the words before it starts"
+        );
         assert_eq!(
             warm.started_by,
             Some(step("ifly-737-max8.engine-start.engine-1-start-lever"))

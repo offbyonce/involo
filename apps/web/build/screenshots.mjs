@@ -40,6 +40,7 @@ import {
   click,
   exampleFile,
   closeWelcome,
+  timerIn,
   finishPhase,
   finishSkippingLast,
   go,
@@ -488,20 +489,20 @@ const SHOTS = [
   // The Flight deck (Deck, PhoneDeck): the forward overhead with the fuel panel selected, as
   // the boards show; at 1280 px, the area list and the area, the panel in its slide-out.
   { name: "board-deck", only: ["desktop", "phone", "laptop"], app: { hash: "#/deck/forward-overhead/fuel" } },
-  // A running step timer (#213, Timer board): both start levers ticked, so the engine warm-up
-  // runs on the takeoff phase's first step, with the running-timers bar under the list.
+  // Step timers (#213, Timers boards): the whole checklist screen with the preflight's IRS timer in
+  // each of its four states, at desktop and phone.
+  ...["waiting", "running", "paused", "finished"].map((state) => ({
+    name: `board-timer-${state}`,
+    only: ["desktop", "phone"],
+    app: { hash: "#/phase/before-start", before: [timerIn(state)] },
+  })),
+  // The IRS timer running, scrolled down to the running-timers bar under the lists.
   {
-    name: "board-timer",
+    name: "board-timer-bar",
     only: ["desktop"],
     app: {
       hash: "#/phase/before-start",
-      before: [
-        go("#/phase/engine-start"),
-        `new Promise((d) => setTimeout(() => d(true), 400))`,
-        `(() => { for (const n of [1, 2]) [...document.querySelectorAll("button.tick")].find((b) => new RegExp("^Confirm Engine " + n + " start lever", "i").test(b.getAttribute("aria-label") ?? ""))?.click(); return true; })()`,
-        `new Promise((d) => setTimeout(() => d(true), 400))`,
-        go("#/phase/takeoff"),
-      ],
+      before: [timerIn("running"), `(() => { document.querySelector(".run-bar")?.scrollIntoView({ block: "end" }); return true; })()`],
     },
   },
   // A light's notes (#211, LightNotes): the fuel panel, whose lights say when they come on and

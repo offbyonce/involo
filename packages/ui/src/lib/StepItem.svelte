@@ -15,6 +15,9 @@ A decision step (decision 0022, Decision.dc.html) asks its option in the value c
 icon while unanswered, the choices as secondary buttons (choosing one ticks the step), a plan
 suggestion ringed with Confirm, the answer once done, and Change, which reopens the choices on the
 row in place. A step that depends on the answer links back to it.
+A step timer (Timers boards) adds a chip under the value, a line of text and, once it has started,
+Pause or Resume and Restart: under the location line on the desktop's current step, under the chip
+on the tablet's and phone's, and on the row's second line elsewhere. Done and Skip for now stay put.
 -->
 <script lang="ts">
   import type { Snippet } from "svelte";
@@ -25,7 +28,7 @@ row in place. A step that depends on the answer links back to it.
   import Icon from "./Icon.svelte";
   import RoleTag from "./RoleTag.svelte";
   import TimerChip from "./TimerChip.svelte";
-  import { running, type Timers } from "./timers";
+  import { stateAt, stepAction, timerWords, type Timers } from "./timers";
   import { stepTitle } from "./names";
   import { fillParts } from "./value-parts";
   import { SOURCE_WORDS, choices, labelOf, lowerFirst, shortLabel, type Decisions } from "./decision";
@@ -74,8 +77,8 @@ row in place. A step that depends on the answer links back to it.
     onEssentials?: ((add: boolean) => void) | undefined;
     /** Decision steps and the steps that depend on them (decision 0022). */
     decisions?: Decisions | undefined;
-    /** Step timers (#213, Timer board): a running timer shows as a chip before the menu, and on
-     * the current step with Pause and Restart. */
+    /** Step timers (#213, Timers boards): the chip under the value, a line of text, and Pause or
+     * Resume and Restart once it has started. */
     timers?: Timers | undefined;
     /** Below 900 px: the step's details in place (the side pane's content). */
     inline?: Snippet | undefined;
@@ -96,20 +99,37 @@ row in place. A step that depends on the answer links back to it.
   let fill = $derived(fillParts(dependent?.value ?? step.expect));
   let place = $derived(index.place(step));
   let title = $derived(stepTitle(index, step));
-  /** The step's timer while it runs (the state the Timer board draws). */
+  let current = $derived(row.state === "current");
+  /**
+   * The step's timer as the Timers boards show it: on the current step in any state, and on any
+   * other row once it has started (running, paused or finished), which is usually a done row.
+   * Not while a decision step asks its question.
+   */
   let timer = $derived.by(() => {
     const t = timers?.of(row.id);
-    return t && timers && running(t, timers.now) ? t : undefined;
+    if (!t || !timers || (asking && !decision?.changing)) return undefined;
+    return current || stateAt(t, timers.now) !== "waiting" ? t : undefined;
   });
-  /** The board's words under a running timer on the current step: what started it, and that the
-   * pilot can carry on. */
-  let timerWords = $derived.by(() => {
-    if (!timer) return "";
-    const by = timer.startedBy && timer.startedBy !== row.id ? index.step(timer.startedBy) : undefined;
-    const how = by ? `${timer.label} timer started by itself when you ticked ${stepTitle(index, by)}.` : `${timer.label} timer is running.`;
-    return `${how} You can carry on with other steps${timers?.chime ? "; a chime plays at zero" : ""}.`;
-  });
-  let current = $derived(row.state === "current");
+  let timerState = $derived(timer && timers ? stateAt(timer, timers.now) : "waiting");
+  let timerText = $derived(
+    timer && timers
+      ? timerWords(timer, timers.now, {
+          name: (id) => {
+            const s = index.step(id);
+            return s ? stepTitle(index, s) : id;
+          },
+          action: (id) => {
+            const s = index.step(id);
+            return stepAction(s, s ? stepTitle(index, s) : id);
+          },
+        }, timers.chime)
+      : "",
+  );
+  /** Where the line of text goes: under the location line on the desktop's current step, under
+   * the chip on the tablet's and phone's, and on the row's second line elsewhere. */
+  let wordsAt = $derived<"name" | "value" | "line">(!current ? "line" : timers?.layout === "desktop" ? "name" : "value");
+  /** A phone's done row puts the chip on its value line, before the menu. */
+  let chipAtEnd = $derived(!current && timers?.layout === "phone");
   /** Who does the step, and in a challenge-and-response list who answers (decision 0029). */
   let role = $derived(index.role(step.role));
   let responder = $derived(pair ? index.role(step.respond) : undefined);
@@ -140,7 +160,23 @@ row in place. A step that depends on the answer links back to it.
 
 <svelte:document onpointerdown={outside} onkeydown={key} />
 
-<li class="it {row.state}" data-step={row.id} class:pair class:sel={selected} class:marked class:large class:current class:changing={decision?.changing} class:timed={!!timer}>
+{#snippet timerLine()}
+  {#if timer}
+    {@const t = timer.step}
+    <div class="tw {wordsAt}">
+      <span class="twords">{timerText}</span>
+      {#if timerState !== "waiting"}
+        <span class="tbtns">
+          {#if timerState === "running"}<button class="timerb" type="button" onclick={() => timers?.pause(t)}>Pause</button>
+          {:else if timerState === "paused"}<button class="timerb" type="button" onclick={() => timers?.resume(t)}>Resume</button>{/if}
+          <button class="timerb" type="button" onclick={() => timers?.restart(t)}>Restart</button>
+        </span>
+      {/if}
+    </div>
+  {/if}
+{/snippet}
+
+<li class="it {row.state}" data-step={row.id} class:pair class:sel={selected} class:marked class:large class:current class:changing={decision?.changing} class:timed={!!timer} class:chipend={!!timer && chipAtEnd}>
   <button class="tick" type="button" aria-label={tickLabel} aria-pressed={row.state === "done"} aria-disabled={decision && decision.answer === null && row.state !== "done" ? "true" : undefined} onclick={tickOrAsk}>
     {#if current && asking && !decision?.changing}
       <!-- A decision step to answer: a diamond, not the circle (Decision.dc.html). -->
@@ -172,6 +208,7 @@ row in place. A step that depends on the answer links back to it.
       {#if detail === "expanded" && step.lookFor}<span class="look"><b>Look for:</b> {step.lookFor}</span>{/if}
     </button>
     {#if row.state === "skipped"}<button class="do-now" type="button" onclick={onSelect}>Do it now</button>{/if}
+    {#if wordsAt === "name"}{@render timerLine()}{/if}
   </div>
   {#if pair}<span class="answers">{#if responder}<RoleTag role={responder} /><span class="sr-only">, answers</span>{/if}</span>{/if}
   <div class="value" class:asking class:answered={!!decision && decision.answer !== null && !asking} class:dep={!!dependent}>
@@ -208,8 +245,10 @@ row in place. A step that depends on the answer links back to it.
       <span class="val">{step.expect}</span>
     {/if}
     {#if row.hint}<small class="hint">{row.hint}</small>{/if}
+    {#if timer && timers && !chipAtEnd}<TimerChip {timer} now={timers.now} />{/if}
+    {#if wordsAt === "value"}{@render timerLine()}{/if}
   </div>
-  {#if timer && timers}<span class="timer"><TimerChip {timer} now={timers.now} /></span>{/if}
+  {#if timer && timers && chipAtEnd}<span class="tchip"><TimerChip {timer} now={timers.now} /></span>{/if}
   <div class="end" data-menu={row.id}>
     <button class="more" class:on={menu} type="button" aria-label="More actions for {title}" aria-expanded={menu} aria-haspopup="menu" onclick={() => (menu = !menu)}>···</button>
     {#if menu}
@@ -229,6 +268,7 @@ row in place. A step that depends on the answer links back to it.
       </div>
     {/if}
   </div>
+  {#if wordsAt === "line"}{@render timerLine()}{/if}
   {#if current}
     <div class="actions">
       {#if decision && asking && !decision.changing}
@@ -242,12 +282,6 @@ row in place. A step that depends on the answer links back to it.
         <span class="fill"></span>
         <span class="keys">{suggested ? "Space confirm · " : ""}{numbers} answer · S skip</span>
       {:else}
-        {#if timer && timers}
-          {@const t = timer.step}
-          <span class="timer-words">{timerWords}</span>
-          <button class="timerb" type="button" onclick={() => timers?.pause(t)}>Pause</button>
-          <button class="timerb" type="button" onclick={() => timers?.restart(t)}>Restart</button>
-        {/if}
         <button class="donebtn" type="button" onclick={onTick}>Done</button>
         <button class="skipb" type="button" onclick={onSkip}>Skip for now</button>
         <span class="fill"></span>
@@ -719,42 +753,60 @@ row in place. A step that depends on the answer links back to it.
   }
   /* Tablet and phone rows show no location line; tablet portrait and phone show it in the opened
      step, tablet landscape in the side pane (Tablet and Mobile boards). */
-  /* A running step timer (Timer board, drawn at 1440): the chip before the menu, and on the
-     current step the board's words with Pause and Restart before Done. Tablet and phone wait for
-     their boards, so the timer shows from 1440 px only. */
-  .timer,
-  .timer-words,
-  .timerb {
-    display: none;
+  /* Step timers (Timers boards). The chip sits under the value, 6 px down on a done row and 8 on
+     the current step (the value column's own gaps). */
+  .value :global(.chip) {
+    margin-top: var(--space-1);
   }
-  @media (min-width: 1440px) {
-    .it.timed {
-      grid-template-columns: calc(var(--size-touch-min) - var(--space-1)) minmax(0, 1fr) 34% auto var(--size-touch-min);
-    }
-    .it.timed .actions {
-      grid-column: 2 / 6;
-    }
-    .timer {
-      display: block;
-      justify-self: end;
-    }
-    .timer-words {
-      display: inline;
-      color: var(--color-text-secondary);
-      font-size: var(--font-size-secondary);
-    }
-    .timerb {
-      display: inline-block;
-      height: var(--size-touch-min);
-      padding: 0 calc(var(--space-3) + var(--border-thick));
-      border: var(--border-thin) solid var(--color-border);
-      border-radius: var(--radius-control);
-      background: var(--color-button-bg);
-      box-shadow: var(--color-button-shadow);
-      color: var(--color-text);
-      font: inherit;
-      font-size: var(--font-size-secondary);
-    }
+  .current .value :global(.chip) {
+    margin-top: calc(var(--space-2) - var(--border-thick));
+  }
+  .tw {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--space-2) + var(--border-thick));
+  }
+  .twords {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-secondary);
+  }
+  .tbtns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--space-2) + var(--border-thick));
+  }
+  /* The timer's buttons: 36 tall, 12 padding, 8 radius, secondary buttons' colors. */
+  .timerb {
+    height: calc(var(--size-touch-min) - var(--space-2));
+    padding: 0 var(--space-3);
+    border: var(--border-thin) solid var(--color-border);
+    border-radius: var(--space-2);
+    background: var(--color-button-bg);
+    box-shadow: var(--color-button-shadow);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--font-size-secondary);
+    white-space: nowrap;
+  }
+  /* The desktop's current step: the text under the location line, in the name's column. */
+  .tw.name {
+    flex-basis: 100%;
+    margin-top: var(--space-1);
+  }
+  /* The tablet's and phone's current step: the text under the chip. */
+  .tw.value {
+    margin-top: var(--space-1);
+  }
+  /* Any other row: the text and buttons on the row's second line, 6 px under the first. */
+  .tw.line {
+    grid-column: 2 / 5;
+    margin-bottom: var(--space-1);
+  }
+  .it.timed:not(.current) {
+    row-gap: calc(var(--space-1) + var(--border-thick));
   }
   @media (max-width: 1439px) {
     .where-line {
@@ -925,6 +977,47 @@ row in place. A step that depends on the answer links back to it.
     .it.current .val {
       font-size: var(--font-size-value-mono);
       font-weight: var(--weight-medium);
+    }
+    /* Step timers on phone (TimersPhone): the text, then the buttons under it, 44 tall; on a done
+       row, across the row under its value. */
+    .tw.value,
+    .tw.line {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-2);
+    }
+    .tw .timerb {
+      height: var(--size-touch-min);
+    }
+    .tbtns {
+      gap: var(--space-2);
+    }
+    .tw.line {
+      grid-column: 2 / -1;
+      padding-right: calc(var(--space-3) + var(--border-thick));
+    }
+    .it.chipend {
+      grid-template-columns: var(--size-icon) minmax(0, 1fr) auto auto;
+      column-gap: calc(var(--space-2) + var(--border-thick));
+    }
+    /* The phone's done row keeps its value and menu on its second line, so the chip joins that
+       line, before the menu. */
+    .tchip {
+      display: flex;
+      grid-row: 2;
+      grid-column: 3;
+    }
+    .it.chipend .namecol {
+      grid-row: 1;
+      grid-column: 2 / -1;
+    }
+    .it.chipend .value {
+      grid-row: 2;
+      grid-column: 2;
+    }
+    .it.chipend .end {
+      grid-row: 2;
+      grid-column: 4;
     }
     /* A skipped row shows no value (Mobile board). */
     .it.skipped .value {

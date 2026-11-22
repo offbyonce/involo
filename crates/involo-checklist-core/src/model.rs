@@ -214,8 +214,10 @@ data_types! {
         pub pick: AutoStartPick,
     }
 
-    /// A wait attached to a step: a timer chip on the step's row and in the running-timers bar
-    /// while it runs. Without `auto_start`, the step's own tick starts it.
+    /// A wait attached to a step: a timer chip under the step's value (on the current step before
+    /// it starts, and on its row once started, running, paused or finished), and in the
+    /// running-timers bar while it runs or is paused. Without `auto_start`, the step's own tick
+    /// starts it.
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct Timer {
         /// How long the wait is, in seconds.
@@ -225,7 +227,8 @@ data_types! {
         /// A note about the wait, for whoever writes the pack; the app doesn't show it.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub note: Option<String>,
-        /// The earlier steps whose ticks start the timer.
+        /// The earlier steps whose ticks start the timer; the words under the timer name them
+        /// before it starts.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub auto_start: Option<AutoStart>,
     }

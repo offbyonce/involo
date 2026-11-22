@@ -614,6 +614,21 @@ in Rust. The host saves progress and settings on the device.
     query.addEventListener("change", change);
     return () => query.removeEventListener("change", change);
   });
+  /** The step rows' form for step timers (Timers boards): desktop from 1440 px, phone below 600. */
+  let rowLayout = $state<"desktop" | "tablet" | "phone">("desktop");
+  $effect(() => {
+    const desk = window.matchMedia?.("(min-width: 1440px)");
+    const phone = window.matchMedia?.("(max-width: 599px)");
+    if (!desk || !phone) return;
+    const change = () => (rowLayout = desk.matches ? "desktop" : phone.matches ? "phone" : "tablet");
+    change();
+    desk.addEventListener("change", change);
+    phone.addEventListener("change", change);
+    return () => {
+      desk.removeEventListener("change", change);
+      phone.removeEventListener("change", change);
+    };
+  });
   let current = $derived(view?.lists.find((l) => l.current)?.current ?? null);
   /** Essentials only: chosen, and the pack marks quick steps; a pack with none shows in Full and
    * offers no Essentials (Rust reads the setting the same way). */
@@ -1269,6 +1284,7 @@ in Rust. The host saves progress and settings on the device.
     of: (step) => timerList.find((t) => t.step === step),
     now: clockNow,
     chime: settings?.chime ?? true,
+    layout: rowLayout,
     pause: (step) => void act({ type: "pauseTimer", step, at: Date.now() }),
     resume: (step) => void act({ type: "resumeTimer", step, at: Date.now() }),
     restart: (step) => void act({ type: "restartTimer", step, at: Date.now() }),

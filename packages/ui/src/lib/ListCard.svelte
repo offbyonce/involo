@@ -18,7 +18,7 @@ folded to one line with its count until the phase's procedure is done.
   import { messageHref } from "./messages";
   import { stepTitle } from "./names";
   import StepItem from "./StepItem.svelte";
-  import type { Timers } from "./timers";
+  import { stateAt, type Timers } from "./timers";
   import type { Decisions } from "./decision";
 
   let {
@@ -84,11 +84,16 @@ folded to one line with its count until the phase's procedure is done.
 
   /**
    * The done steps at the top fold into one line, with Show (Checklist board). A decision step
-   * stays out of the fold, so its answer shows (Decision.dc.html).
+   * stays out of the fold, so its answer shows (Decision.dc.html), and so does a step whose timer
+   * has started (running, paused or finished), so the timer stays in view (Timers boards).
    */
   let lead = $derived.by(() => {
+    const timed = (id: string) => {
+      const t = timers?.of(id);
+      return !!t && stateAt(t, timers?.now ?? 0) !== "waiting";
+    };
     let n = 0;
-    while (rows[n]?.state === "done" && !index.step(rows[n]?.id ?? "")?.decide) n++;
+    while (rows[n]?.state === "done" && !index.step(rows[n]?.id ?? "")?.decide && !timed(rows[n]?.id ?? "")) n++;
     return n;
   });
   let showDone = $state(false);

@@ -694,11 +694,11 @@
       ]
     },
     "Timer": {
-      "description": "A wait attached to a step: a timer chip on the step's row and in the running-timers bar\nwhile it runs. Without `auto_start`, the step's own tick starts it.",
+      "description": "A wait attached to a step: a timer chip under the step's value (on the current step before\nit starts, and on its row once started, running, paused or finished), and in the\nrunning-timers bar while it runs or is paused. Without `auto_start`, the step's own tick\nstarts it.",
       "type": "object",
       "properties": {
         "auto_start": {
-          "description": "The earlier steps whose ticks start the timer.",
+          "description": "The earlier steps whose ticks start the timer; the words under the timer name them\nbefore it starts.",
           "anyOf": [
             {
               "$ref": "#/$defs/AutoStart"

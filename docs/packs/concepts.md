@@ -104,10 +104,13 @@ rows. See `packs/examples/example-sidestick/messages.yaml`.
 
 A step may have a `timer`: a wait the pilot shouldn't cut short, such as an engine warm-up, with
 its `label` and `seconds`. It starts by itself: from its own step's tick, or, with `auto_start`,
-from the tick of one of the steps it names, the `earliest` or the `latest` as `pick` says. While
-it runs, the step shows a chip with the time left, the current step offers Pause and Restart, and
-a bar under the lists shows every running timer. Settings › Timer chime plays a chime at zero. The
-`note` is for whoever writes the pack; the app doesn't show it.
+from the tick of one of the steps it names, the `earliest` or the `latest` as `pick` says. Its
+step shows a chip under its value: before it starts (on the current step, with the steps whose
+tick starts it), while it runs, paused, and finished, with Pause or Resume and Restart once it has
+started. A step whose timer has started stays out of the folded done steps, and a bar shows every
+timer running or paused. Settings › Timer chime plays a chime at zero. The words under a running
+timer say what the step that started it set, from that step's `targets` ("set NAV"), or that it
+was ticked. The `note` is for whoever writes the pack; the app doesn't show it.
 
 ## Labels
 

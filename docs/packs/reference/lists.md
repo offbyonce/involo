@@ -154,11 +154,11 @@ One panel item a step involves, and what the step asks of it (decision 0018).
 
 ## Timer
 
-A wait attached to a step: a timer chip on the step's row and in the running-timers bar while it runs. Without `auto_start`, the step's own tick starts it.
+A wait attached to a step: a timer chip under the step's value (on the current step before it starts, and on its row once started, running, paused or finished), and in the running-timers bar while it runs or is paused. Without `auto_start`, the step's own tick starts it.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `auto_start` | [AutoStart](#autostart) |  |  | The earlier steps whose ticks start the timer. |
+| `auto_start` | [AutoStart](#autostart) |  |  | The earlier steps whose ticks start the timer; the words under the timer name them before it starts. |
 | `label` | text | yes |  | The timer's name, e.g. `Warm-up`: on the chip and in the running-timers bar. |
 | `note` | text |  |  | A note about the wait, for whoever writes the pack; the app doesn't show it. |
 | `seconds` | whole number | yes |  | How long the wait is, in seconds. |

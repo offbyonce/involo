@@ -22,6 +22,10 @@ note: string | null,
  */
 auto: boolean, 
 /**
+ * Its trigger steps, in the pack's order; empty without `auto_start`.
+ */
+from: Array<StepId>, 
+/**
  * When it started, or `None` while nothing has started it. A paused timer keeps its start.
  */
 startedAt: number | null, 

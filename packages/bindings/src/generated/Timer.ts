@@ -2,8 +2,10 @@
 import type { AutoStart } from "./AutoStart";
 
 /**
- * A wait attached to a step: a timer chip on the step's row and in the running-timers bar
- * while it runs. Without `auto_start`, the step's own tick starts it.
+ * A wait attached to a step: a timer chip under the step's value (on the current step before
+ * it starts, and on its row once started, running, paused or finished), and in the
+ * running-timers bar while it runs or is paused. Without `auto_start`, the step's own tick
+ * starts it.
  */
 export type Timer = { 
 /**
@@ -19,6 +21,7 @@ label: string,
  */
 note?: string | null, 
 /**
- * The earlier steps whose ticks start the timer.
+ * The earlier steps whose ticks start the timer; the words under the timer name them
+ * before it starts.
  */
 autoStart?: AutoStart | null, };
