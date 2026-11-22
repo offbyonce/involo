@@ -121,11 +121,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
     class="fsline"
     aria-expanded={open}
     aria-controls="spop"
-    aria-label={open
-      ? "Close the flight strip"
-      : filled
-        ? `Flight strip: ${route}. Open clearance, notes and flight data`
-        : "Add your flight: import from SimBrief or enter the clearance"}
+    aria-label={open ? "Close the flight strip" : filled ? undefined : "Add your flight: import from SimBrief or enter the clearance"}
     bind:this={line}
     onclick={toggle}
   >
@@ -136,12 +132,15 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
       <span class="up"><Icon name="chevron-down" /></span>
     {:else}
       {#if filled}
+        <!-- Named by what it shows, so every value it shows is in its name. -->
+        <span class="sr-only">{"Flight strip: "}</span>
         <span class="route">{route}</span>
         {#each FIELDS as f (f.field)}
           {@const shown = shownValue(f.field)}
-          <span class="part" data-field={f.field}><span class="lab">{f.label}</span><span class="val" class:none={!shown}>{shown || "—"}</span></span>
+          <span class="part" data-field={f.field}><span class="lab">{f.label}</span>{" "}<span class="val" class:none={!shown}>{shown || "—"}</span></span>
         {/each}
         {#if noteCount}<span class="notes">Notes {noteCount}</span>{/if}
+        <span class="sr-only">{". Open clearance, notes and flight data"}</span>
       {:else}
         <span class="prompt">Add your flight: import from SimBrief or enter the clearance</span>
       {/if}
