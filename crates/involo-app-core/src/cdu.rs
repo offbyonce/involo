@@ -151,9 +151,9 @@ pub fn cdu_walkthrough(pack: &FlatPack, flight: &Flight, id: &str) -> Option<Cdu
 }
 
 /// The route split into CDU rows, `(via, to)`. The SID it starts with and the STAR it ends with
-/// are left out (DEP/ARR enters them): the flight's own SID, or a word shaped like a procedure
-/// (three to six letters, a digit and maybe a letter, as BDEGA4); the flight's own STAR, or that
-/// shape only when the flight names no STAR. So is a DCT at either end. The first word is flown DIRECT; after it, an airway (letters then digits, as Q1 or UL607)
+/// are left out (DEP/ARR enters them): the flight's own SID or STAR, or, only when the flight
+/// names none, a word shaped like a procedure (three to six letters, a digit and maybe a letter,
+/// as BDEGA4). So is a DCT at either end. The first word is flown DIRECT; after it, an airway (letters then digits, as Q1 or UL607)
 /// joins the waypoint after it, DCT before a waypoint is DIRECT, and a waypoint on its own is flown
 /// DIRECT.
 fn route_legs(route: &str, sid: Option<&str>, star: Option<&str>) -> Vec<(String, String)> {
@@ -162,7 +162,13 @@ fn route_legs(route: &str, sid: Option<&str>, star: Option<&str>) -> Vec<(String
     if words.first().is_some_and(|w| w == "DCT") {
         words.remove(0);
     }
-    if words.first().is_some_and(|w| is(w, sid) || procedure(w)) {
+    // The flight's own SID when it has one; only without one is a procedure-shaped word taken
+    // for it, so a waypoint shaped like a procedure stays when the SID is known.
+    let sid = sid.map(str::trim).filter(|s| !s.is_empty());
+    if words
+        .first()
+        .is_some_and(|w| sid.map_or_else(|| procedure(w), |_| is(w, sid)))
+    {
         words.remove(0);
     }
     if words.first().is_some_and(|w| w == "DCT") {
@@ -515,6 +521,20 @@ mod tests {
         assert_eq!(
             route_legs("SUMMA Q1 ETCHY MLBEC", None, Some("BDEGA4")).last(),
             Some(&("DIRECT".to_owned(), "MLBEC".to_owned()))
+        );
+        // The same at the start: with the flight's SID known, a first word only shaped like one
+        // is a waypoint, flown DIRECT; without it, the word is taken for the SID.
+        assert_eq!(
+            route_legs("SUMMA1 ALPHA Q1 ETCHY", Some("SUMMA2"), None).first(),
+            Some(&("DIRECT".to_owned(), "SUMMA1".to_owned()))
+        );
+        assert_eq!(
+            route_legs("SUMMA1 ALPHA Q1 ETCHY", None, None).first(),
+            Some(&("DIRECT".to_owned(), "ALPHA".to_owned()))
+        );
+        assert_eq!(
+            route_legs("SUMMA2 SUMMA Q1 ETCHY", Some("SUMMA2"), None).first(),
+            Some(&("DIRECT".to_owned(), "SUMMA".to_owned()))
         );
         // Waypoints in a row are each flown DIRECT, and a trailing DCT goes.
         assert_eq!(
