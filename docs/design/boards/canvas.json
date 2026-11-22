@@ -2497,6 +2497,118 @@
       "h": 700,
       "title": "Shared source: step timers, phone (tweaks: layout, theme)",
       "page": "b17"
+    },
+    "BriefOpen.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 920,
+      "h": 900,
+      "title": "Briefing to give (dark)",
+      "page": "b18"
+    },
+    "BriefOpenPhone.dc.html": {
+      "x": 2100,
+      "y": 0,
+      "w": 390,
+      "h": 900,
+      "title": "Briefing to give, phone (dark)",
+      "page": "b18"
+    },
+    "BriefOpenLight.dc.html": {
+      "x": 1000,
+      "y": 0,
+      "w": 920,
+      "h": 900,
+      "title": "Briefing to give (light)",
+      "page": "b18"
+    },
+    "BriefOpenPhoneLight.dc.html": {
+      "x": 2570,
+      "y": 0,
+      "w": 390,
+      "h": 900,
+      "title": "Briefing to give, phone (light)",
+      "page": "b18"
+    },
+    "BriefBriefed.dc.html": {
+      "x": 0,
+      "y": 1000,
+      "w": 920,
+      "h": 600,
+      "title": "Briefing done (dark)",
+      "page": "b18"
+    },
+    "BriefBriefedPhone.dc.html": {
+      "x": 2100,
+      "y": 1000,
+      "w": 390,
+      "h": 700,
+      "title": "Briefing done, phone (dark)",
+      "page": "b18"
+    },
+    "BriefBriefedLight.dc.html": {
+      "x": 1000,
+      "y": 1000,
+      "w": 920,
+      "h": 600,
+      "title": "Briefing done (light)",
+      "page": "b18"
+    },
+    "BriefBriefedPhoneLight.dc.html": {
+      "x": 2570,
+      "y": 1000,
+      "w": 390,
+      "h": 700,
+      "title": "Briefing done, phone (light)",
+      "page": "b18"
+    },
+    "BriefSkipped.dc.html": {
+      "x": 0,
+      "y": 1800,
+      "w": 920,
+      "h": 600,
+      "title": "Briefing skipped (dark)",
+      "page": "b18"
+    },
+    "BriefSkippedPhone.dc.html": {
+      "x": 2100,
+      "y": 1800,
+      "w": 390,
+      "h": 700,
+      "title": "Briefing skipped, phone (dark)",
+      "page": "b18"
+    },
+    "BriefSkippedLight.dc.html": {
+      "x": 1000,
+      "y": 1800,
+      "w": 920,
+      "h": 600,
+      "title": "Briefing skipped (light)",
+      "page": "b18"
+    },
+    "BriefSkippedPhoneLight.dc.html": {
+      "x": 2570,
+      "y": 1800,
+      "w": 390,
+      "h": 700,
+      "title": "Briefing skipped, phone (light)",
+      "page": "b18"
+    },
+    "Briefings.dc.html": {
+      "x": 0,
+      "y": 2600,
+      "w": 920,
+      "h": 900,
+      "title": "Shared source: briefings, desktop (tweaks: layout, theme)",
+      "page": "b18"
+    },
+    "BriefingsPhone.dc.html": {
+      "x": 1000,
+      "y": 2600,
+      "w": 390,
+      "h": 900,
+      "title": "Shared source: briefings, phone (tweaks: layout, theme)",
+      "page": "b18"
     }
   },
   "createdOnFiles": {
@@ -2505,7 +2617,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b17",
+    "page": "b18",
     "view": "canvas"
   },
   "notes": {},
@@ -2821,7 +2933,21 @@
     "TimerFinishedLight.dc.html",
     "TimerFinishedPhoneLight.dc.html",
     "Timers.dc.html",
-    "TimersPhone.dc.html"
+    "TimersPhone.dc.html",
+    "BriefOpen.dc.html",
+    "BriefOpenPhone.dc.html",
+    "BriefOpenLight.dc.html",
+    "BriefOpenPhoneLight.dc.html",
+    "BriefBriefed.dc.html",
+    "BriefBriefedPhone.dc.html",
+    "BriefBriefedLight.dc.html",
+    "BriefBriefedPhoneLight.dc.html",
+    "BriefSkipped.dc.html",
+    "BriefSkippedPhone.dc.html",
+    "BriefSkippedLight.dc.html",
+    "BriefSkippedPhoneLight.dc.html",
+    "Briefings.dc.html",
+    "BriefingsPhone.dc.html"
   ],
   "pages": [
     {
@@ -2923,6 +3049,10 @@
     {
       "id": "b17",
       "name": "Beta 1: step timers"
+    },
+    {
+      "id": "b18",
+      "name": "Beta 1: briefings"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"
