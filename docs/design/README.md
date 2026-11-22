@@ -368,6 +368,38 @@ request.
 - Briefed and skipped are saved with the flight and carried by backups.
 - Existing tokens only.
 
+**CDU walkthroughs (2026-11-22).** `CduWalk.dc.html` (desktop) and `CduWalkPhone.dc.html` (390
+wide) draw #215's CDU walkthrough, dark and light: the step that opens it, not started
+(`CduStepStart`) and stopped part way (`CduStepResume`), as additions to the Checklist board's main
+column (920 wide) and the Mobile board below its header; and the walkthrough in the existing
+slide-out (the Locator board's geometry, scrim, Esc and close) on a page with the flight's values
+(`CduPage`), with no flight added (`CduPageEmpty`) and on its last page (`CduPageLast`), each with
+a `Phone` form (the sheet from 72 px down). They replace `Cdu.dc.html`, `CduLight.dc.html` and the
+CDU walkthrough view in `Views.dc.html`. Nothing on the Checklist or Mobile board or the slide-out
+changes. The build may improve on these boards but never be worse; each difference is listed in
+its pull request.
+
+- **The step:** under its location line (desktop) or its value (phone), Open CDU walkthrough with
+  "<n> pages, <first CDU page> to <last>.", or Continue CDU walkthrough with "Stopped at page <n>
+  of <total>, <CDU page>." once started. Done and Skip for now don't move.
+- **The header:** "Step <n> · <step name>" in link color, the walkthrough's title and, on desktop,
+  "<list> · <n> pages, <first> to <last>", Esc and Close.
+- **Progress:** on desktop one pill per CDU page (done ones checked, the current one accent with
+  "<n>/<count>" when it spans several walkthrough pages, the rest muted); on a phone a bar with one
+  segment per page and "<n>/<total>".
+- **The page:** the CDU page name and "page <n> of <total>", the page's title, then Do, Check and
+  Note, with flight values in mono semibold and an unknown one's `empty` text as plain words. The
+  schematic CDU is on the left on desktop and between Do and Check on a phone: a panel drawing with
+  the screen, line select keys 1L to 6L and 1R to 6R (the page's in the panel's changed colors), the
+  function key when the page has one, and a legend of the three text styles. It is one image with
+  a full text alternative.
+- **No flight added:** "No flight added: each page says what to type instead of your values.", with
+  Add your flight (the flight strip's own action).
+- **Buttons:** Back (not on the first page) and Next; on the last page Done, which ticks the step
+  and closes. On desktop ← and → change pages and Esc closes. The page is saved with the flight
+  and carried by backups; a new flight clears it.
+- Existing tokens only.
+
 ## Read in this order
 
 1. `rules.md`: what the tokens mean and the rules every screen follows.
@@ -381,7 +413,7 @@ request.
 ## How the boards are built
 
 - Light and dark boards come from the same source with a `theme` prop. Files ending in `Light` are wrappers.
-- `Views.dc.html` holds Flow, Emergency, timer (replaced by `Timers.dc.html` where they differ), CDU walkthrough, briefing (replaced by `Briefings.dc.html`), exterior inspection, approach, Flight log and Settings (`view` prop).
+- `Views.dc.html` holds Flow, Emergency, timer (replaced by `Timers.dc.html` where they differ), CDU walkthrough (replaced by `CduWalk.dc.html`), briefing (replaced by `Briefings.dc.html`), exterior inspection, approach, Flight log and Settings (`view` prop).
 - `Tablet.dc.html` holds both tablet orientations and their overlays (`orient`, `overlay` props). `Mobile.dc.html` holds every phone screen (`screen` prop).
 - `Checklist.dc.html` takes `mapHidden`, `w` and `h` props. `Wide.dc.html` renders it at 1600 x 900 scaled 1.6.
 - Sample values (KSEA to KSFO, the METAR, fuel numbers, times) are illustration only.

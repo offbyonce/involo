@@ -2609,6 +2609,182 @@
       "h": 900,
       "title": "Shared source: briefings, phone (tweaks: layout, theme)",
       "page": "b18"
+    },
+    "CduStepStart.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 920,
+      "h": 560,
+      "title": "CDU step, walkthrough not started (dark)",
+      "page": "b19"
+    },
+    "CduStepStartPhone.dc.html": {
+      "x": 2100,
+      "y": 0,
+      "w": 390,
+      "h": 600,
+      "title": "CDU step, walkthrough not started, phone (dark)",
+      "page": "b19"
+    },
+    "CduStepStartLight.dc.html": {
+      "x": 1000,
+      "y": 0,
+      "w": 920,
+      "h": 560,
+      "title": "CDU step, walkthrough not started (light)",
+      "page": "b19"
+    },
+    "CduStepStartPhoneLight.dc.html": {
+      "x": 2570,
+      "y": 0,
+      "w": 390,
+      "h": 600,
+      "title": "CDU step, walkthrough not started, phone (light)",
+      "page": "b19"
+    },
+    "CduStepResume.dc.html": {
+      "x": 0,
+      "y": 700,
+      "w": 920,
+      "h": 560,
+      "title": "CDU step, walkthrough in progress (dark)",
+      "page": "b19"
+    },
+    "CduStepResumePhone.dc.html": {
+      "x": 2100,
+      "y": 700,
+      "w": 390,
+      "h": 600,
+      "title": "CDU step, walkthrough in progress, phone (dark)",
+      "page": "b19"
+    },
+    "CduStepResumeLight.dc.html": {
+      "x": 1000,
+      "y": 700,
+      "w": 920,
+      "h": 560,
+      "title": "CDU step, walkthrough in progress (light)",
+      "page": "b19"
+    },
+    "CduStepResumePhoneLight.dc.html": {
+      "x": 2570,
+      "y": 700,
+      "w": 390,
+      "h": 600,
+      "title": "CDU step, walkthrough in progress, phone (light)",
+      "page": "b19"
+    },
+    "CduPage.dc.html": {
+      "x": 0,
+      "y": 1400,
+      "w": 920,
+      "h": 732,
+      "title": "Walkthrough page with your values (dark)",
+      "page": "b19"
+    },
+    "CduPagePhone.dc.html": {
+      "x": 2100,
+      "y": 1400,
+      "w": 390,
+      "h": 844,
+      "title": "Walkthrough page with your values, phone (dark)",
+      "page": "b19"
+    },
+    "CduPageLight.dc.html": {
+      "x": 1000,
+      "y": 1400,
+      "w": 920,
+      "h": 732,
+      "title": "Walkthrough page with your values (light)",
+      "page": "b19"
+    },
+    "CduPagePhoneLight.dc.html": {
+      "x": 2570,
+      "y": 1400,
+      "w": 390,
+      "h": 844,
+      "title": "Walkthrough page with your values, phone (light)",
+      "page": "b19"
+    },
+    "CduPageEmpty.dc.html": {
+      "x": 0,
+      "y": 2344,
+      "w": 920,
+      "h": 732,
+      "title": "Walkthrough page, no flight added (dark)",
+      "page": "b19"
+    },
+    "CduPageEmptyPhone.dc.html": {
+      "x": 2100,
+      "y": 2344,
+      "w": 390,
+      "h": 844,
+      "title": "Walkthrough page, no flight added, phone (dark)",
+      "page": "b19"
+    },
+    "CduPageEmptyLight.dc.html": {
+      "x": 1000,
+      "y": 2344,
+      "w": 920,
+      "h": 732,
+      "title": "Walkthrough page, no flight added (light)",
+      "page": "b19"
+    },
+    "CduPageEmptyPhoneLight.dc.html": {
+      "x": 2570,
+      "y": 2344,
+      "w": 390,
+      "h": 844,
+      "title": "Walkthrough page, no flight added, phone (light)",
+      "page": "b19"
+    },
+    "CduPageLast.dc.html": {
+      "x": 0,
+      "y": 3288,
+      "w": 920,
+      "h": 732,
+      "title": "Walkthrough last page (dark)",
+      "page": "b19"
+    },
+    "CduPageLastPhone.dc.html": {
+      "x": 2100,
+      "y": 3288,
+      "w": 390,
+      "h": 844,
+      "title": "Walkthrough last page, phone (dark)",
+      "page": "b19"
+    },
+    "CduPageLastLight.dc.html": {
+      "x": 1000,
+      "y": 3288,
+      "w": 920,
+      "h": 732,
+      "title": "Walkthrough last page (light)",
+      "page": "b19"
+    },
+    "CduPageLastPhoneLight.dc.html": {
+      "x": 2570,
+      "y": 3288,
+      "w": 390,
+      "h": 844,
+      "title": "Walkthrough last page, phone (light)",
+      "page": "b19"
+    },
+    "CduWalk.dc.html": {
+      "x": 0,
+      "y": 4232,
+      "w": 920,
+      "h": 732,
+      "title": "Shared source: CDU walkthrough, desktop (tweaks: layout, theme)",
+      "page": "b19"
+    },
+    "CduWalkPhone.dc.html": {
+      "x": 1000,
+      "y": 4232,
+      "w": 390,
+      "h": 844,
+      "title": "Shared source: CDU walkthrough, phone (tweaks: layout, theme)",
+      "page": "b19"
     }
   },
   "createdOnFiles": {
@@ -2617,7 +2793,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b18",
+    "page": "b19",
     "view": "canvas"
   },
   "notes": {},
@@ -2947,7 +3123,29 @@
     "BriefSkippedLight.dc.html",
     "BriefSkippedPhoneLight.dc.html",
     "Briefings.dc.html",
-    "BriefingsPhone.dc.html"
+    "BriefingsPhone.dc.html",
+    "CduStepStart.dc.html",
+    "CduStepStartPhone.dc.html",
+    "CduStepStartLight.dc.html",
+    "CduStepStartPhoneLight.dc.html",
+    "CduStepResume.dc.html",
+    "CduStepResumePhone.dc.html",
+    "CduStepResumeLight.dc.html",
+    "CduStepResumePhoneLight.dc.html",
+    "CduPage.dc.html",
+    "CduPagePhone.dc.html",
+    "CduPageLight.dc.html",
+    "CduPagePhoneLight.dc.html",
+    "CduPageEmpty.dc.html",
+    "CduPageEmptyPhone.dc.html",
+    "CduPageEmptyLight.dc.html",
+    "CduPageEmptyPhoneLight.dc.html",
+    "CduPageLast.dc.html",
+    "CduPageLastPhone.dc.html",
+    "CduPageLastLight.dc.html",
+    "CduPageLastPhoneLight.dc.html",
+    "CduWalk.dc.html",
+    "CduWalkPhone.dc.html"
   ],
   "pages": [
     {
@@ -3053,6 +3251,10 @@
     {
       "id": "b18",
       "name": "Beta 1: briefings"
+    },
+    {
+      "id": "b19",
+      "name": "Beta 1: CDU walkthrough"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"
