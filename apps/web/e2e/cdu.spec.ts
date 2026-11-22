@@ -173,7 +173,12 @@ test("with the board flight imported, the walkthrough shows its values the way t
   await next(4);
   await expect(walk).toContainText("PERF INIT · page 10 of 15");
   for (const value of ["138.9", "12.4", "270°/045", "+4°F +2°C", "-62°F -52°C"]) {
-    await expect(screen).toHaveAttribute("aria-label", new RegExp(value.replace(/[.+/]/g, "\\$&")));
+    await expect(screen).toHaveAttribute("aria-label", new RegExp(escapeRegExp(value)));
   }
   await checkScreen(page, "PERF INIT with the board flight", [walk]);
 });
+
+/** `text` as a regular expression that matches it literally: every special character escaped. */
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+}
