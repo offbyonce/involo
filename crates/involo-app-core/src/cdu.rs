@@ -151,9 +151,9 @@ pub fn cdu_walkthrough(pack: &FlatPack, flight: &Flight, id: &str) -> Option<Cdu
 }
 
 /// The route split into CDU rows, `(via, to)`. The SID it starts with and the STAR it ends with
-/// are left out (DEP/ARR enters them): the flight's own SID or STAR, or a word shaped like a
-/// procedure (three to six letters, a digit and maybe a letter, as BDEGA4). So is a DCT at either
-/// end. The first word is flown DIRECT; after it, an airway (letters then digits, as Q1 or UL607)
+/// are left out (DEP/ARR enters them): the flight's own SID, or a word shaped like a procedure
+/// (three to six letters, a digit and maybe a letter, as BDEGA4); the flight's own STAR, or that
+/// shape only when the flight names no STAR. So is a DCT at either end. The first word is flown DIRECT; after it, an airway (letters then digits, as Q1 or UL607)
 /// joins the waypoint after it, DCT before a waypoint is DIRECT, and a waypoint on its own is flown
 /// DIRECT.
 fn route_legs(route: &str, sid: Option<&str>, star: Option<&str>) -> Vec<(String, String)> {
@@ -171,7 +171,13 @@ fn route_legs(route: &str, sid: Option<&str>, star: Option<&str>) -> Vec<(String
     if words.last().is_some_and(|w| w == "DCT") {
         words.pop();
     }
-    if words.last().is_some_and(|w| is(w, star) || procedure(w)) {
+    // The flight's own STAR when it has one; only without one is a procedure-shaped word taken
+    // for it, so a waypoint shaped like a procedure stays when the STAR is known.
+    let star = star.map(str::trim).filter(|s| !s.is_empty());
+    if words
+        .last()
+        .is_some_and(|w| star.map_or_else(|| procedure(w), |_| is(w, star)))
+    {
         words.pop();
     }
     if words.last().is_some_and(|w| w == "DCT") {
@@ -492,6 +498,20 @@ mod tests {
         let route = "SUMMA2 SUMMA Q1 ETCHY MLBEC BDEGA4";
         assert_eq!(route_legs(route, Some("SUMMA2"), Some("BDEGA4")), board);
         assert_eq!(route_legs(route, None, None), board);
+        // With the flight's STAR known, a last word only shaped like one is a waypoint, and a route
+        // ending in a plain waypoint keeps it.
+        assert_eq!(
+            route_legs("SUMMA Q1 ETCHY MLBEC1", None, Some("BDEGA4")).last(),
+            Some(&("DIRECT".to_owned(), "MLBEC1".to_owned()))
+        );
+        assert_eq!(
+            route_legs("SUMMA Q1 ETCHY MLBEC1", None, None).last(),
+            Some(&("Q1".to_owned(), "ETCHY".to_owned()))
+        );
+        assert_eq!(
+            route_legs("SUMMA Q1 ETCHY MLBEC", None, Some("BDEGA4")).last(),
+            Some(&("DIRECT".to_owned(), "MLBEC".to_owned()))
+        );
         // Waypoints in a row are each flown DIRECT, and a trailing DCT goes.
         assert_eq!(
             route_legs("ALPHA BRAVO UL607 CHRLY DCT", None, None),
