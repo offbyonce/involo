@@ -124,6 +124,25 @@ given. It never holds up the steps. Practice asks about a briefing's mnemonic an
 leaves out a briefing whose `mnemonic` is empty. A briefing has no flight values. Its `id` is
 saved with the flight, so it never changes once published.
 
+## CDU walkthroughs
+
+`cdu.yaml` holds page-by-page CDU walkthroughs. A step opens one by naming its `id` in `opens`;
+that step, when it's current, has Open CDU walkthrough, and the walkthrough opens in the
+slide-out. Each page has the CDU page's name, a `title`, what to do (`action`), what to `check`,
+an optional `note`, an optional function `key` to press, and the `screen`: its title line and
+page count, six line select rows, the line select keys to `highlight` and the scratchpad. Pages
+that share a CDU page show as one in the progress, so give them the same `page`.
+
+Text is a list of parts, joined in order. A field part shows the flight's value, with its
+`before` and `after` text, and when the value isn't known it shows `empty` instead, or nothing.
+Write `empty` as words the pilot can act on ("the departure airport ICAO code"), since with no
+flight added every page reads them. A `when_known` part shows one group of parts or the other.
+On the screen, `data` is what the airplane shows, `accent` what it calculated or accepted, and
+`user` what the pilot types; the app draws a legend for them. The app calculates nothing a pack
+doesn't name: the only numbers it works out are a route's rows (`route_leg`), split from the
+flight's route as 3.0 did, and the counts made from them (`route_legs`). The page the pilot is on
+is saved with the flight by the walkthrough's `id`, so it never changes once published.
+
 ## Labels
 
 Words the interface shows that belong to the aircraft (list kind names, the reference area's title
@@ -146,14 +165,13 @@ the app's own word, so write only what differs.
 
 ## Accepted but not shown yet
 
-The format has room for two things the app doesn't show yet. Each has an approved design, and
-the app will show it as written; `involo-pack check` checks them now, so write them as you would
-anything else.
+The format has room for one thing the app doesn't show yet. It has an approved design, and the
+app will show it as written; `involo-pack check` checks it now, so write it as you would anything
+else.
 
 | What | Where | Designed as |
 | --- | --- | --- |
 | Walkaround points | a step's `walkaround` | The exterior inspection: a top view of the airplane with numbered stops |
-| CDU walkthroughs | `cdu.yaml`, and a step's `opens` | A CDU walkthrough, page by page, with the flight's values filled in |
 
 ## Other things Practice and the overview read
 

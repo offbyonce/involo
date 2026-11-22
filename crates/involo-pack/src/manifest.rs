@@ -146,7 +146,7 @@ pub struct PackManifest {
     /// (`panel-states.yaml`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub panel_states: Option<String>,
-    /// CDU walkthroughs, screen by screen (`cdu.yaml`). The app doesn't show them yet.
+    /// CDU walkthroughs, screen by screen (`cdu.yaml`), each opened from the step that names it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cdu: Option<String>,
     /// Old ids and the ids they became, so an update keeps a pilot's flight (`aliases.yaml`).

@@ -120,6 +120,8 @@ export type PackIndex = {
   briefings(phase: string): Briefing[];
   /** A briefing by id. */
   briefing(id: string): Briefing | undefined;
+  /** The pack's CDU walkthroughs' ids, in its order. */
+  walkthroughs: string[];
 };
 
 export type MapRegion = { region: OverviewRegion | null; areas: OverviewArea[] };
@@ -279,6 +281,7 @@ export function indexPack(pack: FlatPack): PackIndex {
     hasEssentials: pack.lists.some((l) => l.steps.some((st) => st.quick)),
     briefings: (phase) => briefings.filter((b) => b.phase === phase),
     briefing: (id) => briefings.find((b) => b.id === id),
+    walkthroughs: (pack.content.cdu?.walkthroughs ?? []).map((w) => w.id),
     list: (id) => {
       const l = pack.lists.find((x) => x.id === id);
       return l ? { title: l.title, steps: l.steps } : undefined;

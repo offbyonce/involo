@@ -92,7 +92,7 @@ test("a flight saved before briefings (format 6) loads, keeps its paused timer a
     briefings?: Record<string, { state: string }>;
     timerPauses?: Record<string, number>;
   };
-  expect(flight.format, "saved at today's format").toBe(7);
+  expect(flight.format, "saved at today's format").toBe(8);
   expect(flight.briefings?.["takeoff-briefing-items-gate-stand"]?.state).toBe("briefed");
   expect(flight.timerPauses?.["ifly-737-max8.preflight.irs"]).toBe(271000);
 });

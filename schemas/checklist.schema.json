@@ -501,7 +501,7 @@
           "minimum": 0
         },
         "opens": {
-          "description": "The id of the CDU walkthrough for this step; `check` makes sure it exists. The app\ndoesn't show walkthroughs yet.",
+          "description": "The id of the CDU walkthrough for this step; `check` makes sure it exists. The step,\nwhen it's current, opens it.",
           "type": [
             "string",
             "null"

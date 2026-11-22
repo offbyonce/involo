@@ -273,6 +273,16 @@ pub fn reconcile(pack: &FlatPack, flight: &Flight) -> Flight {
         .map(|b| b.id.as_str())
         .collect();
     f.briefings.retain(|id, _| briefings.contains(id.as_str()));
+    // A walkthrough keeps its page while the pack still has it, on its last page if it has fewer
+    // pages now (#215).
+    f.walkthroughs = std::mem::take(&mut f.walkthroughs)
+        .into_iter()
+        .filter_map(|(id, page)| {
+            let pages = crate::cdu::walkthrough(pack, &id)?.pages.len();
+            let last = u32::try_from(pages.checked_sub(1)?).unwrap_or(u32::MAX);
+            Some((id, page.min(last)))
+        })
+        .collect();
     let blanks = aliases(pack, AliasKind::Blank);
     f.blanks = std::mem::take(&mut f.blanks)
         .into_iter()
@@ -578,6 +588,30 @@ mod tests {
                 "departure".to_owned(),
                 crate::BriefingMark::Briefed { at: 5 }
             )]
+        );
+    }
+
+    #[test]
+    fn a_walkthrough_keeps_its_page_while_the_pack_has_it() {
+        // #215: on its last page if the new version has fewer; gone with its walkthrough.
+        let old = example_pack();
+        let mut flight = new_flight(&old);
+        flight.walkthroughs.insert("example-setup".into(), 0);
+        flight.walkthroughs.insert("gone".into(), 3);
+        let f = reconcile(&next(), &flight);
+        assert_eq!(
+            f.walkthroughs.into_iter().collect::<Vec<_>>(),
+            vec![("example-setup".to_owned(), 0)]
+        );
+        let mut far = new_flight(&old);
+        far.walkthroughs.insert("example-setup".into(), 40);
+        let pages = crate::cdu::walkthrough(&next(), "example-setup")
+            .unwrap()
+            .pages
+            .len();
+        assert_eq!(
+            reconcile(&next(), &far).walkthroughs["example-setup"] as usize,
+            pages - 1
         );
     }
 

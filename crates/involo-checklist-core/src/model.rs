@@ -319,8 +319,8 @@ data_types! {
         /// Flight values shown beside the expected response.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub hint: Vec<HintPart>,
-        /// The id of the CDU walkthrough for this step; `check` makes sure it exists. The app
-        /// doesn't show walkthroughs yet.
+        /// The id of the CDU walkthrough for this step; `check` makes sure it exists. The step,
+        /// when it's current, opens it.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub opens: Option<String>,
         /// In a memory list: read this step rather than recalling it.

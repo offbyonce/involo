@@ -28,7 +28,7 @@ Every 3.0 feature and where it lives at each size. Use this as a release check: 
 | Clear flight with Undo | Reset flight plan (strip, menu, SimBrief section); Clear all progress (Settings) | Same | Same | Same |
 | SimBrief import | Strip panel; Flight › SimBrief and OFP file | Same | Same | Strip sheet; Flight page |
 | Offline OFP file | SimBrief section drop zone and Choose file | Same | Same | Same (Choose file) |
-| CDU walkthrough | From the CDU step | Same | Same | Same |
+| CDU walkthrough | From the CDU step, in the slide-out: schematic CDU beside the page (CduWalk boards) | Same | Same, the slide-out as a bottom sheet | Same, the CDU between Do and Check (CduWalkPhone) |
 | Decision steps (round 6 update; new, no 3.0 feature) | The step row asks: unanswered, suggested from the plan, answered, Change in place, Undo toast (Decision boards) | Same | Same | Stacked choices; Confirm and Skip in the bottom bar (DecPhone; inline until batch 5) |
 | Step timers | Timer chip and running-timers bar | Same | Same | Same |
 | Emergency reference | Red header button | Same | Same | Same |

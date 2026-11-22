@@ -76,6 +76,12 @@ export const REVIEW_BOARDS = {
   "board-briefing-open": { desktop: "BriefOpen", phone: "BriefOpenPhone" },
   "board-briefing-briefed": { desktop: "BriefBriefed", phone: "BriefBriefedPhone" },
   "board-briefing-skipped": { desktop: "BriefSkipped", phone: "BriefSkippedPhone" },
+  // CDU walkthroughs (#215, CduWalk.dc.html and CduWalkPhone.dc.html): the step and the slide-out.
+  "board-cdu-start": { desktop: "CduStepStart", phone: "CduStepStartPhone" },
+  "board-cdu-resume": { desktop: "CduStepResume", phone: "CduStepResumePhone" },
+  "board-cdu-values": { desktop: "CduPage", phone: "CduPagePhone" },
+  "board-cdu-novalues": { desktop: "CduPageEmpty", phone: "CduPageEmptyPhone" },
+  "board-cdu-last": { desktop: "CduPageLast", phone: "CduPageLastPhone" },
   // Light notes and panel-state descriptions (#211, Notes.dc.html).
   "board-light-notes": { desktop: "LightNotes", phone: "LightNotesPhone" },
   "board-state-note": { desktop: "StateNote", phone: "StateNotePhone" },

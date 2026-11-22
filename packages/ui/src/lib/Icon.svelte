@@ -41,6 +41,7 @@ control around them carries the words.
   import fileAdd from "../icons/board/file-add.svg?raw";
   import panel from "../icons/board/panel.svg?raw";
   import pin from "../icons/board/pin.svg?raw";
+  import walkthrough from "../icons/board/walkthrough.svg?raw";
   import warning from "../icons/board/warning.svg?raw";
 
   const ICONS = {
@@ -76,6 +77,7 @@ control around them carries the words.
     skip,
     search,
     settings,
+    walkthrough,
     warning,
     x,
   };

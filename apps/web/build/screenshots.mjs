@@ -42,6 +42,7 @@ import {
   closeWelcome,
   timerIn,
   briefingIn,
+  cduIn,
   finishPhase,
   finishSkippingLast,
   go,
@@ -512,6 +513,16 @@ const SHOTS = [
     name: `board-briefing-${state}`,
     only: ["desktop", "phone"],
     app: { hash: "#/phase/before-start", before: [briefingIn(state)] },
+  })),
+  // A CDU walkthrough (#215, CduWalk boards): the CDU step not started and stopped part way, and
+  // the walkthrough open on a page with the flight's values, with no flight, and on its last page.
+  ...["start", "resume", "values", "novalues", "last"].map((state) => ({
+    name: `board-cdu-${state}`,
+    only: ["desktop", "phone"],
+    app: {
+      hash: "#/phase/preflight",
+      before: [...(state === "novalues" ? [] : [...BOARD_FLIGHT, typed([["takeoff", "takeoff_trim", "5.50"]])]), cduIn(state)],
+    },
   })),
   // A light's notes (#211, LightNotes): the fuel panel, whose lights say when they come on and
   // what to do; and the chosen panel state's description under Start's picker (StateNote), with

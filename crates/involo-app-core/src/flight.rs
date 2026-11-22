@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// The saved format of a [`Flight`]. Raise it, with a migration and tests, when the shape changes.
-pub const FLIGHT_FORMAT: u32 = 7;
+pub const FLIGHT_FORMAT: u32 = 8;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -51,6 +51,10 @@ pub struct Flight {
     /// here is still to give.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub briefings: BTreeMap<String, BriefingMark>,
+    /// The page each CDU walkthrough the pilot opened is on, from 0, by walkthrough id (format 8,
+    /// #215). A walkthrough that isn't here hasn't been started.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub walkthroughs: BTreeMap<String, u32>,
     /// How each option a decision step asks was answered (format 3, decision 0027).
     #[serde(default)]
     pub answers: BTreeMap<String, AnswerSource>,
@@ -136,6 +140,7 @@ pub fn new_flight(pack: &FlatPack) -> Flight {
         timers: BTreeMap::new(),
         timer_pauses: BTreeMap::new(),
         briefings: BTreeMap::new(),
+        walkthroughs: BTreeMap::new(),
         answers: BTreeMap::new(),
         update: None,
     }

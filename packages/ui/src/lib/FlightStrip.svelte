@@ -76,7 +76,7 @@ flight plan (Undo after, in the shared toast) and All flight data, the Flight pa
   let strip: HTMLElement | undefined = $state();
   let line: HTMLButtonElement | undefined = $state();
 
-  function show(field: FieldId | null): void {
+  export function show(field: FieldId | null): void {
     open = true;
     if (field && FREQUENCIES.some((f) => f.field === field)) freqOpen = true;
     queueMicrotask(() => {

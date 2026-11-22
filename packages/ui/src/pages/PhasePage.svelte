@@ -21,6 +21,7 @@ step at a time (lib/FlowView.svelte).
   import RunningTimers from "../lib/RunningTimers.svelte";
   import BriefingCard from "../lib/BriefingCard.svelte";
   import type { Timers } from "../lib/timers";
+  import type { Walkthroughs } from "../lib/walkthroughs";
 
   let {
     index,
@@ -44,6 +45,7 @@ step at a time (lib/FlowView.svelte).
     onEssentials,
     decisions,
     timers,
+    walkthroughs,
     inline,
     inlineStep = null,
     notice,
@@ -76,6 +78,8 @@ step at a time (lib/FlowView.svelte).
     decisions?: Decisions | undefined;
     /** Step timers (#213): each step's timer, the clock and the pilot's controls. */
     timers?: Timers | undefined;
+    /** CDU walkthroughs (#215): the current step's button that opens its walkthrough. */
+    walkthroughs?: Walkthroughs | undefined;
     /** Below 900 px: the opened step's details, shown in the row of `inlineStep`. */
     inline?: Snippet | undefined;
     inlineStep?: string | null;
@@ -192,6 +196,7 @@ step at a time (lib/FlowView.svelte).
     folded={list.kind === "checklist" && procedureOpen}
     {decisions}
     {timers}
+    {walkthroughs}
     {inline}
     {inlineStep}
   />

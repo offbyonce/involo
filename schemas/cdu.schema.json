@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "CduFile",
-  "description": "`cdu.yaml`: page-by-page CDU walkthroughs, each with the text and live flight values the\nscreen shows at every step. The app doesn't show walkthroughs yet; `involo-pack check`\nchecks them.",
+  "description": "`cdu.yaml`: page-by-page CDU walkthroughs, each with the text and live flight values the\nscreen shows at every step. A step's `opens` names one, and the app opens it from that step\nin the slide-out, with the flight's values filled in.",
   "type": "object",
   "properties": {
     "walkthroughs": {

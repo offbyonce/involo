@@ -19,6 +19,7 @@ folded to one line with its count until the phase's procedure is done.
   import { stepTitle } from "./names";
   import StepItem from "./StepItem.svelte";
   import { stateAt, type Timers } from "./timers";
+  import type { Walkthroughs } from "./walkthroughs";
   import type { Decisions } from "./decision";
 
   let {
@@ -41,6 +42,7 @@ folded to one line with its count until the phase's procedure is done.
     folded = false,
     decisions,
     timers,
+    walkthroughs,
     inline,
     inlineStep = null,
     next = null,
@@ -70,6 +72,8 @@ folded to one line with its count until the phase's procedure is done.
     decisions?: Decisions | undefined;
     /** Step timers (#213). */
     timers?: Timers | undefined;
+    /** CDU walkthroughs (#215): the current step's button that opens its walkthrough. */
+    walkthroughs?: Walkthroughs | undefined;
     /** Below 900 px: the opened step's details, shown in the row of `inlineStep`. */
     inline?: Snippet | undefined;
     inlineStep?: string | null;
@@ -197,6 +201,7 @@ folded to one line with its count until the phase's procedure is done.
           onEssentials={onEssentials ? (add) => onEssentials(row.id, add) : undefined}
           {decisions}
           {timers}
+          {walkthroughs}
           inline={inlineStep === row.id ? inline : undefined}
         />
       {/if}

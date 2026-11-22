@@ -11,6 +11,7 @@ import type {
   BackupParts,
   BackupRead,
   CatalogEntry,
+  CduWalk,
   Checklist,
   Decoded,
   FlatPack,
@@ -156,6 +157,13 @@ export async function suggestion(pack: string, flight: Flight, option: string): 
 export async function timers(pack: string, flight: Flight): Promise<StepTimer[]> {
   await load();
   return unwrap<StepTimer[]>(wasm.timers(pack, JSON.stringify(flight)));
+}
+
+/** A CDU walkthrough with the flight's values filled in (#215), or null when the pack has none by
+ * that id. */
+export async function cduWalkthrough(pack: string, flight: Flight, id: string): Promise<CduWalk | null> {
+  await load();
+  return unwrap<CduWalk | null>(wasm.cdu_walkthrough(pack, JSON.stringify(flight), id));
 }
 
 export async function phaseModel(

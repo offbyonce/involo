@@ -192,6 +192,18 @@ pub fn timers(pack: &str, flight: &str) -> String {
     })())
 }
 
+/// A CDU walkthrough with the flight's values filled in (#215), or null when the pack has none
+/// by that id.
+#[wasm_bindgen]
+pub fn cdu_walkthrough(pack: &str, flight: &str, id: &str) -> String {
+    reply((|| {
+        let flight: Flight = read("flight", flight)?;
+        with_pack(pack, |p| {
+            Ok(involo_app_core::cdu_walkthrough(p, &flight, id))
+        })
+    })())
+}
+
 /// One phase of a flight as the interface shows it: lists, step states, progress, neighbors.
 #[wasm_bindgen]
 pub fn phase_model(pack: &str, flight: &str, settings: &str, phase: &str) -> String {
@@ -516,6 +528,19 @@ mod tests {
             json(&compare_packs("{}", &new_json))["error"]["kind"],
             "PackInvalid"
         );
+    }
+
+    #[test]
+    fn a_cdu_walkthrough_comes_with_the_flights_values_or_null() {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../packs/examples/example-sidestick");
+        let pack = FlatPack::from(involo_pack::load_pack_dir(&dir).unwrap());
+        assert!(json(&parse_pack(&serde_json::to_string(&pack).unwrap()))["ok"].is_object());
+        let flight = json(&new_flight("example-sidestick"))["ok"].to_string();
+        let walk = json(&cdu_walkthrough("example-sidestick", &flight, "init"));
+        assert!(walk["ok"]["pages"].is_array());
+        assert_eq!(walk["ok"]["flightAdded"], false);
+        assert!(json(&cdu_walkthrough("example-sidestick", &flight, "nope"))["ok"].is_null());
     }
 
     #[test]

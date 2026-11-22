@@ -47,7 +47,15 @@ const FLIGHT_MIGRATIONS: &[Migration] = &[
     flight_4_to_5,
     flight_5_to_6,
     flight_6_to_7,
+    flight_7_to_8,
 ];
+
+/// Format 8 saves the page each CDU walkthrough is on (#215); an older flight has started none, so
+/// nothing changes.
+fn flight_7_to_8(value: Value) -> Result<Value, String> {
+    value.as_object().ok_or("the flight is not an object")?;
+    Ok(value)
+}
 
 /// Format 7 saves briefings given or skipped (#214); an older flight has none, so nothing changes.
 fn flight_6_to_7(value: Value) -> Result<Value, String> {
@@ -329,6 +337,42 @@ mod tests {
             Some(&271_000)
         );
         assert!(value.briefings.is_empty());
+    }
+
+    #[test]
+    fn a_frozen_format_7_flight_keeps_its_briefing_and_has_no_walkthrough_started() {
+        // Format 7, before CDU walkthrough pages were saved (#215); kept as it was.
+        let text = include_str!("../tests/fixtures/flight-format-7.json");
+        let Loaded::Ready {
+            value,
+            migrated_from,
+        } = load_flight(text)
+        else {
+            panic!("the format 7 flight did not load");
+        };
+        assert_eq!(migrated_from, Some(7));
+        assert_eq!(value.format, FLIGHT_FORMAT);
+        assert_eq!(
+            value.briefings.get("takeoff-briefing-items-gate-stand"),
+            Some(&crate::BriefingMark::Briefed {
+                at: 1_763_400_060_000
+            })
+        );
+        assert!(value.walkthroughs.is_empty());
+        assert_eq!(value.values.get("sid").map(String::as_str), Some("SUMMA2"));
+    }
+
+    #[test]
+    fn a_walkthrough_page_is_saved_with_the_flight() {
+        let pack = crate::test_support::ifly_pack();
+        let mut flight = crate::new_flight(&pack);
+        flight.walkthroughs.insert("preflight-setup".into(), 9);
+        let text = serde_json::to_string(&flight).unwrap();
+        assert!(text.contains(r#""walkthroughs":{"preflight-setup":9}"#));
+        let Loaded::Ready { value, .. } = load_flight(&text) else {
+            panic!("the flight did not load");
+        };
+        assert_eq!(value.walkthroughs, flight.walkthroughs);
     }
 
     #[test]
