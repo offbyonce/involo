@@ -2,38 +2,6 @@
   "v": 3,
   "attachments": {},
   "boards": {
-    "Briefing.dc.html": {
-      "h": 900,
-      "page": "views",
-      "title": "Briefing in the flow (dark)",
-      "w": 1440,
-      "x": 6080,
-      "y": 0
-    },
-    "BriefingLight.dc.html": {
-      "h": 900,
-      "page": "views",
-      "title": "Briefing in the flow (light)",
-      "w": 1440,
-      "x": 6080,
-      "y": 1020
-    },
-    "Cdu.dc.html": {
-      "h": 900,
-      "page": "views",
-      "title": "CDU walkthrough (dark)",
-      "w": 1440,
-      "x": 4560,
-      "y": 0
-    },
-    "CduLight.dc.html": {
-      "h": 900,
-      "page": "views",
-      "title": "CDU walkthrough (light)",
-      "w": 1440,
-      "x": 4560,
-      "y": 1020
-    },
     "Checklist.dc.html": {
       "h": 900,
       "page": "checklist",
@@ -200,22 +168,6 @@
       "title": "Emergency reference (light)",
       "w": 1440,
       "x": 1520,
-      "y": 1020
-    },
-    "Exterior.dc.html": {
-      "h": 900,
-      "page": "views",
-      "title": "Exterior inspection stage (dark)",
-      "w": 1440,
-      "x": 7600,
-      "y": 0
-    },
-    "ExteriorLight.dc.html": {
-      "h": 900,
-      "page": "views",
-      "title": "Exterior inspection stage (light)",
-      "w": 1440,
-      "x": 7600,
       "y": 1020
     },
     "FSApproach.dc.html": {
@@ -1385,22 +1337,6 @@
       "w": 1180,
       "x": 3600,
       "y": 940
-    },
-    "Timer.dc.html": {
-      "h": 900,
-      "page": "views",
-      "title": "Step with a timer (dark)",
-      "w": 1440,
-      "x": 3040,
-      "y": 0
-    },
-    "TimerLight.dc.html": {
-      "h": 900,
-      "page": "views",
-      "title": "Step with a timer (light)",
-      "w": 1440,
-      "x": 3040,
-      "y": 1020
     },
     "Views.dc.html": {
       "h": 900,
@@ -2906,14 +2842,6 @@
     "FlowLight.dc.html",
     "Emergency.dc.html",
     "EmergencyLight.dc.html",
-    "Timer.dc.html",
-    "TimerLight.dc.html",
-    "Cdu.dc.html",
-    "CduLight.dc.html",
-    "Briefing.dc.html",
-    "BriefingLight.dc.html",
-    "Exterior.dc.html",
-    "ExteriorLight.dc.html",
     "Descent.dc.html",
     "DescentLight.dc.html",
     "Log.dc.html",

@@ -30,6 +30,19 @@ wins.
   The rest of those boards stands, except the header logo: the rename to Involo (decision 0025)
   updated it only in the round 6 copies and Menu, so those copies' header is the specification.
 
+**Removed boards (2026-11-22).** Views that newer boards replace are gone from `boards/` and from
+round 6's copy of `Views.dc.html`; git history keeps them:
+
+- The timer view in `Views.dc.html`, with `Timer` and `TimerLight` (replaced by `Timers.dc.html`
+  and `TimersPhone.dc.html`).
+- The CDU walkthrough view in `Views.dc.html`, with `Cdu` and `CduLight` (replaced by
+  `CduWalk.dc.html` and `CduWalkPhone.dc.html`).
+- The briefing view in `Views.dc.html`, with `Briefing` and `BriefingLight` (replaced by
+  `Briefings.dc.html` and `BriefingsPhone.dc.html`).
+- The exterior inspection view in `Views.dc.html`, with `Exterior` and `ExteriorLight` (replaced by
+  `Walkaround.dc.html` and `WalkaroundPhone.dc.html`). `Start`'s Preview the inspection now links
+  to `Walkaround`.
+
 **Round 6 update (approved 2026-11-13).** `Tablet`, `Locator`, `Checklist`, `R6Pane` and
 `R6PaneLight` now show the label-free preview card in every side pane (desktop, wide, tablet
 landscape and the panes behind the slide-out) and in the tablet portrait expanded step; the Show
@@ -326,7 +339,7 @@ worse; each difference from a board is listed in its pull request.
 timer states, dark and light: `TimerWaiting`, `TimerRunning`, `TimerPaused` and `TimerFinished`,
 each with a `Phone` form. They are additions to the Checklist and Mobile boards, which don't
 change: no row, step card or action is redrawn, and the boards leave out what doesn't change. They
-replace the timer view in `Views.dc.html` (`Timer`) where the two differ. The build may improve on
+replaced the timer view that `Views.dc.html` held (`Timer`, since removed). The build may improve on
 these boards but never be worse; each difference is listed in its pull request.
 
 - **The chip** sits under the step's value: in the value column on desktop and tablet, under the
@@ -348,8 +361,8 @@ these boards but never be worse; each difference is listed in its pull request.
 wide) and `BriefingsPhone.dc.html` (the Mobile board below its header, 390 wide) draw #214's
 briefing in the flow, dark and light, in three states: `BriefOpen` (to give), `BriefBriefed` and
 `BriefSkipped`, each with a `Phone` form. They are additions to the Checklist and Mobile boards,
-which don't change, and they replace `Briefing.dc.html` and `BriefingLight.dc.html` and the
-briefing view in `Views.dc.html`. A briefing has no flight values, so nothing in it is filled in.
+which don't change, and they replaced `Briefing.dc.html`, `BriefingLight.dc.html` and the
+briefing view in `Views.dc.html` (since removed). A briefing has no flight values, so nothing in it is filled in.
 The build may improve on these boards but never be worse; each difference is listed in its pull
 request.
 
@@ -374,8 +387,8 @@ wide) draw #215's CDU walkthrough, dark and light: the step that opens it, not s
 column (920 wide) and the Mobile board below its header; and the walkthrough in the existing
 slide-out (the Locator board's geometry, scrim, Esc and close) on a page with the flight's values
 (`CduPage`), with no flight added (`CduPageEmpty`) and on its last page (`CduPageLast`), each with
-a `Phone` form (the sheet from 72 px down). They replace `Cdu.dc.html`, `CduLight.dc.html` and the
-CDU walkthrough view in `Views.dc.html`. Nothing on the Checklist or Mobile board or the slide-out
+a `Phone` form (the sheet from 72 px down). They replaced `Cdu.dc.html`, `CduLight.dc.html` and the
+CDU walkthrough view in `Views.dc.html` (since removed). Nothing on the Checklist or Mobile board or the slide-out
 changes. The build may improve on these boards but never be worse; each difference is listed in
 its pull request.
 
@@ -404,8 +417,8 @@ its pull request.
 (390 wide) draw #216's top view of the airplane, dark and light: at the first stop (`WalkFirst`)
 and at stop 5 with stops 1, 2 and 4 done and 3 skipped (`WalkMid`), each with a `Phone` form, as
 additions to the Checklist board's step pane (520 wide) and the Mobile board's step card. They
-replace `Exterior.dc.html`, `ExteriorLight.dc.html` and the exterior inspection view in
-`Views.dc.html`. The inspection stays the list the app shows, with no separate mode; nothing on
+replaced `Exterior.dc.html`, `ExteriorLight.dc.html` and the exterior inspection view in
+`Views.dc.html` (since removed). The inspection stays the list the app shows, with no separate mode; nothing on
 the Checklist or Mobile board changes. The build may improve on these boards but never be worse;
 each difference is listed in its pull request.
 
@@ -436,7 +449,7 @@ each difference is listed in its pull request.
 ## How the boards are built
 
 - Light and dark boards come from the same source with a `theme` prop. Files ending in `Light` are wrappers.
-- `Views.dc.html` holds Flow, Emergency, timer (replaced by `Timers.dc.html` where they differ), CDU walkthrough (replaced by `CduWalk.dc.html`), briefing (replaced by `Briefings.dc.html`), exterior inspection (replaced by `Walkaround.dc.html`), approach, Flight log and Settings (`view` prop).
+- `Views.dc.html` holds Flow, Emergency, approach, Flight log and Settings (`view` prop).
 - `Tablet.dc.html` holds both tablet orientations and their overlays (`orient`, `overlay` props). `Mobile.dc.html` holds every phone screen (`screen` prop).
 - `Checklist.dc.html` takes `mapHidden`, `w` and `h` props. `Wide.dc.html` renders it at 1600 x 900 scaled 1.6.
 - Sample values (KSEA to KSFO, the METAR, fuel numbers, times) are illustration only.
