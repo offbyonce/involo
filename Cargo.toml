@@ -96,7 +96,10 @@ strip = true
 panic = "abort"
 
 # The WebAssembly build (`just wasm`). Not stripped, so wasm-bindgen can read which WebAssembly
-# features the module uses; wasm-bindgen removes the name and producers sections instead.
+# features the module uses; wasm-bindgen removes the name and producers sections instead. Built
+# for size ("z"): the module is downloaded before the app opens, and the extra time "z" costs is a
+# few milliseconds when a pack is read or checked.
 [profile.wasm]
 inherits = "release"
 strip = false
+opt-level = "z"
