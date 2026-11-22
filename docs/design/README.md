@@ -321,6 +321,29 @@ worse; each difference from a board is listed in its pull request.
   phone. Nothing shows while "Choose a panel state" is selected, or for a state without one.
 - Existing tokens only.
 
+**Step timers (2026-11-21).** `Timers.dc.html` (desktop, the Checklist board's main column, 920 x
+640) and `TimersPhone.dc.html` (the Mobile board below its header, 390 x 700) draw #213's four
+timer states, dark and light: `TimerWaiting`, `TimerRunning`, `TimerPaused` and `TimerFinished`,
+each with a `Phone` form. They are additions to the Checklist and Mobile boards, which don't
+change: no row, step card or action is redrawn, and the boards leave out what doesn't change. They
+replace the timer view in `Views.dc.html` (`Timer`) where the two differ. The build may improve on
+these boards but never be worse; each difference is listed in its pull request.
+
+- **The chip** sits under the step's value: in the value column on desktop and tablet, under the
+  value in the phone's step card, and on a phone's done row on its value line, before the menu.
+  Not started: outlined, an empty ring and the whole time. Running: the accent, the ring's arc the
+  time left. Paused: neutral, the arc stopped, "Paused" before the time. Finished: outlined in the
+  done green, a full ring, "Finished" and 0:00. Its accessible name says the timer's name and state.
+- **One line of text** in muted text: on the current step under the location line (desktop) or
+  under the chip (tablet and phone); on any other row, on its second line.
+- **The timer's buttons** (Pause or Resume, and Restart) follow the text, once the timer has
+  started. Done and Skip for now never move.
+- **A step whose timer has started stays out of the folded done steps**, so the timer stays in view.
+- **The running-timers bar** lists every timer running or paused: under the lists on desktop, and
+  a strip above the bottom bar wherever Done and Skip for now sit there (below 900 px).
+- Tablet uses the app's own rows at that width, with the timer added the same way.
+- Existing tokens only.
+
 ## Read in this order
 
 1. `rules.md`: what the tokens mean and the rules every screen follows.
@@ -334,7 +357,7 @@ worse; each difference from a board is listed in its pull request.
 ## How the boards are built
 
 - Light and dark boards come from the same source with a `theme` prop. Files ending in `Light` are wrappers.
-- `Views.dc.html` holds Flow, Emergency, timer, CDU walkthrough, briefing, exterior inspection, approach, Flight log and Settings (`view` prop).
+- `Views.dc.html` holds Flow, Emergency, timer (replaced by `Timers.dc.html` where they differ), CDU walkthrough, briefing, exterior inspection, approach, Flight log and Settings (`view` prop).
 - `Tablet.dc.html` holds both tablet orientations and their overlays (`orient`, `overlay` props). `Mobile.dc.html` holds every phone screen (`screen` prop).
 - `Checklist.dc.html` takes `mapHidden`, `w` and `h` props. `Wide.dc.html` renders it at 1600 x 900 scaled 1.6.
 - Sample values (KSEA to KSFO, the METAR, fuel numbers, times) are illustration only.
