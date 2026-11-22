@@ -255,6 +255,28 @@ mod tests {
     }
 
     #[test]
+    fn the_top_of_climb_temperature_rounds_a_half_degree_away_from_zero() {
+        let pack = ifly_pack();
+        let oat = |level: &str, deviation: &str| {
+            let mut flight = new_flight(&pack);
+            flight.values.insert("cruise_level".into(), level.into());
+            flight
+                .values
+                .insert("isa_deviation".into(), deviation.into());
+            calculated(&pack, &flight).remove("top_of_climb_oat")
+        };
+        // Above 36,089 ft the standard atmosphere is -56.5 °C, so a whole-degree deviation lands
+        // on a half degree, which the CDU rounds away from zero.
+        assert_eq!(oat("370", "0").as_deref(), Some("-57"));
+        assert_eq!(oat("370", "1").as_deref(), Some("-56"));
+        assert_eq!(oat("390", "-2").as_deref(), Some("-59"));
+        assert_eq!(oat("410", "57").as_deref(), Some("1"));
+        assert_eq!(oat("410", "56").as_deref(), Some("-1"));
+        // Below it, the board flight: FL350 at ISA +2.
+        assert_eq!(oat("350", "2").as_deref(), Some("-52"));
+    }
+
+    #[test]
     fn a_blank_shows_the_pilots_entry_else_the_flight_value_else_nothing() {
         let pack = ifly_pack();
         let mcp = step(&pack, "ifly-737-max8.before-start.mcp-check");
