@@ -19,6 +19,8 @@ export type { BackupParts } from "./generated/BackupParts";
 export type { BackupRead } from "./generated/BackupRead";
 export type { BackupRefusal } from "./generated/BackupRefusal";
 export type { BasisTagLabel } from "./generated/BasisTagLabel";
+export type { Briefing } from "./generated/Briefing";
+export type { BriefingMark } from "./generated/BriefingMark";
 export type { CatalogEntry } from "./generated/CatalogEntry";
 export type { ChangedStep } from "./generated/ChangedStep";
 export type { Control } from "./generated/Control";

@@ -264,6 +264,15 @@ pub fn reconcile(pack: &FlatPack, flight: &Flight) -> Flight {
         .into_iter()
         .filter_map(|(id, left)| step_now(&id).map(|to| (to, left)))
         .collect();
+    // A briefing keeps its mark while the pack still has it (#214).
+    let briefings: BTreeSet<&str> = pack
+        .content
+        .briefings
+        .iter()
+        .flat_map(|b| &b.briefings)
+        .map(|b| b.id.as_str())
+        .collect();
+    f.briefings.retain(|id, _| briefings.contains(id.as_str()));
     let blanks = aliases(pack, AliasKind::Blank);
     f.blanks = std::mem::take(&mut f.blanks)
         .into_iter()
@@ -549,6 +558,27 @@ mod tests {
         assert_eq!(f.panel_state, None);
         assert!(f.state_ticks.is_empty());
         assert_eq!(f.session.done_at(&id(BEACON)), Some(4));
+    }
+
+    #[test]
+    fn a_briefing_keeps_its_mark_while_the_pack_has_it() {
+        // #214: a briefing the new version no longer has loses its mark.
+        let old = example_pack();
+        let mut flight = new_flight(&old);
+        flight
+            .briefings
+            .insert("departure".into(), crate::BriefingMark::Briefed { at: 5 });
+        flight
+            .briefings
+            .insert("gone".into(), crate::BriefingMark::Skipped { at: 6 });
+        let f = reconcile(&next(), &flight);
+        assert_eq!(
+            f.briefings.into_iter().collect::<Vec<_>>(),
+            vec![(
+                "departure".to_owned(),
+                crate::BriefingMark::Briefed { at: 5 }
+            )]
+        );
     }
 
     #[test]

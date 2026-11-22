@@ -584,7 +584,9 @@ describe("App", () => {
     await fireEvent.click(screen.getByRole("button", { name: "Reset flight plan" }));
     expect(actions.at(-1)).toEqual({ type: "clear" });
     await fireEvent.click(await screen.findByRole("button", { name: "Undo" }));
-    expect(document.querySelector<HTMLElement>(".fsline")?.textContent).toMatch(/— → —.*Runway—.*Squawk7000/);
+    expect(document.querySelector<HTMLElement>(".fsline")?.textContent).toMatch(
+      /— → —.*Runway —.*Squawk 7000/,
+    );
   });
 
   it("fills a step's blanks from flight values, keeps what the pilot types, and shows hints", async () => {
@@ -1613,6 +1615,7 @@ describe("App", () => {
           phaseTitle: "Power up",
           listTitle: "Power up flow",
           skipped: true,
+          briefing: false,
         },
       ],
       apply: async (_pack, flight, action) => {
@@ -1626,6 +1629,102 @@ describe("App", () => {
     expect(await screen.findByText("BATTERY")).toBeTruthy();
     await fireEvent.click(screen.getByRole("button", { name: "Unskip" }));
     expect(actions).toEqual([{ type: "unskip", step: "battery" }]);
+  });
+
+  // #214: briefings at the top of their phase, and a skipped one in Open steps.
+  const withBriefing = {
+    ...pack,
+    content: {
+      ...pack.content,
+      briefings: {
+        briefings: [
+          {
+            id: "power",
+            title: "Power briefing",
+            mnemonic: "GB",
+            phase: "power-up",
+            items: [
+              { id: "power.ground", lead: "G", rest: "ROUND", detail: "Ground power or the APU." },
+              { id: "power.battery", lead: "B", rest: "ATTERY" },
+            ],
+          },
+        ],
+      },
+    },
+  } as unknown as FlatPack;
+
+  it("shows the phase's briefing above its lists and marks it Briefed", async () => {
+    const actions: Action[] = [];
+    const h = host({
+      loadPack: async () => withBriefing,
+      apply: async (_pack, flight, action) => {
+        actions.push(action);
+        return { ...flight };
+      },
+    });
+    render(App, { context: hostContext(h) });
+    const card = await screen.findByRole("region", { name: "Power briefing" });
+    // Above the phase's lists, which keep their own Done and Skip for now.
+    const list = document.querySelector("section.card");
+    expect(list && card.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Done" })).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "Briefed" }));
+    expect(actions[0]).toMatchObject({ type: "brief", briefing: "power" });
+    await fireEvent.click(screen.getByRole("button", { name: "Skip briefing" }));
+    expect(actions[1]).toMatchObject({ type: "skipBriefing", briefing: "power" });
+  });
+
+  it("lists a skipped briefing in Open steps, to give or put back", async () => {
+    window.location.hash = "#/open";
+    const actions: Action[] = [];
+    const h = host({
+      loadPack: async () => withBriefing,
+      openSteps: async () => [
+        {
+          step: "power",
+          phase: "power-up",
+          phaseTitle: "Power up",
+          listTitle: "Power briefing",
+          skipped: true,
+          briefing: true,
+        },
+      ],
+      apply: async (_pack, flight, action) => {
+        actions.push(action);
+        return { ...flight };
+      },
+    });
+    render(App, { context: hostContext(h) });
+    expect(await screen.findByText("Power briefing")).toBeTruthy();
+    expect(screen.getByText("GB")).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "Unskip" }));
+    await fireEvent.click(screen.getByRole("button", { name: "Briefed" }));
+    expect(actions).toEqual([
+      { type: "unmarkBriefing", briefing: "power" },
+      expect.objectContaining({ type: "brief", briefing: "power" }),
+    ]);
+  });
+
+  it('lists a skipped briefing under its phase in "N open steps", with Go to briefing', async () => {
+    const h = host({
+      loadPack: async () => withBriefing,
+      openSteps: async () => [
+        {
+          step: "power",
+          phase: "exterior",
+          phaseTitle: "Exterior",
+          listTitle: "Power briefing",
+          skipped: true,
+          briefing: true,
+        },
+      ],
+    });
+    render(App, { context: hostContext(h) });
+    await fireEvent.click(await screen.findByRole("button", { name: "1 open step" }));
+    expect(screen.getByText("Exterior · Briefing")).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "Go to briefing" }));
+    expect(window.location.hash).toBe("#/phase/exterior");
+    expect(screen.queryByRole("dialog", { name: "1 open step" })).toBeNull();
   });
 
   it("moves between steps with the arrow keys and ticks with Space in List view", async () => {
@@ -1655,6 +1754,7 @@ describe("App", () => {
           phaseTitle: "Earlier",
           listTitle: "Earlier flow",
           skipped: false,
+          briefing: false,
         },
       ],
       apply: async (_pack, flight, action) => {

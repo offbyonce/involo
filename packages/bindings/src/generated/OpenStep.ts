@@ -8,4 +8,9 @@ export type OpenStep = { step: StepId, phase: string, phaseTitle: string, listTi
 /**
  * Skipped by the pilot; otherwise missed (left to do on a phase the pilot moved past).
  */
-skipped: boolean, };
+skipped: boolean, 
+/**
+ * A skipped briefing (#214), not a step: `step` holds the briefing's id and `list_title`
+ * its title. It comes first in its phase, as the briefing sits above the phase's lists.
+ */
+briefing: boolean, };

@@ -344,6 +344,30 @@ these boards but never be worse; each difference is listed in its pull request.
 - Tablet uses the app's own rows at that width, with the timer added the same way.
 - Existing tokens only.
 
+**Briefings (2026-11-21).** `Briefings.dc.html` (desktop, the Checklist board's main column, 920
+wide) and `BriefingsPhone.dc.html` (the Mobile board below its header, 390 wide) draw #214's
+briefing in the flow, dark and light, in three states: `BriefOpen` (to give), `BriefBriefed` and
+`BriefSkipped`, each with a `Phone` form. They are additions to the Checklist and Mobile boards,
+which don't change, and they replace `Briefing.dc.html` and `BriefingLight.dc.html` and the
+briefing view in `Views.dc.html`. A briefing has no flight values, so nothing in it is filled in.
+The build may improve on these boards but never be worse; each difference is listed in its pull
+request.
+
+- **Where it shows:** at the top of its phase, above the phase's lists, as its own card; several
+  briefings for one phase come in the pack's order. It never blocks the steps: the current step
+  keeps its own Done and Skip for now.
+- **To give:** the header has the title, the mnemonic in a chip and "Briefing · <n> lines". Each
+  line is its word, the `lead` letters in bold accent text, with its `detail` under it when the
+  pack has one. At the bottom, Briefed and Skip briefing, and "Say each line out loud." on desktop.
+  On a phone the two buttons share the card's bottom row.
+- **Briefed:** one line with a done check, the title, the mnemonic and "Briefed at <time>", and
+  Show, which opens the card again to read, with a way to mark it not briefed.
+- **Skipped:** one line with the skipped mark, the title, the Skipped tag and "Brief it now",
+  which opens the card. A skipped briefing is open, like a skipped step, and appears in Open steps
+  under its phase.
+- Briefed and skipped are saved with the flight and carried by backups.
+- Existing tokens only.
+
 ## Read in this order
 
 1. `rules.md`: what the tokens mean and the rules every screen follows.
@@ -357,7 +381,7 @@ these boards but never be worse; each difference is listed in its pull request.
 ## How the boards are built
 
 - Light and dark boards come from the same source with a `theme` prop. Files ending in `Light` are wrappers.
-- `Views.dc.html` holds Flow, Emergency, timer (replaced by `Timers.dc.html` where they differ), CDU walkthrough, briefing, exterior inspection, approach, Flight log and Settings (`view` prop).
+- `Views.dc.html` holds Flow, Emergency, timer (replaced by `Timers.dc.html` where they differ), CDU walkthrough, briefing (replaced by `Briefings.dc.html`), exterior inspection, approach, Flight log and Settings (`view` prop).
 - `Tablet.dc.html` holds both tablet orientations and their overlays (`orient`, `overlay` props). `Mobile.dc.html` holds every phone screen (`screen` prop).
 - `Checklist.dc.html` takes `mapHidden`, `w` and `h` props. `Wide.dc.html` renders it at 1600 x 900 scaled 1.6.
 - Sample values (KSEA to KSFO, the METAR, fuel numbers, times) are illustration only.

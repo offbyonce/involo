@@ -786,3 +786,27 @@ export const timerIn = (state) =>
     },
     state,
   );
+
+/**
+ * The Briefings boards' states (#214) on a fresh flight's Before start: "open", the takeoff
+ * briefing to give; "briefed", given at 10:42 by the page's clock; "skipped", skipped.
+ */
+export const briefingIn = (state) =>
+  call(
+    async (state) => {
+      const wait = (ms) => new Promise((go) => setTimeout(go, ms));
+      location.hash = "#/phase/before-start";
+      await wait(600);
+      if (state === "open") return true;
+      const at = new Date();
+      at.setHours(10, 42, 0, 0);
+      const real = Date.now;
+      Date.now = () => at.getTime();
+      const name = state === "briefed" ? "Briefed" : "Skip briefing";
+      [...document.querySelectorAll("section.brief button")].find((b) => b.textContent.trim() === name)?.click();
+      await wait(600);
+      Date.now = real;
+      return true;
+    },
+    state,
+  );

@@ -9,7 +9,7 @@ use serde::Deserialize;
 use ts_rs::TS;
 
 use crate::AppError;
-use crate::flight::{AnswerSource, Flight};
+use crate::flight::{AnswerSource, BriefingMark, Flight};
 use crate::values::blank_key;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, TS)]
@@ -80,7 +80,7 @@ pub enum Action {
         #[ts(type = "number")]
         at: Millis,
     },
-    /// A new flight: ticks, values, notes and timers are cleared; option choices are kept.
+    /// A new flight: ticks, values, notes, timers and briefings are cleared; option choices are kept.
     Clear,
     /// The pack is updating while this flight is saved: keep what changed as the update note
     /// (decision 0028), in place of any earlier note.
@@ -109,6 +109,51 @@ pub enum Action {
         #[ts(type = "number")]
         at: Millis,
     },
+    /// The pilot gave a briefing (#214): Briefed.
+    Brief {
+        briefing: String,
+        #[ts(type = "number")]
+        at: Millis,
+    },
+    /// The pilot skipped a briefing; it stays open until it is given.
+    SkipBriefing {
+        briefing: String,
+        #[ts(type = "number")]
+        at: Millis,
+    },
+    /// Back to give: the briefed or skipped mark goes.
+    UnmarkBriefing {
+        briefing: String,
+    },
+}
+
+/// Marks a briefing given or skipped, or takes the mark away (#214).
+fn mark_briefing(pack: &FlatPack, flight: &mut Flight, action: Action) -> Result<(), AppError> {
+    let known = |id: &str| -> Result<String, AppError> {
+        pack.content
+            .briefings
+            .iter()
+            .flat_map(|f| &f.briefings)
+            .any(|b| b.id == id)
+            .then(|| id.to_owned())
+            .ok_or_else(|| invalid(format!("no briefing `{id}`")))
+    };
+    match action {
+        Action::Brief { briefing, at } => {
+            let id = known(&briefing)?;
+            flight.briefings.insert(id, BriefingMark::Briefed { at });
+        }
+        Action::SkipBriefing { briefing, at } => {
+            let id = known(&briefing)?;
+            flight.briefings.insert(id, BriefingMark::Skipped { at });
+        }
+        Action::UnmarkBriefing { briefing } => {
+            let id = known(&briefing)?;
+            flight.briefings.remove(&id);
+        }
+        _ => {}
+    }
+    Ok(())
 }
 
 /// Pause, resume or restart a step timer (#213): a pause keeps the time it had left, and a resume
@@ -141,6 +186,26 @@ fn change_timer(pack: &FlatPack, flight: &mut Flight, action: Action) -> Result<
         _ => {}
     }
     Ok(())
+}
+
+/// A new flight: everything the last one marked or entered goes; option choices stay, except the
+/// answers to decision steps.
+fn clear(pack: &FlatPack, flight: &mut Flight) {
+    flight.panel_state = None;
+    flight.state_ticks.clear();
+    flight.state_skips.clear();
+    flight.session.clear();
+    flight.values.clear();
+    flight.blanks.clear();
+    flight.notes.clear();
+    flight.timers.clear();
+    flight.timer_pauses.clear();
+    flight.briefings.clear();
+    // A decision belongs to its flight: the next one asks again.
+    for option in decided(pack) {
+        flight.options.remove(option);
+    }
+    flight.answers.clear();
 }
 
 fn invalid(message: impl Into<String>) -> AppError {
@@ -371,28 +436,16 @@ pub fn apply(pack: &FlatPack, mut flight: Flight, action: Action) -> Result<Flig
         }
         Action::SetNotes { notes } => flight.notes = notes,
         Action::SetPanelState { state, at } => set_panel_state(pack, &mut flight, state, at)?,
-        Action::Clear => {
-            flight.panel_state = None;
-            flight.state_ticks.clear();
-            flight.state_skips.clear();
-            flight.session.clear();
-            flight.values.clear();
-            flight.blanks.clear();
-            flight.notes.clear();
-            flight.timers.clear();
-            flight.timer_pauses.clear();
-            // A decision belongs to its flight: the next one asks again.
-            for option in decided(pack) {
-                flight.options.remove(option);
-            }
-            flight.answers.clear();
-        }
+        Action::Clear => clear(pack, &mut flight),
         note @ (Action::NoteUpdate { .. } | Action::SeeUpdateNote | Action::DismissUpdateNote) => {
             crate::update::apply_note(&mut flight, note);
         }
         timer @ (Action::PauseTimer { .. }
         | Action::ResumeTimer { .. }
         | Action::RestartTimer { .. }) => change_timer(pack, &mut flight, timer)?,
+        brief @ (Action::Brief { .. }
+        | Action::SkipBriefing { .. }
+        | Action::UnmarkBriefing { .. }) => mark_briefing(pack, &mut flight, brief)?,
     }
     Ok(flight)
 }
@@ -616,6 +669,75 @@ mod tests {
             apply(&pack, foreign, Action::Clear),
             Err(AppError::InvalidAction(_))
         ));
+    }
+
+    #[test]
+    fn a_briefing_is_briefed_skipped_unmarked_and_cleared_with_the_flight() {
+        // #214: the mark and its time are saved; a new flight starts with none.
+        let pack = example_pack();
+        let brief = |flight, action| apply(&pack, flight, action).unwrap();
+        let f = brief(
+            new_flight(&pack),
+            Action::SkipBriefing {
+                briefing: "departure".into(),
+                at: 3,
+            },
+        );
+        assert_eq!(
+            f.briefings.get("departure"),
+            Some(&BriefingMark::Skipped { at: 3 })
+        );
+        let f = brief(
+            f,
+            Action::Brief {
+                briefing: "departure".into(),
+                at: 7,
+            },
+        );
+        assert_eq!(
+            f.briefings.get("departure"),
+            Some(&BriefingMark::Briefed { at: 7 })
+        );
+        let unmarked = brief(
+            f.clone(),
+            Action::UnmarkBriefing {
+                briefing: "departure".into(),
+            },
+        );
+        assert!(unmarked.briefings.is_empty());
+        assert!(brief(f, Action::Clear).briefings.is_empty());
+    }
+
+    #[test]
+    fn a_briefing_the_pack_lacks_is_refused() {
+        let pack = example_pack();
+        for action in [
+            Action::Brief {
+                briefing: "nope".into(),
+                at: 1,
+            },
+            Action::SkipBriefing {
+                briefing: "nope".into(),
+                at: 1,
+            },
+            Action::UnmarkBriefing {
+                briefing: "nope".into(),
+            },
+        ] {
+            assert!(matches!(
+                apply(&pack, new_flight(&pack), action),
+                Err(AppError::InvalidAction(_))
+            ));
+        }
+        let action: Action =
+            serde_json::from_str(r#"{"type":"brief","briefing":"departure","at":4}"#).unwrap();
+        assert_eq!(
+            action,
+            Action::Brief {
+                briefing: "departure".into(),
+                at: 4
+            }
+        );
     }
 
     #[test]

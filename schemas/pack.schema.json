@@ -46,7 +46,7 @@
       }
     },
     "briefings": {
-      "description": "Briefings, each with its items (`briefings.yaml`). The app doesn't show them yet;\nPractice asks about their mnemonics.",
+      "description": "Briefings, each with its items (`briefings.yaml`), shown at the top of their phases;\nPractice asks about their mnemonics.",
       "type": [
         "string",
         "null"

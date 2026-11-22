@@ -113,7 +113,7 @@ faults?: string | null,
  */
 glossary?: string | null, 
 /**
- * Briefings, each with its items (`briefings.yaml`). The app doesn't show them yet;
+ * Briefings, each with its items (`briefings.yaml`), shown at the top of their phases;
  * Practice asks about their mnemonics.
  */
 briefings?: string | null, 

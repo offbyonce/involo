@@ -32,7 +32,7 @@ Every 3.0 feature and where it lives at each size. Use this as a release check: 
 | Decision steps (round 6 update; new, no 3.0 feature) | The step row asks: unanswered, suggested from the plan, answered, Change in place, Undo toast (Decision boards) | Same | Same | Stacked choices; Confirm and Skip in the bottom bar (DecPhone; inline until batch 5) |
 | Step timers | Timer chip and running-timers bar | Same | Same | Same |
 | Emergency reference | Red header button | Same | Same | Same |
-| Briefings in the flow | Briefing step | Same | Same | Same |
+| Briefings in the flow | Briefing card at the top of its phase; Briefed and Skipped lines (Briefings boards) | Same | Same | Same, edge-to-edge lines (BriefingsPhone) |
 | Practice | Menu | Menu | Menu | Menu |
 | How procedures work | Menu | Menu | Menu | Menu |
 | Glossary | Menu; tapping a term | Same | Same | Same |

@@ -112,6 +112,18 @@ timer running or paused. Settings › Timer chime plays a chime at zero. The wor
 timer say what the step that started it set, from that step's `targets` ("set NAV"), or that it
 was ticked. The `note` is for whoever writes the pack; the app doesn't show it.
 
+## Briefings
+
+`briefings.yaml` lists crew briefings, each with a `title`, a `mnemonic`, its `phase` and its
+lines (`items`). A line is the mnemonic's letters (`lead`) and the rest of the word (`rest`), with
+an optional `detail`: what to cover. A briefing shows at the top of its phase, above the phase's
+lists, as its own card, each line's word with its `lead` in bold and its `detail` under it; a
+phase with several shows them in the file's order. The pilot marks it Briefed, which folds it to
+one line with the time, or skips it: a skipped briefing is open, like a skipped step, until it is
+given. It never holds up the steps. Practice asks about a briefing's mnemonic and its lines, and
+leaves out a briefing whose `mnemonic` is empty. A briefing has no flight values. Its `id` is
+saved with the flight, so it never changes once published.
+
 ## Labels
 
 Words the interface shows that belong to the aircraft (list kind names, the reference area's title
@@ -134,7 +146,7 @@ the app's own word, so write only what differs.
 
 ## Accepted but not shown yet
 
-The format has room for three things the app doesn't show yet. Each has an approved design, and
+The format has room for two things the app doesn't show yet. Each has an approved design, and
 the app will show it as written; `involo-pack check` checks them now, so write them as you would
 anything else.
 
@@ -142,7 +154,6 @@ anything else.
 | --- | --- | --- |
 | Walkaround points | a step's `walkaround` | The exterior inspection: a top view of the airplane with numbered stops |
 | CDU walkthroughs | `cdu.yaml`, and a step's `opens` | A CDU walkthrough, page by page, with the flight's values filled in |
-| Briefings | `briefings.yaml` | A briefing step in the flow; today, Practice asks about a briefing's mnemonic |
 
 ## Other things Practice and the overview read
 

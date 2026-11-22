@@ -16,7 +16,7 @@ the JSON Schemas in `schemas/` give editors autocomplete. The guide that explain
 | --- | --- | --- |
 | [`pack.json`](pack-json.md) | `pack.schema.json` | A pack's manifest, `pack.json`. |
 | [`aliases.yaml`](aliases.md) | `aliases.schema.json` | The ids an earlier version of the pack used and the ids that replaced them, so a flight saved with that version keeps its ticks, blanks, options and panel state when the pack is updated (decision 0028). |
-| [`briefings.yaml`](briefings.md) | `briefings.schema.json` | The crew briefings and their mnemonics, which Practice asks about. |
+| [`briefings.yaml`](briefings.md) | `briefings.schema.json` | The crew briefings and their mnemonics, shown in their phases and asked about in Practice. |
 | [`cdu.yaml`](cdu.md) | `cdu.schema.json` | Page-by-page CDU walkthroughs, each with the text and live flight values the screen shows at every step. |
 | [`controls.yaml`](controls.md) | `controls.schema.json` | The cockpit's zones, the controls steps refer to, and the overview map that shows where each zone is. |
 | [`faults.yaml`](faults.md) | `faults.schema.json` | What most likely went wrong when a step does not give its expected result, and what to do, for Practice's Faults questions. |

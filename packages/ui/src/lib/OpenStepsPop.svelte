@@ -3,7 +3,8 @@ SPDX-FileCopyrightText: 2026 offbyonce
 SPDX-License-Identifier: MIT
 
 "2 open steps" and its pop-over (OpenSteps board): every open step from every stage, grouped by
-phase and list, each with its setting and Go to step, and the footer saying skipped steps stay
+phase and list, each with its setting and Go to step (a skipped briefing first in its phase, with
+Go to briefing), and the footer saying skipped steps stay
 open. Pop-over tokens; it closes on its X, Esc or a press outside. On phone it is the bottom sheet
 (Mobile board, open screen), opened from the progress row's "2 open".
 -->
@@ -15,6 +16,7 @@ open. Pop-over tokens; it closes on its X, Esc or a press outside. On phone it i
   import { trapFocus } from "./trap";
   import { openSteps } from "./open-steps.svelte";
   import { stepTitle } from "./names";
+  import { phaseHref } from "../route.svelte";
 
   let { index, open, onGo }: { index: PackIndex; open: OpenStep[]; onGo: (step: string) => void } = $props();
 
@@ -22,7 +24,8 @@ open. Pop-over tokens; it closes on its X, Esc or a press outside. On phone it i
   let groups = $derived.by(() => {
     const out: { title: string; steps: OpenStep[] }[] = [];
     for (const o of open) {
-      const title = `${o.phaseTitle} · ${o.listTitle}`;
+      // A skipped briefing (#214) heads its phase, under "<phase> · Briefing".
+      const title = `${o.phaseTitle} · ${o.briefing ? "Briefing" : o.listTitle}`;
       const g = out.find((x) => x.title === title) ?? (out.push({ title, steps: [] }), out[out.length - 1]);
       g?.steps.push(o);
     }
@@ -70,7 +73,24 @@ open. Pop-over tokens; it closes on its X, Esc or a press outside. On phone it i
           <p class="group">{g.title}</p>
           {#each g.steps as o (o.step)}
             {@const step = index.step(o.step)}
-            {#if step}
+            {#if o.briefing}
+              <div class="row">
+                <span class="status skipped" aria-hidden="true"><i></i></span>
+                <span class="txt">
+                  <span class="nm">{o.listTitle}</span>
+                  <span class="val">{index.briefing(o.step)?.mnemonic ?? ""}</span>
+                </span>
+                <button
+                  class="go"
+                  type="button"
+                  aria-label="Go to briefing"
+                  onclick={() => {
+                    openSteps.shown = false;
+                    location.hash = phaseHref(o.phase);
+                  }}><span class="long">Go to briefing</span><span class="short">Go</span></button
+                >
+              </div>
+            {:else if step}
               <div class="row">
                 <span class="status" class:skipped={o.skipped} aria-hidden="true"><i></i></span>
                 <span class="txt">

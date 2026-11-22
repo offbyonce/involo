@@ -26,6 +26,9 @@ pub struct OpenStep {
     pub list_title: String,
     /// Skipped by the pilot; otherwise missed (left to do on a phase the pilot moved past).
     pub skipped: bool,
+    /// A skipped briefing (#214), not a step: `step` holds the briefing's id and `list_title`
+    /// its title. It comes first in its phase, as the briefing sits above the phase's lists.
+    pub briefing: bool,
 }
 
 /// The flight's open steps for the pilot's choices. With `before`, only phases ahead of that
@@ -73,6 +76,28 @@ pub fn open_steps(
                 shown_steps(list, &flight.options, shown, phase.reference).map(move |s| (list, s))
             })
             .collect();
+        // A skipped briefing is open, as a skipped step is (#214).
+        for b in pack
+            .content
+            .briefings
+            .iter()
+            .flat_map(|f| &f.briefings)
+            .filter(|b| b.phase == phase.id)
+        {
+            if matches!(
+                flight.briefings.get(&b.id),
+                Some(crate::flight::BriefingMark::Skipped { .. })
+            ) {
+                out.push(OpenStep {
+                    step: StepId::new(&b.id),
+                    phase: phase.id.clone(),
+                    phase_title: phase.title.clone(),
+                    list_title: b.title.clone(),
+                    skipped: true,
+                    briefing: true,
+                });
+            }
+        }
         let started = steps
             .iter()
             .any(|(_, s)| flight.session.is_done(&s.id) || flight.session.is_skipped(&s.id));
@@ -87,6 +112,7 @@ pub fn open_steps(
                     phase_title: phase.title.clone(),
                     list_title: list.title.clone(),
                     skipped: flight.session.is_skipped(&step.id),
+                    briefing: false,
                 });
             }
         }
@@ -100,7 +126,57 @@ mod tests {
     use crate::actions::{Action, apply};
     use crate::flight::new_flight;
     use crate::phase_model::phase_model;
-    use crate::test_support::ifly_pack;
+    use crate::test_support::{example_pack, ifly_pack};
+
+    #[test]
+    fn a_skipped_briefing_is_open_first_in_its_phase() {
+        // #214: like a skipped step, and before the phase's steps; a briefed one is not open.
+        let pack = example_pack();
+        let s = Settings::default();
+        let skip = Action::SkipBriefing {
+            briefing: "departure".into(),
+            at: 2,
+        };
+        let mut flight = apply(&pack, new_flight(&pack), skip).unwrap();
+        let open = open_steps(&pack, &flight, &s, None);
+        assert_eq!(open.len(), 1, "{open:?}");
+        let first = &open[0];
+        assert_eq!(
+            (
+                first.step.as_str(),
+                first.phase.as_str(),
+                first.list_title.as_str(),
+                first.skipped,
+                first.briefing
+            ),
+            (
+                "departure",
+                "before-start",
+                "Departure briefing",
+                true,
+                true
+            )
+        );
+        let step = phase_model(&pack, &flight, &s, "before-start")
+            .unwrap()
+            .lists[0]
+            .steps[0]
+            .id
+            .clone();
+        flight = apply(&pack, flight, Action::Skip { step, at: 3 }).unwrap();
+        let open = open_steps(&pack, &flight, &s, None);
+        assert!(open[0].briefing && open[1..].iter().all(|o| !o.briefing));
+        let briefed = Action::Brief {
+            briefing: "departure".into(),
+            at: 4,
+        };
+        flight = apply(&pack, flight, briefed).unwrap();
+        assert!(
+            open_steps(&pack, &flight, &s, None)
+                .iter()
+                .all(|o| !o.briefing)
+        );
+    }
 
     #[test]
     fn open_steps_are_the_undone_steps_of_started_phases() {

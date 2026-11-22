@@ -46,7 +46,14 @@ const FLIGHT_MIGRATIONS: &[Migration] = &[
     flight_3_to_4,
     flight_4_to_5,
     flight_5_to_6,
+    flight_6_to_7,
 ];
+
+/// Format 7 saves briefings given or skipped (#214); an older flight has none, so nothing changes.
+fn flight_6_to_7(value: Value) -> Result<Value, String> {
+    value.as_object().ok_or("the flight is not an object")?;
+    Ok(value)
+}
 
 /// Format 6 saves paused step timers (#213); an older flight has none paused, so nothing changes.
 fn flight_5_to_6(value: Value) -> Result<Value, String> {
@@ -300,6 +307,44 @@ mod tests {
             serde_json::to_value(&value).unwrap()["values"],
             saved["values"]
         );
+    }
+
+    #[test]
+    fn a_frozen_format_6_flight_keeps_its_paused_timer_and_has_no_briefings() {
+        // Format 6, before briefings were saved (#214); kept as it was, never regenerated.
+        let text = include_str!("../tests/fixtures/flight-format-6.json");
+        let Loaded::Ready {
+            value,
+            migrated_from,
+        } = load_flight(text)
+        else {
+            panic!("the format 6 flight did not load");
+        };
+        assert_eq!(migrated_from, Some(6));
+        assert_eq!(value.format, FLIGHT_FORMAT);
+        assert_eq!(
+            value.timer_pauses.get(&involo_checklist_core::StepId::new(
+                "ifly-737-max8.preflight.irs"
+            )),
+            Some(&271_000)
+        );
+        assert!(value.briefings.is_empty());
+    }
+
+    #[test]
+    fn briefings_are_saved_with_the_flight() {
+        let pack = crate::test_support::ifly_pack();
+        let mut flight = crate::new_flight(&pack);
+        flight.briefings.insert(
+            "approach-briefing".into(),
+            crate::BriefingMark::Skipped { at: 9 },
+        );
+        let text = serde_json::to_string(&flight).unwrap();
+        assert!(text.contains(r#""briefings":{"approach-briefing":{"state":"skipped","at":9}}"#));
+        let Loaded::Ready { value, .. } = load_flight(&text) else {
+            panic!("the flight did not load");
+        };
+        assert_eq!(value, flight);
     }
 
     #[test]

@@ -285,6 +285,16 @@ mod tests {
             },
         )
         .unwrap();
+        // A briefing given, which the backup carries with the flight (#214).
+        let flight = apply(
+            &pack,
+            flight,
+            Action::Brief {
+                briefing: "departure".into(),
+                at: 1_763_400_060_000,
+            },
+        )
+        .unwrap();
         let plan = SavedPlan {
             format: PLAN_FORMAT,
             plan: involo_simbrief::Plan {
@@ -358,6 +368,7 @@ mod tests {
         );
         assert_eq!(backup.saved_at, parts.saved_at);
         assert_eq!(backup.flights, parts.flights);
+        assert!(!backup.flights[0].flight.briefings.is_empty());
         assert_eq!(backup.settings, parts.settings);
         assert_eq!(backup.log, parts.log);
     }

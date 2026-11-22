@@ -138,7 +138,7 @@ pub struct PackManifest {
     /// The terms and abbreviations steps use, and what each means (`glossary.yaml`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub glossary: Option<String>,
-    /// Briefings, each with its items (`briefings.yaml`). The app doesn't show them yet;
+    /// Briefings, each with its items (`briefings.yaml`), shown at the top of their phases;
     /// Practice asks about their mnemonics.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub briefings: Option<String>,

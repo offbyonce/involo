@@ -26,6 +26,17 @@ describe("FlightStrip", () => {
     expect(document.querySelector('[data-field="sid"] .val')?.textContent).toBe("SUMMA2.SUMMA");
   });
 
+  it("is named by what it shows, so the values it shows are in its name", () => {
+    // Its name once said only the route, which left out the runway, SID and the rest it shows.
+    render(FlightStrip, props({ origin: "KSEA", destination: "KSFO", sid: "SUMMA2", runway: "16L" }));
+    const name = document.querySelector(".fsline")?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+    expect(document.querySelector(".fsline")?.hasAttribute("aria-label")).toBe(false);
+    expect(name).toMatch(/^Flight strip: KSEA → KSFO /);
+    expect(name).toContain("16L");
+    expect(name).toContain("SUMMA2");
+    expect(name).toMatch(/\. Open clearance, notes and flight data$/);
+  });
+
   it("shows the SID alone without a transition, and the Notes chip once there is a note", () => {
     render(FlightStrip, props({ sid: "SUMMA2" }, "Expect runway 16L"));
     expect(document.querySelector('[data-field="sid"] .val')?.textContent).toBe("SUMMA2");

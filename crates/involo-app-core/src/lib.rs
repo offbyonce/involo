@@ -38,7 +38,7 @@ pub use backup::{
 };
 pub use boundary::to_interface_json;
 pub use error::AppError;
-pub use flight::{AnswerSource, FLIGHT_FORMAT, Flight, new_flight};
+pub use flight::{AnswerSource, BriefingMark, FLIGHT_FORMAT, Flight, new_flight};
 pub use log::{
     LOG_FORMAT, LOG_LIMIT, Log, LogChange, LogEdit, LoggedFlight, LoggedStep, LoggedTick,
     PlanSource, PracticeResult, StageTime, edit_log, load_log, log_csv, log_entry, log_packs,

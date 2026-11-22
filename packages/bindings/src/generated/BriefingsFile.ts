@@ -2,7 +2,8 @@
 import type { Briefing } from "./Briefing";
 
 /**
- * `briefings.yaml`: the crew briefings and their mnemonics, which Practice asks about.
+ * `briefings.yaml`: the crew briefings and their mnemonics, shown in their phases and asked
+ * about in Practice.
  */
 export type BriefingsFile = { 
 /**
