@@ -517,8 +517,8 @@ const SHOTS = [
   })),
   // A CDU walkthrough (#215, CduWalk boards): the CDU step not started and stopped part way, and
   // the walkthrough open on a page with the flight's values, with no flight, and on its last page;
-  // and (#222) POS INIT and RTE with the flight's values.
-  ...["start", "resume", "values", "novalues", "last", "pos", "route"].map((state) => ({
+  // and (#222) POS INIT and RTE, and (#231) IDENT, with the flight's values.
+  ...["start", "resume", "values", "novalues", "last", "pos", "route", "ident"].map((state) => ({
     name: `board-cdu-${state}`,
     only: ["desktop", "phone"],
     app: {

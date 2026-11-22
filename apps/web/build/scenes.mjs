@@ -844,7 +844,7 @@ export const cduIn = (state) =>
       open();
       await wait(500);
       const next = () => [...document.querySelectorAll(".walk .foot button")].find((b) => b.textContent.trim() === "Next")?.click();
-      const pages = { resume: 9, values: 9, novalues: 1, last: 14, pos: 2, route: 5 }[state];
+      const pages = { resume: 9, values: 9, novalues: 1, last: 14, pos: 2, route: 5, ident: 0 }[state];
       for (let i = 0; i < pages; i++) {
         next();
         await wait(150);
