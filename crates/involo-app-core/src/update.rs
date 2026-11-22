@@ -260,6 +260,10 @@ pub fn reconcile(pack: &FlatPack, flight: &Flight) -> Flight {
         .into_iter()
         .filter_map(|(id, at)| step_now(&id).map(|to| (to, at)))
         .collect();
+    f.timer_pauses = std::mem::take(&mut f.timer_pauses)
+        .into_iter()
+        .filter_map(|(id, left)| step_now(&id).map(|to| (to, left)))
+        .collect();
     let blanks = aliases(pack, AliasKind::Blank);
     f.blanks = std::mem::take(&mut f.blanks)
         .into_iter()

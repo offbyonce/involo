@@ -66,6 +66,12 @@ export const REVIEW_BOARDS = {
   "board-roles": { desktop: "RolesDesk", "tablet-landscape": "RolesDesk", tablet: "RolesDesk", phone: "RolesPhone" },
   "board-roles-procedure": { desktop: "RolesDesk", phone: "RolesPhone" },
   "board-seat": { desktop: "SeatSetting", phone: "SeatSetting" },
+  // Step timers (#213, Timers.dc.html and TimersPhone.dc.html): the four states.
+  "board-timer-waiting": { desktop: "TimerWaiting", phone: "TimerWaitingPhone" },
+  "board-timer-running": { desktop: "TimerRunning", phone: "TimerRunningPhone" },
+  "board-timer-paused": { desktop: "TimerPaused", phone: "TimerPausedPhone" },
+  "board-timer-finished": { desktop: "TimerFinished", phone: "TimerFinishedPhone" },
+  "board-timer-bar": { desktop: "TimerRunning" },
   // Light notes and panel-state descriptions (#211, Notes.dc.html).
   "board-light-notes": { desktop: "LightNotes", phone: "LightNotesPhone" },
   "board-state-note": { desktop: "StateNote", phone: "StateNotePhone" },

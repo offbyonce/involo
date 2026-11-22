@@ -87,7 +87,7 @@ One challenge and response line.
 | `targets` | list of [StepTarget](#steptarget) |  |  | The panel items the step involves and the state it asks of each, which the control drawings show exactly (decision 0018). `involo-pack check` holds them to the step's wording. |
 | `terms` | list of text |  |  | Glossary terms the step uses, shown under Why (each must be in the glossary). |
 | `text` | text | yes |  | The challenge, e.g. "IRS mode selectors". |
-| `timer` | [Timer](#timer) |  |  | A wait attached to the step. The app doesn't show timers yet. |
+| `timer` | [Timer](#timer) |  |  | A wait attached to the step: a timer the step's tick, or its trigger steps' ticks, start. |
 | `walkaround` | [WalkaroundPoint](#walkaroundpoint) |  |  | The step's point on a walkaround drawing. The app doesn't read it yet. |
 | `why` | text |  |  | Why the step matters, shown under Why. Takes the place of the shared explanation's. |
 
@@ -154,14 +154,14 @@ One panel item a step involves, and what the step asks of it (decision 0018).
 
 ## Timer
 
-A wait attached to a step. The app doesn't show timers yet.
+A wait attached to a step: a timer chip under the step's value (on the current step before it starts, and on its row once started, running, paused or finished), and in the running-timers bar while it runs or is paused. Without `auto_start`, the step's own tick starts it.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `auto_start` | [AutoStart](#autostart) |  |  | The earlier steps whose ticks would start the timer. |
-| `label` | text | yes |  | The timer's name, e.g. `Warm-up`. Not shown yet. |
-| `note` | text |  |  | A note about the wait. Not shown yet. |
-| `seconds` | whole number | yes |  | How long the wait is, in seconds. Not shown yet. |
+| `auto_start` | [AutoStart](#autostart) |  |  | The earlier steps whose ticks start the timer; the words under the timer name them before it starts. |
+| `label` | text | yes |  | The timer's name, e.g. `Warm-up`: on the chip and in the running-timers bar. |
+| `note` | text |  |  | A note about the wait, for whoever writes the pack; the app doesn't show it. |
+| `seconds` | whole number | yes |  | How long the wait is, in seconds. |
 
 ## WalkaroundPoint
 
@@ -205,16 +205,16 @@ The answer a target depends on: an option and one of its values (decision 0022).
 
 ## AutoStart
 
-Steps whose ticks would start a timer. The app doesn't show timers yet; `check` makes sure each step named exists.
+Steps whose ticks start a timer by itself; `check` makes sure each step named exists.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `from` | list of [StepId](#stepid) | yes |  | The steps whose ticks would start the timer; `check` makes sure each is a step in the pack. |
-| `pick` | [AutoStartPick](#autostartpick) | yes |  | Which of those ticks would start it: the `earliest` or the `latest`. |
+| `from` | list of [StepId](#stepid) | yes |  | The steps whose ticks start the timer; `check` makes sure each is a step in the pack. |
+| `pick` | [AutoStartPick](#autostartpick) | yes |  | Which of those ticks starts it: the `earliest` or the `latest`. |
 
 ## AutoStartPick
 
-Which of several ticked steps starts a timer. The app doesn't show timers yet.
+Which of several ticked steps starts a timer.
 
 | Value | What it means |
 | --- | --- |

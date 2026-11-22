@@ -100,6 +100,18 @@ or, without one, why none is needed (`no_list`), and the `steps` that deal with 
 sets their colors. Without `messages.yaml`, the app shows no Alert messages tab and no message
 rows. See `packs/examples/example-sidestick/messages.yaml`.
 
+## Step timers
+
+A step may have a `timer`: a wait the pilot shouldn't cut short, such as an engine warm-up, with
+its `label` and `seconds`. It starts by itself: from its own step's tick, or, with `auto_start`,
+from the tick of one of the steps it names, the `earliest` or the `latest` as `pick` says. Its
+step shows a chip under its value: before it starts (on the current step, with the steps whose
+tick starts it), while it runs, paused, and finished, with Pause or Resume and Restart once it has
+started. A step whose timer has started stays out of the folded done steps, and a bar shows every
+timer running or paused. Settings › Timer chime plays a chime at zero. The words under a running
+timer say what the step that started it set, from that step's `targets` ("set NAV"), or that it
+was ticked. The `note` is for whoever writes the pack; the app doesn't show it.
+
 ## Labels
 
 Words the interface shows that belong to the aircraft (list kind names, the reference area's title
@@ -122,13 +134,12 @@ the app's own word, so write only what differs.
 
 ## Accepted but not shown yet
 
-The format has room for four things the app doesn't show yet. Each has an approved design, and
+The format has room for three things the app doesn't show yet. Each has an approved design, and
 the app will show it as written; `involo-pack check` checks them now, so write them as you would
 anything else.
 
 | What | Where | Designed as |
 | --- | --- | --- |
-| Step timers | a step's `timer`, with `auto_start` | A timer chip on the step, started by the step that triggers it, and a bar of running timers |
 | Walkaround points | a step's `walkaround` | The exterior inspection: a top view of the airplane with numbered stops |
 | CDU walkthroughs | `cdu.yaml`, and a step's `opens` | A CDU walkthrough, page by page, with the flight's values filled in |
 | Briefings | `briefings.yaml` | A briefing step in the flow; today, Practice asks about a briefing's mnemonic |

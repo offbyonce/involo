@@ -196,7 +196,7 @@ data_types! {
         pub y: u32,
     }
 
-    /// Which of several ticked steps starts a timer. The app doesn't show timers yet.
+    /// Which of several ticked steps starts a timer.
     #[derive(Copy, Eq)]
     #[serde(rename_all = "snake_case")]
     pub enum AutoStartPick {
@@ -206,27 +206,29 @@ data_types! {
         Latest,
     }
 
-    /// Steps whose ticks would start a timer. The app doesn't show timers yet; `check` makes
-    /// sure each step named exists.
+    /// Steps whose ticks start a timer by itself; `check` makes sure each step named exists.
     pub struct AutoStart {
-        /// The steps whose ticks would start the timer; `check` makes sure each is a step in the
-        /// pack.
+        /// The steps whose ticks start the timer; `check` makes sure each is a step in the pack.
         pub from: Vec<StepId>,
-        /// Which of those ticks would start it: the `earliest` or the `latest`.
+        /// Which of those ticks starts it: the `earliest` or the `latest`.
         pub pick: AutoStartPick,
     }
 
-    /// A wait attached to a step. The app doesn't show timers yet.
+    /// A wait attached to a step: a timer chip under the step's value (on the current step before
+    /// it starts, and on its row once started, running, paused or finished), and in the
+    /// running-timers bar while it runs or is paused. Without `auto_start`, the step's own tick
+    /// starts it.
     #[cfg_attr(feature = "ts", ts(rename_all = "camelCase"))]
     pub struct Timer {
-        /// How long the wait is, in seconds. Not shown yet.
+        /// How long the wait is, in seconds.
         pub seconds: u32,
-        /// The timer's name, e.g. `Warm-up`. Not shown yet.
+        /// The timer's name, e.g. `Warm-up`: on the chip and in the running-timers bar.
         pub label: String,
-        /// A note about the wait. Not shown yet.
+        /// A note about the wait, for whoever writes the pack; the app doesn't show it.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub note: Option<String>,
-        /// The earlier steps whose ticks would start the timer.
+        /// The earlier steps whose ticks start the timer; the words under the timer name them
+        /// before it starts.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub auto_start: Option<AutoStart>,
     }
@@ -394,7 +396,8 @@ data_types! {
         /// What the crew says.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub callout: Option<String>,
-        /// A wait attached to the step. The app doesn't show timers yet.
+        /// A wait attached to the step: a timer the step's tick, or its trigger steps' ticks,
+        /// start.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub timer: Option<Timer>,
         /// Panel lights this step refers to: control id, then light labels.

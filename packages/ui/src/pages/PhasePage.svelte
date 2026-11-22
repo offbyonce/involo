@@ -18,6 +18,8 @@ step at a time (lib/FlowView.svelte).
   import type { PackIndex } from "../pack-index";
   import { flightHref, phaseHref } from "../route.svelte";
   import { decisionKey, type Decisions } from "../lib/decision";
+  import RunningTimers from "../lib/RunningTimers.svelte";
+  import type { Timers } from "../lib/timers";
 
   let {
     index,
@@ -40,6 +42,7 @@ step at a time (lib/FlowView.svelte).
     onGo,
     onEssentials,
     decisions,
+    timers,
     inline,
     inlineStep = null,
     notice,
@@ -69,6 +72,8 @@ step at a time (lib/FlowView.svelte).
     onEssentials?: ((id: string, add: boolean) => void) | undefined;
     /** Decision steps and the steps that depend on them (decision 0022). */
     decisions?: Decisions | undefined;
+    /** Step timers (#213): each step's timer, the clock and the pilot's controls. */
+    timers?: Timers | undefined;
     /** Below 900 px: the opened step's details, shown in the row of `inlineStep`. */
     inline?: Snippet | undefined;
     inlineStep?: string | null;
@@ -170,10 +175,12 @@ step at a time (lib/FlowView.svelte).
     {onEssentials}
     folded={list.kind === "checklist" && procedureOpen}
     {decisions}
+    {timers}
     {inline}
     {inlineStep}
   />
 {/each}
+{#if timers}<RunningTimers {timers} />{/if}
 
 <nav class="nav" aria-label="Phases either side">
   {#if view.previous}

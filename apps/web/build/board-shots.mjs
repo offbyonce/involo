@@ -123,6 +123,7 @@ const SHOTS = [
   ["WherePop", {}, 1440, 900],
   ["Settings", { view: "settings" }, 1440, 900, "Views"],
   ["Flow", { view: "flow" }, 1440, 900, "Views"],
+  ["Timer", { view: "timer" }, 1440, 900, "Views"],
   ["TabL", { orient: "landscape", overlay: "none" }, 1180, 820, "Tablet"],
   ["TabWhere", { orient: "landscape", overlay: "where" }, 1180, 820, "Tablet"],
   ["PhoneWhere", { screen: "where" }, 390, 844, "Mobile"],
@@ -249,6 +250,11 @@ const SHOTS = [
   ["LightNotesPhone", { layout: "lightsPhone" }, 390, 460, "Notes"],
   ["StateNote", { layout: "state" }, 900, 220, "Notes"],
   ["StateNotePhone", { layout: "statePhone" }, 390, 380, "Notes"],
+  // Step timers (docs/design/boards/Timers.dc.html and TimersPhone.dc.html).
+  ...["Waiting", "Running", "Paused", "Finished"].flatMap((s) => [
+    [`Timer${s}`, { layout: s.toLowerCase() }, 920, 640, "Timers"],
+    [`Timer${s}Phone`, { layout: `${s.toLowerCase()}Phone` }, 390, 700, "TimersPhone"],
+  ]),
 ];
 
 async function main() {

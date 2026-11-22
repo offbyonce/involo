@@ -154,6 +154,16 @@ on the device (decision 0012).
       }}
     />
   </div>
+  <!-- Settings › Timer chime (Settings board, #213): the Settings board puts it after Map in steps,
+       now Panel preview; the newer SeatSetting and BackupSetting boards keep Your seat and Back up
+       and restore right after Panel preview, so it follows them. -->
+  <div class="set">
+    <div>
+      <b id="set-chime">Timer chime</b>
+      <p>Plays when a step timer reaches zero.</p>
+    </div>
+    <Toggle on={settings.chime} labelledby="set-chime" onToggle={() => onChange({ ...settings, chime: !settings.chime })} />
+  </div>
 {/snippet}
 <div class="card">
   {#each ROWS.filter((r) => hasEssentials || r.key !== "essentials") as row (row.key)}

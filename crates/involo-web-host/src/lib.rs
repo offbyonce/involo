@@ -183,6 +183,15 @@ pub fn suggestion(pack: &str, flight: &str, option: &str) -> String {
     })())
 }
 
+/// Every step timer in the pack, with when it started, and the time it had left if paused (#213).
+#[wasm_bindgen]
+pub fn timers(pack: &str, flight: &str) -> String {
+    reply((|| {
+        let flight: Flight = read("flight", flight)?;
+        with_pack(pack, |p| Ok(involo_app_core::timers(p, &flight)))
+    })())
+}
+
 /// One phase of a flight as the interface shows it: lists, step states, progress, neighbors.
 #[wasm_bindgen]
 pub fn phase_model(pack: &str, flight: &str, settings: &str, phase: &str) -> String {

@@ -32,6 +32,7 @@ import type {
   Rail,
   SavedPlan,
   Settings,
+  StepTimer,
   Suggestion,
   Theme,
   ViewFrame,
@@ -84,6 +85,9 @@ export interface Host {
   openSteps(pack: string, flight: Flight, settings: Settings, before?: string): Promise<OpenStep[]>;
   /** The answer an option's rule suggests from the flight's values, or null (decision 0027). */
   suggestion(pack: string, flight: Flight, option: string): Promise<Suggestion | null>;
+  /** Every step timer in the pack, with when it started and, if paused, the time it had left
+   * (#213). */
+  timers(pack: string, flight: Flight): Promise<StepTimer[]>;
   /** The seat frame "Where is this?" draws for a step done by `role`, with the pilot's `chosen`
    * seat: the role's seat, then the chosen one, then the first (decision 0029). Null when the
    * pack draws no seat view. */

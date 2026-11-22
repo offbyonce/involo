@@ -2,22 +2,26 @@
 import type { AutoStart } from "./AutoStart";
 
 /**
- * A wait attached to a step. The app doesn't show timers yet.
+ * A wait attached to a step: a timer chip under the step's value (on the current step before
+ * it starts, and on its row once started, running, paused or finished), and in the
+ * running-timers bar while it runs or is paused. Without `auto_start`, the step's own tick
+ * starts it.
  */
 export type Timer = { 
 /**
- * How long the wait is, in seconds. Not shown yet.
+ * How long the wait is, in seconds.
  */
 seconds: number, 
 /**
- * The timer's name, e.g. `Warm-up`. Not shown yet.
+ * The timer's name, e.g. `Warm-up`: on the chip and in the running-timers bar.
  */
 label: string, 
 /**
- * A note about the wait. Not shown yet.
+ * A note about the wait, for whoever writes the pack; the app doesn't show it.
  */
 note?: string | null, 
 /**
- * The earlier steps whose ticks would start the timer.
+ * The earlier steps whose ticks start the timer; the words under the timer name them
+ * before it starts.
  */
 autoStart?: AutoStart | null, };

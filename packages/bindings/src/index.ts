@@ -110,6 +110,7 @@ export type { StepId } from "./generated/StepId";
 export type { StepLayout } from "./generated/StepLayout";
 export type { StepRow } from "./generated/StepRow";
 export type { StepState } from "./generated/StepState";
+export type { StepTimer } from "./generated/StepTimer";
 export type { StripPart } from "./generated/StripPart";
 export type { Suggestion } from "./generated/Suggestion";
 export type { SuggestLine } from "./generated/SuggestLine";

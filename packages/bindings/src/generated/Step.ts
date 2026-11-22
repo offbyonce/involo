@@ -154,7 +154,8 @@ location?: string | null,
  */
 callout?: string | null, 
 /**
- * A wait attached to the step. The app doesn't show timers yet.
+ * A wait attached to the step: a timer the step's tick, or its trigger steps' ticks,
+ * start.
  */
 timer?: Timer | null, 
 /**

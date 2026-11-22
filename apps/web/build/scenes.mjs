@@ -755,3 +755,34 @@ export const addCatalogIflyAsFile = [
   `new Promise((d) => { let n = 0; const t = setInterval(() => { if (document.querySelector('[aria-label="Pack updated"]') || ++n > 100) { clearInterval(t); setTimeout(d, 300, true); } }, 100); })`,
 ];
 
+
+/**
+ * A step timer in one of its states (#213, Timers boards): the preflight's IRS, whose ten-minute
+ * timer starts from its own tick. "waiting": the step before it ticked, so the IRS is the current
+ * step; "running", "paused" and "finished": the IRS ticked too, and the page's clock then held at
+ * the board's time (7:12 left, paused with 4:31 left, or at zero).
+ */
+export const timerIn = (state) =>
+  call(
+    async (state) => {
+      const wait = (ms) => new Promise((go) => setTimeout(go, ms));
+      const tick = (id) => document.querySelector(`li[data-step="ifly-737-max8.preflight.${id}"] button.tick`)?.click();
+      location.hash = "#/phase/preflight";
+      await wait(600);
+      tick("panel-and-flood-lights");
+      await wait(400);
+      if (state === "waiting") return true;
+      const at = Date.now();
+      tick("irs");
+      await wait(400);
+      const ahead = { running: 168_000, paused: 329_000, finished: 600_000 }[state];
+      Date.now = () => at + ahead;
+      await wait(1_400);
+      if (state === "paused") {
+        [...document.querySelectorAll("button.timerb")].find((b) => b.textContent.trim() === "Pause")?.click();
+        await wait(400);
+      }
+      return true;
+    },
+    state,
+  );

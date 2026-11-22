@@ -24,6 +24,7 @@ mod suggest;
 mod targets;
 #[cfg(test)]
 mod test_support;
+mod timers;
 mod update;
 mod values;
 mod visibility;
@@ -59,6 +60,7 @@ pub use settings::{
 };
 pub use suggest::{Suggestion, suggestion};
 pub use targets::{ItemTarget, step_targets};
+pub use timers::{StepTimer, timers};
 pub use update::{
     ChangedStep, PackChanges, RewordedStep, Rewording, UpdateNote, pack_changes, reconcile,
     restore_flight,

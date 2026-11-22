@@ -40,6 +40,7 @@ import {
   click,
   exampleFile,
   closeWelcome,
+  timerIn,
   finishPhase,
   finishSkippingLast,
   go,
@@ -488,6 +489,22 @@ const SHOTS = [
   // The Flight deck (Deck, PhoneDeck): the forward overhead with the fuel panel selected, as
   // the boards show; at 1280 px, the area list and the area, the panel in its slide-out.
   { name: "board-deck", only: ["desktop", "phone", "laptop"], app: { hash: "#/deck/forward-overhead/fuel" } },
+  // Step timers (#213, Timers boards): the whole checklist screen with the preflight's IRS timer in
+  // each of its four states, at desktop and phone.
+  ...["waiting", "running", "paused", "finished"].map((state) => ({
+    name: `board-timer-${state}`,
+    only: ["desktop", "phone"],
+    app: { hash: "#/phase/before-start", before: [timerIn(state)] },
+  })),
+  // The IRS timer running, scrolled down to the running-timers bar under the lists.
+  {
+    name: "board-timer-bar",
+    only: ["desktop"],
+    app: {
+      hash: "#/phase/before-start",
+      before: [timerIn("running"), `(() => { document.querySelector(".run-bar")?.scrollIntoView({ block: "end" }); return true; })()`],
+    },
+  },
   // A light's notes (#211, LightNotes): the fuel panel, whose lights say when they come on and
   // what to do; and the chosen panel state's description under Start's picker (StateNote), with
   // GPU Connected chosen, as the boards show.

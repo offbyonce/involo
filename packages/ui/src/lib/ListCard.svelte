@@ -18,6 +18,7 @@ folded to one line with its count until the phase's procedure is done.
   import { messageHref } from "./messages";
   import { stepTitle } from "./names";
   import StepItem from "./StepItem.svelte";
+  import { stateAt, type Timers } from "./timers";
   import type { Decisions } from "./decision";
 
   let {
@@ -39,6 +40,7 @@ folded to one line with its count until the phase's procedure is done.
     onEssentials,
     folded = false,
     decisions,
+    timers,
     inline,
     inlineStep = null,
     next = null,
@@ -66,6 +68,8 @@ folded to one line with its count until the phase's procedure is done.
     folded?: boolean;
     /** Decision steps and the steps that depend on them (decision 0022). */
     decisions?: Decisions | undefined;
+    /** Step timers (#213). */
+    timers?: Timers | undefined;
     /** Below 900 px: the opened step's details, shown in the row of `inlineStep`. */
     inline?: Snippet | undefined;
     inlineStep?: string | null;
@@ -80,11 +84,16 @@ folded to one line with its count until the phase's procedure is done.
 
   /**
    * The done steps at the top fold into one line, with Show (Checklist board). A decision step
-   * stays out of the fold, so its answer shows (Decision.dc.html).
+   * stays out of the fold, so its answer shows (Decision.dc.html), and so does a step whose timer
+   * has started (running, paused or finished), so the timer stays in view (Timers boards).
    */
   let lead = $derived.by(() => {
+    const timed = (id: string) => {
+      const t = timers?.of(id);
+      return !!t && stateAt(t, timers?.now ?? 0) !== "waiting";
+    };
     let n = 0;
-    while (rows[n]?.state === "done" && !index.step(rows[n]?.id ?? "")?.decide) n++;
+    while (rows[n]?.state === "done" && !index.step(rows[n]?.id ?? "")?.decide && !timed(rows[n]?.id ?? "")) n++;
     return n;
   });
   let showDone = $state(false);
@@ -187,6 +196,7 @@ folded to one line with its count until the phase's procedure is done.
           onSelect={() => onSelect(row.id)}
           onEssentials={onEssentials ? (add) => onEssentials(row.id, add) : undefined}
           {decisions}
+          {timers}
           inline={inlineStep === row.id ? inline : undefined}
         />
       {/if}

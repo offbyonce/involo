@@ -41,6 +41,7 @@ import {
   restoreFlight,
   seatFrame,
   suggestion,
+  timers,
 } from "./core";
 import { readLog as readLogText, writeLog } from "./log-store.js";
 import {
@@ -166,6 +167,7 @@ export const webHost: Host = {
   openSteps,
   seatFrame,
   suggestion,
+  timers,
   readSaved,
   savedPacks,
   backupText,

@@ -35,9 +35,14 @@ blanks: { [key in string]: string },
  */
 notes: string, 
 /**
- * Timers the pilot started by hand: step to start time.
+ * Step timers the pilot restarted or resumed: step to the start time that counts, over the
+ * tick that started it (#213).
  */
 timers: Record<string, number>, 
+/**
+ * Paused step timers: step to the time it had left, in milliseconds (format 6, #213).
+ */
+timerPauses?: Record<string, number>, 
 /**
  * How each option a decision step asks was answered (format 3, decision 0027).
  */
