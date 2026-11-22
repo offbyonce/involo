@@ -22,9 +22,8 @@ const ok = (answer) => {
   return reply.ok;
 };
 
-test("the module answers with app facts and the example checklist", () => {
+test("the module answers with app facts", () => {
   assert.equal(ok(wasm.app_info()).name, "Involo");
-  assert.equal(ok(wasm.example_checklist()).steps.length, 5);
 });
 
 test("the flattened iFly pack loads", () => {

@@ -12,7 +12,6 @@ import type {
   BackupRead,
   CatalogEntry,
   CduWalk,
-  Checklist,
   Decoded,
   FieldId,
   FlatPack,
@@ -58,11 +57,6 @@ function unwrap<T>(answer: string): T {
 export async function appInfo(): Promise<AppInfo> {
   await load();
   return unwrap<AppInfo>(wasm.app_info());
-}
-
-export async function exampleChecklist(): Promise<Checklist> {
-  await load();
-  return unwrap<Checklist>(wasm.example_checklist());
 }
 
 /** Reads a flattened pack's JSON text, as written by `involo-pack build`; the module keeps it loaded. */
