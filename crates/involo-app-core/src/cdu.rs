@@ -445,6 +445,10 @@ fn written(form: CduForm, v: &str) -> Option<String> {
             let ((from, _), (to, y)) = (date(a)?, date(b)?);
             Some(format!("{from}{to}/{y}"))
         }
+        CduForm::Airac => {
+            let v = v.trim();
+            digits(v, 4).then(|| format!("AIRAC-{v}"))
+        }
     }
 }
 
@@ -569,6 +573,9 @@ mod tests {
         assert_eq!(w(CduForm::Position, "position"), None);
         assert_eq!(w(CduForm::UtcTime, "10:00").as_deref(), Some("1000.0z"));
         assert_eq!(w(CduForm::UtcTime, "1000"), None);
+        assert_eq!(w(CduForm::Airac, " 2511 ").as_deref(), Some("AIRAC-2511"));
+        assert_eq!(w(CduForm::Airac, "AIRAC-2511"), None);
+        assert_eq!(w(CduForm::Airac, "251"), None);
         assert_eq!(
             w(CduForm::MonthDayYear, "2025-11-13").as_deref(),
             Some("NOV13/25")
@@ -677,6 +684,7 @@ mod tests {
             ("origin_position", "47.449 -122.309"),
             ("utc_time", "10:00"),
             ("utc_date", "2025-11-13"),
+            ("nav_database", "2511"),
             ("nav_active_dates", "2025-10-30/2025-11-27"),
             // A value saved under a calculated field's id is stale, never shown.
             ("gross_weight", "999.9"),
@@ -701,6 +709,7 @@ mod tests {
         assert_eq!(row(&pos, 4), "1000.0z | NOV13/25");
         let ident = page(&flight, "IDENT");
         assert_eq!(text(&ident.screen.rows[1].right), "OCT30NOV27/25");
+        assert_eq!(text(&ident.screen.rows[1].left), "AIRAC-2511");
 
         // Without fuel, neither plan fuel nor gross weight is known.
         flight.values.remove("fuel");

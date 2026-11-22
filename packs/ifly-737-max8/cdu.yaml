@@ -36,6 +36,7 @@ walkthroughs:
                 - NAV DATA
               left:
                 - field: nav_database
+                  form: airac
                   style: data
               right_label:
                 - ACTIVE

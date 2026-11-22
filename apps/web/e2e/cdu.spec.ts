@@ -157,6 +157,7 @@ test("with the board flight imported, the walkthrough shows its values the way t
 
   // IDENT: the plan's cycle and its dates.
   await expect(walk).toContainText("IDENT · page 1 of 15");
+  await expect(screen).toHaveAttribute("aria-label", /AIRAC-2511/);
   await expect(screen).toHaveAttribute("aria-label", /OCT30NOV27\/25/);
   // POS INIT: the departure's position in degrees and minutes, the plan's time and date.
   await next(2);
