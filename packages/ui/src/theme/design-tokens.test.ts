@@ -39,6 +39,7 @@ export const EXCEPTIONS = {
     "lib/Locator.svelte": "draws the locator map",
     "lib/OverviewMap.svelte": "draws the flight deck overview",
     "lib/ViewDrawing.svelte": "draws the side and seat views",
+    "lib/TopView.svelte": "draws the exterior inspection's top view",
     "lib/DeckMap.svelte": "draws the flight deck map",
     "lib/FlowFigure.svelte": "draws the flow figure",
   } as Record<string, string>,

@@ -416,6 +416,9 @@ fn check_views(
     if let Some(frame) = &views.side {
         check_view("side", frame, &regions, issues);
     }
+    if let Some(frame) = &views.top {
+        check_top_view(frame, issues);
+    }
     match &views.seat {
         Some(involo_checklist_core::SeatViews::One(frame)) => {
             check_view("seat", frame, &regions, issues);
@@ -518,6 +521,76 @@ fn check_view(
             Code::ViewShape,
             &at,
             "a side view with places needs exactly one `eye` point for its sight lines",
+        ));
+    }
+}
+
+/// The top view (decision 0032): `structure` and `glass` shapes of three points or more and no
+/// places, besides the rules every view has.
+fn check_top_view(frame: &involo_checklist_core::ViewFrame, issues: &mut Vec<Issue>) {
+    use involo_checklist_core::ViewRole;
+    check_view("top", frame, &BTreeSet::new(), issues);
+    let at = "overview top view";
+    if frame
+        .shapes
+        .iter()
+        .any(|s| !matches!(s.role, ViewRole::Structure | ViewRole::Glass))
+    {
+        issues.push(error(
+            Code::ViewShape,
+            at,
+            "a top view has only `structure` and `glass` shapes",
+        ));
+    }
+    if frame.shapes.iter().any(|s| s.points.len() < 3) {
+        issues.push(error(
+            Code::ViewShape,
+            at,
+            "every top view shape needs three points or more",
+        ));
+    }
+    if !frame.places.is_empty() {
+        issues.push(error(Code::ViewShape, at, "a top view has no places"));
+    }
+}
+
+/// Steps' walkaround points (decision 0032): inside the overview's top view, which a pack with
+/// them should have.
+pub(super) fn check_walkaround(pack: &Pack, issues: &mut Vec<Issue>) {
+    let top = pack
+        .content
+        .controls
+        .as_ref()
+        .and_then(|c| c.overview.as_ref())
+        .and_then(|o| o.views.as_ref())
+        .and_then(|v| v.top.as_ref());
+    let mut any = false;
+    for list in &pack.checklists {
+        for step in &list.steps {
+            let Some(point) = &step.walkaround else {
+                continue;
+            };
+            any = true;
+            if let Some(frame) = top {
+                let (x, y) = (f64::from(point.x), f64::from(point.y));
+                if x > frame.width || y > frame.height {
+                    issues.push(error(
+                        Code::WalkaroundOutside,
+                        step.id.to_string(),
+                        format!(
+                            "walkaround point ({}, {}) is outside the top view ({} by {})",
+                            point.x, point.y, frame.width, frame.height
+                        ),
+                    ));
+                }
+            }
+        }
+    }
+    if any && top.is_none() {
+        issues.push(warning(
+            Code::NoTopView,
+            "overview",
+            "steps have walkaround points but the overview has no `top` view, so the exterior inspection shows as an ordinary list",
         ));
     }
 }
@@ -910,6 +983,97 @@ pub(super) mod tests {
     }
 
     #[test]
+    fn a_top_view_holds_the_walkaround_points_and_draws_only_the_airplane() {
+        use involo_checklist_core::{
+            OverviewViews, ViewFrame, ViewRole, ViewShape, WalkaroundPoint,
+        };
+        let mut at = step("a");
+        at.walkaround = Some(WalkaroundPoint { x: 30, y: 50 });
+        let mut out = step("b");
+        out.walkaround = Some(WalkaroundPoint { x: 30, y: 90 });
+        let mut p = pack(vec![at, out], vec![]);
+        // No top view: a warning, and nothing else about the points.
+        p.content.controls = Some(ControlsFile {
+            zones: vec![],
+            controls: vec![],
+            overview: None,
+        });
+        let joined = messages(&p);
+        assert!(
+            joined.contains(
+                "overview: steps have walkaround points but the overview has no `top` view"
+            ),
+            "{joined}"
+        );
+        assert!(!joined.contains("outside the top view"), "{joined}");
+
+        let shape = |role, points: Vec<[f64; 2]>| ViewShape {
+            points,
+            closed: true,
+            role,
+        };
+        let overview = |top| Overview {
+            width: 10.0,
+            height: 10.0,
+            areas: vec![],
+            regions: vec![],
+            views: Some(OverviewViews {
+                side: None,
+                seat: None,
+                top: Some(top),
+            }),
+        };
+        let fine = ViewFrame {
+            width: 60.0,
+            height: 80.0,
+            shapes: vec![
+                shape(
+                    ViewRole::Structure,
+                    vec![[20.0, 0.0], [40.0, 0.0], [30.0, 80.0]],
+                ),
+                shape(
+                    ViewRole::Glass,
+                    vec![[25.0, 5.0], [35.0, 5.0], [30.0, 10.0]],
+                ),
+            ],
+            places: vec![],
+            labels: vec![],
+        };
+        if let Some(c) = &mut p.content.controls {
+            c.overview = Some(overview(fine.clone()));
+        }
+        let joined = messages(&p);
+        assert!(!joined.contains("no `top` view"), "{joined}");
+        assert!(!joined.contains("overview top view"), "{joined}");
+        assert!(
+            joined.contains("b: walkaround point (30, 90) is outside the top view (60 by 80)"),
+            "{joined}"
+        );
+        assert!(!joined.contains("a: walkaround point"), "{joined}");
+
+        // A seat, a two-point line and a place have no part in a top view.
+        let mut wrong = fine;
+        wrong
+            .shapes
+            .push(shape(ViewRole::Seat, vec![[1.0, 1.0], [2.0, 2.0]]));
+        wrong.places.push(place("Overhead", 10.0));
+        if let Some(c) = &mut p.content.controls {
+            c.overview = Some(overview(wrong));
+        }
+        let joined = messages(&p);
+        for m in [
+            "a top view has only `structure` and `glass` shapes",
+            "every top view shape needs three points or more",
+            "a top view has no places",
+        ] {
+            assert!(
+                joined.contains(&format!("overview top view: {m}")),
+                "{m}: {joined}"
+            );
+        }
+    }
+
+    #[test]
     fn side_and_seat_views_name_real_regions_inside_their_frames() {
         use involo_checklist_core::{OverviewViews, ViewFrame, ViewRole, ViewShape};
         let mut p = alias_pack(vec![]);
@@ -960,6 +1124,7 @@ pub(super) mod tests {
                         vec![place("Overhead", 10.0)],
                         vec![shape(ViewRole::Structure, vec![[0.0, 0.0], [100.0, 60.0]])],
                     ))),
+                    top: None,
                 }),
             });
         }

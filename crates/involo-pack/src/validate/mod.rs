@@ -134,6 +134,7 @@ fn validate_with_allow_list(pack: &Pack, allow: &[&str]) -> Vec<Issue> {
     check_labels(pack, &mut issues);
     check_flight(pack, &mut issues);
     check_panels_and_lights(pack, &idx, &mut issues);
+    panels::check_walkaround(pack, &mut issues);
     check_other_references(pack, &idx, &mut issues);
     check_cdu(pack, &idx, &mut issues);
     messages::check_messages(pack, &idx, &mut issues);

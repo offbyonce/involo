@@ -88,7 +88,7 @@ One challenge and response line.
 | `terms` | list of text |  |  | Glossary terms the step uses, shown under Why (each must be in the glossary). |
 | `text` | text | yes |  | The challenge, e.g. "IRS mode selectors". |
 | `timer` | [Timer](#timer) |  |  | A wait attached to the step: a timer the step's tick, or its trigger steps' ticks, start. |
-| `walkaround` | [WalkaroundPoint](#walkaroundpoint) |  |  | The step's point on a walkaround drawing. The app doesn't read it yet. |
+| `walkaround` | [WalkaroundPoint](#walkaroundpoint) |  |  | The step's stop on the exterior inspection's top view: the step pane and the phone's step card draw every stop of the list there, numbered by step `number`. |
 | `why` | text |  |  | Why the step matters, shown under Why. Takes the place of the shared explanation's. |
 
 ## Confirmation
@@ -165,12 +165,12 @@ A wait attached to a step: a timer chip under the step's value (on the current s
 
 ## WalkaroundPoint
 
-A point for a step on a walkaround drawing. The app doesn't read it yet.
+Where a step's stop is on the exterior inspection's top view of the airplane (decision 0032), in the top view's units.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
-| `x` | whole number | yes |  | The point's horizontal place. The app doesn't read it yet. |
-| `y` | whole number | yes |  | The point's vertical place. The app doesn't read it yet. |
+| `x` | whole number | yes |  | The stop's point across, from the top view's left edge. |
+| `y` | whole number | yes |  | The stop's point down, from the top view's top edge (the nose is up). |
 
 ## ConfirmationKind
 

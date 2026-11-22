@@ -96,12 +96,13 @@ A part of the cockpit on the overview map, e.g. the forward overhead panel. A ma
 
 ## OverviewViews
 
-The side and seat views for "Where is this?".
+The side and seat views for "Where is this?", and the top view for the exterior inspection.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
 | `seat` | [SeatViews](#seatviews) |  |  | The view from the seat: one frame, or one per seat. |
 | `side` | [ViewFrame](#viewframe) |  |  | The view from the side, with the sight line from the eye. |
+| `top` | [ViewFrame](#viewframe) |  |  | The airplane from above, nose up, for the exterior inspection (decision 0032): `structure` and `glass` shapes and labels, no places. Steps' `walkaround` points are in its units. |
 
 ## SeatViews
 
@@ -109,7 +110,7 @@ The seat view: one frame, or one per seat, keyed by the seat ids the pack's labe
 
 ## ViewFrame
 
-A side or seat view of the flight deck, in its own units (decision 0023).
+A side or seat view of the flight deck (decision 0023), or the top view of the airplane (decision 0032), in its own units.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
@@ -143,7 +144,7 @@ Where one overview region sits in a side or seat view: one or more closed outlin
 
 ## ViewShape
 
-One shape in a side or seat view: an outline through its points (a curve is given as many points), closed when `closed`. An `eye` is one point.
+One shape in a side, seat or top view: an outline through its points (a curve is given as many points), closed when `closed`. An `eye` is one point.
 
 | Field | Takes | Required | Default | What it is |
 | --- | --- | --- | --- | --- |
@@ -163,11 +164,11 @@ Which way a label runs from its point.
 
 ## ViewRole
 
-How the renderer draws a shape in a side or seat view (decision 0023). Roles name no aircraft part, so any pack can draw its own airplane.
+How the renderer draws a shape in a side, seat or top view (decisions 0023 and 0032). Roles name no aircraft part, so any pack can draw its own airplane.
 
 | Value | What it means |
 | --- | --- |
-| `structure` | The airplane's outline (fuselage, walls): filled with the fuselage color. |
+| `structure` | The airplane's outline (fuselage, walls; from above, also the wings, tail and engines): filled. |
 | `glass` | Windshield and windows. |
 | `seat` | The pilot's seat and head. |
 | `eye` | Where the pilot's eyes are: one point. The side view's sight line starts here. |

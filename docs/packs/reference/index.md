@@ -32,4 +32,4 @@ the JSON Schemas in `schemas/` give editors autocomplete. The guide that explain
 | [`lists/<name>.yaml`](lists.md) | `checklist.schema.json` | An ordered list of steps: a checklist, a flow or a non-normal procedure. |
 | [`panels/<name>.yaml`](panels.md) | `panel.schema.json` | One `panels/*.yaml` file: a drawing of one panel, its sections and the items in them, in our own layout. |
 
-[Problem codes](codes.md): what each of the 126 codes `involo-pack check` gives means, and how to fix it.
+[Problem codes](codes.md): what each of the 128 codes `involo-pack check` gives means, and how to fix it.

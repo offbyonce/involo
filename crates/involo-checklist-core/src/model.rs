@@ -188,11 +188,12 @@ data_types! {
         pub field: FieldId,
     }
 
-    /// A point for a step on a walkaround drawing. The app doesn't read it yet.
+    /// Where a step's stop is on the exterior inspection's top view of the airplane (decision
+    /// 0032), in the top view's units.
     pub struct WalkaroundPoint {
-        /// The point's horizontal place. The app doesn't read it yet.
+        /// The stop's point across, from the top view's left edge.
         pub x: u32,
-        /// The point's vertical place. The app doesn't read it yet.
+        /// The stop's point down, from the top view's top edge (the nose is up).
         pub y: u32,
     }
 
@@ -384,7 +385,8 @@ data_types! {
         /// Id of a shared explanation.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub explain: Option<String>,
-        /// The step's point on a walkaround drawing. The app doesn't read it yet.
+        /// The step's stop on the exterior inspection's top view: the step pane and the phone's
+        /// step card draw every stop of the list there, numbered by step `number`.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub walkaround: Option<WalkaroundPoint>,
         /// What to look for, shown as "Look for" when the step is open.

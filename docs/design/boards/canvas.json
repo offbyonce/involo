@@ -2785,6 +2785,86 @@
       "h": 844,
       "title": "Shared source: CDU walkthrough, phone (tweaks: layout, theme)",
       "page": "b19"
+    },
+    "WalkFirst.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 520,
+      "h": 780,
+      "title": "Walkaround, first stop (dark)",
+      "page": "b20"
+    },
+    "WalkFirstPhone.dc.html": {
+      "x": 0,
+      "y": 900,
+      "w": 390,
+      "h": 844,
+      "title": "Walkaround, first stop, phone (dark)",
+      "page": "b20"
+    },
+    "WalkFirstLight.dc.html": {
+      "x": 600,
+      "y": 0,
+      "w": 520,
+      "h": 780,
+      "title": "Walkaround, first stop (light)",
+      "page": "b20"
+    },
+    "WalkFirstPhoneLight.dc.html": {
+      "x": 600,
+      "y": 900,
+      "w": 390,
+      "h": 844,
+      "title": "Walkaround, first stop, phone (light)",
+      "page": "b20"
+    },
+    "WalkMid.dc.html": {
+      "x": 1200,
+      "y": 0,
+      "w": 520,
+      "h": 780,
+      "title": "Walkaround, stop 5 with one skipped (dark)",
+      "page": "b20"
+    },
+    "WalkMidPhone.dc.html": {
+      "x": 1200,
+      "y": 900,
+      "w": 390,
+      "h": 844,
+      "title": "Walkaround, stop 5 with one skipped, phone (dark)",
+      "page": "b20"
+    },
+    "WalkMidLight.dc.html": {
+      "x": 1800,
+      "y": 0,
+      "w": 520,
+      "h": 780,
+      "title": "Walkaround, stop 5 with one skipped (light)",
+      "page": "b20"
+    },
+    "WalkMidPhoneLight.dc.html": {
+      "x": 1800,
+      "y": 900,
+      "w": 390,
+      "h": 844,
+      "title": "Walkaround, stop 5 with one skipped, phone (light)",
+      "page": "b20"
+    },
+    "Walkaround.dc.html": {
+      "x": 0,
+      "y": 1850,
+      "w": 520,
+      "h": 780,
+      "title": "Shared source: walkaround, desktop step pane (tweaks: layout, theme)",
+      "page": "b20"
+    },
+    "WalkaroundPhone.dc.html": {
+      "x": 600,
+      "y": 1850,
+      "w": 390,
+      "h": 844,
+      "title": "Shared source: walkaround, phone (tweaks: layout, theme)",
+      "page": "b20"
     }
   },
   "createdOnFiles": {
@@ -2793,7 +2873,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b19",
+    "page": "b20",
     "view": "canvas"
   },
   "notes": {},
@@ -3145,7 +3225,17 @@
     "CduPageLastLight.dc.html",
     "CduPageLastPhoneLight.dc.html",
     "CduWalk.dc.html",
-    "CduWalkPhone.dc.html"
+    "CduWalkPhone.dc.html",
+    "WalkFirst.dc.html",
+    "WalkFirstPhone.dc.html",
+    "WalkFirstLight.dc.html",
+    "WalkFirstPhoneLight.dc.html",
+    "WalkMid.dc.html",
+    "WalkMidPhone.dc.html",
+    "WalkMidLight.dc.html",
+    "WalkMidPhoneLight.dc.html",
+    "Walkaround.dc.html",
+    "WalkaroundPhone.dc.html"
   ],
   "pages": [
     {
@@ -3255,6 +3345,10 @@
     {
       "id": "b19",
       "name": "Beta 1: CDU walkthrough"
+    },
+    {
+      "id": "b20",
+      "name": "Beta 1: exterior inspection"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"

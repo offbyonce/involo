@@ -484,6 +484,11 @@ location line on desktop, under the value on the tablet and phone.
   .look b {
     color: var(--color-text);
   }
+  /* A stop on the exterior inspection opened in its row shows Look for as a card there
+     (WalkaroundPhone), so the row doesn't repeat it. */
+  .it:has(:global(.opened .lookcard)) .look {
+    display: none;
+  }
   .value {
     display: flex;
     flex-direction: column;

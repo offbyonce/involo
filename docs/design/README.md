@@ -400,6 +400,29 @@ its pull request.
   and carried by backups; a new flight clears it.
 - Existing tokens only.
 
+**Exterior inspection (2026-11-22).** `Walkaround.dc.html` (desktop) and `WalkaroundPhone.dc.html`
+(390 wide) draw #216's top view of the airplane, dark and light: at the first stop (`WalkFirst`)
+and at stop 5 with stops 1, 2 and 4 done and 3 skipped (`WalkMid`), each with a `Phone` form, as
+additions to the Checklist board's step pane (520 wide) and the Mobile board's step card. They
+replace `Exterior.dc.html`, `ExteriorLight.dc.html` and the exterior inspection view in
+`Views.dc.html`. The inspection stays the list the app shows, with no separate mode; nothing on
+the Checklist or Mobile board changes. The build may improve on these boards but never be worse;
+each difference is listed in its pull request.
+
+- **Where:** for a step with a `walkaround` point. On desktop, in the step pane: the step and its
+  value, Look for (a card in the Check card's style, with the step's `look_for` whole), the
+  location line with the step's `location`, then the top view where the panel preview goes; the
+  Step by step view's pane shows the same top view. On a phone, in the current step's card under
+  its value: Look for, the top view, then the location line with its pin.
+- **The top view:** a panel drawing titled "The walkaround · stop <n> of <total>", with "↑ Nose".
+  The airplane is the pack's top view (decision 0032); each step's `walkaround` point places its
+  stop, numbered by the step's `number`: the current one filled in accent with its number in
+  on-accent (the Done button's pairing) and a ring, done ones in the done colors, skipped ones with
+  a dashed amber ring, the rest outlined. A legend names each state. It is one image whose text
+  alternative names the current stop and how many are done and skipped, and it follows the list as
+  steps are ticked, skipped, undone or gone back to.
+- Existing tokens only: the Checklist and Mobile boards' and the panel drawings'.
+
 ## Read in this order
 
 1. `rules.md`: what the tokens mean and the rules every screen follows.
@@ -413,7 +436,7 @@ its pull request.
 ## How the boards are built
 
 - Light and dark boards come from the same source with a `theme` prop. Files ending in `Light` are wrappers.
-- `Views.dc.html` holds Flow, Emergency, timer (replaced by `Timers.dc.html` where they differ), CDU walkthrough (replaced by `CduWalk.dc.html`), briefing (replaced by `Briefings.dc.html`), exterior inspection, approach, Flight log and Settings (`view` prop).
+- `Views.dc.html` holds Flow, Emergency, timer (replaced by `Timers.dc.html` where they differ), CDU walkthrough (replaced by `CduWalk.dc.html`), briefing (replaced by `Briefings.dc.html`), exterior inspection (replaced by `Walkaround.dc.html`), approach, Flight log and Settings (`view` prop).
 - `Tablet.dc.html` holds both tablet orientations and their overlays (`orient`, `overlay` props). `Mobile.dc.html` holds every phone screen (`screen` prop).
 - `Checklist.dc.html` takes `mapHidden`, `w` and `h` props. `Wide.dc.html` renders it at 1600 x 900 scaled 1.6.
 - Sample values (KSEA to KSFO, the METAR, fuel numbers, times) are illustration only.

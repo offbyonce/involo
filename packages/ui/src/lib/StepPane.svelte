@@ -8,6 +8,11 @@ line, and a label-free preview of each panel the step uses. The location line op
 slide-out with Where it is expanded; a preview (or Show panel) opens it on that panel. Nothing
 else is drawn; the rest of the pane stays empty. Approved additions: a Say line in the Check box
 and a caution note under If not. A step with no control shows the steps coming up instead.
+
+A stop on the exterior inspection (#216, walkaround boards: a step with a walkaround point, in a
+pack with a top view) shows Look for (the step's own text, in the Check card's style) under the
+step, the step's own location line, and the top view with every stop of its list where the panel
+preview goes; opened in the row, Look for, the top view, then the location line.
 -->
 <script lang="ts">
   import { stepValue } from "./answers.svelte";
@@ -19,6 +24,7 @@ and a caution note under If not. A step with no control shows the steps coming u
   import { messageHref } from "./messages";
   import Icon from "./Icon.svelte";
   import PanelPreview from "./PanelPreview.svelte";
+  import TopView, { type Stop } from "./TopView.svelte";
   import type { Opening } from "./opening";
   import { glossaryHref } from "./glossary";
   import { panelName } from "./panel-name";
@@ -31,6 +37,7 @@ and a caution note under If not. A step with no control shows the steps coming u
     number,
     total,
     upcoming = [],
+    stops = [],
     preview = true,
     onOpen,
     flow = false,
@@ -43,6 +50,8 @@ and a caution note under If not. A step with no control shows the steps coming u
     number: number;
     total: number;
     upcoming?: { step: Step; state: StepState }[];
+    /** The stops of the step's list on the exterior inspection's top view, this step's as "here". */
+    stops?: Stop[];
     /** Settings › Panel preview in steps; off, a Show panel button instead. */
     preview?: boolean;
     /** Opens the slide-out. */
@@ -95,9 +104,22 @@ and a caution note under If not. A step with no control shows the steps coming u
   };
   let guardClosed = $derived(/\bGUARDS? CLOSED\b/i.test(step.expect));
   let where = $derived(place ? `${place.zone.area}` : "");
+  /** The pack's top view, when this step is one of its stops. */
+  let top = $derived(step.walkaround && stops.length ? (index.overview?.views?.top ?? null) : null);
 </script>
 
-<div class="pane-step" class:inline>
+{#snippet lookFor()}
+  <div class="lookcard">
+    <span class="cap">Look for</span>
+    <span class="look-text">{step.lookFor}</span>
+  </div>
+{/snippet}
+
+{#snippet walkaround()}
+  {#if top}<TopView frame={top} {stops} />{/if}
+{/snippet}
+
+<div class="pane-step" class:inline class:walk={!!top}>
   {#if !flow}
   {#if !inline}
   <div class="head">
@@ -105,6 +127,7 @@ and a caution note under If not. A step with no control shows the steps coming u
     <span class="value">{stepValue(step)}</span>
   </div>
   {/if}
+  {#if top && step.lookFor}{@render lookFor()}{/if}
   {#if check || ifNot}<div class="cells">
   {#if check}
     <div class="box check">
@@ -175,7 +198,15 @@ and a caution note under If not. A step with no control shows the steps coming u
     </a>
   {/each}
 
-  {#if place}
+  {#if top}
+    {#if inline}
+      {@render walkaround()}
+      {#if step.location}<span class="here-line"><span class="pin"><Icon name="pin" /></span>{step.location}</span>{/if}
+    {:else}
+      {#if step.location}<div class="line here-box"><span class="pin"><Icon name="pin" /></span><span class="area">{step.location}</span></div>{/if}
+      {@render walkaround()}
+    {/if}
+  {:else if place}
     <button class="line" data-tour="where" class:flow type="button" onclick={() => onOpen({ entry: "where" })}>
       {#if !flow}<span class="pin"><Icon name="pin" /></span>{/if}
       <span class="area">{where} · {place.zone.title}</span>
@@ -366,6 +397,42 @@ and a caution note under If not. A step with no control shows the steps coming u
   .line .lk {
     color: var(--color-link);
   }
+  /* Look for (walkaround boards): a card in the Check card's style, the step's text whole. */
+  .lookcard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--border-thick);
+    padding: calc(var(--space-2) + var(--border-thick)) var(--space-4) var(--space-3);
+    border: var(--border-thin) solid var(--color-border);
+    border-radius: var(--radius-control);
+    background: var(--color-surface);
+  }
+  .look-text {
+    color: var(--color-text);
+    font-size: var(--font-size-body);
+    line-height: var(--leading-normal);
+  }
+  /* The stop's location line: the step's own words, nothing to open (walkaround boards). */
+  .here-box {
+    gap: calc(var(--space-2) + var(--border-thick));
+    padding: 0 calc(var(--space-3) + var(--border-thick));
+  }
+  .here-box .pin,
+  .here-line .pin {
+    color: var(--color-text-secondary);
+  }
+  .here-line {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-secondary);
+  }
+  .here-line .pin :global(svg) {
+    flex: none;
+    width: var(--size-icon-small);
+    height: var(--size-icon-small);
+  }
   /* The panel preview card (R6PanePre): the whole card is the button; nothing below it. */
   .preview {
     position: relative;
@@ -495,6 +562,10 @@ and a caution note under If not. A step with no control shows the steps coming u
   .inline {
     min-height: 0;
   }
+  /* Opened in the row, a stop's parts are 8 px apart (WalkaroundPhone). */
+  .inline.walk {
+    gap: var(--space-2);
+  }
   @media (min-width: 600px) {
     .inline .cells {
       display: grid;
@@ -503,6 +574,9 @@ and a caution note under If not. A step with no control shows the steps coming u
     }
   }
   @media (max-width: 599px) {
+    .inline .look-text {
+      font-size: var(--font-size-value-mono);
+    }
     .inline .preview,
     .inline .show-panel {
       order: -1;

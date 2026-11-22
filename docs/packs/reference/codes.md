@@ -9,7 +9,7 @@ doc comments in the Rust types (or crates/involo-pack/src/codes.rs) and run `jus
 
 Every problem `involo-pack check` (and the app, when it installs a pack) can report has a stable code.
 A code never changes meaning and is never reused. `involo-pack explain <code>` prints the same entry.
-There are 126 codes. [All files](index.md).
+There are 128 codes. [All files](index.md).
 
 ## P00xx: Reading the files and building the pack
 
@@ -679,7 +679,7 @@ How to fix it: Use one of the listed seats, or add the seat.
 
 ### P0814: An overview view's drawing
 
-An overview view has a size; its shapes, outlines and labels have their points inside it; each place has a name for each outline; a side view with places has one `eye` point.
+An overview view has a size; its shapes, outlines and labels have their points inside it; each place has a name for each outline; a side view with places has one `eye` point. A top view has only `structure` and `glass` shapes, each of three points or more, and no places.
 
 How to fix it: Fix the part of the view the message names.
 
@@ -688,6 +688,18 @@ How to fix it: Fix the part of the view the message names.
 A view's place names an overview region that the overview doesn't have.
 
 How to fix it: Check the spelling against the overview's regions.
+
+### P0816: A walkaround point outside the top view
+
+A step's `walkaround` point is in the units of the overview's top view, and lies inside it, so its stop is drawn on the airplane.
+
+How to fix it: Move the point inside the top view, or make the top view larger.
+
+### P0817: Walkaround points with no top view
+
+Steps have `walkaround` points, but the overview has no `top` view to draw their stops on, so the exterior inspection shows as an ordinary list.
+
+How to fix it: Add a `top` view under the overview's `views`.
 
 ## P09xx: Panel item kinds and outlines
 

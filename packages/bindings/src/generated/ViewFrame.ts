@@ -4,7 +4,8 @@ import type { ViewPlace } from "./ViewPlace";
 import type { ViewShape } from "./ViewShape";
 
 /**
- * A side or seat view of the flight deck, in its own units (decision 0023).
+ * A side or seat view of the flight deck (decision 0023), or the top view of the airplane
+ * (decision 0032), in its own units.
  */
 export type ViewFrame = { 
 /**

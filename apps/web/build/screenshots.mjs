@@ -43,6 +43,7 @@ import {
   timerIn,
   briefingIn,
   cduIn,
+  walkIn,
   finishPhase,
   finishSkippingLast,
   go,
@@ -524,6 +525,15 @@ const SHOTS = [
       before: [...(state === "novalues" ? [] : [...BOARD_FLIGHT, typed([["takeoff", "takeoff_trim", "5.50"]])]), cduIn(state)],
     },
   })),
+  // The exterior inspection's top view (#216, walkaround boards): the first stop current, and stop
+  // 5 current with stops 1, 2 and 4 done and 3 skipped, in the step pane and the phone's step card.
+  ...["first", "mid"].map((state) => ({
+    name: `board-walk-${state}`,
+    only: ["desktop", "phone"],
+    app: { hash: "#/phase/exterior", before: [walkIn(state)] },
+  })),
+  // The same top view in the Step by step view's pane, which has no board of its own.
+  { name: "walk-flow", only: ["desktop"], app: { hash: "#/phase/exterior", before: [walkIn("mid"), toFlow] } },
   // A light's notes (#211, LightNotes): the fuel panel, whose lights say when they come on and
   // what to do; and the chosen panel state's description under Start's picker (StateNote), with
   // GPU Connected chosen, as the boards show.

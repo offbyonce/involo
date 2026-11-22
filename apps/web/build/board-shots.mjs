@@ -273,6 +273,12 @@ const SHOTS = [
     [`Cdu${s}`, { layout }, 920, desk, "CduWalk"],
     [`Cdu${s}Phone`, { layout: `${layout}Phone` }, 390, phone, "CduWalkPhone"],
   ]),
+  // The exterior inspection's top view (docs/design/boards/Walkaround.dc.html and
+  // WalkaroundPhone.dc.html): the first stop, and stop 5 with one skipped.
+  ...["First", "Mid"].flatMap((s) => [
+    [`Walk${s}`, { layout: s.toLowerCase() }, 520, 780, "Walkaround"],
+    [`Walk${s}Phone`, { layout: `${s.toLowerCase()}Phone` }, 390, 844, "WalkaroundPhone"],
+  ]),
 ];
 
 async function main() {

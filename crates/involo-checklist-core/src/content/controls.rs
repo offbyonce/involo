@@ -122,12 +122,13 @@ data_types! {
         pub short_title: Option<String>,
     }
 
-    /// How the renderer draws a shape in a side or seat view (decision 0023). Roles name no
-    /// aircraft part, so any pack can draw its own airplane.
+    /// How the renderer draws a shape in a side, seat or top view (decisions 0023 and 0032). Roles
+    /// name no aircraft part, so any pack can draw its own airplane.
     #[derive(Copy, Eq)]
     #[serde(rename_all = "snake_case")]
     pub enum ViewRole {
-        /// The airplane's outline (fuselage, walls): filled with the fuselage color.
+        /// The airplane's outline (fuselage, walls; from above, also the wings, tail and engines):
+        /// filled.
         Structure,
         /// Windshield and windows.
         Glass,
@@ -137,7 +138,7 @@ data_types! {
         Eye,
     }
 
-    /// One shape in a side or seat view: an outline through its points (a curve is given as many
+    /// One shape in a side, seat or top view: an outline through its points (a curve is given as many
     /// points), closed when `closed`. An `eye` is one point.
     pub struct ViewShape {
         /// The points the outline runs through, `[x, y]` in the view's units.
@@ -191,7 +192,8 @@ data_types! {
         pub names: Vec<String>,
     }
 
-    /// A side or seat view of the flight deck, in its own units (decision 0023).
+    /// A side or seat view of the flight deck (decision 0023), or the top view of the airplane
+    /// (decision 0032), in its own units.
     pub struct ViewFrame {
         /// The view's width in its own units; every point in it is inside.
         pub width: f64,
@@ -218,7 +220,7 @@ data_types! {
         BySeat(std::collections::BTreeMap<String, ViewFrame>),
     }
 
-    /// The side and seat views for "Where is this?".
+    /// The side and seat views for "Where is this?", and the top view for the exterior inspection.
     pub struct OverviewViews {
         /// The view from the side, with the sight line from the eye.
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -226,6 +228,10 @@ data_types! {
         /// The view from the seat: one frame, or one per seat.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub seat: Option<SeatViews>,
+        /// The airplane from above, nose up, for the exterior inspection (decision 0032): `structure`
+        /// and `glass` shapes and labels, no places. Steps' `walkaround` points are in its units.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub top: Option<ViewFrame>,
     }
 
     /// A schematic of the whole cockpit, in our own layout.
@@ -336,6 +342,7 @@ mod seat_tests {
                 ("left".to_owned(), frame(1.0)),
                 ("right".to_owned(), frame(2.0)),
             ]))),
+            top: None,
         }
     }
 
@@ -348,6 +355,7 @@ mod seat_tests {
         let one = OverviewViews {
             side: None,
             seat: Some(SeatViews::One(frame(5.0))),
+            top: None,
         };
         assert_eq!(
             width(one.seat_frame(&labels(), Some("fo"), Some("right"))),
