@@ -151,9 +151,9 @@ pub fn cdu_walkthrough(pack: &FlatPack, flight: &Flight, id: &str) -> Option<Cdu
 }
 
 /// The route split into CDU rows, `(via, to)`. The SID it starts with and the STAR it ends with
-/// are left out (DEP/ARR enters them): the flight's own SID or STAR, or a word shaped like a
-/// procedure (three to six letters, a digit and maybe a letter, as BDEGA4). So is a DCT at either
-/// end. The first word is flown DIRECT; after it, an airway (letters then digits, as Q1 or UL607)
+/// are left out (DEP/ARR enters them): the flight's own SID or STAR, or, only when the flight
+/// names none, a word shaped like a procedure (three to six letters, a digit and maybe a letter,
+/// as BDEGA4). So is a DCT at either end. The first word is flown DIRECT; after it, an airway (letters then digits, as Q1 or UL607)
 /// joins the waypoint after it, DCT before a waypoint is DIRECT, and a waypoint on its own is flown
 /// DIRECT.
 fn route_legs(route: &str, sid: Option<&str>, star: Option<&str>) -> Vec<(String, String)> {
@@ -162,7 +162,13 @@ fn route_legs(route: &str, sid: Option<&str>, star: Option<&str>) -> Vec<(String
     if words.first().is_some_and(|w| w == "DCT") {
         words.remove(0);
     }
-    if words.first().is_some_and(|w| is(w, sid) || procedure(w)) {
+    // The flight's own SID when it has one; only without one is a procedure-shaped word taken
+    // for it, so a waypoint shaped like a procedure stays when the SID is known.
+    let sid = sid.map(str::trim).filter(|s| !s.is_empty());
+    if words
+        .first()
+        .is_some_and(|w| sid.map_or_else(|| procedure(w), |_| is(w, sid)))
+    {
         words.remove(0);
     }
     if words.first().is_some_and(|w| w == "DCT") {
@@ -171,7 +177,13 @@ fn route_legs(route: &str, sid: Option<&str>, star: Option<&str>) -> Vec<(String
     if words.last().is_some_and(|w| w == "DCT") {
         words.pop();
     }
-    if words.last().is_some_and(|w| is(w, star) || procedure(w)) {
+    // The flight's own STAR when it has one; only without one is a procedure-shaped word taken
+    // for it, so a waypoint shaped like a procedure stays when the STAR is known.
+    let star = star.map(str::trim).filter(|s| !s.is_empty());
+    if words
+        .last()
+        .is_some_and(|w| star.map_or_else(|| procedure(w), |_| is(w, star)))
+    {
         words.pop();
     }
     if words.last().is_some_and(|w| w == "DCT") {
@@ -439,6 +451,10 @@ fn written(form: CduForm, v: &str) -> Option<String> {
             let ((from, _), (to, y)) = (date(a)?, date(b)?);
             Some(format!("{from}{to}/{y}"))
         }
+        CduForm::Airac => {
+            let v = v.trim();
+            digits(v, 4).then(|| format!("AIRAC-{v}"))
+        }
     }
 }
 
@@ -492,6 +508,34 @@ mod tests {
         let route = "SUMMA2 SUMMA Q1 ETCHY MLBEC BDEGA4";
         assert_eq!(route_legs(route, Some("SUMMA2"), Some("BDEGA4")), board);
         assert_eq!(route_legs(route, None, None), board);
+        // With the flight's STAR known, a last word only shaped like one is a waypoint, and a route
+        // ending in a plain waypoint keeps it.
+        assert_eq!(
+            route_legs("SUMMA Q1 ETCHY MLBEC1", None, Some("BDEGA4")).last(),
+            Some(&("DIRECT".to_owned(), "MLBEC1".to_owned()))
+        );
+        assert_eq!(
+            route_legs("SUMMA Q1 ETCHY MLBEC1", None, None).last(),
+            Some(&("Q1".to_owned(), "ETCHY".to_owned()))
+        );
+        assert_eq!(
+            route_legs("SUMMA Q1 ETCHY MLBEC", None, Some("BDEGA4")).last(),
+            Some(&("DIRECT".to_owned(), "MLBEC".to_owned()))
+        );
+        // The same at the start: with the flight's SID known, a first word only shaped like one
+        // is a waypoint, flown DIRECT; without it, the word is taken for the SID.
+        assert_eq!(
+            route_legs("SUMMA1 ALPHA Q1 ETCHY", Some("SUMMA2"), None).first(),
+            Some(&("DIRECT".to_owned(), "SUMMA1".to_owned()))
+        );
+        assert_eq!(
+            route_legs("SUMMA1 ALPHA Q1 ETCHY", None, None).first(),
+            Some(&("DIRECT".to_owned(), "ALPHA".to_owned()))
+        );
+        assert_eq!(
+            route_legs("SUMMA2 SUMMA Q1 ETCHY", Some("SUMMA2"), None).first(),
+            Some(&("DIRECT".to_owned(), "SUMMA".to_owned()))
+        );
         // Waypoints in a row are each flown DIRECT, and a trailing DCT goes.
         assert_eq!(
             route_legs("ALPHA BRAVO UL607 CHRLY DCT", None, None),
@@ -549,6 +593,9 @@ mod tests {
         assert_eq!(w(CduForm::Position, "position"), None);
         assert_eq!(w(CduForm::UtcTime, "10:00").as_deref(), Some("1000.0z"));
         assert_eq!(w(CduForm::UtcTime, "1000"), None);
+        assert_eq!(w(CduForm::Airac, " 2511 ").as_deref(), Some("AIRAC-2511"));
+        assert_eq!(w(CduForm::Airac, "AIRAC-2511"), None);
+        assert_eq!(w(CduForm::Airac, "251"), None);
         assert_eq!(
             w(CduForm::MonthDayYear, "2025-11-13").as_deref(),
             Some("NOV13/25")
@@ -657,6 +704,7 @@ mod tests {
             ("origin_position", "47.449 -122.309"),
             ("utc_time", "10:00"),
             ("utc_date", "2025-11-13"),
+            ("nav_database", "2511"),
             ("nav_active_dates", "2025-10-30/2025-11-27"),
             // A value saved under a calculated field's id is stale, never shown.
             ("gross_weight", "999.9"),
@@ -681,6 +729,7 @@ mod tests {
         assert_eq!(row(&pos, 4), "1000.0z | NOV13/25");
         let ident = page(&flight, "IDENT");
         assert_eq!(text(&ident.screen.rows[1].right), "OCT30NOV27/25");
+        assert_eq!(text(&ident.screen.rows[1].left), "AIRAC-2511");
 
         // Without fuel, neither plan fuel nor gross weight is known.
         flight.values.remove("fuel");

@@ -150,7 +150,7 @@ On the screen, `data` is what the airplane shows, `accent` what it calculated or
 `user` what the pilot types; the app draws a legend for them. A field part's `form` writes the
 value the way the CDU does where that differs from the Flight pages: a wind as `270°/045`, a
 position as `N47°26.9 W122°18.5`, a temperature or a difference in both scales (`-62°F -52°C`, `+4°F +2°C`), a time as `1000.0z`, a
-date as `NOV13/25` and two dates as `OCT30NOV27/25`. The forms are the app's list. The app
+date as `NOV13/25`, two dates as `OCT30NOV27/25` and a database cycle as `AIRAC-2511`. The forms are the app's list. The app
 calculates nothing a pack doesn't name: the only numbers it works out are a route's rows
 (`route_leg`) and the counts made from them (`route_legs`). The route is split without the SID it
 starts with or the STAR it ends with, since DEP/ARR enters them; an airway joins the waypoint after

@@ -144,6 +144,7 @@ How a value is written on the CDU screen. The forms are the app's: they describe
 | `utc_time` | A UTC time, `10:00`, as hours, minutes and tenths of a minute: `1000.0z`. |
 | `month_day_year` | A date, `2025-11-13`, as month, day and year: `NOV13/25`. |
 | `month_day_range` | Two dates, `2025-10-30/2025-11-27`, as month and day each, then the second's year: `OCT30NOV27/25`. |
+| `airac` | A navigation database cycle, `2511`, after `AIRAC-`: `AIRAC-2511`. |
 
 ## RouteLegPart
 

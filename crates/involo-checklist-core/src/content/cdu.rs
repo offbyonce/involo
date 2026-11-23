@@ -58,6 +58,8 @@ data_types! {
         /// Two dates, `2025-10-30/2025-11-27`, as month and day each, then the second's year:
         /// `OCT30NOV27/25`.
         MonthDayRange,
+        /// A navigation database cycle, `2511`, after `AIRAC-`: `AIRAC-2511`.
+        Airac,
     }
 
     /// A live flight value. Calculations happen in the app, never in the pack.

@@ -55,6 +55,7 @@ source: crates/involo-pack-cli/tests/snapshot.rs
                 "left": [
                   {
                     "field": "nav_database",
+                    "form": "airac",
                     "style": "data"
                   }
                 ],
