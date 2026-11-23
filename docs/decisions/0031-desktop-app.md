@@ -29,6 +29,7 @@ it. The shell is parked, not deleted (`apps/desktop/PARKED.md`).
 - **Packs** come from the same catalog and Add from file (0028). The desktop app also offers
   **Open a pack folder for authoring**: it builds an unbuilt pack in place and reloads it when a
   file is saved, showing `check` errors on screen.
+  Amended 2026-11-23: authoring mode comes in 0.2.0; the beta's desktop app ships without it.
 - **Updates** stay notify-only (0005): the app checks the latest release and links to it. The
   updater key is generated and backed up before the first desktop release.
 - **Signing.** Windows builds are signed through the SignPath Foundation once approved; until
