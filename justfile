@@ -80,7 +80,8 @@ site: wasm
     node apps/web/build/size-budget.js apps/web/dist apps/web/size-budget.json
 
 # The service worker's version-to-version update test in headless Firefox (needs Firefox; not
-# part of `just ci`). See apps/web/build/update-test.mjs.
+# part of `just ci`). CI runs it in its own job on the site it built, in the Playwright image, and
+# fails when an update from one version to the next fails. See apps/web/build/update-test.mjs.
 update-test: site
     node apps/web/build/update-test.mjs
 

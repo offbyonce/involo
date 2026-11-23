@@ -5,24 +5,19 @@ SPDX-License-Identifier: MIT
 # Phase 2 parity report
 
 The Phase 2 brief's step 11, before v0.1.0: what the web app does of everything 3.0 does,
-installed and offline, checked on 2026-11-22 against `main` at 712178b. Each row is marked
-**passes**, **fails** or **not built**. Each gives the evidence that shows it, and the issue it
-needs, if any.
+installed and offline, checked on 2026-11-22 against `main` at 712178b, and updated on 2026-11-23
+once the release blockers had merged (`main` at 89367c4). Each row is marked **passes**, **fails**
+or **not built**. Each gives the evidence that shows it, and the issue or pull request.
 
 ## Summary
 
 - **Passes:** every 3.0 feature in the feature coverage table ([coverage.md](../design/coverage.md))
-  has a home at every size, apart from the Settings rows listed below. All 510 3.0 steps are in
-  the iFly pack (527 steps now). The app installs, works offline after the first visit and offers
+  has a home at every size. All 510 3.0 steps are in the iFly pack (527 steps now). The app installs, works offline after the first visit and offers
   a reload for a new version. Backups restore with the pack's aliases and say what they replace.
-- **Fails or not built:**
-  - The 3.0 import (step 9).
-  - The first-launch notice and Report a problem with a step (step 10).
-  - The persistent storage request and the export reminder (step 8).
-  - Parts of the SimBrief requirements (step 7).
-  - Four Settings rows from 3.0.
-  - The privacy note ([#52](https://github.com/offbyonce/involo/issues/52)).
-  - The front page, which is still the placeholder.
+- **Fails or not built:** only the privacy note ([#52](https://github.com/offbyonce/involo/issues/52)),
+  and the brief's optional automatic SimBrief load, left out. Practice text and per-area scores
+  stay for Phase 3. Every other row that failed or was not built on 2026-11-22 has since been
+  fixed, and names the pull request that fixed it.
 - **Not automated:** tablet sizes and Firefox are outside the e2e suite, and were checked ad hoc
   for this report. Installed (standalone) mode on a real device needs a person.
 
@@ -81,7 +76,7 @@ means the crate tests.
 | Approach type and arrival data | passes | Unit `flight-pages.test.ts` | |
 | Progress saves | passes | e2e `ticks.spec.ts` (ticks survive a reload) | |
 | Used in chips and Coming up | passes | Used in: unit `Slideout.test.ts`, `FlightDeckPage.test.ts`. Coming up: in the code (the side pane), no test | |
-| Settings: Keep screen awake, Your Essentials (Reset to default and the count), Start (Cold and dark or Turnaround), Clear all progress | not built | Coverage marks these homes "to review", and no board draws them. Settings has none of the four rows; the Start choice is in Flight › Start options only. | [#245](https://github.com/offbyonce/involo/issues/245) |
+| Settings: Keep screen awake, Your Essentials (Reset to default and the count), Start (Cold and dark or Turnaround), Clear all progress | passes | Settings has the four rows (Release board, RelSettings); unit `SettingsPage.test.ts` (each row), `App.test.ts` (Clear all progress and Undo, Keep screen awake reaching the host) | [#260](https://github.com/offbyonce/involo/pull/260) |
 
 ### The 3.0 content (Phase 1 parity report)
 
@@ -113,12 +108,12 @@ means the crate tests.
 | Requirement | Status | Evidence | Issue |
 | --- | --- | --- | --- |
 | Remember the username on the device | passes | Saved in the settings on this device; unit `flight.test.ts` | |
-| An option to forget the username | not built | No control clears the saved username | [#244](https://github.com/offbyonce/involo/issues/244) |
+| An option to forget the username | passes | Flight › SimBrief and OFP file › Forget username, with Undo; unit `App.test.ts` | [#258](https://github.com/offbyonce/involo/pull/258) |
 | One-tap refresh | passes | Strip › Import latest from SimBrief; unit `FlightStrip.test.ts` | |
-| Load the plan automatically when the app opens (optional) | not built | Optional in the brief | Same issue |
+| Load the plan automatically when the app opens (optional) | not built | Optional in the brief, and left out of v0.1.0: the plan is imported only when the pilot asks | |
 | Show which plan is loaded, its route and age | passes | SimBrief and OFP file: "KSEA → KSFO, imported …" | |
 | Keep the last plan for offline use | passes | The compact plan is saved with the flight (decision 0019); e2e `flight.spec.ts` | |
-| Friendly errors | fails | An unknown username or a missing plan shows SimBrief's own message ("SimBrief says: …"). Offline shows "Couldn't reach SimBrief. Check your connection, or use a saved OFP file.", which doesn't say the last plan is still in use. | Same issue |
+| Friendly errors | passes | SimBrief's errors in the brief's words, and offline says the last plan is still in use; `simbrief-fetch.test.js`, unit `problems.test.ts` | [#250](https://github.com/offbyonce/involo/pull/250) |
 | Saved file as a secondary route, drag and drop | passes | The SimBrief board's drop zone and Choose file; e2e `flight.spec.ts`. The board puts the drop zone in its section, not anywhere on the page. | |
 
 ## Steps 6, 8, 9 and 10
@@ -129,17 +124,17 @@ means the crate tests.
 | Works offline after the first visit | passes | e2e `offline.spec.ts` (Chromium, WebKit); `just update-test` (Firefox) | |
 | A new version never replaces content mid-session | passes | `just update-test` (B waits, reload offer, Reload) | |
 | Progress in browser storage behind the host adapter | passes | `saved-store.test.js`, `log-store.test.js`, `pack-store.test.js` | |
-| Ask the browser for persistent storage | not built | No call to `navigator.storage.persist()` | [#243](https://github.com/offbyonce/involo/issues/243) |
+| Ask the browser for persistent storage | passes | Asked once a pack is open, through the host's `persistStorage`; unit `App.test.ts` | [#259](https://github.com/offbyonce/involo/pull/259) |
 | Export in a versioned format defined in Rust | passes | Rust `backup` tests (format frozen, older parts migrated, newer refused) | |
 | Import validates, applies aliases and says what it replaces | passes | e2e `backup.spec.ts`; unit `RestoreDialog.test.ts`, `backup.test.ts`; the restored flight goes through the pack's aliases (`restore_flight`) | |
-| Remind pilots to export from time to time | not built | No reminder anywhere | Same issue |
-| 3.0 import from a 3.0 export file, tested with an invented export | not built | Restore refuses a 3.0 file as not a backup | [#240](https://github.com/offbyonce/involo/issues/240) |
-| First-launch notice covering the whole app | not built | The notice is a line at the foot of the app page and in References; nothing covers the app at first launch | [#241](https://github.com/offbyonce/involo/issues/241) |
+| Remind pilots to export from time to time | passes | The backup reminder after a logged flight, with Not now for 30 days; unit `backup.test.ts`, `App.test.ts` | [#259](https://github.com/offbyonce/involo/pull/259) |
+| 3.0 import from a 3.0 export file, tested with an invented export | passes | e2e `backup.spec.ts` (a 3.0 export restores its progress into the iFly pack); Rust `backup` tests | [#248](https://github.com/offbyonce/involo/pull/248) |
+| First-launch notice covering the whole app | passes | e2e `first-run.spec.ts` (the notice comes first, closes only with I understand and never comes back) | [#251](https://github.com/offbyonce/involo/pull/251) |
 | No status or verification marker | passes | See One presentation above | |
 | Privacy note | not built | No privacy note in the app | [#52](https://github.com/offbyonce/involo/issues/52) |
-| The app replaces the placeholder front page | not built | `index.html` still says "The web beta is coming soon." | [#53](https://github.com/offbyonce/involo/issues/53) (wording); [#246](https://github.com/offbyonce/involo/issues/246) |
-| The temporary `app/` address and its interim notice line go | not built | The app is at `app/`, marked `noindex`, with its footer line | Same two issues |
-| Report a problem with a step: a prefilled issue form | not built | No link on a step. `.github/ISSUE_TEMPLATE` has `procedure-problem.yml`, with nothing prefilled, and no `step-problem.yml` | [#242](https://github.com/offbyonce/involo/issues/242) |
+| The app replaces the placeholder front page | passes | The app is the site's front page; `site-check.js`; e2e (every flow opens it there) | [#249](https://github.com/offbyonce/involo/pull/249) |
+| The temporary `app/` address and its interim notice line go | passes | `app/` is a redirect to the front page, kept for bookmarks and installed copies; the footer line is gone | [#249](https://github.com/offbyonce/involo/pull/249) |
+| Report a problem with a step: a prefilled issue form | passes | The last item of every step's menu; unit `report.test.ts`, `App.test.ts`; `.github/ISSUE_TEMPLATE/step-problem.yml` | [#257](https://github.com/offbyonce/involo/pull/257), [#252](https://github.com/offbyonce/involo/pull/252) |
 
 ## Gaps in the automated checks
 
@@ -150,7 +145,9 @@ means the crate tests.
 
 ## Maintainer steps for v0.1.0
 
-Listed in order. This report does none of them; step 4 was already done.
+Listed in order. This report does none of them; step 4 was already done. By 2026-11-23, steps 1
+and 2 were done (the blockers above merged, and the app is the front page), and step 5's text is
+in its own pull request.
 
 1. **Choose what blocks v0.1.0**, from the issues above. The brief's gate needs the 3.0 import,
    the first-launch notice and the privacy note.
