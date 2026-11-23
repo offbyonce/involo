@@ -24,6 +24,8 @@ why on its row, as the Packs page does, and the row stays ticked, so its flight 
     flights: ReviewFlight[];
     /** The Flight log row's line, or null when the backup adds nothing to the log. */
     log: string | null;
+    /** A muted line at the end of Also in the file: what a 3.0 file holds that isn't restored. */
+    leftOut: string | null;
   };
   export type Refused = { kind: "refused"; line: string };
   export type Chosen = { flights: string[]; settings: boolean; log: boolean };
@@ -94,7 +96,7 @@ why on its row, as the Packs page does, and the row stays ticked, so its flight 
               <label class="tick">
                 <input type="checkbox" checked={ticked(`flight:${f.pack}`)} onchange={() => toggle(`flight:${f.pack}`)} />
                 <span class="txt">
-                  <span class="name"><b>{f.name}</b><span class="mono">v{f.version}</span>{#if !f.installed}<span class="tag">Not installed</span>{/if}</span>
+                  <span class="name"><b>{f.name}</b>{#if f.version !== null}<span class="mono">v{f.version}</span>{/if}{#if f.badge}<span class="tag">{f.badge}</span>{/if}{#if !f.installed}<span class="tag">Not installed</span>{/if}</span>
                   {#if f.inBackup}<span class="line">{f.inBackup}</span>{/if}
                   <span class="line" class:replaces={f.device.replaces} class:muted={!f.device.replaces}>{f.device.text}</span>
                   {#if f.upgrade}<span class="line muted">{f.upgrade}</span>{/if}
@@ -131,6 +133,7 @@ why on its row, as the Packs page does, and the row stays ticked, so its flight 
             </label>
           </div>
         {/if}
+        {#if shown.leftOut}<p class="line muted left-out">{shown.leftOut}</p>{/if}
       </div>
       <div class="row">
         <button class="btn" type="button" onclick={onClose}>Cancel</button>
@@ -285,6 +288,12 @@ why on its row, as the Packs page does, and the row stays ticked, so its flight 
   }
   .line.muted {
     color: var(--color-text-muted);
+  }
+  /* A 3.0 file's "Not brought across" line, closing Also in the file like a row without a box. */
+  .left-out {
+    margin: 0;
+    padding: var(--space-3) 0 0;
+    border-top: var(--border-thin) solid var(--color-line);
   }
   /* A failed Download (the Packs page's notice), under the row's text. */
   .notice {
