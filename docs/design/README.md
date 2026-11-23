@@ -451,10 +451,10 @@ listed in its pull request.
   else: before the Packs page's first launch and before the tour's welcome, which follows it. It
   takes the Remove dialog's form (popover tokens, scrim); on a phone it sits at the bottom, full
   width. The title is "Simulator training only", then the two paragraphs as drawn, I understand
-  (primary) and Read the privacy note, which opens the privacy note (#52) and is left out until
-  that note exists. I understand is the only way to close it (no Esc, scrim or close button), and
-  focus starts there. It is stored once, in the settings like the tour's welcome, and never shows
-  again on that device.
+  (primary), on its own at the right on desktop and the only button on a phone; there is no privacy
+  link (the privacy note, #52, is reached from Settings). I understand is the only way to close it
+  (no Esc, scrim or close button), and focus starts there. It is stored once, in the settings like
+  the tour's welcome, and never shows again on that device.
 - **Report a problem with a step (#242):** the last item of every step's ··· menu, after a divider:
   "Report a problem with this step" with the external-link icon and, under it, "Opens a GitHub
   issue form with this step filled in." It opens the form in a new tab with the pack and its
@@ -483,6 +483,23 @@ listed in its pull request.
   cleared." and Undo (`RelSettingsCleared`).
 - Existing tokens only: `popover-*`, `scrim`, `overlay-shadow`, `toast-*`, `danger`, and the
   segmented control and switch tokens.
+
+**Privacy note (2026-11-23).** `Privacy.dc.html` draws the privacy note (#52) as additions to
+the existing boards, dark and light, each with a `Light` form: the Privacy page (`PrivacyPage`, the
+main column at 920 wide, and `PrivacyPagePhone`) and Settings' last line with its Privacy link
+(`PrivacySetting` and `PrivacySettingPhone`). Nothing else on any board changes; Settings keeps
+every row.
+
+- **The page:** its own address (`#/privacy`), part of the app, so it works offline. The title
+  "Privacy", the lead line, then five sections with their headings (What's stored, Where it's kept,
+  What's sent, Where the app comes from, Keep a copy) in a column up to 680 px wide, and the running
+  version at the end. The text is as drawn. "GitHub's privacy statement" opens GitHub's page in a
+  new tab; "Settings › Back up and restore" goes to that Settings row. The text must stay true:
+  when what the app stores or sends changes, this page and SECURITY.md change with it, in the same
+  pull request.
+- **Settings' last line:** "Involo 0.1.0 · What's new · Privacy". Privacy opens the page in the app,
+  not a new tab. Each link keeps its 44 px target.
+- Existing tokens only.
 
 ## Read in this order
 

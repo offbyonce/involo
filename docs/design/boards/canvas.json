@@ -3033,6 +3033,78 @@
       "h": 900,
       "title": "Shared source: release blockers (tweaks: layout, theme)",
       "page": "b21"
+    },
+    "PrivacyPage.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 920,
+      "h": 1000,
+      "title": "Privacy page (dark)",
+      "page": "b22"
+    },
+    "PrivacyPageLight.dc.html": {
+      "x": 0,
+      "y": 1080,
+      "w": 920,
+      "h": 1000,
+      "title": "Privacy page (light)",
+      "page": "b22"
+    },
+    "PrivacyPagePhone.dc.html": {
+      "x": 1000,
+      "y": 0,
+      "w": 390,
+      "h": 1240,
+      "title": "Privacy page, phone (dark)",
+      "page": "b22"
+    },
+    "PrivacyPagePhoneLight.dc.html": {
+      "x": 1000,
+      "y": 1320,
+      "w": 390,
+      "h": 1240,
+      "title": "Privacy page, phone (light)",
+      "page": "b22"
+    },
+    "PrivacySetting.dc.html": {
+      "x": 1470,
+      "y": 0,
+      "w": 760,
+      "h": 200,
+      "title": "Settings: the version line with Privacy (dark)",
+      "page": "b22"
+    },
+    "PrivacySettingLight.dc.html": {
+      "x": 1470,
+      "y": 280,
+      "w": 760,
+      "h": 200,
+      "title": "Settings: the version line with Privacy (light)",
+      "page": "b22"
+    },
+    "PrivacySettingPhone.dc.html": {
+      "x": 2310,
+      "y": 0,
+      "w": 390,
+      "h": 220,
+      "title": "Settings: the version line with Privacy, phone (dark)",
+      "page": "b22"
+    },
+    "PrivacySettingPhoneLight.dc.html": {
+      "x": 2310,
+      "y": 300,
+      "w": 390,
+      "h": 220,
+      "title": "Settings: the version line with Privacy, phone (light)",
+      "page": "b22"
+    },
+    "Privacy.dc.html": {
+      "x": 0,
+      "y": 2700,
+      "w": 920,
+      "h": 1000,
+      "title": "Shared source: privacy note (tweaks: layout, theme)",
+      "page": "b22"
     }
   },
   "createdOnFiles": {
@@ -3041,7 +3113,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b20",
+    "page": "b22",
     "view": "canvas"
   },
   "notes": {},
@@ -3424,7 +3496,16 @@
     "RelSettingsClearedLight.dc.html",
     "RelSettingsPhone.dc.html",
     "RelSettingsPhoneLight.dc.html",
-    "Release.dc.html"
+    "Release.dc.html",
+    "PrivacyPage.dc.html",
+    "PrivacyPageLight.dc.html",
+    "PrivacyPagePhone.dc.html",
+    "PrivacyPagePhoneLight.dc.html",
+    "PrivacySetting.dc.html",
+    "PrivacySettingLight.dc.html",
+    "PrivacySettingPhone.dc.html",
+    "PrivacySettingPhoneLight.dc.html",
+    "Privacy.dc.html"
   ],
   "pages": [
     {
@@ -3542,6 +3623,10 @@
     {
       "id": "b21",
       "name": "Beta 1: release blockers"
+    },
+    {
+      "id": "b22",
+      "name": "Beta 1: privacy note"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"
