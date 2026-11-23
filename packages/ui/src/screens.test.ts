@@ -48,7 +48,13 @@ function hostWith(id: PackId): Host {
 
 /** Settings as a pilot leaves them: the tour answered, this pack open, in `view`. */
 async function saveSettings(id: PackId, view: Settings["listView"]): Promise<void> {
-  const settings = { ...(await defaultSettings()), tourSeen: true, currentPack: id, listView: view };
+  const settings = {
+    ...(await defaultSettings()),
+    tourSeen: true,
+    noticeSeen: true,
+    currentPack: id,
+    listView: view,
+  };
   localStorage.setItem("involo.settings", JSON.stringify(settings));
 }
 

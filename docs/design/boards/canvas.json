@@ -2801,6 +2801,238 @@
       "h": 844,
       "title": "Shared source: walkaround, phone (tweaks: layout, theme)",
       "page": "b20"
+    },
+    "RelNotice.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "First launch: simulator-only notice (dark)",
+      "page": "b21"
+    },
+    "RelNoticeLight.dc.html": {
+      "x": 0,
+      "y": 980,
+      "w": 1440,
+      "h": 900,
+      "title": "First launch: simulator-only notice (light)",
+      "page": "b21"
+    },
+    "RelNoticePhone.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "First launch notice, phone (dark)",
+      "page": "b21"
+    },
+    "RelNoticePhoneLight.dc.html": {
+      "x": 1520,
+      "y": 924,
+      "w": 390,
+      "h": 844,
+      "title": "First launch notice, phone (light)",
+      "page": "b21"
+    },
+    "RelReport.dc.html": {
+      "x": 0,
+      "y": 2000,
+      "w": 920,
+      "h": 480,
+      "title": "Step menu: report a problem (dark)",
+      "page": "b21"
+    },
+    "RelReportLight.dc.html": {
+      "x": 0,
+      "y": 2560,
+      "w": 920,
+      "h": 480,
+      "title": "Step menu: report a problem (light)",
+      "page": "b21"
+    },
+    "RelReportPhone.dc.html": {
+      "x": 1000,
+      "y": 2000,
+      "w": 390,
+      "h": 560,
+      "title": "Step menu: report a problem, phone (dark)",
+      "page": "b21"
+    },
+    "RelReportPhoneLight.dc.html": {
+      "x": 1000,
+      "y": 2640,
+      "w": 390,
+      "h": 560,
+      "title": "Step menu: report a problem, phone (light)",
+      "page": "b21"
+    },
+    "RelReminder.dc.html": {
+      "x": 0,
+      "y": 3320,
+      "w": 920,
+      "h": 400,
+      "title": "Backup reminder after a logged flight (dark)",
+      "page": "b21"
+    },
+    "RelReminderLight.dc.html": {
+      "x": 0,
+      "y": 3800,
+      "w": 920,
+      "h": 400,
+      "title": "Backup reminder after a logged flight (light)",
+      "page": "b21"
+    },
+    "RelReminderNever.dc.html": {
+      "x": 1000,
+      "y": 3320,
+      "w": 920,
+      "h": 400,
+      "title": "Backup reminder, never backed up (dark)",
+      "page": "b21"
+    },
+    "RelReminderNeverLight.dc.html": {
+      "x": 1000,
+      "y": 3800,
+      "w": 920,
+      "h": 400,
+      "title": "Backup reminder, never backed up (light)",
+      "page": "b21"
+    },
+    "RelReminderPhone.dc.html": {
+      "x": 2000,
+      "y": 3320,
+      "w": 390,
+      "h": 460,
+      "title": "Backup reminder, phone (dark)",
+      "page": "b21"
+    },
+    "RelReminderPhoneLight.dc.html": {
+      "x": 2000,
+      "y": 3860,
+      "w": 390,
+      "h": 460,
+      "title": "Backup reminder, phone (light)",
+      "page": "b21"
+    },
+    "RelForget.dc.html": {
+      "x": 0,
+      "y": 4440,
+      "w": 920,
+      "h": 360,
+      "title": "SimBrief: username saved, with Forget (dark)",
+      "page": "b21"
+    },
+    "RelForgetLight.dc.html": {
+      "x": 0,
+      "y": 4880,
+      "w": 920,
+      "h": 360,
+      "title": "SimBrief: username saved, with Forget (light)",
+      "page": "b21"
+    },
+    "RelForgotten.dc.html": {
+      "x": 1000,
+      "y": 4440,
+      "w": 920,
+      "h": 360,
+      "title": "SimBrief: username forgotten, with Undo (dark)",
+      "page": "b21"
+    },
+    "RelForgottenLight.dc.html": {
+      "x": 1000,
+      "y": 4880,
+      "w": 920,
+      "h": 360,
+      "title": "SimBrief: username forgotten, with Undo (light)",
+      "page": "b21"
+    },
+    "RelForgetPhone.dc.html": {
+      "x": 2000,
+      "y": 4440,
+      "w": 390,
+      "h": 520,
+      "title": "SimBrief: Forget, phone (dark)",
+      "page": "b21"
+    },
+    "RelForgetPhoneLight.dc.html": {
+      "x": 2000,
+      "y": 5040,
+      "w": 390,
+      "h": 520,
+      "title": "SimBrief: Forget, phone (light)",
+      "page": "b21"
+    },
+    "RelForgottenPhone.dc.html": {
+      "x": 2470,
+      "y": 4440,
+      "w": 390,
+      "h": 520,
+      "title": "SimBrief: forgotten, phone (dark)",
+      "page": "b21"
+    },
+    "RelForgottenPhoneLight.dc.html": {
+      "x": 2470,
+      "y": 5040,
+      "w": 390,
+      "h": 520,
+      "title": "SimBrief: forgotten, phone (light)",
+      "page": "b21"
+    },
+    "RelSettings.dc.html": {
+      "x": 0,
+      "y": 5680,
+      "w": 760,
+      "h": 640,
+      "title": "Settings rows from 3.0 (dark)",
+      "page": "b21"
+    },
+    "RelSettingsLight.dc.html": {
+      "x": 0,
+      "y": 6400,
+      "w": 760,
+      "h": 640,
+      "title": "Settings rows from 3.0 (light)",
+      "page": "b21"
+    },
+    "RelSettingsCleared.dc.html": {
+      "x": 840,
+      "y": 5680,
+      "w": 760,
+      "h": 640,
+      "title": "Settings: all progress cleared, with Undo (dark)",
+      "page": "b21"
+    },
+    "RelSettingsClearedLight.dc.html": {
+      "x": 840,
+      "y": 6400,
+      "w": 760,
+      "h": 640,
+      "title": "Settings: all progress cleared, with Undo (light)",
+      "page": "b21"
+    },
+    "RelSettingsPhone.dc.html": {
+      "x": 1680,
+      "y": 5680,
+      "w": 390,
+      "h": 900,
+      "title": "Settings rows from 3.0, phone (dark)",
+      "page": "b21"
+    },
+    "RelSettingsPhoneLight.dc.html": {
+      "x": 1680,
+      "y": 6660,
+      "w": 390,
+      "h": 900,
+      "title": "Settings rows from 3.0, phone (light)",
+      "page": "b21"
+    },
+    "Release.dc.html": {
+      "x": 0,
+      "y": 7780,
+      "w": 1440,
+      "h": 900,
+      "title": "Shared source: release blockers (tweaks: layout, theme)",
+      "page": "b21"
     }
   },
   "createdOnFiles": {
@@ -3163,7 +3395,36 @@
     "WalkMidLight.dc.html",
     "WalkMidPhoneLight.dc.html",
     "Walkaround.dc.html",
-    "WalkaroundPhone.dc.html"
+    "WalkaroundPhone.dc.html",
+    "RelNotice.dc.html",
+    "RelNoticeLight.dc.html",
+    "RelNoticePhone.dc.html",
+    "RelNoticePhoneLight.dc.html",
+    "RelReport.dc.html",
+    "RelReportLight.dc.html",
+    "RelReportPhone.dc.html",
+    "RelReportPhoneLight.dc.html",
+    "RelReminder.dc.html",
+    "RelReminderLight.dc.html",
+    "RelReminderNever.dc.html",
+    "RelReminderNeverLight.dc.html",
+    "RelReminderPhone.dc.html",
+    "RelReminderPhoneLight.dc.html",
+    "RelForget.dc.html",
+    "RelForgetLight.dc.html",
+    "RelForgotten.dc.html",
+    "RelForgottenLight.dc.html",
+    "RelForgetPhone.dc.html",
+    "RelForgetPhoneLight.dc.html",
+    "RelForgottenPhone.dc.html",
+    "RelForgottenPhoneLight.dc.html",
+    "RelSettings.dc.html",
+    "RelSettingsLight.dc.html",
+    "RelSettingsCleared.dc.html",
+    "RelSettingsClearedLight.dc.html",
+    "RelSettingsPhone.dc.html",
+    "RelSettingsPhoneLight.dc.html",
+    "Release.dc.html"
   ],
   "pages": [
     {
@@ -3277,6 +3538,10 @@
     {
       "id": "b20",
       "name": "Beta 1: exterior inspection"
+    },
+    {
+      "id": "b21",
+      "name": "Beta 1: release blockers"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"

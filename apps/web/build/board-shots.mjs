@@ -278,6 +278,25 @@ const SHOTS = [
     [`Walk${s}`, { layout: s.toLowerCase() }, 520, 780, "Walkaround"],
     [`Walk${s}Phone`, { layout: `${s.toLowerCase()}Phone` }, 390, 844, "WalkaroundPhone"],
   ]),
+  // The release blockers (docs/design/boards/Release.dc.html, #241 to #245): the first-launch
+  // notice, Report a problem, the backup reminder, forgetting the SimBrief username and the Settings
+  // rows from 3.0, each with its phone form.
+  ...[
+    ["RelNotice", "notice", 1440, 900],
+    ["RelNoticePhone", "noticePhone", 390, 844],
+    ["RelReport", "report", 920, 480],
+    ["RelReportPhone", "reportPhone", 390, 560],
+    ["RelReminder", "reminder", 920, 400],
+    ["RelReminderNever", "reminderNever", 920, 400],
+    ["RelReminderPhone", "reminderPhone", 390, 460],
+    ["RelForget", "forget", 920, 360],
+    ["RelForgotten", "forgotten", 920, 360],
+    ["RelForgetPhone", "forgetPhone", 390, 520],
+    ["RelForgottenPhone", "forgottenPhone", 390, 520],
+    ["RelSettings", "settings", 760, 640],
+    ["RelSettingsCleared", "settingsCleared", 760, 640],
+    ["RelSettingsPhone", "settingsPhone", 390, 900],
+  ].map(([file, layout, width, height]) => [file, { layout }, width, height, "Release"]),
 ];
 
 async function main() {

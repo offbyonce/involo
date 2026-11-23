@@ -55,6 +55,7 @@ in Rust. The host saves progress and settings on the device.
   import Slideout from "./lib/Slideout.svelte";
   import CduWalkthrough from "./lib/CduWalkthrough.svelte";
   import type { Walkthroughs } from "./lib/walkthroughs";
+  import SimNotice from "./lib/SimNotice.svelte";
   import Toast from "./lib/Toast.svelte";
   import { answered } from "./lib/answers.svelte";
   import { changedText, dependsOn, labelOf, lowerFirst, shortLabel, type DecisionSource, type Decisions } from "./lib/decision";
@@ -718,6 +719,8 @@ in Rust. The host saves progress and settings on the device.
   }
   function slideKeys(e: KeyboardEvent): void {
     const t = e.target instanceof Element ? e.target : null;
+    // Nothing reaches the app while the simulator-only notice is open (#241).
+    if (settings && !settings.noticeSeen) return;
     // Ctrl K (⌘K) opens Find from any page (Find boards).
     if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === "k" || e.key === "K")) {
       e.preventDefault();
@@ -1635,7 +1638,8 @@ in Rust. The host saves progress and settings on the device.
   // loaded; answering it is remembered in Settings, the only thing the tour stores.
   let welcomeAsked = false;
   $effect(() => {
-    if (welcomeAsked || !settings || !rail || !view || (screen !== "phase" && screen !== "start")) return;
+    // After the simulator-only notice (#241), which comes before anything else.
+    if (welcomeAsked || !settings || !settings.noticeSeen || !rail || !view || (screen !== "phase" && screen !== "start")) return;
     welcomeAsked = true;
     // Not a first visit: a flight saved before settings were (settings are only saved once changed),
     // or saved settings set aside, which can't take the answer until they are resolved.
@@ -1710,6 +1714,9 @@ in Rust. The host saves progress and settings on the device.
 </script>
 
 <svelte:window onkeydown={slideKeys} onpopstate={() => findOpen && !history.state?.find && closeFind(true, true)} />
+{#if settings && !settings.noticeSeen}
+  <SimNotice onUnderstood={() => settings && void changeSettings({ ...settings, noticeSeen: true })} />
+{/if}
 {#if tour.step !== null && rail}
   <Tour stages={tourStages} {findKey} onSeen={tourSeen} onEnd={tourEnded} />
 {/if}

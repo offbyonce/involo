@@ -28,6 +28,7 @@ async function firstRunWith(app: App, page: Page, id: string): Promise<void> {
     return;
   }
   await app.open();
+  await app.answerNotice();
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await app.scene([
     go("#/packs"),
