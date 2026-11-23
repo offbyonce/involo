@@ -20,8 +20,8 @@ use involo_pack::FlatPack;
 use serde_json::{Map, Value};
 
 use crate::{
-    Backup, BackupFlight, BackupRefusal, Detail, EssentialsChanges, Flight, PackSource, Settings,
-    StepLayout, Theme, new_flight, new_log,
+    Backup, BackupFlight, BackupRefusal, Detail, EarlierFile, EssentialsChanges, Flight,
+    PackSource, Settings, StepLayout, Theme, new_flight, new_log,
 };
 
 /// The version every 3.0 export file gives, and the version its flight is said to come from.
@@ -40,7 +40,7 @@ pub(crate) fn is_earlier_export(object: &Map<String, Value>) -> bool {
 pub(crate) fn earlier_backup(
     object: &Map<String, Value>,
     packs: &[&FlatPack],
-) -> Result<Backup, BackupRefusal> {
+) -> Result<(Backup, EarlierFile), BackupRefusal> {
     let state = object
         .get("state")
         .and_then(Value::as_object)
@@ -60,7 +60,20 @@ pub(crate) fn earlier_backup(
         .ok_or(BackupRefusal::NoPackForEarlier)?;
     let flight = flight(pack, state, exported);
     let settings = settings(pack, state);
-    Ok(Backup {
+    // The pack's steps the file marks, as the restore will map them; a tick wins over a skip.
+    let steps = aliases(pack, AliasKind::Step);
+    let count = |key: &str, also_ticked: bool| {
+        let n = self::object(state, key)
+            .filter(|(id, _)| steps.contains_key(id.as_str()))
+            .filter(|(id, _)| also_ticked || !self::object(state, "done").any(|(d, _)| d == *id))
+            .count();
+        u32::try_from(n).unwrap_or(u32::MAX)
+    };
+    let file = EarlierFile {
+        ticked: count("done", true),
+        skipped: count("skip", false),
+    };
+    let backup = Backup {
         kind: crate::BACKUP_KIND.to_owned(),
         format: crate::BACKUP_FORMAT,
         app_version: EARLIER_NAME.to_owned(),
@@ -76,7 +89,8 @@ pub(crate) fn earlier_backup(
         }],
         settings,
         log: new_log(),
-    })
+    };
+    Ok((backup, file))
 }
 
 use crate::update::aliases;
@@ -340,7 +354,7 @@ mod tests {
 
     fn ready(read: BackupRead) -> Backup {
         match read {
-            BackupRead::Ready { backup } => *backup,
+            BackupRead::Ready { backup, .. } => *backup,
             BackupRead::Refused { refusal } => panic!("refused: {refusal:?}"),
         }
     }
@@ -348,7 +362,19 @@ mod tests {
     #[test]
     fn a_3_0_export_restores_into_the_pack_whose_aliases_know_it() {
         let (example, ifly) = (example_pack(), ifly_pack());
-        let backup = ready(read_backup(EXPORT, &[&example, &ifly]));
+        let read = read_backup(EXPORT, &[&example, &ifly]);
+        let BackupRead::Ready { earlier, .. } = &read else {
+            panic!("refused");
+        };
+        assert_eq!(
+            *earlier,
+            Some(EarlierFile {
+                ticked: 2,
+                skipped: 1
+            }),
+            "the pack's steps the file marks: the unknown tick left out, the skip of a ticked step too"
+        );
+        let backup = ready(read);
         assert_eq!(backup.app_version, "3.0");
         assert_eq!(backup.saved_at, 1_795_167_000_000, "the export's time");
         assert_eq!(backup.log.flights.len(), 0, "3.0's log stays behind");

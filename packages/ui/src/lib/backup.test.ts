@@ -4,7 +4,15 @@
 import type { BackupFlight, CatalogEntry, Flight } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import type { InstalledPack } from "../host";
-import { backupFileName, lastBackupLine, logLine, refusalLine, rowFor, savedByLine } from "./backup";
+import {
+  backupFileName,
+  earlierSavedLine,
+  lastBackupLine,
+  logLine,
+  refusalLine,
+  rowFor,
+  savedByLine,
+} from "./backup";
 
 // Back up and restore (#47, Backup board): the words the card and the dialogs show.
 
@@ -55,6 +63,21 @@ describe("back up and restore words", () => {
     expect(refusalLine({ kind: "noPackForEarlier" })).toBe(
       "This file is from the 3.0 checklist, and none of your packs can read it. Add the pack for its aircraft, then try again.",
     );
+  });
+
+  it("describes a file the 3.0 checklist exported from the file itself (#240)", () => {
+    expect(earlierSavedLine(at)).toBe("Saved Nov 18, 2026 at 10:14 by the 3.0 checklist.");
+    const row = rowFor(entry(), installed("0.1.0"), null, [listed], { ticked: 1, skipped: 2 });
+    expect(row).toMatchObject({
+      version: null,
+      badge: "From the 3.0 checklist",
+      inBackup: "In the file: 1 step ticked, 2 skipped.",
+      upgrade: "Brought up to version 0.1.0, with a note on what changed.",
+    });
+    expect(rowFor(entry(), installed("0.1.0"), null, [], { ticked: 0, skipped: 0 }).inBackup).toBe(
+      "In the file: 0 steps ticked, 0 skipped.",
+    );
+    expect(rowFor(entry(), installed("0.1.0"), null, []).badge).toBeNull();
   });
 
   it("counts what the log merge adds, and leaves the row out when it adds nothing", () => {

@@ -113,8 +113,24 @@ pub enum BackupRefusal {
 #[serde(tag = "state", rename_all = "camelCase")]
 #[ts(export)]
 pub enum BackupRead {
-    Ready { backup: Box<Backup> },
-    Refused { refusal: BackupRefusal },
+    /// `earlier` is set for a file exported by the earlier checklist (3.0), which the review
+    /// describes from the file itself.
+    Ready {
+        backup: Box<Backup>,
+        earlier: Option<EarlierFile>,
+    },
+    Refused {
+        refusal: BackupRefusal,
+    },
+}
+
+/// What a file from the earlier checklist (3.0) holds of the pack's steps: how many it ticks, and
+/// how many it skips without ticking.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, TS)]
+#[ts(export)]
+pub struct EarlierFile {
+    pub ticked: u32,
+    pub skipped: u32,
 }
 
 /// The file as it is read, before each part is migrated.
@@ -197,20 +213,29 @@ fn looks_like_log(object: &serde_json::Map<String, Value>) -> bool {
 /// backup for the one of `packs` whose aliases know it (crate::earlier). Nothing here changes the
 /// device.
 pub fn read_backup(text: &str, packs: &[&FlatPack]) -> BackupRead {
-    match read(text, packs) {
-        Ok(backup) => BackupRead::Ready {
+    let value = serde_json::from_str::<Value>(text).ok();
+    let earlier = value
+        .as_ref()
+        .and_then(Value::as_object)
+        .filter(|o| crate::earlier::is_earlier_export(o));
+    let read = match earlier {
+        Some(object) => {
+            crate::earlier::earlier_backup(object, packs).map(|(b, file)| (b, Some(file)))
+        }
+        None => read(value).map(|b| (b, None)),
+    };
+    match read {
+        Ok((backup, earlier)) => BackupRead::Ready {
             backup: Box::new(backup),
+            earlier,
         },
         Err(refusal) => BackupRead::Refused { refusal },
     }
 }
 
-fn read(text: &str, packs: &[&FlatPack]) -> Result<Backup, BackupRefusal> {
-    let value: Value = serde_json::from_str(text).map_err(|_| BackupRefusal::NotBackup)?;
+fn read(value: Option<Value>) -> Result<Backup, BackupRefusal> {
+    let value = value.ok_or(BackupRefusal::NotBackup)?;
     let object = value.as_object().ok_or(BackupRefusal::NotBackup)?;
-    if crate::earlier::is_earlier_export(object) {
-        return crate::earlier::earlier_backup(object, packs);
-    }
     if object.get("kind").and_then(Value::as_str) != Some(BACKUP_KIND) {
         return Err(if looks_like_log(object) {
             BackupRefusal::LogFile
@@ -355,7 +380,7 @@ mod tests {
 
     fn ready(text: &str) -> Backup {
         match read_backup(text, &[]) {
-            BackupRead::Ready { backup } => *backup,
+            BackupRead::Ready { backup, .. } => *backup,
             BackupRead::Refused { refusal } => panic!("refused: {refusal:?}"),
         }
     }
