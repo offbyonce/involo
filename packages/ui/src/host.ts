@@ -192,6 +192,17 @@ export interface Host {
   editLog(log: Log, edit: LogEdit): Promise<LogChange>;
   /** The log's flights as CSV, one row per flight. */
   logCsv(log: Log): Promise<string>;
+  /**
+   * Opens a link in a new browser tab, or in the default browser where the app has no tabs (the
+   * desktop app). Only https links: What's new, GitHub's privacy statement, Report a problem.
+   */
+  openLink(url: string): Promise<void>;
+  /**
+   * Hands the pilot a file the app made (a backup, a log export, a copy of kept data), named
+   * `name`: a download in a browser, the save dialog on desktop. Resolves false when the pilot
+   * cancelled, so nothing was saved.
+   */
+  saveFile(name: string, text: string, type: string): Promise<boolean>;
   /** The pilot's theme changed (or the app started): a host with a browser tab sets the favicon
    * and theme-color to match (BRAND.md). Optional: a host without one leaves it out. */
   themeChanged?(theme: Theme): void;

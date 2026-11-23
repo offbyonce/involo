@@ -24,6 +24,10 @@ allow = [
     "Apache-2.0",
     "BSD-3-Clause",
     "Unicode-3.0",
+    # Only the desktop app's dependencies, through Tauri: MPL-2.0 (file-level, so our own code's
+    # license is unaffected) for its HTML and CSS parsers, and Zlib.
+    "MPL-2.0",
+    "Zlib",
 ]
 confidence-threshold = 0.9
 

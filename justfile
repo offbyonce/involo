@@ -31,17 +31,36 @@ fmt-check:
 
 # Lints and type checks (warnings fail).
 lint: wasm
-    cargo clippy --workspace --all-targets -- -D warnings
+    cargo clippy --all-targets -- -D warnings
     pnpm exec biome check --error-on-warnings .
     pnpm --filter @involo/ui check
     pnpm --filter @involo/web check
+    pnpm --filter @involo/desktop check
 
-# All tests: Rust (nextest + doctests), the interface (Vitest), the 3.0 converter and the web site.
+# All tests: Rust (nextest + doctests), the interface and the desktop host (Vitest), the 3.0
+# converter and the web site. The desktop app's Rust tests are in `just desktop-check`.
 test: wasm test-packs
-    cargo nextest run --workspace
-    cargo test --doc --workspace
+    cargo nextest run
+    cargo test --doc
     pnpm --filter @involo/ui test
+    pnpm --filter @involo/desktop test
     node --test "tools/*.test.js" "tools/import-3x/*.test.js" "apps/web/*.test.js" "apps/web/src/*.test.js" "apps/web/build/*.test.js"
+
+# Run the desktop app in a window, from the desktop entry's dev server (decision 0031). Needs the
+# system webview: WebView2 on Windows, WebKit on macOS (and WebKitGTK on Linux, where it isn't
+# shipped).
+desktop:
+    pnpm --filter @involo/desktop tauri dev
+
+# Build the desktop app's installer for this system: NSIS on Windows, a disk image on macOS.
+desktop-build:
+    pnpm --filter @involo/desktop tauri build
+
+# Lints and tests for the desktop app's Rust crate, which `just ci` leaves out (it needs the
+# system webview to compile). CI runs it on Windows and macOS.
+desktop-check:
+    cargo clippy -p involo-desktop --all-targets -- -D warnings
+    cargo nextest run -p involo-desktop
 
 # Build the web host as WebAssembly into apps/web/src/wasm. Needs the wasm-bindgen CLI at the
 # same version as the crate (decision 0010).
@@ -154,7 +173,7 @@ pack-docs:
 
 # Regenerate the TypeScript types from the Rust types.
 bindings:
-    cargo test -q --workspace export_bindings
+    cargo test -q export_bindings
 
 # Regenerate the interface's design tokens from docs/design/tokens.json (decision 0021).
 tokens:
@@ -178,10 +197,20 @@ overlap:
     cargo run -q -p involo-pack-cli -- overlap packs/examples --allow crates/involo-pack-overlap/allow.txt
 
 # Licenses, advisories, banned crates and sources (Rust), then JS advisories in what the app
-# ships (level and accepted advisories in pnpm-workspace.yaml: high and critical fail).
+# ships (level and accepted advisories in pnpm-workspace.yaml: high and critical fail). The Rust
+# check runs on the workspace without the desktop app, for every system; then on the desktop app
+# alone, for each system it ships on (decision 0031), so Tauri's Linux-only dependencies are left
+# out.
 deny:
-    cargo deny check
+    cargo deny --exclude involo-desktop check
+    cargo deny --manifest-path {{desktop}} --target x86_64-pc-windows-msvc check
+    cargo deny --manifest-path {{desktop}} --target x86_64-apple-darwin check
+    cargo deny --manifest-path {{desktop}} --target aarch64-apple-darwin check
     pnpm audit --prod
+
+# The desktop app's crate, which `cargo deny` checks once for each system it ships on (it takes one
+# target at a time).
+desktop := "apps/desktop/src-tauri/Cargo.toml"
 
 # Everything a change must pass. Same command locally and in CI.
 ci: fmt-check lint test generated-check packs site deny

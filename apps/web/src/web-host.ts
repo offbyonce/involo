@@ -6,7 +6,7 @@
 // `involo-pack build`, in packs/ beside this page, the site's front page.
 
 import { isAppError, type PackChanges, type PackSummary, type SavedPlan } from "@involo/bindings";
-import type { Host } from "@involo/ui";
+import { downloadFile, type Host } from "@involo/ui";
 import { applyBrandTheme } from "./brand-theme";
 import {
   appInfo,
@@ -65,6 +65,7 @@ import {
   setAside,
 } from "./saved";
 import { fetchPlanText } from "./simbrief-fetch.js";
+import { canKeepAwake, keepAwake } from "./wake-lock";
 
 /** Whether the browser has been asked this visit to keep the site's data: the log (decision
  * 0026) and the installed packs (decision 0028). */
@@ -146,37 +147,6 @@ async function persistStorage(): Promise<boolean> {
   return (await storage.persisted?.()) || (await storage.persist());
 }
 
-/** Settings › Keep screen awake (#245): the Screen Wake Lock, held while the setting is on and
- * taken again whenever the page comes back into view (the browser lets it go when the page is
- * hidden). */
-type WakeLock = { release(): Promise<void> };
-const wakeLocks = (navigator as Navigator & { wakeLock?: { request(type: "screen"): Promise<WakeLock> } })
-  .wakeLock;
-let wakeWanted = false;
-let wakeHeld: WakeLock | null = null;
-async function holdWake(): Promise<boolean> {
-  if (!wakeLocks || !wakeWanted || document.visibilityState !== "visible") return false;
-  try {
-    wakeHeld ??= await wakeLocks.request("screen");
-    return true;
-  } catch {
-    return false;
-  }
-}
-if (wakeLocks)
-  document.addEventListener("visibilitychange", () => {
-    wakeHeld = null;
-    void holdWake();
-  });
-async function keepAwake(on: boolean): Promise<boolean> {
-  wakeWanted = on;
-  if (on) return holdWake();
-  const held = wakeHeld;
-  wakeHeld = null;
-  await held?.release().catch(() => {});
-  return false;
-}
-
 export const webHost: Host = {
   appInfo,
   catalog: () => readCatalog({ fetch: fetchOwn, parse: parseCatalog }),
@@ -215,7 +185,7 @@ export const webHost: Host = {
   backupText,
   readBackup,
   persistStorage,
-  canKeepAwake: () => !!wakeLocks,
+  canKeepAwake,
   keepAwake,
   readSettings,
   save,
@@ -256,4 +226,8 @@ export const webHost: Host = {
   editLog: async (log, edit) =>
     editLog(log, edit, edit.type === "merge" ? await logPackTexts(edit.text) : []),
   logCsv,
+  openLink: async (url) => {
+    window.open(url, "_blank", "noopener,noreferrer");
+  },
+  saveFile: async (name, text, type) => downloadFile(name, text, type),
 };
