@@ -77,7 +77,7 @@ test("a catalog download is kept only when its SHA-256 matches the catalog", asy
   assert.equal(result.state, "installed");
   assert.equal(result.pack.source, "catalog");
   assert.deepEqual(fetched, [
-    ["../packs/ifly-737-max8-0.1.0.involo-pack", { credentials: "omit", referrerPolicy: "no-referrer" }],
+    ["packs/ifly-737-max8-0.1.0.involo-pack", { credentials: "omit", referrerPolicy: "no-referrer" }],
   ]);
   // Tampered on the way: a valid pack, one letter changed, so the hash differs.
   const t = device();
@@ -155,7 +155,7 @@ test("the catalog is read from the app's own site with nothing about the pilot",
   const parse = async (t) => JSON.parse(wasm.parse_catalog(t)).ok;
   assert.deepEqual(await readCatalog({ fetch, parse }), [entry]);
   assert.deepEqual(calls, [
-    ["../packs/index.json", { credentials: "omit", referrerPolicy: "no-referrer", cache: "no-cache" }],
+    ["packs/index.json", { credentials: "omit", referrerPolicy: "no-referrer", cache: "no-cache" }],
   ]);
   assert.equal(catalogFile(entry), "ifly-737-max8-0.1.0.involo-pack");
 });

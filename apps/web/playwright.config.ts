@@ -21,7 +21,7 @@ export default defineConfig({
     ? [["list"], ["html", { open: "never", outputFolder: "../../target/e2e/report" }]]
     : "list",
   use: {
-    baseURL: `http://localhost:${port}/app/`,
+    baseURL: `http://localhost:${port}/`,
     trace: "retain-on-failure",
     serviceWorkers: "allow",
   },
@@ -31,7 +31,7 @@ export default defineConfig({
   ],
   webServer: {
     command: `node e2e/serve.mjs`,
-    url: `http://localhost:${port}/app/`,
+    url: `http://localhost:${port}/`,
     reuseExistingServer: !process.env.CI,
     env: { E2E_PORT: String(port) },
   },

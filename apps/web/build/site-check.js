@@ -50,7 +50,7 @@ export function catalogProblems(dist) {
     if (!listed.has(file)) problems.push(`packs/${file} is not in the catalog`);
   for (const file of filesIn(dist).filter((f) => !f.startsWith("packs/"))) {
     const text = fs.readFileSync(path.join(dist, file), "latin1");
-    if (file === "app/sw.js" && /["'](?:\.\.\/)?packs\//.test(text))
+    if (file === "sw.js" && /["'](?:\.\.\/)?packs\//.test(text))
       problems.push("the service worker precaches the pack catalog");
     for (const [pack, hash] of hashes) if (text.includes(hash)) problems.push(`${file} holds ${pack}`);
   }
