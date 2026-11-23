@@ -174,6 +174,91 @@ export function layoutProblems(phone: boolean): string[] {
 }
 
 /**
+ * Waits until the page has stopped changing: no change to the document for `QUIET_MS`, or
+ * `SETTLE_MAX_MS` at most. Timers, not animation frames, since a page in the background may get
+ * no frames.
+ */
+const QUIET_MS = 100;
+const SETTLE_MAX_MS = 3000;
+async function settled(page: Page): Promise<void> {
+  await page.evaluate(
+    ([quiet, max]) =>
+      new Promise<void>((done) => {
+        let timer = setTimeout(finish, quiet);
+        const cap = setTimeout(finish, max);
+        const watch = new MutationObserver(() => {
+          clearTimeout(timer);
+          timer = setTimeout(finish, quiet);
+        });
+        watch.observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+        function finish(): void {
+          watch.disconnect();
+          clearTimeout(timer);
+          clearTimeout(cap);
+          done();
+        }
+      }),
+    [QUIET_MS, SETTLE_MAX_MS] as const,
+  );
+}
+
+/**
+ * Resizes the page and waits until the page itself has taken the new size and finished reacting
+ * to it. `setViewportSize` can return before the page gets its resize event: on a busy machine
+ * WebKit delivered it up to half a second later, and a fixed wait checked the old layout (the
+ * app's media-query listeners, such as the one that moves the step pane into the list below
+ * 900 px, run with that event). The browser reports media-query changes right after the resize
+ * event, in the same rendering step, so once the page has seen the event its listeners have run.
+ */
+export async function resizeTo(page: Page, size: { width: number; height: number }): Promise<void> {
+  const already = await page.evaluate(({ width, height }) => {
+    const w = window as Window & { __resized?: boolean };
+    w.__resized = false;
+    const at = () => innerWidth === width && innerHeight === height;
+    if (at()) return true;
+    const seen = () => {
+      if (!at()) return;
+      // The media-query listeners run after the resize event, in the same rendering step.
+      setTimeout(() => (w.__resized = true));
+      removeEventListener("resize", seen);
+    };
+    addEventListener("resize", seen);
+    return false;
+  }, size);
+  await page.setViewportSize(size);
+  if (!already)
+    await page.waitForFunction(() => (window as Window & { __resized?: boolean }).__resized === true);
+  await settled(page);
+}
+
+/**
+ * Sets the color scheme (`null` puts the browser's back) and waits until the page has reacted to
+ * it, as `resizeTo` does for a new size: the app follows the scheme through a media-query listener.
+ */
+export async function themeTo(page: Page, theme: "dark" | "light" | null): Promise<void> {
+  await page.evaluate(() => {
+    const w = window as Window & { __schemed?: boolean; __dark?: boolean };
+    const query = matchMedia("(prefers-color-scheme: dark)");
+    w.__schemed = false;
+    w.__dark = query.matches;
+    const seen = () => {
+      // After the app's own listener, which was added first.
+      setTimeout(() => (w.__schemed = true));
+      query.removeEventListener("change", seen);
+    };
+    query.addEventListener("change", seen);
+  });
+  await page.emulateMedia({ colorScheme: theme });
+  const changed = await page.evaluate(
+    () =>
+      matchMedia("(prefers-color-scheme: dark)").matches !== (window as Window & { __dark?: boolean }).__dark,
+  );
+  if (changed)
+    await page.waitForFunction(() => (window as Window & { __schemed?: boolean }).__schemed === true);
+  await settled(page);
+}
+
+/**
  * The screen's layout and accessibility problems at both widths and in both themes, each as
  * `<screen>, <width> px, <theme>: <problem>`; the page is put back as it was. `keys` are the
  * screen's key elements, which must show at every size.
@@ -182,10 +267,9 @@ export async function screenProblems(page: Page, screen: string, keys: Locator[]
   const size = page.viewportSize();
   const problems: string[] = [];
   for (const { width, height } of WIDTHS) {
-    await page.setViewportSize({ width, height });
+    await resizeTo(page, { width, height });
     for (const theme of THEMES) {
-      await page.emulateMedia({ colorScheme: theme });
-      await page.waitForTimeout(200);
+      await themeTo(page, theme);
       const at = `${screen}, ${width} px, ${theme}`;
       for (const p of await page.evaluate(layoutProblems, width < 600)) problems.push(`${at}: ${p}`);
       for (const key of keys)
@@ -204,8 +288,8 @@ export async function screenProblems(page: Page, screen: string, keys: Locator[]
       }
     }
   }
-  await page.emulateMedia({ colorScheme: null });
-  if (size) await page.setViewportSize(size);
+  await themeTo(page, null);
+  if (size) await resizeTo(page, size);
   return problems;
 }
 
