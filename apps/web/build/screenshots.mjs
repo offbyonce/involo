@@ -67,6 +67,7 @@ import {
   pressText,
   refuseSaves,
   reopenWelcome,
+  savedSimbriefUser,
   restarted,
   rowMenu,
   savedAs,
@@ -589,6 +590,10 @@ const SHOTS = [
   // Before engine start: Preflight and Departure up to and including Engine start.
   // The tour (Tour boards): the welcome over the Checklist board's state, step 2, the end; and steps
   // 3 to 6 at desktop.
+  // Forget the SimBrief username (#244, RelForget and RelForgotten): the Import card with a username
+  // saved, and after Forget username, with the toast.
+  { name: "board-forget", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, ...savedSimbriefUser, go("#/flight/simbrief")] } },
+  { name: "board-forgotten", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, ...savedSimbriefUser, go("#/flight/simbrief"), click("button.forget")] } },
   { name: "board-tour-welcome", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenWelcome] } },
   { name: "board-tour-step", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(0)] } },
   { name: "board-tour-end", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(5)] } },
