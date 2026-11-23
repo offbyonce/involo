@@ -27,6 +27,7 @@ import {
   addCatalogIflyAsFile,
   addExample,
   chooseBackup,
+  chooseEarlierExport,
   scrollToBackup,
   exampleOnly,
   exampleUntouched,
@@ -695,6 +696,10 @@ const SHOTS = [
   { name: "board-restore-refused", fresh: true, only: ["desktop", "phone"], app: { hash: "#/settings", before: [...exampleOnly, chooseBackup(true)] } },
   { name: "board-restore-download-failed", fresh: true, only: ["desktop", "phone"], app: { hash: "#/settings", before: [...exampleUntouched, chooseBackup(), ...failedDownload] } },
   { name: "board-restore-too-large", fresh: true, only: ["desktop", "phone"], app: { hash: "#/settings", before: [...exampleOnly, chooseBackup("big")] } },
+  // A file the 3.0 checklist exported (#240): the review with the iFly pack open, and the refusal
+  // with only an example pack.
+  { name: "board-restore-earlier", full: true, fresh: true, only: ["desktop", "phone"], app: { hash: "#/settings", before: [...BOARD_STATE, go("#/settings"), chooseEarlierExport] } },
+  { name: "board-restore-earlier-refused", fresh: true, only: ["desktop", "phone"], app: { hash: "#/settings", before: [...exampleOnly, chooseEarlierExport] } },
   { name: "board-packs-remove", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, go("#/packs"), click('button[aria-label^="Remove "]')] } },
   { name: "board-packs-first", full: true, fresh: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: noPacks } },
   // A pack update during a flight (PacksUpdate): What's new on the Packs page, then the note

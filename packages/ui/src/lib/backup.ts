@@ -4,7 +4,7 @@
 // Back up and restore (#47; Backup board): the words the Settings card and the restore dialogs
 // show, worked out from the backup and this device.
 
-import type { BackupFlight, BackupRefusal, CatalogEntry, FlightPlace } from "@involo/bindings";
+import type { BackupFlight, BackupRefusal, CatalogEntry, EarlierFile, FlightPlace } from "@involo/bindings";
 import type { InstalledPack } from "../host";
 
 const TIME: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit", hourCycle: "h23" };
@@ -37,6 +37,14 @@ export function savedByLine(savedAt: number, appVersion: string): string {
   return `Backup saved ${when(savedAt, true)} by Involo ${appVersion}. Untick anything you want to leave as it is.`;
 }
 
+/** The line under the title for a file the 3.0 checklist exported, with the file's exported time. */
+export function earlierSavedLine(savedAt: number): string {
+  return `Saved ${when(savedAt, true)} by the 3.0 checklist.`;
+}
+
+/** The muted line under Also in the file for a 3.0 file: what it holds that isn't restored. */
+export const EARLIER_LEFT_OUT = "Not brought across: 3.0’s flight log, practice scores and timers.";
+
 /** Where a flight is, as the Packs page shows it: "Departure › Before start, 12 of 40". */
 export function placeLine(place: FlightPlace): string {
   return `${place.place}, ${place.done} of ${place.total}`;
@@ -52,6 +60,8 @@ export function refusalLine(refusal: BackupRefusal): string {
       return `It was saved by a newer version of Involo (${refusal.version}). Update Involo, then try again.`;
     case "logFile":
       return "This is a flight log file. Load it from the Flight log page.";
+    case "noPackForEarlier":
+      return "This file is from the 3.0 checklist, and none of your packs can read it. Add the pack for its aircraft, then try again.";
     default:
       return "This file isn’t an Involo backup, or it’s damaged.";
   }
@@ -73,10 +83,13 @@ export function logLine(flights: number, practice: number): string | null {
 export type ReviewFlight = {
   pack: string;
   name: string;
-  /** The pack version the flight was saved with, as the badge shows it ("v0.0.9"). */
-  version: string;
-  /** "In the backup: …" ("not started" before the first tick), or null when the device that saved
-   * it didn't have the pack. */
+  /** The pack version the flight was saved with, as the badge shows it ("v0.0.9"); null for a
+   * file the 3.0 checklist exported, which has none. */
+  version: string | null;
+  /** The neutral badge in its place for a 3.0 file: "From the 3.0 checklist". */
+  badge: string | null;
+  /** "In the backup: …" ("not started" before the first tick), "In the file: …" for a 3.0 file,
+   * or null when the device that saved it didn't have the pack. */
   inBackup: string | null;
   /** The flight on this device it replaces ("Replaces the flight on this device: …"), the line
    * that says nothing is replaced, or, for a pack not installed, that it is kept. */
@@ -97,8 +110,10 @@ export function rowFor(
   installed: InstalledPack | undefined,
   here: FlightPlace | true | null,
   catalog: CatalogEntry[],
+  earlier: EarlierFile | null = null,
 ): ReviewFlight {
   const version = entry.flight.packVersion;
+  const steps = (n: number) => `${n} ${n === 1 ? "step" : "steps"}`;
   const device = !installed
     ? { text: "Not on this device. The flight is kept and appears when you add the pack.", replaces: false }
     : here === null
@@ -110,9 +125,11 @@ export function rowFor(
   return {
     pack: entry.pack,
     name: installed?.summary.name ?? entry.name,
-    version,
-    inBackup:
-      Object.keys(entry.flight.session.done).length === 0
+    version: earlier ? null : version,
+    badge: earlier ? "From the 3.0 checklist" : null,
+    inBackup: earlier
+      ? `In the file: ${steps(earlier.ticked)} ticked, ${earlier.skipped} skipped.`
+      : Object.keys(entry.flight.session.done).length === 0
         ? "In the backup: not started"
         : entry.place
           ? `In the backup: ${placeLine(entry.place)}`
