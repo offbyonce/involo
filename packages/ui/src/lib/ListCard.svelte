@@ -39,6 +39,7 @@ folded to one line with its count until the phase's procedure is done.
     onSelect,
     onClear,
     onEssentials,
+    reportUrl,
     folded = false,
     decisions,
     timers,
@@ -66,6 +67,8 @@ folded to one line with its count until the phase's procedure is done.
     onClear: (list: string) => void;
     /** Adds a step to Essentials or removes it (the row menu). */
     onEssentials?: ((id: string, add: boolean) => void) | undefined;
+    /** Report a problem with a step (#242): the issue form's address for a step of a list. */
+    reportUrl?: ((list: string, step: string) => string) | undefined;
     /** A checklist whose procedure is not done yet: folded to one line until opened. */
     folded?: boolean;
     /** Decision steps and the steps that depend on them (decision 0022). */
@@ -199,6 +202,7 @@ folded to one line with its count until the phase's procedure is done.
           onBlank={(n, v) => onBlank(row.id, n, v)}
           onSelect={() => onSelect(row.id)}
           onEssentials={onEssentials ? (add) => onEssentials(row.id, add) : undefined}
+          reportUrl={reportUrl?.(list.id, row.id)}
           {decisions}
           {timers}
           {walkthroughs}

@@ -92,6 +92,8 @@ export const REVIEW_BOARDS = {
   // Light notes and panel-state descriptions (#211, Notes.dc.html).
   "board-light-notes": { desktop: "LightNotes", phone: "LightNotesPhone" },
   "board-state-note": { desktop: "StateNote", phone: "StateNotePhone" },
+  // Report a problem with a step (#242, Release.dc.html): the row menu.
+  "board-report": { desktop: "RelReport", phone: "RelReportPhone" },
   // The simulator-only notice (#241, Release.dc.html).
   "board-notice": { desktop: "RelNotice", phone: "RelNoticePhone" },
   // The backup reminder (#243, Release.dc.html): the band above the lists.
