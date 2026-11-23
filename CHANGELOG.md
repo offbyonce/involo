@@ -8,7 +8,7 @@ Every release of the Involo app and its packs, newest first. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions are plain `0.x.y`
 (CONTRIBUTING.md, "Changelog and versions").
 
-## [0.1.0] - Unreleased
+## [0.1.0] - 2026-11-23
 
 The first public beta: Involo as a web app that installs and works offline, with the iFly 737
 MAX 8 pack. It replaces the single-file 3.0 checklist and keeps every one of its 510 steps.

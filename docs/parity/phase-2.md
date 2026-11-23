@@ -14,10 +14,9 @@ or **not built**. Each gives the evidence that shows it, and the issue or pull r
 - **Passes:** every 3.0 feature in the feature coverage table ([coverage.md](../design/coverage.md))
   has a home at every size. All 510 3.0 steps are in the iFly pack (527 steps now). The app installs, works offline after the first visit and offers
   a reload for a new version. Backups restore with the pack's aliases and say what they replace.
-- **Fails or not built:** only the privacy note ([#52](https://github.com/offbyonce/involo/issues/52)),
-  and the brief's optional automatic SimBrief load, left out. Practice text and per-area scores
-  stay for Phase 3. Every other row that failed or was not built on 2026-11-22 has since been
-  fixed, and names the pull request that fixed it.
+- **Fails or not built:** only the brief's optional automatic SimBrief load, left out. Practice
+  text and per-area scores stay for Phase 3. Every other row that failed or was not built on
+  2026-11-22 has since been fixed, and names the pull request that fixed it.
 - **Not automated:** tablet sizes and Firefox are outside the e2e suite, and were checked ad hoc
   for this report. Installed (standalone) mode on a real device needs a person.
 
@@ -131,7 +130,7 @@ means the crate tests.
 | 3.0 import from a 3.0 export file, tested with an invented export | passes | e2e `backup.spec.ts` (a 3.0 export restores its progress into the iFly pack); Rust `backup` tests | [#248](https://github.com/offbyonce/involo/pull/248) |
 | First-launch notice covering the whole app | passes | e2e `first-run.spec.ts` (the notice comes first, closes only with I understand and never comes back) | [#251](https://github.com/offbyonce/involo/pull/251) |
 | No status or verification marker | passes | See One presentation above | |
-| Privacy note | not built | No privacy note in the app | [#52](https://github.com/offbyonce/involo/issues/52) |
+| Privacy note | passes | Settings › Privacy opens the note in the app; unit `PrivacyPage.test.ts`, `SettingsPage.test.ts`, `App.test.ts`; e2e `screens.spec.ts` (the Privacy page's layout and accessibility) | [#265](https://github.com/offbyonce/involo/pull/265) |
 | The app replaces the placeholder front page | passes | The app is the site's front page; `site-check.js`; e2e (every flow opens it there) | [#249](https://github.com/offbyonce/involo/pull/249) |
 | The temporary `app/` address and its interim notice line go | passes | `app/` is a redirect to the front page, kept for bookmarks and installed copies; the footer line is gone | [#249](https://github.com/offbyonce/involo/pull/249) |
 | Report a problem with a step: a prefilled issue form | passes | The last item of every step's menu; unit `report.test.ts`, `App.test.ts`; `.github/ISSUE_TEMPLATE/step-problem.yml` | [#257](https://github.com/offbyonce/involo/pull/257), [#252](https://github.com/offbyonce/involo/pull/252) |
