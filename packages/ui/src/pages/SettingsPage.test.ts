@@ -36,6 +36,91 @@ describe("SettingsPage", () => {
     expect(changed.at(-1)?.listView).toBe("checklist");
   });
 
+  describe("the rows from 3.0 (#245)", () => {
+    it("Keep screen awake: switches, or is off and disabled where the browser can't", async () => {
+      const changed: Settings[] = [];
+      render(SettingsPage, { settings, version: null, onChange: (s: Settings) => changed.push(s) });
+      const awake = screen.getByRole("switch", { name: "Keep screen awake" }) as HTMLButtonElement;
+      expect(awake.getAttribute("aria-checked")).toBe("false");
+      await fireEvent.click(awake);
+      expect(changed.at(-1)?.keepAwake).toBe(true);
+      cleanup();
+      render(SettingsPage, {
+        settings: { ...settings, keepAwake: true },
+        version: null,
+        canKeepAwake: false,
+        onChange: () => {},
+      });
+      const off = screen.getByRole("switch", { name: "Keep screen awake" }) as HTMLButtonElement;
+      expect(off.disabled).toBe(true);
+      expect(off.getAttribute("aria-checked")).toBe("false");
+      expect(screen.getByText(/This browser can’t keep the screen on\.$/)).toBeTruthy();
+    });
+
+    it("Your Essentials: the count and Reset, or the pack's own and Reset disabled", async () => {
+      let reset = 0;
+      render(SettingsPage, {
+        settings,
+        version: null,
+        essentialsChanged: { added: 2, removed: 1 },
+        onResetEssentials: () => reset++,
+        onChange: () => {},
+      });
+      expect(
+        screen.getByText(
+          "You’ve changed 3 steps: 2 added, 1 removed. Reset puts back the pack’s own Essentials.",
+        ),
+      ).toBeTruthy();
+      await fireEvent.click(screen.getByRole("button", { name: "Reset to default" }));
+      expect(reset).toBe(1);
+      cleanup();
+      render(SettingsPage, {
+        settings,
+        version: null,
+        essentialsChanged: { added: 0, removed: 0 },
+        onChange: () => {},
+      });
+      expect(screen.getByText("You’re using the pack’s own Essentials.")).toBeTruthy();
+      expect((screen.getByRole("button", { name: "Reset to default" }) as HTMLButtonElement).disabled).toBe(
+        true,
+      );
+    });
+
+    it("Start, before Back up and restore, and Clear all progress last", async () => {
+      const chosen: string[] = [];
+      let cleared = 0;
+      render(SettingsPage, {
+        settings,
+        version: null,
+        start: {
+          title: "Start type",
+          choices: [
+            { value: "cold", label: "Cold and dark" },
+            { value: "turn", label: "Turnaround" },
+          ],
+          value: "cold",
+        },
+        onStart: (v: string) => chosen.push(v),
+        onClearAll: () => cleared++,
+        onChange: () => {},
+      });
+      const start = screen.getByRole("radiogroup", { name: "Start" });
+      expect(within(start).getByRole("radio", { name: "Cold and dark" }).getAttribute("aria-checked")).toBe(
+        "true",
+      );
+      await fireEvent.click(within(start).getByRole("radio", { name: "Turnaround" }));
+      expect(chosen).toEqual(["turn"]);
+      const titles = [...document.querySelectorAll(".set b")].map((b) => b.textContent);
+      expect(titles.indexOf("Start")).toBe(titles.indexOf("Back up and restore") - 1);
+      expect(titles.at(-1)).toBe("Clear all progress");
+      await fireEvent.click(screen.getByRole("button", { name: "Clear all progress" }));
+      expect(cleared).toBe(1);
+      cleanup();
+      render(SettingsPage, { settings, version: null, onChange: () => {} });
+      expect(screen.queryByRole("radiogroup", { name: "Start" })).toBeNull();
+    });
+  });
+
   const seats = [
     { id: "left", label: "Left seat · Captain" },
     { id: "right", label: "Right seat · First officer" },

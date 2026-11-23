@@ -45,6 +45,8 @@ export type PackIndex = {
   order(stepId: string): number;
   overview: Overview | null;
   options: UserOption[];
+  /** The option the pack's turnaround rule names (Settings › Start); null without one. */
+  startOption: UserOption | null;
   /** The panel states the pack offers (a simulator's saved starting points). */
   panelStates: PanelState[];
   /** The Start page's order (the pack's `start_page`): option ids and `panel_state`. */
@@ -256,6 +258,7 @@ export function indexPack(pack: FlatPack): PackIndex {
     order: (stepId) => stepOrder.get(stepId) ?? Number.MAX_SAFE_INTEGER,
     overview: pack.content.controls?.overview ?? null,
     options: pack.content.phases?.options ?? [],
+    startOption: startOptionOf(pack),
     panelStates: pack.content.panelStates?.states ?? [],
     startPage: pack.content.phases?.startPage ?? [],
     section: (id) => sections.get(id),
@@ -316,4 +319,12 @@ function seatChoices(pack: FlatPack): { id: string; label: string }[] {
     const role = roles.find((r) => r.seat === s.id);
     return { id: s.id, label: role ? `${s.title} · ${role.title}` : s.title };
   });
+}
+
+/** The option a pack's turnaround rule tests (`turnaround` in phases.yaml, a single test), which
+ * Settings › Start offers; null for a pack without one. */
+function startOptionOf(pack: FlatPack): UserOption | null {
+  const rule = pack.content.phases?.turnaround;
+  if (!rule || !("option" in rule)) return null;
+  return pack.content.phases?.options?.find((o) => o.id === rule.option) ?? null;
 }

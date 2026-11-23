@@ -880,6 +880,65 @@ in Rust. The host saves progress and settings on the device.
       fail(e);
     }
   }
+  /** Settings › Your Essentials (#245): how many steps the pilot added to and removed from the open
+   * pack's Essentials. */
+  let yourEssentials = $derived.by(() => {
+    const c = settings?.essentialsChanges?.[packId];
+    return { added: c?.added.length ?? 0, removed: c?.removed.length ?? 0 };
+  });
+  /** Settings › Your Essentials's Reset to default (#245): the pack's own Essentials, with Undo. */
+  function resetEssentials(): void {
+    if (!settings || !flight) return;
+    const before = settings.essentialsChanges;
+    const { [packId]: _, ...others } = before;
+    void changeSettings({ ...settings, essentialsChanges: others });
+    offerUndo("Essentials reset.", flight, () => {
+      if (settings) void changeSettings({ ...settings, essentialsChanges: before });
+    });
+  }
+  /** Settings › Start (#245): the option the pack's turnaround rule names, with the flight's choice. */
+  let startSetting = $derived.by(() => {
+    const o = index?.startOption;
+    if (!o || !flight) return null;
+    const choices = o.values.map((v) => ({ value: v, label: o.choices?.find((c) => c.value === v)?.label ?? v }));
+    return { id: o.id, title: o.title, choices, value: flight.options[o.id] ?? o.default };
+  });
+  /** Settings › Clear all progress (#245): every pack's saved flight and plan, at once, with Undo.
+   * The open pack's flight starts again; the others' saved flights and plans go, kept here until
+   * the toast goes, for Undo. Settings, backups and the flight log stay. */
+  async function clearAll(): Promise<void> {
+    if (!flight) return;
+    try {
+      const before = flight;
+      const beforePlan = plan;
+      const others: { id: string; flight: Flight; plan: SavedPlan | null }[] = [];
+      for (const id of await host.savedPacks()) {
+        if (id === packId) continue;
+        const saved = (await host.readSaved(id)).flight;
+        if (saved?.loaded.state !== "ready") continue;
+        others.push({ id, flight: saved.loaded.value, plan: readyPlan(await host.readPlan(id)) });
+        await host.removeSaved(id);
+      }
+      await act({ type: "clear" });
+      plan = null;
+      await host.savePlan(packId, null);
+      offerUndo("All progress cleared.", before, () => {
+        plan = beforePlan;
+        void host.savePlan(packId, beforePlan);
+        for (const o of others) {
+          void host.save(o.id, "flight", o.flight);
+          if (o.plan) void host.savePlan(o.id, o.plan);
+        }
+      });
+    } catch (e) {
+      fail(e);
+    }
+  }
+  // Settings › Keep screen awake (#245): held while it's on, through the host.
+  $effect(() => {
+    const on = !!settings?.keepAwake;
+    void host.keepAwake?.(on).catch(() => false);
+  });
   async function clearFlight(): Promise<void> {
     if (!flight) return;
     const before = flight;
@@ -2007,6 +2066,12 @@ in Rust. The host saves progress and settings on the device.
               version={info?.version ?? null}
               seats={index?.seats ?? []}
               hasEssentials={index?.hasEssentials ?? true}
+              canKeepAwake={host.canKeepAwake?.() ?? false}
+              essentialsChanged={index?.hasEssentials ? yourEssentials : null}
+              start={startSetting}
+              onResetEssentials={resetEssentials}
+              onStart={(value) => startSetting && act({ type: "setOption", option: startSetting.id, value })}
+              onClearAll={() => void clearAll()}
               onChange={(s) => void changeSettings(s)}
               onBackup={() => void saveBackup()}
               onRestore={(file) => void startRestore(file)}

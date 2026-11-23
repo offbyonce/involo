@@ -118,6 +118,12 @@ export interface Host {
    * something to keep. Resolves whether it is kept; the app works the same either way. Optional: a
    * host whose storage is always kept leaves it out. */
   persistStorage?(): Promise<boolean>;
+  /** Whether the screen can be kept on (Settings › Keep screen awake). Optional: a host
+   * without it has no such setting to offer. */
+  canKeepAwake?(): boolean;
+  /** Keeps the screen on while the app is open, or lets it go; held again whenever the app comes
+   * back into view. Resolves whether it is held. */
+  keepAwake?(on: boolean): Promise<boolean>;
   /** The settings saved on this device, read as readSaved reads them; null when none. They
    * belong to no pack, so the app reads them before it opens one. */
   readSettings(): Promise<SavedItem<Settings>>;
