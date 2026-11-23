@@ -589,6 +589,22 @@ const SHOTS = [
   // Before engine start: Preflight and Departure up to and including Engine start.
   // The tour (Tour boards): the welcome over the Checklist board's state, step 2, the end; and steps
   // 3 to 6 at desktop.
+  // Report a problem with a step (#242, RelReport): the row menu open on the board's step.
+  {
+    name: "board-report",
+    only: ["desktop", "phone"],
+    app: {
+      hash: "#/phase/before-start",
+      before: [
+        ...BOARD_STATE,
+        go("#/phase/before-start"),
+        // On a phone the steps after the current one are folded ("3 more steps"): unfold them.
+        `([...document.querySelectorAll("button")].find((b) => /^\\d+ more steps?/.test(b.textContent.trim()))?.click(), true)`,
+        `new Promise((d) => setTimeout(() => { document.querySelector('[data-menu="ifly-737-max8.before-start.anti-collision-light"]')?.scrollIntoView({ block: "center" }); setTimeout(() => d(true), 400); }, 300))`,
+        click('[data-menu="ifly-737-max8.before-start.anti-collision-light"] .more'),
+      ],
+    },
+  },
   { name: "board-tour-welcome", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenWelcome] } },
   { name: "board-tour-step", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(0)] } },
   { name: "board-tour-end", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(5)] } },
