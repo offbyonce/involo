@@ -2199,6 +2199,84 @@ describe("the Flight log (decision 0026)", () => {
     expect(screen.queryByRole("button", { name: "Undo" })).toBeNull();
   });
 
+  describe("the backup reminder (#243)", () => {
+    function logged(settings: Partial<Settings>, more: Partial<Host> = {}) {
+      const saved: Settings[] = [];
+      const persisted: number[] = [];
+      window.location.hash = "#/log";
+      const h = host({
+        readSaved: async () => ({
+          flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
+          settings: null,
+        }),
+        defaultSettings: async () =>
+          ({
+            theme: "dark",
+            dimming: 0,
+            detail: "expanded",
+            listView: "checklist",
+            tourSeen: true,
+            noticeSeen: true,
+            ...settings,
+          }) as Settings,
+        apply: async (_pack, flight, action) =>
+          action.type === "clear"
+            ? ({ ...flight, session: { done: {}, skipped: {} }, values: {} } as Flight)
+            : flight,
+        saveLog: async () => true,
+        save: async (_p, what, value) => {
+          if (what === "settings") saved.push(value as Settings);
+          return 0;
+        },
+        persistStorage: async () => {
+          persisted.push(1);
+          return true;
+        },
+        ...more,
+      });
+      render(App, { context: hostContext(h) });
+      return { saved, persisted };
+    }
+    async function logIt(): Promise<void> {
+      const go = await screen.findByRole("button", { name: "Log flight and start new" });
+      await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false));
+      await fireEvent.click(go);
+      window.location.hash = "#/";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+      await screen.findByRole("heading", { level: 1, name: "Power up" });
+    }
+
+    it("shows after a logged flight with no backup yet; Not now hides it for 30 days", async () => {
+      const { saved, persisted } = logged({ lastBackup: null });
+      await logIt();
+      const band = await screen.findByRole("region", { name: "Backup reminder" });
+      expect(within(band).getByText("Save a backup?")).toBeTruthy();
+      expect(
+        within(band).getByText(
+          "You haven’t saved a backup yet. Clearing this browser’s site data removes everything saved here.",
+        ),
+      ).toBeTruthy();
+      const before = Date.now();
+      await fireEvent.click(within(band).getByRole("button", { name: "Not now" }));
+      expect(screen.queryByRole("region", { name: "Backup reminder" })).toBeNull();
+      await waitFor(() =>
+        expect(saved.at(-1)?.backupReminderAfter).toBeGreaterThanOrEqual(before + 30 * 24 * 3600 * 1000),
+      );
+      // The browser was asked once to keep the site's data, with no screen of its own.
+      expect(persisted).toHaveLength(1);
+    });
+
+    it("doesn't show when the last backup is recent, or Not now is still holding it", async () => {
+      logged({ lastBackup: Date.now() - 24 * 3600 * 1000 });
+      await logIt();
+      expect(screen.queryByRole("region", { name: "Backup reminder" })).toBeNull();
+      cleanup();
+      logged({ lastBackup: null, backupReminderAfter: Date.now() + 1000 * 3600 });
+      await logIt();
+      expect(screen.queryByRole("region", { name: "Backup reminder" })).toBeNull();
+    });
+  });
+
   it("keeps a saved log this version can't read as it is, and saves nothing over it", async () => {
     const saved: unknown[] = [];
     window.location.hash = "#/log";

@@ -10,6 +10,8 @@ import {
   lastBackupLine,
   logLine,
   refusalLine,
+  reminderDue,
+  reminderLine,
   rowFor,
   savedByLine,
 } from "./backup";
@@ -78,6 +80,25 @@ describe("back up and restore words", () => {
       "In the file: 0 steps ticked, 0 skipped.",
     );
     expect(rowFor(entry(), installed("0.1.0"), null, []).badge).toBeNull();
+  });
+
+  it("is due for a reminder after 30 days or with no backup, unless Not now holds it (#243)", () => {
+    const day = 24 * 3600 * 1000;
+    const now = at + 100 * day;
+    expect(reminderDue(null, null, now)).toBe(true);
+    expect(reminderDue(now - 31 * day, null, now)).toBe(true);
+    expect(reminderDue(now - 29 * day, null, now)).toBe(false);
+    expect(reminderDue(null, now + day, now)).toBe(false);
+    expect(reminderDue(null, now - day, now)).toBe(true);
+  });
+
+  it("words the reminder from the last backup (#243)", () => {
+    const day = 24 * 3600 * 1000;
+    const why = " Clearing this browser’s site data removes everything saved here.";
+    expect(reminderLine(null, at)).toBe(`You haven’t saved a backup yet.${why}`);
+    expect(reminderLine(at, at + 31 * day)).toBe(`Your last backup was on Nov 18, a month ago.${why}`);
+    expect(reminderLine(at, at + 75 * day)).toBe(`Your last backup was on Nov 18, 3 months ago.${why}`);
+    expect(reminderLine(at, at + 400 * day)).toBe(`Your last backup was on Nov 18, a year ago.${why}`);
   });
 
   it("counts what the log merge adds, and leaves the row out when it adds nothing", () => {

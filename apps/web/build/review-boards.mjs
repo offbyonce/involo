@@ -99,6 +99,9 @@ export const REVIEW_BOARDS = {
   "board-report": { desktop: "RelReport", phone: "RelReportPhone" },
   // The simulator-only notice (#241, Release.dc.html).
   "board-notice": { desktop: "RelNotice", phone: "RelNoticePhone" },
+  // The backup reminder (#243, Release.dc.html): the band above the lists.
+  "board-reminder": { desktop: "RelReminder", phone: "RelReminderPhone" },
+  "board-reminder-never": { desktop: "RelReminderNever", phone: "RelReminderPhone" },
   // Back up and restore (#47, Backup.dc.html).
   "board-backup-setting": { desktop: "BackupSetting", phone: "BackupSettingPhone" },
   "board-restore-review": { desktop: "RestoreReview", phone: "RestorePhone" },

@@ -139,6 +139,13 @@ async function simbriefSays(text: string): Promise<string | null> {
   }
 }
 
+/** Asks the browser to keep this site's data (#243): already kept, or kept now. */
+async function persistStorage(): Promise<boolean> {
+  const storage = navigator.storage;
+  if (!storage?.persist) return false;
+  return (await storage.persisted?.()) || (await storage.persist());
+}
+
 export const webHost: Host = {
   appInfo,
   catalog: () => readCatalog({ fetch: fetchOwn, parse: parseCatalog }),
@@ -176,6 +183,7 @@ export const webHost: Host = {
   savedPacks,
   backupText,
   readBackup,
+  persistStorage,
   readSettings,
   save,
   setAside,

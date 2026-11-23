@@ -399,6 +399,27 @@ export const reopenNotice = [
   `(() => { sessionStorage.setItem("notice-shot", "1"); const k = Object.keys(localStorage).find((x) => /settings$/.test(x)); const s = JSON.parse(localStorage.getItem(k)); s.noticeSeen = false; localStorage.setItem(k, JSON.stringify(s)); setTimeout(() => location.reload(), 50); return true; })()`,
   `new Promise((done) => { let n = 0; const t = setInterval(() => { if (document.querySelector(".sim-notice") || ++n > 80) { clearInterval(t); setTimeout(() => done(true), 300); } }, 100); })`,
 ];
+/** The backup reminder after a logged flight (#243, RelReminder): the last backup `daysAgo` days
+ * ago (null: never), then Log flight and start new on the Flight log, then the Shutdown phase. */
+export const loggedForReminder = (daysAgo) => [
+  call(
+    (daysAgo) => {
+      const k = Object.keys(localStorage).find((x) => /settings$/.test(x));
+      const s = JSON.parse(localStorage.getItem(k));
+      s.lastBackup = daysAgo === null ? null : Date.now() - daysAgo * 24 * 3600 * 1000;
+      s.backupReminderAfter = null;
+      localStorage.setItem(k, JSON.stringify(s));
+      setTimeout(() => location.reload(), 50);
+      return true;
+    },
+    daysAgo,
+  ),
+  `new Promise((done) => setTimeout(() => done(true), 1500))`,
+  `(location.hash = "#/log", true)`,
+  `new Promise((done) => { let n = 0; const t = setInterval(() => { const b = [...document.querySelectorAll("button.primary")].find((x) => x.textContent.trim() === "Log flight and start new" && !x.disabled); if (b || ++n > 80) { clearInterval(t); b?.click(); setTimeout(() => done(true), 800); } }, 100); })`,
+  `(location.hash = "#/phase/shutdown", true)`,
+  `new Promise((done) => setTimeout(() => done(true), 800))`,
+];
 /** Opens the welcome again over the current state, as on a first visit: marks it unseen, reloads. */
 export const reopenWelcome = [
   `(() => { sessionStorage.setItem("tour-shot", "1"); const k = Object.keys(localStorage).find((x) => /settings$/.test(x)); const s = JSON.parse(localStorage.getItem(k)); s.tourSeen = false; localStorage.setItem(k, JSON.stringify(s)); setTimeout(() => location.reload(), 50); return true; })()`,

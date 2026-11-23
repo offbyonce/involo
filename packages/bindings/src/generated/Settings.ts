@@ -53,4 +53,9 @@ lastBackup: number | null,
  * Whether the simulator-only notice has been answered with I understand on this device
  * (#241). It shows once, before anything else; never again once answered.
  */
-noticeSeen: boolean, };
+noticeSeen: boolean, 
+/**
+ * The backup reminder's Not now (#243): no reminder before this time, in milliseconds since
+ * 1970 (UTC); None until the pilot first answers Not now.
+ */
+backupReminderAfter: number | null, };

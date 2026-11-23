@@ -114,6 +114,10 @@ export interface Host {
   /** Reads a file chosen to restore from: the backup with every part migrated, or why it is
    * refused. Changes nothing. */
   readBackup(text: string): Promise<BackupRead>;
+  /** Asks the browser to keep this site's data under storage pressure (with the backup reminder), once there is
+   * something to keep. Resolves whether it is kept; the app works the same either way. Optional: a
+   * host whose storage is always kept leaves it out. */
+  persistStorage?(): Promise<boolean>;
   /** The settings saved on this device, read as readSaved reads them; null when none. They
    * belong to no pack, so the app reads them before it opens one. */
   readSettings(): Promise<SavedItem<Settings>>;

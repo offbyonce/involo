@@ -45,7 +45,7 @@ in Rust. The host saves progress and settings on the device.
   import UpdateNote from "./lib/UpdateNote.svelte";
   import RestoreDialog, { type Chosen, type Refused, type Review } from "./lib/RestoreDialog.svelte";
   import { stepProblemUrl } from "./lib/report";
-  import { backupFileName, EARLIER_LEFT_OUT, earlierSavedLine, logLine, refusalLine, rowFor, savedByLine, TOO_LARGE } from "./lib/backup";
+  import { backupFileName, EARLIER_LEFT_OUT, earlierSavedLine, logLine, REMINDER_DAYS, refusalLine, reminderDue, reminderLine, rowFor, savedByLine, TOO_LARGE } from "./lib/backup";
   import { MAX_BACKUP_FILE_BYTES } from "./lib/file-limits";
   import OtherAircraftDialog from "./lib/OtherAircraft.svelte";
   import { downloadFailed, installNotice, morePacks, type PackNotice, savedLine, updateFor } from "./lib/packs";
@@ -56,6 +56,7 @@ in Rust. The host saves progress and settings on the device.
   import Slideout from "./lib/Slideout.svelte";
   import CduWalkthrough from "./lib/CduWalkthrough.svelte";
   import type { Walkthroughs } from "./lib/walkthroughs";
+  import BackupReminder from "./lib/BackupReminder.svelte";
   import SimNotice from "./lib/SimNotice.svelte";
   import Toast from "./lib/Toast.svelte";
   import { answered } from "./lib/answers.svelte";
@@ -967,11 +968,30 @@ in Rust. The host saves progress and settings on the device.
   /** Log flight and start new: the flight goes in the log, then a new flight starts as Reset flight
    * plan starts one (without its Undo: the flight is in the log). If the log couldn't be saved, the
    * flight stays as it is. */
+  /** The backup reminder band (#243), shown after a flight is logged when a backup is due. */
+  let reminder = $state(false);
+  async function remindLater(): Promise<void> {
+    reminder = false;
+    if (settings) await changeSettings({ ...settings, backupReminderAfter: Date.now() + REMINDER_DAYS * 24 * 60 * 60 * 1000 });
+  }
+  async function remindSave(): Promise<void> {
+    reminder = false;
+    await saveBackup();
+  }
+  // Ask the browser to keep this site's data (#243) once there is something to keep: a pack open.
+  let persistAsked = false;
+  $effect(() => {
+    if (!packId || persistAsked) return;
+    persistAsked = true;
+    void host.persistStorage?.().catch(() => false);
+  });
   async function logFlight(): Promise<void> {
     if (!flight || !settings || logBlocked) return;
     try {
       const entry = await host.logEntry(packId, flight, settings, planSource, Date.now());
       if (!(await changeLog({ type: "addFlight", flight: entry }, true))) return;
+      // The backup reminder, after a logged flight, when a backup is due (#243).
+      reminder = reminderDue(settings.lastBackup ?? null, settings.backupReminderAfter ?? null, Date.now());
       offer = false;
       undo = null;
       await act({ type: "clear" });
@@ -1894,6 +1914,15 @@ in Rust. The host saves progress and settings on the device.
     {/if}
   </div>
 {:else}
+{#snippet reminderBand()}
+  {#if reminder && settings}
+    <BackupReminder line={reminderLine(settings.lastBackup ?? null, Date.now())} onSave={() => void remindSave()} onLater={() => void remindLater()} />
+  {/if}
+{/snippet}
+{#snippet pageNotices()}
+  {@render reminderBand()}
+  {@render updateNote()}
+{/snippet}
 {#snippet updateNote()}
   {#if flight?.update}
     <UpdateNote
@@ -2041,6 +2070,7 @@ in Rust. The host saves progress and settings on the device.
             />
           {:else if view}
             {#if flow}
+              {@render reminderBand()}
               <FlowView {index} {view} {cursor} {detail} onConfirm={confirm} onSkip={skip} onMove={(id) => (cursor = id)} onBlank={(step, index, value) => act({ type: "setBlank", step, index, value })} />
             {:else}
               <PhasePage
@@ -2069,7 +2099,7 @@ in Rust. The host saves progress and settings on the device.
                 {walkthroughs}
                 inline={narrow && pane ? inlinePane : undefined}
                 inlineStep={narrow ? (pane?.step.id ?? null) : null}
-                notice={flight.update ? updateNote : undefined}
+                notice={flight.update || reminder ? pageNotices : undefined}
                 onBriefing={briefingChange}
               />
             {/if}
