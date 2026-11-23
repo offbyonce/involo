@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2026 offbyonce
 // SPDX-License-Identifier: MIT
 
-// Shared by the local browser tools (update-test.mjs, screenshots.mjs): a small file server for a
-// built site, and headless Firefox driven over WebDriver BiDi. Needs Firefox on the PATH (or
-// FIREFOX=/path/to/firefox). Not part of `just ci`.
+// Shared by the browser tools (update-test.mjs, screenshots.mjs): a small file server for a built
+// site, and headless Firefox driven over WebDriver BiDi. Needs Firefox: FIREFOX=/path/to/firefox,
+// else Playwright's Firefox where PLAYWRIGHT_BROWSERS_PATH points (as in the Playwright image CI
+// runs the update test in), else `firefox` on the PATH. Not part of `just ci`.
 
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -44,6 +45,27 @@ export function serve(root, port) {
 }
 
 /**
+ * The Firefox to start: FIREFOX, else the newest Playwright Firefox build under
+ * PLAYWRIGHT_BROWSERS_PATH (`firefox-<build>/firefox/firefox`), else `firefox` from the PATH.
+ * Playwright's build speaks WebDriver BiDi as the browser's own does.
+ */
+export function firefoxCommand(env = process.env, exists = fs.existsSync, list = fs.readdirSync) {
+  if (env.FIREFOX) return env.FIREFOX;
+  const dir = env.PLAYWRIGHT_BROWSERS_PATH;
+  // "0" means the browsers live inside node_modules, where Playwright finds them itself.
+  if (dir && dir !== "0" && exists(dir)) {
+    const builds = list(dir)
+      .filter((name) => /^firefox-\d+$/.test(name))
+      .sort((x, y) => Number(y.slice(8)) - Number(x.slice(8)));
+    for (const build of builds) {
+      const file = path.join(dir, build, "firefox", "firefox");
+      if (exists(file)) return file;
+    }
+  }
+  return "firefox";
+}
+
+/**
  * Starts headless Firefox with a fresh profile, optional preferences and window size (in headless
  * mode, the viewport), and BiDi on `port`. `extra` adds command-line arguments.
  */
@@ -53,7 +75,7 @@ export async function startFirefox(profile, port, prefs = {}, size = null, extra
   const lines = Object.entries(prefs).map(([k, v]) => `user_pref(${JSON.stringify(k)}, ${JSON.stringify(v)});`);
   fs.writeFileSync(path.join(profile, "user.js"), `${lines.join("\n")}\n`);
   const firefox = spawn(
-    process.env.FIREFOX ?? "firefox",
+    firefoxCommand(),
     [
       "--headless",
       "--no-remote",

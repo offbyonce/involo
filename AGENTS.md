@@ -116,7 +116,7 @@ just packs     # validate every pack
 just site      # build the web site into apps/web/dist (WebAssembly, app, then the pack catalog in packs/)
 just catalog <out>  # build the published packs' catalog into <out>
 just test-packs     # the catalog tests and the dev server read, with the example packs, in target/test-packs
-just update-test  # service worker update test in headless Firefox (local; needs Firefox)
+just update-test  # service worker update test in headless Firefox (needs Firefox; CI runs it too)
 just e2e       # end-to-end flows with layout and accessibility checks (Chromium, WebKit)
 just review-shots <dir> <screen>...  # review shots of named screens beside their boards
 just fuzz <target> [seconds]  # fuzz a pack loader target (nightly and cargo-fuzz; not in just ci)
