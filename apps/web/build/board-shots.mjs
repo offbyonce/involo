@@ -297,6 +297,14 @@ const SHOTS = [
     ["RelSettingsCleared", "settingsCleared", 760, 640],
     ["RelSettingsPhone", "settingsPhone", 390, 900],
   ].map(([file, layout, width, height]) => [file, { layout }, width, height, "Release"]),
+  // The privacy note (docs/design/boards/Privacy.dc.html, #52): the page, and Settings' last line
+  // with its Privacy link, each with its phone form.
+  ...[
+    ["PrivacyPage", "privacy", 920, 1000],
+    ["PrivacyPagePhone", "privacyPhone", 390, 1240],
+    ["PrivacySetting", "settingsLine", 760, 200],
+    ["PrivacySettingPhone", "settingsLinePhone", 390, 220],
+  ].map(([file, layout, width, height]) => [file, { layout }, width, height, "Privacy"]),
 ];
 
 async function main() {

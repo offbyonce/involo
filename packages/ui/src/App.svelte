@@ -81,6 +81,7 @@ in Rust. The host saves progress and settings on the device.
   import PhasePage from "./pages/PhasePage.svelte";
   import ReferencePage from "./pages/ReferencePage.svelte";
   import SettingsPage from "./pages/SettingsPage.svelte";
+  import PrivacyPage from "./pages/PrivacyPage.svelte";
   import FlightPage from "./flight/FlightPage.svelte";
   import { buildGlossary, glossaryHref } from "./lib/glossary";
   import { messageHref } from "./lib/messages";
@@ -644,7 +645,7 @@ in Rust. The host saves progress and settings on the device.
   let essentials = $derived(!!settings?.essentials && !!index?.hasEssentials);
   /** The step the context panel shows, its row, and the steps after it. */
   let pane = $derived.by(() => {
-    if (!index || !view || screen === "settings" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck" || screen === "messages" || screen === "practice" || screen === "how" || screen === "log" || screen === "references") return null;
+    if (!index || !view || screen === "settings" || screen === "privacy" || screen === "flight" || screen === "open" || screen === "glossary" || screen === "deck" || screen === "messages" || screen === "practice" || screen === "how" || screen === "log" || screen === "references") return null;
     const id = flow ? (cursor ?? current) : (selected ?? (screen === "reference" ? null : current));
     const rows = view.lists.flatMap((l) => l.steps);
     const at = rows.findIndex((r) => r.id === id);
@@ -2013,7 +2014,7 @@ in Rust. The host saves progress and settings on the device.
     {/key}
   {/if}
 {/snippet}
-<div class="shell" data-app-ready={rail && (view || screen === "settings" || screen === "flight" || screen === "open") ? "" : undefined}>
+<div class="shell" data-app-ready={rail && (view || screen === "settings" || screen === "privacy" || screen === "flight" || screen === "open") ? "" : undefined}>
   <TopBar
     aircraft={index?.name ?? ""}
     reference={index?.labels.reference.title ?? ""}
@@ -2061,7 +2062,7 @@ in Rust. The host saves progress and settings on the device.
     {#if pickerOpen && rail}
       <StagePicker {rail} current={phaseId} open={openShown.map((o) => o.phase)} onClose={() => (pickerOpen = false)} />
     {/if}
-    {#if view && screen !== "settings" && screen !== "open" && screen !== "reference"}
+    {#if view && screen !== "settings" && screen !== "privacy" && screen !== "open" && screen !== "reference"}
       <FlightStrip
         bind:this={strip}
         values={flight.values ?? {}}
@@ -2076,7 +2077,7 @@ in Rust. The host saves progress and settings on the device.
     {#if screen === "phase" || screen === "start"}
       <ProgressRow progress={railPhase?.progress ?? null} open={openShown.length} />
     {/if}
-    <div class="app" class:strip={!!view && screen !== "settings" && screen !== "open" && screen !== "reference"} class:nopane={!pane} class:flow={flow && screen !== "settings"}>
+    <div class="app" class:strip={!!view && screen !== "settings" && screen !== "privacy" && screen !== "open" && screen !== "reference"} class:nopane={!pane} class:flow={flow && screen !== "settings" && screen !== "privacy"}>
       <main>
         <div class="inner">
           {#if kept.length || saveFailed}
@@ -2092,6 +2093,7 @@ in Rust. The host saves progress and settings on the device.
           {#if screen === "settings"}
             <SettingsPage
               {settings}
+              row={route.value.screen === "settings" ? route.value.row : null}
               version={info?.version ?? null}
               seats={index?.seats ?? []}
               hasEssentials={index?.hasEssentials ?? true}
@@ -2105,6 +2107,8 @@ in Rust. The host saves progress and settings on the device.
               onBackup={() => void saveBackup()}
               onRestore={(file) => void startRestore(file)}
             />
+          {:else if screen === "privacy"}
+            <PrivacyPage version={info?.version ?? null} />
           {:else if screen === "open"}
             <OpenStepsPage
               {index}

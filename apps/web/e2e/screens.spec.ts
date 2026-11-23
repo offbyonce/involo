@@ -94,6 +94,7 @@ for (const pack of PACKS) {
       ["#/how", "How"],
       ["#/practice", "Practice"],
       ["#/deck", "Flight deck"],
+      ["#/privacy", "Privacy"],
     ] as const) {
       await page.goto(`./${hash}`);
       await expect(heading(page)).toBeVisible();

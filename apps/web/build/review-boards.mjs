@@ -105,6 +105,9 @@ export const REVIEW_BOARDS = {
   // The Settings rows from 3.0 (#245, Release.dc.html).
   "board-settings-3x": { desktop: "RelSettings", phone: "RelSettingsPhone" },
   "board-settings-cleared": { desktop: "RelSettingsCleared", phone: "RelSettingsPhone" },
+  // The privacy note (#52, Privacy.dc.html): the page, and Settings' last line with Privacy.
+  "board-privacy": { desktop: "PrivacyPage", phone: "PrivacyPagePhone" },
+  "board-privacy-setting": { desktop: "PrivacySetting", phone: "PrivacySettingPhone" },
   // Back up and restore (#47, Backup.dc.html).
   "board-backup-setting": { desktop: "BackupSetting", phone: "BackupSettingPhone" },
   "board-restore-review": { desktop: "RestoreReview", phone: "RestorePhone" },

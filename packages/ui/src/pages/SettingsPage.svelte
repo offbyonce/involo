@@ -25,6 +25,7 @@ on the device (decision 0012).
     onResetEssentials = () => {},
     onStart = () => {},
     onClearAll = () => {},
+    row = null,
   }: {
     settings: Settings;
     version: string | null;
@@ -46,7 +47,12 @@ on the device (decision 0012).
     onBackup?: () => void;
     /** Restore from a file: the file the pilot chose, for the review. */
     onRestore?: (file: File) => void;
+    /** A row to scroll to, by its heading's id without `set-` (`#/settings/backup`, from the privacy note). */
+    row?: string | null;
   } = $props();
+  $effect(() => {
+    if (row) document.getElementById(`set-${row}`)?.closest(".set")?.scrollIntoView?.({ block: "start" });
+  });
   let picker = $state<HTMLInputElement | null>(null);
   /** No seat chosen yet: "Where is this?" shows the first seat's view, so that one is selected. */
   let seat = $derived(seats.some((s) => s.id === settings.seat) ? settings.seat : (seats[0]?.id ?? null));
@@ -258,10 +264,17 @@ on the device (decision 0012).
   </div>
 </div>
 <div class="done"><a class="btn primary" href="#/">Done</a></div>
-<!-- The version line (Views board, Settings). -->
-{#if version}
-  <p class="ver">Involo {version} · <a href={releaseFor(version)} target="_blank" rel="noopener noreferrer">What’s new</a></p>
-{/if}
+<!-- The last line (PrivacySetting board): the version, What's new (its release, in a new tab) and
+     Privacy (the privacy note, in the app), each link a 44 px target. -->
+<p class="ver">
+  {#if version}
+    <span>Involo {version}</span>
+    <span aria-hidden="true">·</span>
+    <a href={releaseFor(version)} target="_blank" rel="noopener noreferrer">What’s new</a>
+    <span aria-hidden="true">·</span>
+  {/if}
+  <a href="#/privacy">Privacy</a>
+</p>
 
 <style>
   /* Clear all progress (RelSettings): the danger-outline button. */
@@ -270,13 +283,21 @@ on the device (decision 0012).
     background: transparent;
     color: var(--color-danger);
   }
+  /* PrivacySetting: 14 px, muted, wrapping, 10 px between the parts. */
   .ver {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 calc(var(--space-2) + var(--border-thick));
     margin: var(--space-1) var(--space-1) 0;
     color: var(--color-text-muted);
-    font-size: var(--font-size-caption);
+    font-size: var(--font-size-secondary);
     line-height: var(--leading-normal);
   }
   .ver a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--size-touch-min);
     color: var(--color-link);
     text-decoration: none;
   }
