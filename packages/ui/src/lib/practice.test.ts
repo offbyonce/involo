@@ -28,15 +28,16 @@ import {
   stepShows,
   TOPICS,
   type Topic,
-  twins,
-  useTwins,
-  useTwinsOf,
+  Twins,
+  twinsOf,
   windows,
 } from "./practice";
 
 const pack = iflyPack();
 const index = indexPack(pack);
 const all = seeds(pack, index);
+/** Whether two texts are twins by the iFly pack's rules. */
+const twins = (a: string, b: string) => twinsOf(pack).pair(a, b);
 /** The pack's words that say nothing about place (labels `plain_words`). */
 const PLAIN_WORDS = pack.content.labels.plainWords;
 const count = (topic: Topic, id = "") =>
@@ -181,7 +182,9 @@ describe("the question generator", () => {
   });
 
   it("skips a question that cannot find three wrong options, rather than padding it", () => {
-    expect(pickWrong("ON", [{ items: ["ON", "OFF", "ON, GUARD CLOSED"], shuffle: false }])).toEqual(["OFF"]);
+    expect(
+      pickWrong("ON", [{ items: ["ON", "OFF", "ON, GUARD CLOSED"], shuffle: false }], twinsOf(pack)),
+    ).toEqual(["OFF"]);
     // The Climb checklist has three steps: none of its challenges can be asked.
     const climb = pack.lists.find((l) => l.title === "Climb checklist");
     expect(climb).toBeTruthy();
@@ -389,7 +392,7 @@ describe("the question generator", () => {
       if (seed.kind !== "choice") continue;
       expect(seed.why, seed.id).toBeTruthy();
       expect(actions.has(seed.why ?? ""), seed.id).toBe(false);
-      for (const w of pickWrong(seed.answer, seed.tiers))
+      for (const w of pickWrong(seed.answer, seed.tiers, seed.twins))
         expect(seed.about[w], `${seed.id}: ${w}`).toBeTruthy();
     }
     // Each fuel pump's light is named by its switch, so no two read the same ("left" was both CTR L
@@ -480,9 +483,9 @@ describe("the question generator", () => {
           for (const b of wrong.slice(i + 1)) expect(twins(a, b), `${q.id}: ${a} / ${b}`).toBe(false);
       }
     // A control's own positions keep their sides: IGN L against IGN R is the question.
-    expect(pickWrong("IGN L", [{ items: ["IGN R", "BOTH", "OFF"], shuffle: false, sides: true }])).toContain(
-      "IGN R",
-    );
+    expect(
+      pickWrong("IGN L", [{ items: ["IGN R", "BOTH", "OFF"], shuffle: false, sides: true }], twinsOf(pack)),
+    ).toContain("IGN R");
   }, 30_000); // Walks every question (the exhaustive tests may take longer).
 
   it("starts each line after its colon in lowercase, unless it starts with a name", () => {
@@ -521,7 +524,6 @@ describe("Practice for any pack", () => {
         (q) => q.topic === "memory" && q.kind === "choice" && q.answer.startsWith("COLUMN AND THRUST LEVERS"),
       ),
     ).toBe(true);
-    useTwinsOf(pack);
   });
 
   it("asks Where is or Where are as the pack's control says, and skips the pack's own plain words", () => {
@@ -537,17 +539,18 @@ describe("Practice for any pack", () => {
     expect(sharesWord("Pumpe Schalter", "Pumpe Feld", ["SCHALTER"])).toBe(true);
     expect(sharesWord("Licht Schalter", "Feld Schalter", ["SCHALTER"])).toBe(false);
     expect(sharesWord("Licht Schalter", "Feld Schalter", [])).toBe(true);
-    useTwinsOf(pack);
   });
 
   it("counts a numbered item only where two names differ by the number alone", () => {
-    useTwins([], ["AUDIO PANEL 1", "AUDIO PANEL 2", "AUDIO CONTROL PANEL 3", "MACH TEST 1", "MACH TEST 2"]);
-    expect(twins("AUDIO PANEL 1", "AUDIO PANEL 2")).toBe(true);
-    expect(twins("MACH TEST 2", "MACH TEST 1")).toBe(true);
+    const t = new Twins(
+      [],
+      ["AUDIO PANEL 1", "AUDIO PANEL 2", "AUDIO CONTROL PANEL 3", "MACH TEST 1", "MACH TEST 2"],
+    );
+    expect(t.pair("AUDIO PANEL 1", "AUDIO PANEL 2")).toBe(true);
+    expect(t.pair("MACH TEST 2", "MACH TEST 1")).toBe(true);
     // PANEL and TEST only end longer numbered names: on their own they are not numbered items.
-    expect(twins("SIDE PANEL 1", "SIDE PANEL 2")).toBe(false);
-    expect(twins("LAMP TEST 1", "LAMP TEST 2")).toBe(false);
-    useTwinsOf(pack);
+    expect(t.pair("SIDE PANEL 1", "SIDE PANEL 2")).toBe(false);
+    expect(t.pair("LAMP TEST 1", "LAMP TEST 2")).toBe(false);
   });
 
   it("holds no aircraft nouns or English word rules in Practice's code", () => {
@@ -559,15 +562,42 @@ describe("Practice for any pack", () => {
 
   it("finds twins by the pack's numbered items (engines 1 to 4) and its own side words", () => {
     // Invented: a four-engine airplane whose sides are port and starboard.
-    useTwins(["PORT", "STBD"], ["ENG 1 FIRE", "ENG 2 FIRE", "ENG 3 FIRE", "ENG 4 FIRE", "FLAPS"]);
-    expect(twins("ENG 1 FIRE", "ENG 4 FIRE")).toBe(true);
-    expect(twins("ENG 3 FIRE", "ENG 2 FIRE")).toBe(true);
-    expect(twins("PORT WING LIGHT", "STBD WING LIGHT")).toBe(true);
+    const t = new Twins(["PORT", "STBD"], ["ENG 1 FIRE", "ENG 2 FIRE", "ENG 3 FIRE", "ENG 4 FIRE", "FLAPS"]);
+    expect(t.pair("ENG 1 FIRE", "ENG 4 FIRE")).toBe(true);
+    expect(t.pair("ENG 3 FIRE", "ENG 2 FIRE")).toBe(true);
+    expect(t.pair("PORT WING LIGHT", "STBD WING LIGHT")).toBe(true);
     // Its words, not another pack's: left and right are not this pack's sides.
-    expect(twins("LEFT WING LIGHT", "RIGHT WING LIGHT")).toBe(false);
+    expect(t.pair("LEFT WING LIGHT", "RIGHT WING LIGHT")).toBe(false);
     // A setting that is a number is never a pair.
-    expect(twins("FLAPS 1", "FLAPS 5")).toBe(false);
-    useTwinsOf(pack);
+    expect(t.pair("FLAPS 1", "FLAPS 5")).toBe(false);
+  });
+
+  it("deals each pack's questions by its own twin rules, whichever pack was built last (#144)", () => {
+    // Invented: a copy of the pack whose sides are port and starboard, built after the iFly pack.
+    const other = structuredClone(pack);
+    other.content.labels.sideWords = ["PORT", "STBD"];
+    const theirs = seeds(other, indexPack(other));
+    const choice = (qs: Seed[]) => qs.flatMap((q) => (q.kind === "choice" ? [q] : []));
+    expect(choice(all)[0]?.twins.pair("L ELEV PITOT", "R ELEV PITOT")).toBe(true);
+    expect(choice(theirs)[0]?.twins.pair("L ELEV PITOT", "R ELEV PITOT")).toBe(false);
+    expect(choice(theirs)[0]?.twins.pair("PORT ELEV PITOT", "STBD ELEV PITOT")).toBe(true);
+    // Dealt after the other pack was built, the iFly pack's questions still never offer an iFly
+    // twin, and the other pack's never offer one of its own.
+    for (const [qs, rules] of [
+      [all, twinsOf(pack)],
+      [theirs, twinsOf(other)],
+    ] as const)
+      for (const seed of choice(qs)) {
+        if (seed.topic === "values") continue;
+        const q = dealOne(seed, random(7));
+        if (q.kind !== "choice") continue;
+        const wrong = q.options.filter((_, i) => i !== q.answer);
+        for (const w of wrong) expect(rules.pair(w, seed.answer), `${q.id}: ${w}`).toBe(false);
+        for (const [i, a] of wrong.entries())
+          for (const b of wrong.slice(i + 1)) expect(rules.pair(a, b), `${q.id}: ${a} / ${b}`).toBe(false);
+      }
+    // A dumped question holds no rules.
+    expect(JSON.stringify(choice(all)[0])).not.toContain("twins");
   });
 
   it("Before engine start in a pack with three stages and its own phase names", () => {
