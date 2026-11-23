@@ -119,6 +119,98 @@ jobs:
           path: dist
           if-no-files-found: error
 
+  # The desktop app (decision 0031): its Rust crate's lints and tests, then its installer, on the
+  # systems it ships on (Intel macOS builds on an Apple silicon runner). Not a required check. On a
+  # pull request or a push to main it builds only when the change touches something the app is
+  # built from (main's builds also save the Rust cache); on a release tag, always. The installers
+  # are kept as artifacts, unsigned.
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            check: true
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            check: true
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            check: false
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Does this change touch the desktop app?
+        id: changed
+        if: github.ref_type != 'tag'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if git diff --name-only "$BASE" HEAD | grep -qE '^(apps/desktop/|apps/web/src/|packages/ui/|packages/bindings/|crates/|Cargo\.toml$|Cargo\.lock$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|justfile$|rust-toolchain\.toml$|\.github/workflows/ci\.yml$)'; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            echo "Nothing the desktop app is built from changed."
+          fi
+        shell: bash
+
+      - name: Rust
+        if: steps.changed.outputs.build != 'false'
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          rustup show active-toolchain || rustup toolchain install
+          rustup target add "$TARGET"
+        shell: bash
+
+      - uses: Swatinem/rust-cache@v2
+        if: steps.changed.outputs.build != 'false'
+        with:
+          key: desktop-${{ matrix.target }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - uses: taiki-e/install-action@v2
+        if: steps.changed.outputs.build != 'false'
+        with:
+          tool: just,cargo-nextest
+
+      - uses: pnpm/action-setup@v6
+        if: steps.changed.outputs.build != 'false'
+
+      - uses: actions/setup-node@v7
+        if: steps.changed.outputs.build != 'false'
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+        if: steps.changed.outputs.build != 'false'
+
+      - run: just desktop-check
+        if: steps.changed.outputs.build != 'false' && matrix.check
+
+      - name: Installer
+        if: steps.changed.outputs.build != 'false'
+        env:
+          TARGET: ${{ matrix.target }}
+        run: pnpm --filter @involo/desktop tauri build --target "$TARGET"
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: steps.changed.outputs.build != 'false'
+        with:
+          name: involo-desktop-${{ matrix.target }}
+          path: |
+            target/${{ matrix.target }}/release/bundle/nsis/*.exe
+            target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+
   reuse:
     runs-on: ubuntu-latest
     steps:

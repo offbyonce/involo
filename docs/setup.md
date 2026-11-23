@@ -55,6 +55,21 @@ just ci       # every check; run before pushing
 
 Optional: `pipx install reuse`, then `reuse lint` checks every file has a license.
 
-The desktop build is parked during Phase 2 (decision 0010), so the system libraries it needs
-(WebView2 on Windows, WebKitGTK on Linux) are not required. `apps/desktop/PARKED.md` lists what
-reviving it takes.
+## The desktop app
+
+The desktop app (decision 0031) ships for Windows and macOS. `just ci` doesn't build it, so none of
+this is needed for the web app. To work on it you need the system webview: WebView2 on Windows
+(included in Windows 10 and 11) or WebKit on macOS (part of the system). On Linux, where it isn't
+shipped but can run for development, install WebKitGTK:
+
+```sh
+sudo apt install libwebkit2gtk-4.1-dev librsvg2-dev libxdo-dev libssl-dev
+```
+
+```sh
+just desktop          # the app in a window, with live reload
+just desktop-check    # clippy and tests for its Rust crate
+just desktop-build    # its installer for this system
+```
+
+`apps/desktop/README.md` says how it is put together.

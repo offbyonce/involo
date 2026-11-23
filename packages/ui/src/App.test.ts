@@ -25,6 +25,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App.svelte";
 import { type Host, hostContext, type InstalledPack } from "./host";
 import { visit } from "./lib/practice-visit.svelte";
+import { downloadFile } from "./lib/save-file";
 import Root from "./Root.svelte";
 import { appLabels, iflyPack } from "./test-pack";
 
@@ -233,6 +234,8 @@ function host(overrides: Partial<Host> = {}): Host {
     savePlan: async () => {},
     decodeMetar: async () => ({ station: null, time: null, groups: [], rows: [] }),
     decodeTaf: async () => ({ station: null, time: null, groups: [], rows: [] }),
+    openLink: async () => {},
+    saveFile: async (name, text, type) => downloadFile(name, text, type),
     ...fakeLog(),
     ...overrides,
   };
@@ -1233,6 +1236,7 @@ describe("App", () => {
       it(`keeps a ${state} plan with the notice, saves no import over it, and sets it aside on Start fresh`, async () => {
         const plans: (SavedPlan | null)[] = [];
         const asides: string[] = [];
+        const copies: [string, string, string][] = [];
         const text = '{"format":9}';
         const imported = { format: 1, plan: {}, loadedAt: 5 } as unknown as SavedPlan;
         const h = host({
@@ -1260,12 +1264,19 @@ describe("App", () => {
             asides.push(what);
             return true;
           },
+          saveFile: async (...file) => {
+            copies.push(file);
+            return true;
+          },
         });
         render(App, { context: hostContext(h) });
 
         expect(await screen.findByText(words)).toBeTruthy();
         const copy = screen.getByRole("link", { name: "Save a copy" });
         expect(copy.getAttribute("download")).toBe("involo-plan.json");
+        // Save a copy hands the kept text to the host, which may have no downloads (desktop).
+        await fireEvent.click(copy);
+        expect(copies).toEqual([["involo-plan.json", text, "application/json"]]);
         // An import fills the flight for this visit; nothing is saved over the kept plan.
         await fireEvent.click(
           await screen.findByRole("button", {
@@ -3684,6 +3695,51 @@ describe("back up and restore (#47)", () => {
     expect(p.flights[0]?.place).toEqual({ place: "Preflight › Power up", done: 18, total: 29 });
     await waitFor(() => expect(saves.at(-1)?.lastBackup).toBe(p.savedAt));
     expect(screen.getByText(/^Last backup: \w{3} \d+ at \d\d:\d\d$/)).toBeTruthy();
+  });
+
+  it("changes nothing when the pilot cancels the save dialog (desktop)", async () => {
+    const files: string[] = [];
+    const saves: Settings[] = [];
+    window.location.hash = "#/settings";
+    const h = host({
+      readSaved: async () => ({ flight: ready(ticked), settings: ready(stored) }),
+      backupText: async () => "the backup",
+      saveFile: async (name) => {
+        files.push(name);
+        return false;
+      },
+      save: async (_p, what, value) => {
+        if (what === "settings") saves.push(value as Settings);
+        return 1;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    expect(await screen.findByText("Last backup: never")).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "Save a backup file" }));
+    await waitFor(() => expect(files).toHaveLength(1));
+    expect(files[0]).toMatch(/^involo-backup-.*\.json$/);
+    await new Promise((r) => setTimeout(r, 20));
+    expect(saves.filter((s) => s.lastBackup)).toEqual([]);
+    expect(screen.getByText("Last backup: never")).toBeTruthy();
+  });
+
+  it("reports a file that couldn't be written, and changes nothing", async () => {
+    const saves: Settings[] = [];
+    window.location.hash = "#/settings";
+    const h = host({
+      readSaved: async () => ({ flight: ready(ticked), settings: ready(stored) }),
+      saveFile: async () => {
+        throw "The file couldn't be saved: disk full";
+      },
+      save: async (_p, what, value) => {
+        if (what === "settings") saves.push(value as Settings);
+        return 1;
+      },
+    });
+    render(App, { context: hostContext(h) });
+    await fireEvent.click(await screen.findByRole("button", { name: "Save a backup file" }));
+    expect(await screen.findByText("The file couldn't be saved: disk full")).toBeTruthy();
+    expect(saves.filter((s) => s.lastBackup)).toEqual([]);
   });
 
   it("restores only what the review leaves ticked, after Restore, and starts again", async () => {

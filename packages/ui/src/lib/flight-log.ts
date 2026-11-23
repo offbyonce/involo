@@ -208,15 +208,3 @@ ${practice ? `<table>${practice}</table>` : "<p>No practice results.</p>"}
 </html>
 `;
 }
-
-/** Hands the pilot a file to save, made on this device. */
-export function download(name: string, text: string, type: string): void {
-  const url = URL.createObjectURL(new Blob([text], { type }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 0);
-}

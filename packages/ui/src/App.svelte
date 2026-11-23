@@ -92,7 +92,7 @@ in Rust. The host saves progress and settings on the device.
   import LogPage from "./pages/LogPage.svelte";
   import ReferencesPage from "./pages/ReferencesPage.svelte";
   import { buildReferences } from "./lib/references";
-  import { download, fileDate, htmlCopy, logOf, logPacks } from "./lib/flight-log";
+  import { fileDate, htmlCopy, logOf, logPacks } from "./lib/flight-log";
   import Tour from "./lib/Tour.svelte";
   import { tour } from "./lib/tour-state.svelte";
   import { setSeatView } from "./lib/seat-view";
@@ -1117,16 +1117,26 @@ in Rust. The host saves progress and settings on the device.
   let shownPack = $derived(loggedPacks.some((p) => p.id === logPack) ? logPack : null);
   /** What the exports hold: the log, or only the chosen pack's flights and practice results. */
   let exported = $derived(log ? logOf(log, shownPack) : null);
-  function saveLogCopy(): void {
+  /** Hands the pilot a file (host.saveFile): false when it wasn't saved, and a failure to write
+   * it is reported. */
+  async function saveFile(name: string, text: string, type: string): Promise<boolean> {
+    try {
+      return await host.saveFile(name, text, type);
+    } catch (e) {
+      fail(e);
+      return false;
+    }
+  }
+  async function saveLogCopy(): Promise<void> {
     const only = loggedPacks.find((p) => p.id === shownPack)?.name ?? null;
-    if (exported) download(`involo-log-${stamp()}.html`, htmlCopy(exported, Date.now(), logName, installedNames, only), "text/html");
+    if (exported) await saveFile(`involo-log-${stamp()}.html`, htmlCopy(exported, Date.now(), logName, installedNames, only), "text/html");
   }
   async function exportCsv(): Promise<void> {
-    if (exported) download(`involo-log-${stamp()}.csv`, await host.logCsv(exported), "text/csv");
+    if (exported) await saveFile(`involo-log-${stamp()}.csv`, await host.logCsv(exported), "text/csv");
   }
-  function exportJson(): void {
-    if (logBlocked && logKept !== null) download(`involo-log-kept-${stamp()}.json`, logKept, "application/json");
-    else if (exported && !logBlocked) download(`involo-log-${stamp()}.json`, `${JSON.stringify(exported, null, 2)}\n`, "application/json");
+  async function exportJson(): Promise<void> {
+    if (logBlocked && logKept !== null) await saveFile(`involo-log-kept-${stamp()}.json`, logKept, "application/json");
+    else if (exported && !logBlocked) await saveFile(`involo-log-${stamp()}.json`, `${JSON.stringify(exported, null, 2)}\n`, "application/json");
   }
   async function importLog(text: string): Promise<string> {
     try {
@@ -1150,7 +1160,8 @@ in Rust. The host saves progress and settings on the device.
    * on the device as it is. */
   const readyPlan = (item: SavedItem<SavedPlan>) => (item?.loaded.state === "ready" ? item.loaded.value : null);
 
-  /** Save a backup file: written at once, then Last backup is this moment. */
+  /** Save a backup file: written at once, then Last backup is this moment; nothing changes when
+   * the pilot cancels the save dialog (desktop). */
   async function saveBackup(): Promise<void> {
     if (!settings) return;
     try {
@@ -1179,7 +1190,7 @@ in Rust. The host saves progress and settings on the device.
       const saved = await host.readLog();
       const kept = saved?.loaded.state === "ready" ? saved.loaded.value : logBlocked ? await host.newLog() : (log ?? (await host.newLog()));
       const text = await host.backupText({ savedAt: now, flights, settings: { ...settings, lastBackup: now }, log: kept });
-      download(backupFileName(now), text, "application/json");
+      if (!(await host.saveFile(backupFileName(now), text, "application/json"))) return;
       await changeSettings({ ...settings, lastBackup: now });
     } catch (e) {
       fail(e);
@@ -1921,9 +1932,9 @@ in Rust. The host saves progress and settings on the device.
       onDelete={deleteLogged}
       onRestore={restoreLogged}
       onImport={importLog}
-      onSaveCopy={saveLogCopy}
+      onSaveCopy={() => void saveLogCopy()}
       onCsv={() => void exportCsv()}
-      onJson={exportJson}
+      onJson={() => void exportJson()}
       onStep={goToStep}
     />
   </div>
@@ -2107,7 +2118,7 @@ in Rust. The host saves progress and settings on the device.
           {#if kept.length || saveFailed}
             <div class="notices">
               {#each kept as k (k.what)}
-                <KeptNotice what={k.what} state={k.state} text={k.text} stuck={k.stuck ?? false} onFresh={() => startFresh(k.what)} />
+                <KeptNotice what={k.what} state={k.state} text={k.text} stuck={k.stuck ?? false} onSave={() => saveFile(`involo-${k.what}.json`, k.text, "application/json")} onFresh={() => startFresh(k.what)} />
               {/each}
               {#if saveFailed}
                 <SaveFailedNotice />

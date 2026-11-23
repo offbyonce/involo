@@ -21,6 +21,17 @@ pub fn to_interface_json<T: Serialize + ?Sized>(value: &T) -> serde_json::Result
     serde_json::to_string(&Camel(value))
 }
 
+/// A value that serializes as [`to_interface_json`] writes it, with camelCase field names, for a
+/// host whose bridge does the serializing itself (the desktop app's commands).
+#[derive(Debug)]
+pub struct ForInterface<T>(pub T);
+
+impl<T: Serialize> Serialize for ForInterface<T> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        Camel(&self.0).serialize(serializer)
+    }
+}
+
 /// A snake_case field name in camelCase ("show_if" is "showIf"); other names are unchanged.
 fn camel_case(name: &str) -> String {
     let mut out = String::with_capacity(name.len());
@@ -415,6 +426,23 @@ mod tests {
                 serde_json::to_string(self).unwrap()
             }
         }
+    }
+
+    /// The desktop app's commands hand the bridge a `ForInterface`: it writes the same JSON.
+    #[test]
+    fn for_interface_writes_what_to_interface_json_writes() {
+        let value = Outer {
+            show_if: None,
+            items: vec![Inner { look_for: "x" }],
+            by_id: BTreeMap::new(),
+            kind: Tagged::ToggleSwitch { short_title: "S" },
+            already_camel: 1,
+            migrated_from: 2,
+        };
+        assert_eq!(
+            serde_json::to_string(&ForInterface(&value)).unwrap(),
+            to_interface_json(&value).unwrap()
+        );
     }
 
     #[test]

@@ -35,9 +35,8 @@ aircraft can be added without changing the app.
 | `crates/involo-pack-overlap` | The text-overlap check against local reference files |
 | `crates/involo-simbrief` | SimBrief flight plan parsing |
 | `crates/involo-web-host` | WebAssembly glue for the web app |
-| `crates/store` | Saved data (SQLite); parked for the desktop build |
 | `apps/web` | The web app (GitHub Pages) |
-| `apps/desktop` | The desktop app shell (Tauri 2); parked for a later build |
+| `apps/desktop` | The desktop app for Windows and macOS (Tauri 2) |
 | `packages/ui` | The shared interface (Svelte 5) |
 | `packages/bindings` | TypeScript types generated from Rust |
 | `packs/` | Aircraft packs (checklist content), and invented example packs in `packs/examples` |

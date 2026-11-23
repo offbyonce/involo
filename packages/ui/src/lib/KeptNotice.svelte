@@ -13,6 +13,7 @@ be moved aside (`stuck`: storage full), nothing is moved, and the notice says so
     state,
     text,
     stuck = false,
+    onSave,
     onFresh,
   }: {
     what: "flight" | "settings" | "plan";
@@ -20,6 +21,8 @@ be moved aside (`stuck`: storage full), nothing is moved, and the notice says so
     text: string;
     /** Starting fresh couldn't set it aside, so nothing was moved. */
     stuck?: boolean;
+    /** Save a copy: the host hands the pilot the file (a download, or the save dialog). */
+    onSave: () => void;
     onFresh: () => void;
   } = $props();
 
@@ -43,7 +46,17 @@ be moved aside (`stuck`: storage full), nothing is moved, and the notice says so
   </p>
   <div class="acts">
     <!-- When it couldn't be set aside, saving a copy comes first. -->
-    <a class="btn" class:primary={stuck} {href} download="involo-{what}.json">Save a copy</a>
+    <!-- A link, as it was; the click goes to the host, which may have no downloads (desktop). -->
+    <a
+      class="btn"
+      class:primary={stuck}
+      {href}
+      download="involo-{what}.json"
+      onclick={(e) => {
+        e.preventDefault();
+        onSave();
+      }}>Save a copy</a
+    >
     <button class="btn" class:primary={!stuck} type="button" onclick={onFresh}>Start fresh</button>
   </div>
 </div>

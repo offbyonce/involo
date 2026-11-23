@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+SPDX-FileCopyrightText: 2026 offbyonce
+SPDX-License-Identifier: MIT
+
+The Windows application manifest, embedded by build.rs into everything the crate links: the app,
+and its test binaries too. Tauri's own copy goes into the app only, and a test binary without it
+can't load Common Controls v6, which Tauri needs (the dialog plugin's save dialog among others).
+The dependency is the one Tauri's default manifest declares.
+-->
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity
+        type="win32"
+        name="Microsoft.Windows.Common-Controls"
+        version="6.0.0.0"
+        processorArchitecture="*"
+        publicKeyToken="6595b64144ccf1df"
+        language="*"
+      />
+    </dependentAssembly>
+  </dependency>
+</assembly>

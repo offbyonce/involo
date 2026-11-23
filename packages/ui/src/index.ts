@@ -15,5 +15,6 @@ export {
   type Saved,
   type SavedItem,
 } from "./host";
+export { downloadFile } from "./lib/save-file";
 export { default as Root } from "./Root.svelte";
 export { COLOR } from "./theme/tokens.generated";
