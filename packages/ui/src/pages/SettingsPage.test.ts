@@ -18,6 +18,16 @@ const settings = {
 } as Settings;
 
 describe("SettingsPage", () => {
+  it("shows the version, and What's new opens that version's release in a new tab (#54)", () => {
+    render(SettingsPage, { settings, version: "0.1.0", onChange: () => {} });
+    const line = screen.getByText(/^Involo 0\.1\.0/);
+    expect(line.textContent).toBe("Involo 0.1.0 · What’s new");
+    const link = within(line).getByRole("link", { name: "What’s new" }) as HTMLAnchorElement;
+    expect(link.href).toBe("https://github.com/offbyonce/involo/releases/tag/v0.1.0");
+    expect(link.target).toBe("_blank");
+    expect(link.rel).toBe("noopener noreferrer");
+  });
+
   it("names the views List and Step by step, keeping the saved values", async () => {
     const changed: Settings[] = [];
     render(SettingsPage, { settings, version: null, onChange: (s: Settings) => changed.push(s) });
