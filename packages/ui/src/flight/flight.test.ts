@@ -99,6 +99,7 @@ function page(props: Record<string, unknown>, withHost: Host = host) {
       onImport: async () => "Couldn't reach SimBrief.",
       onFile: async () => null,
       onClear: () => calls.push("clear"),
+      onForget: () => calls.push("forget"),
       onDescriptions: (on: boolean) => calls.push(["descriptions", on]),
       ...props,
     },
@@ -415,6 +416,19 @@ describe("FlightPage", () => {
     });
     await fireEvent.click(screen.getByRole("button", { name: "Import latest flight" }));
     expect(await screen.findByRole("alert")).toBeTruthy();
+  });
+
+  it("offers Forget username only with a username saved, and the field follows it (#244)", async () => {
+    const { calls } = page({ section: "simbrief" });
+    expect(screen.queryByRole("button", { name: "Forget username" })).toBeNull();
+    cleanup();
+    const saved = { ...settings, simbriefUser: "pilot" } as Settings;
+    const view = page({ section: "simbrief", settings: saved });
+    const field = screen.getByLabelText("SimBrief username or pilot ID") as HTMLInputElement;
+    expect(field.value).toBe("pilot");
+    await fireEvent.click(screen.getByRole("button", { name: "Forget username" }));
+    expect(view.calls.at(-1)).toBe("forget");
+    expect(calls).not.toContain("forget");
   });
 
   it("refuses an OFP file over the limit without reading it", async () => {
