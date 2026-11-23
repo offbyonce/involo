@@ -115,7 +115,15 @@ const SETTINGS_MIGRATIONS: &[Migration] = &[
     settings_7_to_8,
     settings_8_to_9,
     settings_9_to_10,
+    settings_10_to_11,
 ];
+
+/// Format 11 adds Keep screen awake (#245), off as before.
+fn settings_10_to_11(mut value: Value) -> Result<Value, String> {
+    let object = value.as_object_mut().ok_or("settings are not an object")?;
+    object.insert("keepAwake".into(), Value::from(false));
+    Ok(value)
+}
 
 /// Format 10 adds when the backup reminder may show again after Not now (#243): no time yet.
 fn settings_9_to_10(mut value: Value) -> Result<Value, String> {
@@ -528,6 +536,7 @@ mod tests {
                 object.remove("backupReminderAfter"),
                 Some(serde_json::Value::Null)
             );
+            assert_eq!(object.remove("keepAwake"), Some(json!(false)));
             object.insert("format".into(), json!(6));
             let before: serde_json::Value = serde_json::from_str(&saved(text)).unwrap();
             assert_eq!(back, before);
@@ -558,6 +567,7 @@ mod tests {
         object.remove("lastBackup");
         object.remove("noticeSeen");
         object.remove("backupReminderAfter");
+        object.remove("keepAwake");
         object.insert("format".into(), json!(6));
         assert_eq!(
             kept,
@@ -587,6 +597,7 @@ mod tests {
             object.remove("backupReminderAfter"),
             Some(serde_json::Value::Null)
         );
+        assert_eq!(object.remove("keepAwake"), Some(json!(false)));
         object.insert("format".into(), json!(7));
         assert_eq!(
             kept,
@@ -614,6 +625,7 @@ mod tests {
             object.remove("backupReminderAfter"),
             Some(serde_json::Value::Null)
         );
+        assert_eq!(object.remove("keepAwake"), Some(json!(false)));
         object.insert("format".into(), json!(8));
         assert_eq!(
             kept,
@@ -640,7 +652,31 @@ mod tests {
             object.remove("backupReminderAfter"),
             Some(serde_json::Value::Null)
         );
+        assert_eq!(object.remove("keepAwake"), Some(json!(false)));
         object.insert("format".into(), json!(9));
+        assert_eq!(
+            kept,
+            serde_json::from_str::<serde_json::Value>(text).unwrap()
+        );
+    }
+
+    #[test]
+    fn settings_saved_in_format_10_keep_every_value_and_keep_the_screen_as_before() {
+        // Frozen: format 10 settings as the app saved them, every value changed from its default.
+        let text = include_str!("../tests/fixtures/settings-format-10.json");
+        let Loaded::Ready {
+            value,
+            migrated_from,
+        } = load_settings(text)
+        else {
+            panic!("format 10 settings did not load");
+        };
+        assert_eq!(migrated_from, Some(10));
+        assert!(!value.keep_awake);
+        let mut kept = serde_json::to_value(&value).unwrap();
+        let object = kept.as_object_mut().unwrap();
+        assert_eq!(object.remove("keepAwake"), Some(json!(false)));
+        object.insert("format".into(), json!(10));
         assert_eq!(
             kept,
             serde_json::from_str::<serde_json::Value>(text).unwrap()

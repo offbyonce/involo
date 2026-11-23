@@ -58,4 +58,9 @@ noticeSeen: boolean,
  * The backup reminder's Not now (#243): no reminder before this time, in milliseconds since
  * 1970 (UTC); None until the pilot first answers Not now.
  */
-backupReminderAfter: number | null, };
+backupReminderAfter: number | null, 
+/**
+ * Settings › Keep screen awake (#245): asks the browser to keep the screen on while Involo is
+ * open, where it can.
+ */
+keepAwake: boolean, };
