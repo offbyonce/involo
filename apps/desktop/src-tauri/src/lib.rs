@@ -112,6 +112,15 @@ mod tests {
 
     type Window = tauri::WebviewWindow<tauri::test::MockRuntime>;
 
+    /// Where the window's page comes from, as its calls say: `http://tauri.localhost` on Windows
+    /// (and Android), `tauri://localhost` elsewhere. Its capability is granted to that origin only,
+    /// so a call from any other is refused.
+    const APP_URL: &str = if cfg!(any(windows, target_os = "android")) {
+        "http://tauri.localhost"
+    } else {
+        "tauri://localhost"
+    };
+
     /// The app's main window, on Tauri's mock runtime.
     fn window() -> Window {
         let app = super::with_commands(mock_builder())
@@ -131,7 +140,7 @@ mod tests {
                 cmd: cmd.into(),
                 callback: CallbackFn(0),
                 error: CallbackFn(1),
-                url: "tauri://localhost".parse().unwrap(),
+                url: APP_URL.parse().unwrap(),
                 body: InvokeBody::Json(args),
                 headers: tauri::http::HeaderMap::default(),
                 invoke_key: INVOKE_KEY.to_string(),
