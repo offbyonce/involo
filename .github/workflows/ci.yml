@@ -236,12 +236,44 @@ jobs:
           path: target/e2e
           retention-days: 14
 
-  # The check the ruleset requires, by its old name: passes only when both browsers passed.
+  # The service worker's version-to-version update test (`just update-test`, #41) on that site, in
+  # headless Firefox: the first visit installs it, it loads offline, a new version waits with the
+  # reload offer, Reload brings it in, and a copy installed from the old app/ address moves to the
+  # front page. The Playwright image has Firefox; apps/web/build/browser.mjs finds it through
+  # PLAYWRIGHT_BROWSERS_PATH. It needs only Node, no packages. HOME is root's own, since Firefox
+  # refuses to run as root with a HOME owned by another user (the runner's, mounted at
+  # /github/home).
+  update-test:
+    needs: site
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: e2e-site
+
+      - env:
+          HOME: /root
+        run: node apps/web/build/update-test.mjs
+
+  # The check the ruleset requires, by its old name: passes only when both browsers and the update
+  # test passed.
   e2e:
     if: always()
-    needs: e2e-browser
+    needs: [e2e-browser, update-test]
     runs-on: ubuntu-latest
     steps:
       - env:
-          RESULT: ${{ needs.e2e-browser.result }}
-        run: test "$RESULT" = success
+          BROWSERS: ${{ needs.e2e-browser.result }}
+          UPDATE: ${{ needs.update-test.result }}
+        run: test "$BROWSERS" = success && test "$UPDATE" = success
