@@ -464,6 +464,80 @@ describe("App", () => {
     states = ["skipped", "current"];
   });
 
+  describe("Settings rows from 3.0 (#245)", () => {
+    it("Keep screen awake asks the host to hold the screen, and Start sets the flight's start option", async () => {
+      const held: boolean[] = [];
+      const actions: Action[] = [];
+      const h = host({
+        canKeepAwake: () => true,
+        keepAwake: async (on) => {
+          held.push(on);
+          return on;
+        },
+        apply: async (_p, flight, action) => {
+          actions.push(action);
+          return flight;
+        },
+      });
+      render(App, { context: hostContext(h) });
+      await screen.findByRole("heading", { level: 1, name: "Power up" });
+      window.location.hash = "#/settings";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+      await fireEvent.click(await screen.findByRole("switch", { name: "Keep screen awake" }));
+      await waitFor(() => expect(held.at(-1)).toBe(true));
+      const start = screen.queryByRole("radiogroup", { name: "Start" });
+      if (start) {
+        const radios = within(start).getAllByRole("radio");
+        await fireEvent.click(radios.at(-1) as HTMLElement);
+        expect(actions.at(-1)?.type).toBe("setOption");
+      }
+    });
+
+    it("Clear all progress clears every pack's saved flight and plan at once, and Undo puts them back", async () => {
+      const actions: Action[] = [];
+      const removed: string[] = [];
+      const savedFlights: [string, unknown][] = [];
+      const plans: [string, SavedPlan | null][] = [];
+      const other = { pack: "other", session: { done: { x: 1 }, skipped: {} } } as unknown as Flight;
+      const h = host({
+        savedPacks: async () => ["demo", "other"],
+        readSaved: async (id) =>
+          id === "other"
+            ? {
+                flight: { loaded: { state: "ready", value: other, migratedFrom: null }, text: "{}" },
+                settings: null,
+              }
+            : { flight: null, settings: null },
+        removeSaved: async (id) => {
+          removed.push(id);
+          return true;
+        },
+        apply: async (_p, flight, action) => {
+          actions.push(action);
+          return flight;
+        },
+        save: async (id, what, value) => {
+          if (what === "flight") savedFlights.push([id, value]);
+          return 0;
+        },
+        savePlan: async (id, plan) => {
+          plans.push([id, plan]);
+        },
+      });
+      render(App, { context: hostContext(h) });
+      await screen.findByRole("heading", { level: 1, name: "Power up" });
+      window.location.hash = "#/settings";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+      await fireEvent.click(await screen.findByRole("button", { name: "Clear all progress" }));
+      await waitFor(() => expect(actions.at(-1)).toEqual({ type: "clear" }));
+      expect(removed).toEqual(["other"]);
+      await waitFor(() => expect(plans).toContainEqual(["demo", null]));
+      expect(await screen.findByText("All progress cleared.")).toBeTruthy();
+      await fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+      await waitFor(() => expect(savedFlights.some(([id, f]) => id === "other" && f === other)).toBe(true));
+    });
+  });
+
   it("ends every step's menu with Report a problem, opening the issue form for that step in a new tab (#242)", async () => {
     render(App, { context: hostContext(host()) });
     await screen.findByRole("heading", { level: 1, name: "Power up" });

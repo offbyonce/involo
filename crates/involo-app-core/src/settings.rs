@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// The saved format of [`Settings`]. Raise it, with a migration and tests, when the shape changes.
-pub const SETTINGS_FORMAT: u32 = 10;
+pub const SETTINGS_FORMAT: u32 = 11;
 
 /// The highest dimming step; 0 is full brightness.
 pub const MAX_DIMMING: u8 = 4;
@@ -129,6 +129,9 @@ pub struct Settings {
     /// 1970 (UTC); None until the pilot first answers Not now.
     #[ts(type = "number | null")]
     pub backup_reminder_after: Option<i64>,
+    /// Settings › Keep screen awake (#245): asks the browser to keep the screen on while Involo is
+    /// open, where it can.
+    pub keep_awake: bool,
 }
 
 impl Default for Settings {
@@ -153,6 +156,7 @@ impl Default for Settings {
             last_backup: None,
             notice_seen: false,
             backup_reminder_after: None,
+            keep_awake: false,
         }
     }
 }

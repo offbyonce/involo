@@ -475,6 +475,8 @@ mod tests {
         expected["settings"]["noticeSeen"] = Value::from(false);
         // And when the backup reminder may show again, which format 10 adds (#243).
         expected["settings"]["backupReminderAfter"] = Value::Null;
+        // And Keep screen awake, which format 11 adds (#245).
+        expected["settings"]["keepAwake"] = Value::from(false);
         assert_eq!(written, expected);
     }
 

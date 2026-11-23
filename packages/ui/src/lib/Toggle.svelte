@@ -11,6 +11,7 @@ knob, a 44 px target. Off, the white knob takes a muted ring so it reads at 3:1 
     labelledby,
     label,
     text = null,
+    disabled = false,
     onToggle,
   }: {
     on: boolean;
@@ -18,15 +19,21 @@ knob, a 44 px target. Off, the white knob takes a muted ring so it reads at 3:1 
     label?: string;
     /** Its own words beside the track instead of On or Off (Deck board's "Name every panel"). */
     text?: string | null;
+    /** Can't be changed here (Keep screen awake where the browser has no wake lock). */
+    disabled?: boolean;
     onToggle: () => void;
   } = $props();
 </script>
 
-<button class="switch" class:named={text != null} type="button" role="switch" aria-checked={on} aria-labelledby={labelledby} aria-label={label} onclick={onToggle}>
+<button class="switch" class:named={text != null} type="button" role="switch" aria-checked={on} aria-labelledby={labelledby} aria-label={label} {disabled} onclick={onToggle}>
   {text ?? (on ? "On" : "Off")}<span class="track"><span class="knob"></span></span>
 </button>
 
 <style>
+  .switch:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   .switch {
     display: flex;
     flex: none;

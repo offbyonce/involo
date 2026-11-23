@@ -16,9 +16,15 @@ on the device (decision 0012).
     version,
     seats = [],
     hasEssentials = true,
+    canKeepAwake = true,
+    essentialsChanged = null,
+    start = null,
     onChange,
     onBackup = () => {},
     onRestore = () => {},
+    onResetEssentials = () => {},
+    onStart = () => {},
+    onClearAll = () => {},
   }: {
     settings: Settings;
     version: string | null;
@@ -27,6 +33,15 @@ on the device (decision 0012).
     /** The pack marks quick steps; without them the Steps row (Full or Essentials) is left out. */
     hasEssentials?: boolean;
     onChange: (s: Settings) => void;
+    /** Whether this browser can keep the screen on (#245); without it, Keep screen awake is off and disabled. */
+    canKeepAwake?: boolean;
+    /** The open pack's Essentials changes (#245): how many steps added and removed; null without Essentials. */
+    essentialsChanged?: { added: number; removed: number } | null;
+    /** The pack's start option, the one its turnaround rule names (#245), with the flight's value; null without one. */
+    start?: { title: string; choices: { value: string; label: string }[]; value: string } | null;
+    onResetEssentials?: () => void;
+    onStart?: (value: string) => void;
+    onClearAll?: () => void;
     /** Save a backup file (#47): written at once, no dialog. */
     onBackup?: () => void;
     /** Restore from a file: the file the pilot chose, for the review. */
@@ -131,6 +146,20 @@ on the device (decision 0012).
       <p>Panel views show what you see from this seat.</p>
     </div>
   {/if}
+  {#if start}
+    <!-- Settings › Start (#245, RelSettings): the same setting as Flight › Start options. -->
+    <div class="set">
+      <div>
+        <b id="set-start">Start</b>
+        <p>How a new flight begins. The same setting as Flight › Start options.</p>
+      </div>
+      <div class="seg" role="radiogroup" aria-labelledby="set-start">
+        {#each start.choices as c (c.value)}
+          <button type="button" role="radio" aria-checked={start.value === c.value} onclick={() => onStart(c.value)}>{c.label}</button>
+        {/each}
+      </div>
+    </div>
+  {/if}
   <!-- Settings › Back up and restore (#47, BackupSetting board): after Your seat, or after Panel
        preview when there is no seat setting. On a phone the buttons stack, full width. -->
   <div class="set backup">
@@ -188,7 +217,44 @@ on the device (decision 0012).
       </div>
     </div>
     {#if row.key === "textSize"}{@render preview()}{/if}
+    {#if row.key === "essentials" && essentialsChanged}
+      <!-- Settings › Your Essentials (#245, RelSettings): what the pilot changed, and Reset. -->
+      {@const changed = essentialsChanged.added + essentialsChanged.removed}
+      <div class="set">
+        <div>
+          <b id="set-yours">Your Essentials</b>
+          <p>
+            {changed
+              ? `You’ve changed ${changed} ${changed === 1 ? "step" : "steps"}: ${essentialsChanged.added} added, ${essentialsChanged.removed} removed. Reset puts back the pack’s own Essentials.`
+              : "You’re using the pack’s own Essentials."}
+          </p>
+        </div>
+        <button class="btn" type="button" aria-describedby="set-yours" disabled={!changed} onclick={onResetEssentials}>Reset to default</button>
+      </div>
+    {/if}
+    {#if row.key === "dimming"}
+      <!-- Settings › Keep screen awake (#245, RelSettings): after the display settings. -->
+      <div class="set">
+        <div>
+          <b id="set-awake">Keep screen awake</b>
+          <p>
+            Stops the screen dimming or locking while Involo is open. It uses more battery.{canKeepAwake
+              ? " Where the browser can’t keep the screen on, this row says so."
+              : " This browser can’t keep the screen on."}
+          </p>
+        </div>
+        <Toggle on={canKeepAwake && !!settings.keepAwake} labelledby="set-awake" disabled={!canKeepAwake} onToggle={() => onChange({ ...settings, keepAwake: !settings.keepAwake })} />
+      </div>
+    {/if}
   {/each}
+  <!-- Settings › Clear all progress (#245, RelSettings): last on the page; it clears at once, with Undo. -->
+  <div class="set">
+    <div>
+      <b id="set-clear">Clear all progress</b>
+      <p>Clears the saved flight in every pack: ticks, skips, timers, the flight plan and where you are. Your settings, backups and the flight log stay.</p>
+    </div>
+    <button class="btn danger-outline" type="button" aria-describedby="set-clear" onclick={onClearAll}>Clear all progress</button>
+  </div>
 </div>
 <div class="done"><a class="btn primary" href="#/">Done</a></div>
 <!-- The version line (Views board, Settings). -->
@@ -197,6 +263,12 @@ on the device (decision 0012).
 {/if}
 
 <style>
+  /* Clear all progress (RelSettings): the danger-outline button. */
+  .danger-outline {
+    border-color: var(--color-danger);
+    background: transparent;
+    color: var(--color-danger);
+  }
   .ver {
     margin: var(--space-1) var(--space-1) 0;
     color: var(--color-text-muted);

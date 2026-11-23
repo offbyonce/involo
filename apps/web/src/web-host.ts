@@ -146,6 +146,37 @@ async function persistStorage(): Promise<boolean> {
   return (await storage.persisted?.()) || (await storage.persist());
 }
 
+/** Settings › Keep screen awake (#245): the Screen Wake Lock, held while the setting is on and
+ * taken again whenever the page comes back into view (the browser lets it go when the page is
+ * hidden). */
+type WakeLock = { release(): Promise<void> };
+const wakeLocks = (navigator as Navigator & { wakeLock?: { request(type: "screen"): Promise<WakeLock> } })
+  .wakeLock;
+let wakeWanted = false;
+let wakeHeld: WakeLock | null = null;
+async function holdWake(): Promise<boolean> {
+  if (!wakeLocks || !wakeWanted || document.visibilityState !== "visible") return false;
+  try {
+    wakeHeld ??= await wakeLocks.request("screen");
+    return true;
+  } catch {
+    return false;
+  }
+}
+if (wakeLocks)
+  document.addEventListener("visibilitychange", () => {
+    wakeHeld = null;
+    void holdWake();
+  });
+async function keepAwake(on: boolean): Promise<boolean> {
+  wakeWanted = on;
+  if (on) return holdWake();
+  const held = wakeHeld;
+  wakeHeld = null;
+  await held?.release().catch(() => {});
+  return false;
+}
+
 export const webHost: Host = {
   appInfo,
   catalog: () => readCatalog({ fetch: fetchOwn, parse: parseCatalog }),
@@ -184,6 +215,8 @@ export const webHost: Host = {
   backupText,
   readBackup,
   persistStorage,
+  canKeepAwake: () => !!wakeLocks,
+  keepAwake,
   readSettings,
   save,
   setAside,

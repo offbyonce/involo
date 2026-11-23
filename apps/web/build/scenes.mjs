@@ -420,6 +420,12 @@ export const loggedForReminder = (daysAgo) => [
   `(location.hash = "#/phase/shutdown", true)`,
   `new Promise((done) => setTimeout(() => done(true), 800))`,
 ];
+/** Settings as RelSettings shows them (#245): the screen kept awake and three steps changed in the
+ * iFly pack's Essentials (two added, one removed), then a reload. */
+export const settingsFrom3x = [
+  `(() => { const k = Object.keys(localStorage).find((x) => /settings$/.test(x)); const s = JSON.parse(localStorage.getItem(k)); s.keepAwake = true; s.essentialsChanges = { "ifly-737-max8": { added: ["ifly-737-max8.preflight.irs", "ifly-737-max8.preflight.elt-switch"], removed: ["ifly-737-max8.cold-dark.battery-switch"] } }; localStorage.setItem(k, JSON.stringify(s)); setTimeout(() => location.reload(), 50); return true; })()`,
+  `new Promise((done) => setTimeout(() => done(true), 1500))`,
+];
 /** Opens the welcome again over the current state, as on a first visit: marks it unseen, reloads. */
 export const reopenWelcome = [
   `(() => { sessionStorage.setItem("tour-shot", "1"); const k = Object.keys(localStorage).find((x) => /settings$/.test(x)); const s = JSON.parse(localStorage.getItem(k)); s.tourSeen = false; localStorage.setItem(k, JSON.stringify(s)); setTimeout(() => location.reload(), 50); return true; })()`,
