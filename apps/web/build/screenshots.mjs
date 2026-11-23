@@ -66,6 +66,7 @@ import {
   press,
   pressText,
   refuseSaves,
+  loggedForReminder,
   reopenNotice,
   reopenWelcome,
   restarted,
@@ -592,6 +593,9 @@ const SHOTS = [
   // 3 to 6 at desktop.
   // The simulator-only notice (#241, RelNotice): over the app, as on a first visit.
   { name: "board-notice", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenNotice] } },
+  // The backup reminder after a logged flight (#243, RelReminder and RelReminderNever).
+  { name: "board-reminder", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...loggedForReminder(32)] } },
+  { name: "board-reminder-never", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...loggedForReminder(null)] } },
   { name: "board-tour-welcome", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenWelcome] } },
   { name: "board-tour-step", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(0)] } },
   { name: "board-tour-end", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(5)] } },
