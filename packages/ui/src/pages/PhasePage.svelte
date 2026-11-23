@@ -43,6 +43,7 @@ step at a time (lib/FlowView.svelte).
     open = [],
     onGo,
     onEssentials,
+    reportUrl,
     decisions,
     timers,
     walkthroughs,
@@ -74,6 +75,8 @@ step at a time (lib/FlowView.svelte).
     /** Goes to a step (the open-steps list). */
     onGo?: ((id: string) => void) | undefined;
     onEssentials?: ((id: string, add: boolean) => void) | undefined;
+    /** Report a problem with a step (#242): the issue form's address for a step of a list. */
+    reportUrl?: ((list: string, step: string) => string) | undefined;
     /** Decision steps and the steps that depend on them (decision 0022). */
     decisions?: Decisions | undefined;
     /** Step timers (#213): each step's timer, the clock and the pilot's controls. */
@@ -193,6 +196,7 @@ step at a time (lib/FlowView.svelte).
     {onSelect}
     {onClear}
     {onEssentials}
+    {reportUrl}
     folded={list.kind === "checklist" && procedureOpen}
     {decisions}
     {timers}

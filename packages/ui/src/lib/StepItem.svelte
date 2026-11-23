@@ -54,6 +54,7 @@ location line on desktop, under the value on the tablet and phone.
     onBlank,
     onSelect,
     onEssentials,
+    reportUrl,
     decisions,
     timers,
     walkthroughs,
@@ -80,6 +81,8 @@ location line on desktop, under the value on the tablet and phone.
     onSelect: () => void;
     /** Adds the step to Essentials (true) or removes it (false). */
     onEssentials?: ((add: boolean) => void) | undefined;
+    /** Report a problem with this step (#242): the issue form's address with the step filled in. */
+    reportUrl?: string | undefined;
     /** Decision steps and the steps that depend on them (decision 0022). */
     decisions?: Decisions | undefined;
     /** Step timers (#213, Timers boards): the chip under the value, a line of text, and Pause or
@@ -287,6 +290,14 @@ location line on desktop, under the value on the tablet and phone.
         {#if onEssentials && !large}
           <hr />
           <button role="menuitem" type="button" onclick={() => act(() => onEssentials?.(!row.essential))}>{row.essential ? "Remove from Essentials" : "Add to Essentials"}</button>
+        {/if}
+        {#if reportUrl}
+          <!-- RelReport: the last item, after a divider; it opens GitHub's form in a new tab. -->
+          <hr />
+          <a role="menuitem" class="report" href={reportUrl} target="_blank" rel="noopener noreferrer" aria-describedby="report-{row.id}" onclick={() => (menu = false)}
+            >Report a problem with this step<Icon name="external" /></a
+          >
+          <span class="report-note" id="report-{row.id}">Opens a GitHub issue form with this step filled in.</span>
         {/if}
       </div>
     {/if}
@@ -548,8 +559,8 @@ location line on desktop, under the value on the tablet and phone.
     box-sizing: content-box;
     display: flex;
     flex-direction: column;
-    /* The board's 248 px is the content width; padding and border add to it. */
-    width: calc(10 * var(--space-6) + var(--space-2));
+    /* The board's 264 px is the content width; padding and border add to it. */
+    width: calc(11 * var(--space-6));
     padding: calc(var(--space-1) + var(--border-thick));
     border: var(--border-thin) solid var(--color-border);
     border-radius: var(--radius-control);
@@ -567,8 +578,42 @@ location line on desktop, under the value on the tablet and phone.
     font-size: var(--font-size-secondary);
     text-align: left;
   }
-  .menu button:hover {
+  .menu button:hover,
+  .menu a:hover {
     background: var(--color-surface-2);
+  }
+  /* Report a problem with this step (RelReport): a link that looks like the other items, with the
+   * external-link glyph at its end and a muted line under it. */
+  .menu .report {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--size-touch-min);
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-small);
+    color: var(--color-text);
+    font-size: var(--font-size-secondary);
+    text-decoration: none;
+  }
+  .menu .report :global(svg) {
+    flex: none;
+    width: var(--size-icon-small);
+    height: var(--size-icon-small);
+    margin-left: auto;
+    color: var(--color-text-muted);
+  }
+  .menu .report-note {
+    padding: 0 var(--space-3) calc(var(--space-1) + var(--border-thick));
+    color: var(--color-text-muted);
+    font-size: var(--font-size-caption);
+    /* The board's 1.4 has no token; the nearest is leading-snug (1.45). */
+    line-height: var(--leading-snug);
+  }
+  /* RelReportPhone: a little wider. */
+  @media (max-width: 599px) {
+    .menu {
+      width: calc(11 * var(--space-6) + var(--space-1) + var(--border-thick));
+    }
   }
   .menu .skip {
     color: var(--color-open-text);
