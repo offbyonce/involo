@@ -23,8 +23,8 @@ const entry = {
 function site(more = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "involo-site-"));
   const files = {
-    "app/index.html": "app",
-    "app/sw.js": 'const FILES = ["index.html","../assets/app-1.js"];',
+    "index.html": "app",
+    "sw.js": 'const FILES = ["assets/app-1.js","index.html"];',
     "assets/app-1.js": "code",
     "packs/index.json": JSON.stringify([entry]),
     "packs/demo-0.1.0.involo-pack": pack,
@@ -46,7 +46,7 @@ test("a pack in the app's code or the precache list fails", () => {
     "assets/app-1.js holds demo-0.1.0.involo-pack",
   ]);
   assert.deepEqual(
-    catalogProblems(site({ "app/sw.js": 'const FILES = ["index.html","../packs/demo-0.1.0.involo-pack"];' })),
+    catalogProblems(site({ "sw.js": 'const FILES = ["index.html","packs/demo-0.1.0.involo-pack"];' })),
     ["the service worker precaches the pack catalog"],
   );
 });

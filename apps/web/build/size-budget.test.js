@@ -15,7 +15,7 @@ const script = path.join(import.meta.dirname, "size-budget.js");
 function site() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "involo-size-"));
   const files = {
-    "app/index.html": "x".repeat(100),
+    "index.html": "x".repeat(100),
     "assets/app-1.js": "x".repeat(300),
     "assets/web-host-1.js": "x".repeat(2000),
     "assets/host_bg-1.wasm": "x".repeat(5000),
@@ -74,7 +74,7 @@ test("the committed budget limits each size, and the built site is within it", (
   const budget = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, "../size-budget.json"), "utf8"));
   assert.deepEqual(Object.keys(budget).sort(), ["app", "script", "wasm"]);
   const dist = path.join(import.meta.dirname, "../dist");
-  if (fs.existsSync(path.join(dist, "app")))
+  if (fs.existsSync(path.join(dist, "sw.js")))
     assert.deepEqual(checkBudget(measure(dist), budget).problems, []);
 });
 

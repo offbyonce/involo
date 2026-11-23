@@ -800,7 +800,7 @@ export const updateFromWhatsNew = [
 /** Adds the catalog's iFly pack as a pack file (the newer version, from a file): the app opens
  * again on it, with its note. */
 export const addCatalogIflyAsFile = [
-  `(async () => { const index = await (await fetch("../packs/index.json")).json(); const e = index.find((x) => x.id === "ifly-737-max8"); const text = await (await fetch(\`../packs/\${e.id}-\${e.version}.involo-pack\`)).text(); const input = document.querySelector('input[type="file"]'); const dt = new DataTransfer(); dt.items.add(new File([text], \`\${e.id}-\${e.version}.involo-pack\`, { type: "application/json" })); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true })); return true; })()`,
+  `(async () => { const index = await (await fetch("packs/index.json")).json(); const e = index.find((x) => x.id === "ifly-737-max8"); const text = await (await fetch(\`packs/\${e.id}-\${e.version}.involo-pack\`)).text(); const input = document.querySelector('input[type="file"]'); const dt = new DataTransfer(); dt.items.add(new File([text], \`\${e.id}-\${e.version}.involo-pack\`, { type: "application/json" })); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true })); return true; })()`,
   restarted,
   `new Promise((d) => { let n = 0; const t = setInterval(() => { if (document.querySelector('[aria-label="Pack updated"]') || ++n > 100) { clearInterval(t); setTimeout(d, 300, true); } }, 100); })`,
 ];

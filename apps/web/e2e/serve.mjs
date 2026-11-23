@@ -9,7 +9,7 @@ import path from "node:path";
 import { serve } from "../build/browser.mjs";
 
 const dist = path.resolve(import.meta.dirname, "../dist");
-if (!fs.existsSync(path.join(dist, "app/index.html"))) throw new Error("build the site first: just site");
+if (!fs.existsSync(path.join(dist, "sw.js"))) throw new Error("build the site first: just site");
 const port = Number(process.env.E2E_PORT ?? 8790);
 await serve(dist, port);
 process.stdout.write(`serving ${dist} on http://localhost:${port}/\n`);
