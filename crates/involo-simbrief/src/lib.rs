@@ -29,6 +29,14 @@ pub enum OfpError {
     NotJson(String),
     #[error("that file is not a valid SimBrief XML plan: {0}")]
     NotXml(String),
+    /// SimBrief knows no pilot by that username or Pilot ID ("Error: Unknown UserID").
+    #[error("Username not found. Check your SimBrief username or Pilot ID.")]
+    UnknownUser,
+    /// The pilot has no plan on SimBrief ("Error: No flight plan on file for the specified
+    /// user").
+    #[error("No plan filed yet. Create a flight plan on SimBrief, then try again.")]
+    NoPlan,
+    /// Any other answer SimBrief gives instead of a plan, in its own words.
     #[error("SimBrief says: {0}")]
     Fetch(String),
     #[error("enter a SimBrief username or Pilot ID")]
@@ -273,7 +281,26 @@ mod tests {
     #[test]
     fn simbrief_errors_are_reported() {
         let err = parse_ofp_json(&fixture("ofp-error.json")).unwrap_err();
-        assert_eq!(err, OfpError::Fetch("Error: Unknown UserID".into()));
+        assert_eq!(err, OfpError::UnknownUser);
+        assert_eq!(
+            err.to_string(),
+            "Username not found. Check your SimBrief username or Pilot ID."
+        );
+        let status = |s: &str| parse_ofp_json(&format!(r#"{{"fetch":{{"status":"{s}"}}}}"#));
+        assert_eq!(
+            status("Error: No flight plan on file for the specified user"),
+            Err(OfpError::NoPlan)
+        );
+        assert_eq!(
+            OfpError::NoPlan.to_string(),
+            "No plan filed yet. Create a flight plan on SimBrief, then try again."
+        );
+        assert_eq!(status("error: unknown userid"), Err(OfpError::UnknownUser));
+        // Anything else stays in SimBrief's words.
+        assert_eq!(
+            status("Error: Too many requests"),
+            Err(OfpError::Fetch("Error: Too many requests".into()))
+        );
         assert!(matches!(
             parse_ofp_json("<html>"),
             Err(OfpError::NotJson(_))
@@ -309,7 +336,7 @@ mod tests {
         );
         assert_eq!(
             parse_ofp("<OFP><fetch><status>Error: Unknown UserID</status></fetch></OFP>"),
-            Err(OfpError::Fetch("Error: Unknown UserID".into()))
+            Err(OfpError::UnknownUser)
         );
         assert!(matches!(
             parse_ofp("<OFP><general>"),
