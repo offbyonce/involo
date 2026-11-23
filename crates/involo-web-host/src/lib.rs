@@ -382,10 +382,15 @@ pub fn backup_text(parts: &str) -> String {
     })())
 }
 
-/// Reads a file chosen to restore from: the backup, every part migrated, or why it is refused.
+/// Reads a file chosen to restore from: the backup, every part migrated, or why it is refused. A
+/// file exported by the earlier checklist (3.0) is read for the loaded pack whose aliases know it.
 #[wasm_bindgen]
 pub fn read_backup(text: &str) -> String {
-    reply(Ok(involo_app_core::read_backup(text)))
+    // A file from the earlier checklist (3.0) goes to whichever loaded pack knows its ids.
+    PACKS.with_borrow(|packs| {
+        let packs: Vec<&FlatPack> = packs.values().collect();
+        reply(Ok(involo_app_core::read_backup(text, &packs)))
+    })
 }
 
 /// The log's flights as CSV, one row per flight.

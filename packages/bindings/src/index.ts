@@ -34,6 +34,7 @@ export type { ControlsFile } from "./generated/ControlsFile";
 export type { Decoded } from "./generated/Decoded";
 export type { DecodedRow } from "./generated/DecodedRow";
 export type { Detail } from "./generated/Detail";
+export type { EarlierFile } from "./generated/EarlierFile";
 export type { Element } from "./generated/Element";
 export type { ExpectWhen } from "./generated/ExpectWhen";
 export type { ExplainNote } from "./generated/ExplainNote";

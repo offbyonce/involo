@@ -3,4 +3,4 @@
 /**
  * Why a file can't be restored. Whatever the reason, nothing on the device changes.
  */
-export type BackupRefusal = { "kind": "newer", version: string, } | { "kind": "notBackup" } | { "kind": "logFile" };
+export type BackupRefusal = { "kind": "newer", version: string, } | { "kind": "notBackup" } | { "kind": "logFile" } | { "kind": "noPackForEarlier" };

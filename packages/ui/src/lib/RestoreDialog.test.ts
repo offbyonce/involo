@@ -15,6 +15,7 @@ const flight = (pack: string, more: Partial<ReviewFlight> = {}): ReviewFlight =>
   pack,
   name: `Pack ${pack}`,
   version: "0.1.0",
+  badge: null,
   inBackup: "In the backup: Preflight, 4 of 10",
   device: { text: "No flight on this device yet, so nothing is replaced.", replaces: false },
   upgrade: null,
@@ -30,6 +31,7 @@ const asked = {
     flight("b", { installed: false, download: { id: "b", name: "Pack b", version: "0.1.0" } as never }),
   ],
   log: "Adds 3 flights and 2 practice results that aren’t on this device. Nothing is removed.",
+  leftOut: null,
 };
 
 function show(shown = asked as never) {
@@ -68,6 +70,31 @@ describe("RestoreDialog", () => {
     await fireEvent.click(boxes[1] as HTMLElement);
     await fireEvent.click(boxes[2] as HTMLElement);
     expect((screen.getByRole("button", { name: "Restore" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("describes a 3.0 file from the file: its badge, what it marks and what it leaves out (#240)", () => {
+    show({
+      kind: "review",
+      saved: "Saved Nov 20, 2026 at 09:30 by the 3.0 checklist.",
+      flights: [
+        flight("a", {
+          version: null,
+          badge: "From the 3.0 checklist",
+          inBackup: "In the file: 2 steps ticked, 1 skipped.",
+        }),
+      ],
+      log: null,
+      leftOut: "Not brought across: 3.0’s flight log, practice scores and timers.",
+    } as never);
+    const dialog = screen.getByRole("dialog", { name: "Restore from this backup?" });
+    expect(within(dialog).getByText("Saved Nov 20, 2026 at 09:30 by the 3.0 checklist.")).toBeTruthy();
+    expect(within(dialog).getByText("From the 3.0 checklist")).toBeTruthy();
+    expect(within(dialog).queryByText(/^v/)).toBeNull();
+    expect(within(dialog).getByText("In the file: 2 steps ticked, 1 skipped.")).toBeTruthy();
+    expect(
+      within(dialog).getByText("Not brought across: 3.0’s flight log, practice scores and timers."),
+    ).toBeTruthy();
+    expect(within(dialog).queryByText("Flight log")).toBeNull();
   });
 
   it("changes nothing on Cancel or Esc", async () => {
