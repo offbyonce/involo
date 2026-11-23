@@ -60,6 +60,11 @@ shown in What's new before the pilot updates, and a newer version added from a f
 straight away. Either way, the app says the pack was updated, with what changed and that ticks
 are kept. Every field is in the [`aliases.yaml` reference](reference/aliases.md).
 
+The same aliases bring in a file exported by the earlier single-file checklist (3.0), which
+Settings › Restore from a file reads like a backup. The file names no pack, so it goes to the open
+pack whose aliases know its ids: `step`, `blank`, `option_value` and `panel_state` aliases as
+above, and `fill_field` aliases from 3.0's names for flight values to the pack's fields.
+
 ## Publishing to the catalog
 
 The Involo catalog holds the packs the project publishes. To add one:

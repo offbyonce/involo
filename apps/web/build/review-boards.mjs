@@ -106,6 +106,9 @@ export const REVIEW_BOARDS = {
   "board-restore-refused": { desktop: "RestoreRefused", phone: "RestoreRefused" },
   "board-restore-too-large": { desktop: "RestoreRefused", phone: "RestoreRefused" },
   "board-restore-download-failed": { desktop: "RestoreReview", phone: "RestorePhone" },
+  // A file the 3.0 checklist exported (#240), beside the same boards.
+  "board-restore-earlier": { desktop: "RestoreReview", phone: "RestorePhone" },
+  "board-restore-earlier-refused": { desktop: "RestoreRefused", phone: "RestoreRefused" },
   // Several packs (Packs.dc.html).
   "board-packs-two": { desktop: "PacksDesktop", phone: "PacksPhone" },
   "board-packs-first": { desktop: "PacksFirst" },
