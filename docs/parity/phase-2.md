@@ -7,8 +7,7 @@ SPDX-License-Identifier: MIT
 The Phase 2 brief's step 11, before v0.1.0: what the web app does of everything 3.0 does,
 installed and offline, checked on 2026-11-22 against `main` at 712178b. Each row is marked
 **passes**, **fails** or **not built**. Each gives the evidence that shows it, and the issue it
-needs, if any. Issues marked "to open" are drafted and not yet filed; their numbers go in when
-they are.
+needs, if any.
 
 ## Summary
 
@@ -82,7 +81,7 @@ means the crate tests.
 | Approach type and arrival data | passes | Unit `flight-pages.test.ts` | |
 | Progress saves | passes | e2e `ticks.spec.ts` (ticks survive a reload) | |
 | Used in chips and Coming up | passes | Used in: unit `Slideout.test.ts`, `FlightDeckPage.test.ts`. Coming up: in the code (the side pane), no test | |
-| Settings: Keep screen awake, Your Essentials (Reset to default and the count), Start (Cold and dark or Turnaround), Clear all progress | not built | Coverage marks these homes "to review", and no board draws them. Settings has none of the four rows; the Start choice is in Flight › Start options only. | To open: "Settings rows from 3.0" |
+| Settings: Keep screen awake, Your Essentials (Reset to default and the count), Start (Cold and dark or Turnaround), Clear all progress | not built | Coverage marks these homes "to review", and no board draws them. Settings has none of the four rows; the Start choice is in Flight › Start options only. | [#245](https://github.com/offbyonce/involo/issues/245) |
 
 ### The 3.0 content (Phase 1 parity report)
 
@@ -114,7 +113,7 @@ means the crate tests.
 | Requirement | Status | Evidence | Issue |
 | --- | --- | --- | --- |
 | Remember the username on the device | passes | Saved in the settings on this device; unit `flight.test.ts` | |
-| An option to forget the username | not built | No control clears the saved username | To open: "SimBrief: forget the username and the brief's error messages" |
+| An option to forget the username | not built | No control clears the saved username | [#244](https://github.com/offbyonce/involo/issues/244) |
 | One-tap refresh | passes | Strip › Import latest from SimBrief; unit `FlightStrip.test.ts` | |
 | Load the plan automatically when the app opens (optional) | not built | Optional in the brief | Same issue |
 | Show which plan is loaded, its route and age | passes | SimBrief and OFP file: "KSEA → KSFO, imported …" | |
@@ -130,41 +129,42 @@ means the crate tests.
 | Works offline after the first visit | passes | e2e `offline.spec.ts` (Chromium, WebKit); `just update-test` (Firefox) | |
 | A new version never replaces content mid-session | passes | `just update-test` (B waits, reload offer, Reload) | |
 | Progress in browser storage behind the host adapter | passes | `saved-store.test.js`, `log-store.test.js`, `pack-store.test.js` | |
-| Ask the browser for persistent storage | not built | No call to `navigator.storage.persist()` | To open: "Ask for persistent storage and remind pilots to back up" |
+| Ask the browser for persistent storage | not built | No call to `navigator.storage.persist()` | [#243](https://github.com/offbyonce/involo/issues/243) |
 | Export in a versioned format defined in Rust | passes | Rust `backup` tests (format frozen, older parts migrated, newer refused) | |
 | Import validates, applies aliases and says what it replaces | passes | e2e `backup.spec.ts`; unit `RestoreDialog.test.ts`, `backup.test.ts`; the restored flight goes through the pack's aliases (`restore_flight`) | |
 | Remind pilots to export from time to time | not built | No reminder anywhere | Same issue |
-| 3.0 import from a 3.0 export file, tested with an invented export | not built | Restore refuses a 3.0 file as not a backup | To open: "Import a 3.0 export" |
-| First-launch notice covering the whole app | not built | The notice is a line at the foot of the app page and in References; nothing covers the app at first launch | To open: "Show the simulator-only notice at first launch" |
+| 3.0 import from a 3.0 export file, tested with an invented export | not built | Restore refuses a 3.0 file as not a backup | [#240](https://github.com/offbyonce/involo/issues/240) |
+| First-launch notice covering the whole app | not built | The notice is a line at the foot of the app page and in References; nothing covers the app at first launch | [#241](https://github.com/offbyonce/involo/issues/241) |
 | No status or verification marker | passes | See One presentation above | |
 | Privacy note | not built | No privacy note in the app | [#52](https://github.com/offbyonce/involo/issues/52) |
-| The app replaces the placeholder front page | not built | `index.html` still says "The web beta is coming soon." | [#53](https://github.com/offbyonce/involo/issues/53) (wording); to open: "Make the app the front page and retire app/" |
+| The app replaces the placeholder front page | not built | `index.html` still says "The web beta is coming soon." | [#53](https://github.com/offbyonce/involo/issues/53) (wording); [#246](https://github.com/offbyonce/involo/issues/246) |
 | The temporary `app/` address and its interim notice line go | not built | The app is at `app/`, marked `noindex`, with its footer line | Same two issues |
-| Report a problem with a step: a prefilled issue form | not built | No link on a step. `.github/ISSUE_TEMPLATE` has `procedure-problem.yml`, with nothing prefilled, and no `step-problem.yml` | To open: "Report a problem with a step" |
+| Report a problem with a step: a prefilled issue form | not built | No link on a step. `.github/ISSUE_TEMPLATE` has `procedure-problem.yml`, with nothing prefilled, and no `step-problem.yml` | [#242](https://github.com/offbyonce/involo/issues/242) |
 
 ## Gaps in the automated checks
 
 | Gap | Issue |
 | --- | --- |
-| The e2e suite checks only phone (390) and desktop (1440) widths; tablet portrait, tablet landscape and wide were checked ad hoc for this report | To open: "Check tablet and wide sizes, and Firefox, in the e2e suite" |
+| The e2e suite checks only phone (390) and desktop (1440) widths; tablet portrait, tablet landscape and wide were checked ad hoc for this report | [#247](https://github.com/offbyonce/involo/issues/247) |
 | Firefox runs only `just update-test`, by hand, not the e2e flows or CI | Same issue; adding the update test to CI is [#41](https://github.com/offbyonce/involo/issues/41) |
 
 ## Maintainer steps for v0.1.0
 
-Listed in order; none of them is done by this report.
+Listed in order. This report does none of them; step 4 was already done.
 
-1. **Choose what blocks v0.1.0.** File the drafted issues above, and decide which must land
-   first. The brief's gate needs the 3.0 import, the first-launch notice and the privacy note.
-2. **Decide on the front page.** Either the app replaces the placeholder now (the new front-page
-   issue, with [#53](https://github.com/offbyonce/involo/issues/53)), or v0.1.0 ships at `app/`
-   with only #53's wording.
+1. **Choose what blocks v0.1.0**, from the issues above. The brief's gate needs the 3.0 import,
+   the first-launch notice and the privacy note.
+2. **Decide on the front page.** Either the app replaces the placeholder now
+   ([#246](https://github.com/offbyonce/involo/issues/246), with
+   [#53](https://github.com/offbyonce/involo/issues/53)), or v0.1.0 ships at `app/` with only
+   #53's wording.
 3. **Workflow changes** (`.github/workflows/`):
    - Run `just update-test` in CI on Linux ([#41](https://github.com/offbyonce/involo/issues/41);
      Pages already publishes only after a green CI run).
    - Optionally, pin the actions ([#64](https://github.com/offbyonce/involo/issues/64)).
-4. **Repository settings:** protect `main` so that CI's `ci`, `e2e` and `reuse` jobs must pass
-   before a merge. No branch protection rule can be read for `main` today. Pages is already set to
-   GitHub Actions, with HTTPS enforced.
+4. **Repository settings:** done. A repository ruleset protects `main`, requiring CI's `ci` job
+   on all three systems, `reuse`, `e2e` and CodeQL. Pages is set to GitHub Actions, with HTTPS
+   enforced.
 5. **Release text:** the changelog and its 0.1.0 entry
    ([#54](https://github.com/offbyonce/involo/issues/54)), which also serve as the release notes;
    SECURITY.md for the web app ([#48](https://github.com/offbyonce/involo/issues/48)); the README
