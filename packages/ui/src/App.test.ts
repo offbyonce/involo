@@ -213,7 +213,14 @@ function host(overrides: Partial<Host> = {}): Host {
     save: async () => 0,
     setAside: async () => true,
     defaultSettings: async () =>
-      ({ theme: "dark", dimming: 0, detail: "expanded", listView: "checklist", tourSeen: true }) as Settings,
+      ({
+        theme: "dark",
+        dimming: 0,
+        detail: "expanded",
+        listView: "checklist",
+        tourSeen: true,
+        noticeSeen: true,
+      }) as Settings,
     fetchPlan: async () => {
       throw new Error("no network in tests");
     },
@@ -467,6 +474,7 @@ describe("App", () => {
       detail: "expanded",
       listView: "checklist",
       tourSeen: true,
+      noticeSeen: true,
       essentials: true,
     } as Settings;
     render(App, {
@@ -686,6 +694,7 @@ describe("App", () => {
       detail: "expanded",
       listView: "checklist",
       tourSeen: true,
+      noticeSeen: true,
       seat: "left",
     } as Settings;
     render(App, {
@@ -751,6 +760,7 @@ describe("App", () => {
       detail: "expanded",
       listView: "flow",
       tourSeen: true,
+      noticeSeen: true,
     } as Settings;
     const loaded = {
       loaded: { state: "ready", value: saved, migratedFrom: null } as Loaded<Settings>,
@@ -1011,6 +1021,7 @@ describe("App", () => {
               detail: "expanded",
               listView: "checklist",
               tourSeen: true,
+              noticeSeen: true,
               simbriefUser: "Pilot",
             }) as Settings,
           fetchPlan: async () => imported,
@@ -1065,6 +1076,7 @@ describe("App", () => {
             detail: "expanded",
             listView: "checklist",
             tourSeen: true,
+            noticeSeen: true,
             simbriefUser: "Pilot",
           }) as Settings,
         fetchPlan: async () => imported,
@@ -1853,9 +1865,42 @@ describe("App", () => {
             detail: "expanded",
             listView: "checklist",
             tourSeen: false,
+            noticeSeen: true,
           }) as Settings,
         ...more,
       });
+
+    it("opens the simulator-only notice before anything else; I understand saves it and the welcome follows (#241)", async () => {
+      const saved: Settings[] = [];
+      const h = host({
+        defaultSettings: async () =>
+          ({
+            theme: "dark",
+            dimming: 0,
+            detail: "expanded",
+            listView: "checklist",
+            tourSeen: false,
+            noticeSeen: false,
+          }) as Settings,
+        save: async (_p, what, value) => {
+          if (what === "settings") saved.push(value as Settings);
+          return 0;
+        },
+      });
+      render(App, { context: hostContext(h) });
+      const notice = await screen.findByRole("dialog", { name: "Simulator training only" });
+      const understood = within(notice).getByRole("button", { name: "I understand" });
+      await waitFor(() => expect(document.activeElement).toBe(understood));
+      // The welcome waits, Esc doesn't close the notice, and nothing else can be closed with it.
+      expect(screen.queryByRole("dialog", { name: "Welcome to Involo" })).toBeNull();
+      await fireEvent.keyDown(window, { key: "Escape" });
+      expect(screen.getByRole("dialog", { name: "Simulator training only" })).toBeTruthy();
+      expect(within(notice).getAllByRole("button")).toHaveLength(1);
+      await fireEvent.click(understood);
+      expect(screen.queryByRole("dialog", { name: "Simulator training only" })).toBeNull();
+      await waitFor(() => expect(saved.at(-1)?.noticeSeen).toBe(true));
+      expect(await screen.findByRole("dialog", { name: "Welcome to Involo" })).toBeTruthy();
+    });
 
     it("opens the welcome on a first visit once the checklist has loaded; Not now remembers it", async () => {
       const saved: Settings[] = [];
@@ -2448,6 +2493,7 @@ describe("packs (decision 0028; Packs boards)", () => {
       detail: "expanded",
       listView: "checklist",
       tourSeen: true,
+      noticeSeen: true,
       currentPack,
       seat: null,
     }) as Settings;
@@ -2848,6 +2894,7 @@ describe("one flight per pack (decision 0028)", () => {
         detail: "expanded",
         listView: "checklist",
         tourSeen: true,
+        noticeSeen: true,
         currentPack: id,
         seat: null,
       },
@@ -3156,6 +3203,7 @@ describe("a pack update during a flight (decision 0028; PacksUpdate)", () => {
             detail: "expanded",
             listView: "checklist",
             tourSeen: true,
+            noticeSeen: true,
             currentPack: "demo",
             seat: null,
           },
@@ -3250,6 +3298,7 @@ describe("back up and restore (#47)", () => {
     detail: "expanded",
     listView: "checklist",
     tourSeen: true,
+    noticeSeen: true,
     lastBackup: null,
   } as unknown as Settings;
 
