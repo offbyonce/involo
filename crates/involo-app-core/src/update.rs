@@ -112,7 +112,7 @@ pub(crate) fn apply_note(flight: &mut Flight, action: crate::Action) {
 }
 
 /// The new id of each id the pack's `aliases` retire, for one kind of alias.
-fn aliases(pack: &FlatPack, kind: AliasKind) -> BTreeMap<&str, &str> {
+pub(crate) fn aliases(pack: &FlatPack, kind: AliasKind) -> BTreeMap<&str, &str> {
     pack.content
         .aliases
         .iter()

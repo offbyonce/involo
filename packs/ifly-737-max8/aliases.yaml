@@ -1825,6 +1825,15 @@ aliases:
   - kind: fill_field
     from: olon
     to: origin_position
+  - kind: fill_field
+    from: fu
+    to: weight_unit
+  - kind: fill_field
+    from: qu
+    to: qnh_unit
+  - kind: fill_field
+    from: mt
+    to: minimums_type
   - kind: list
     from: "m:Runaway stabilizer"
     to: memory-runaway-stabilizer

@@ -3317,7 +3317,7 @@ describe("back up and restore (#47)", () => {
     window.location.hash = "#/settings";
     const h = host({
       readSaved: async () => ({ flight: ready(ticked), settings: ready({ ...stored, lastBackup: 7 }) }),
-      readBackup: async () => ({ state: "ready", backup: backup as never }),
+      readBackup: async () => ({ state: "ready", backup: backup as never, earlier: null }),
       restoreFlight: restored,
       save: async (p, what, value) => {
         saved.push([p, what, value]);
@@ -3374,7 +3374,7 @@ describe("back up and restore (#47)", () => {
         flight: null,
         settings: ready({ ...stored, lastBackup: 7, currentPack: "demo" }),
       }),
-      readBackup: async () => ({ state: "ready", backup: backup as never }),
+      readBackup: async () => ({ state: "ready", backup: backup as never, earlier: null }),
       save: async (_p, what, value) => {
         if (what === "settings") saved.push(value as Settings);
         return 1;
@@ -3427,7 +3427,7 @@ describe("back up and restore (#47)", () => {
     window.location.hash = "#/settings";
     const h = host({
       catalog: async () => [listed as never],
-      readBackup: async () => ({ state: "ready", backup: backup as never }),
+      readBackup: async () => ({ state: "ready", backup: backup as never, earlier: null }),
       installCatalogPack: async () => {
         throw new Error("The connection dropped.");
       },
