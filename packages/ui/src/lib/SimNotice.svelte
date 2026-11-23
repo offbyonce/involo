@@ -4,8 +4,8 @@ SPDX-License-Identifier: MIT
 
 The simulator-only notice (#241; Release board, RelNotice and RelNoticePhone): a dialog over the
 whole app on a first visit, before anything else, in the Remove dialog's form. I understand is the
-only way to close it: no Esc, no scrim click, no close button. The board's Read the privacy note
-link opens the privacy note (#52), so it is left out until that note exists.
+only way to close it: no Esc, no scrim click, no close button. It has no privacy link: the privacy
+note (#52) is reached from Settings' last line.
 -->
 <script lang="ts">
   import Icon from "./Icon.svelte";

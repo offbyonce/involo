@@ -33,7 +33,9 @@ working offline once loaded.
 
 ## What is stored, and where
 
-Everything stays in this browser on this device. Nothing is sent to a server.
+Everything stays in this browser on this device. Nothing is sent to a server. The app's own
+privacy note (Settings › Privacy) says the same in plain words; when what the app stores or sends
+changes, both change together.
 
 - **Browser storage (localStorage):**
   - your progress on the current flight (`involo.flight.<pack>`)
@@ -44,7 +46,7 @@ Everything stays in this browser on this device. Nothing is sent to a server.
   - saved data the app couldn't use, set aside under the same name with `.kept-<time>`
   - a marker recording that data saved under the app's old name was moved (`involo.renamed`)
 - **IndexedDB,** in the database `involo`:
-  - the flight log (store `log`)
+  - the flight log and practice results (store `log`)
   - the packs you installed, from this site's catalog or from a file you chose (store `packs`)
 - **Cache storage:** the service worker's copy of the app's files, for offline use.
 

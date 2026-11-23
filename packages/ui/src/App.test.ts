@@ -407,10 +407,37 @@ describe("App", () => {
   it("puts the version at the foot of Settings, with What's new linking to that version's release (#54)", async () => {
     window.location.hash = "#/settings";
     render(App, { context: hostContext(host()) });
-    const line = await screen.findByText(/Involo 0\.1\.0/);
+    const line = (await screen.findByText("Involo 0.1.0")).closest("p");
     const link = screen.getByRole("link", { name: "What’s new" });
-    expect(line.contains(link)).toBe(true);
+    expect(line?.contains(link)).toBe(true);
     expect(link.getAttribute("href")).toBe("https://github.com/offbyonce/involo/releases/tag/v0.1.0");
+  });
+
+  it("opens the privacy note from Settings, and its Keep a copy link goes back to Back up and restore (#52)", async () => {
+    window.location.hash = "#/settings";
+    render(App, { context: hostContext(host()) });
+    await screen.findByText(/Involo 0\.1\.0/);
+    const privacy = screen.getByRole("link", { name: "Privacy" });
+    window.location.hash = privacy.getAttribute("href") ?? "";
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    expect(await screen.findByRole("heading", { level: 1, name: "Privacy" })).toBeTruthy();
+    expect(screen.getByText("Involo 0.1.0")).toBeTruthy();
+    // No flight strip or side pane: a page like Settings.
+    expect(screen.queryByRole("complementary", { name: "About the step" })).toBeNull();
+    const scrolled: Element[] = [];
+    const before = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function (this: Element) {
+      scrolled.push(this);
+    };
+    try {
+      const copy = screen.getByRole("link", { name: "Settings › Back up and restore" });
+      window.location.hash = copy.getAttribute("href") ?? "";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+      await screen.findByRole("button", { name: /Save a backup file/ });
+      await waitFor(() => expect(scrolled.some((el) => el.querySelector("#set-backup"))).toBe(true));
+    } finally {
+      Element.prototype.scrollIntoView = before;
+    }
   });
 
   it("never acts on the list under the stage picker or the menu (Space, S, P)", async () => {

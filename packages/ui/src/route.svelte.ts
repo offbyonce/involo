@@ -4,14 +4,14 @@
 // Screens have their own address after `#`, so Back works and a screen can be bookmarked,
 // offline too. `#/phase/<id>`, `#/reference` (optionally `/<phase id>`), `#/settings`,
 // `#/flight/<section>` (the Flight pages; optionally `/<field>` to focus a field, or the
-// Weather tab), `#/open` (open steps), `#/glossary` (optionally `/<term>`), `#/deck` (optionally `/<area>/<place>`), `#/messages` (the Flight deck's Alert messages, optionally `/<message id>`), `#/practice`, `#/how` (optionally `/<part>`, 1 to 7), `#/log` (optionally `/<flight id>`, or `/current` for This flight), `#/references`, `#/packs`; anything else is the start. `#/setup` (Flight setup until
+// Weather tab), `#/open` (open steps), `#/glossary` (optionally `/<term>`), `#/deck` (optionally `/<area>/<place>`), `#/messages` (the Flight deck's Alert messages, optionally `/<message id>`), `#/practice`, `#/how` (optionally `/<part>`, 1 to 7), `#/log` (optionally `/<flight id>`, or `/current` for This flight), `#/references`, `#/packs`, `#/privacy`; anything else is the start. `#/settings` may name a row (`/backup`) to scroll to. `#/setup` (Flight setup until
 // leads to Flight › Overview.
 
 export type Route =
   | { screen: "start" }
   | { screen: "phase"; id: string }
   | { screen: "reference"; id: string | null }
-  | { screen: "settings" }
+  | { screen: "settings"; row: string | null }
   | { screen: "flight"; section: FlightSection; focus: string | null }
   | { screen: "open" }
   | { screen: "glossary"; term: string | null }
@@ -21,13 +21,14 @@ export type Route =
   | { screen: "how"; part: number | null }
   | { screen: "log"; entry: string | null }
   | { screen: "references" }
-  | { screen: "packs" };
+  | { screen: "packs" }
+  | { screen: "privacy" };
 
 export function parseRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
   if (parts[0] === "phase" && parts[1]) return { screen: "phase", id: parts[1] };
   if (parts[0] === "reference") return { screen: "reference", id: parts[1] ?? null };
-  if (parts[0] === "settings") return { screen: "settings" };
+  if (parts[0] === "settings") return { screen: "settings", row: parts[1] ?? null };
   if (parts[0] === "setup") return { screen: "flight", section: "overview", focus: null };
   if (parts[0] === "flight") {
     const section = (FLIGHT_SECTIONS as readonly string[]).includes(parts[1] ?? "")
@@ -44,6 +45,7 @@ export function parseRoute(hash: string): Route {
   }
   if (parts[0] === "references") return { screen: "references" };
   if (parts[0] === "packs") return { screen: "packs" };
+  if (parts[0] === "privacy") return { screen: "privacy" };
   if (parts[0] === "log") return { screen: "log", entry: parts[1] ?? null };
   if (parts[0] === "messages") return { screen: "messages", id: parts[1] ?? null };
   if (parts[0] === "deck") return { screen: "deck", area: parts[1] ?? null, zone: parts[2] ?? null };
@@ -68,6 +70,11 @@ export type FlightSection = (typeof FLIGHT_SECTIONS)[number];
 /** A Flight section, optionally with a field to focus or a Weather tab. */
 export function flightHref(section: FlightSection, focus?: string): string {
   return `#/flight/${section}${focus ? `/${encodeURIComponent(focus)}` : ""}`;
+}
+
+/** Settings, scrolled to a row (its heading's id without `set-`, such as `backup`). */
+export function settingsHref(row?: string): string {
+  return row ? `#/settings/${encodeURIComponent(row)}` : "#/settings";
 }
 
 /** How procedures work, at a part (1 to 7). */

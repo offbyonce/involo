@@ -623,6 +623,10 @@ const SHOTS = [
   // after Clear all progress, with the toast.
   { name: "board-settings-3x", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...settingsFrom3x, go("#/settings")] } },
   { name: "board-settings-cleared", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...settingsFrom3x, go("#/settings"), click("button.danger-outline"), `new Promise((d) => { document.querySelector("button.danger-outline")?.scrollIntoView({ block: "center" }); setTimeout(() => d(true), 300); })`] } },
+  // The privacy note (#52, PrivacyPage): the whole page. Settings' last line (PrivacySetting): the
+  // foot of Settings, scrolled down to it.
+  { name: "board-privacy", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/privacy")] } },
+  { name: "board-privacy-setting", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, go("#/settings"), `new Promise((d) => { document.querySelector("p.ver")?.scrollIntoView({ block: "end" }); setTimeout(() => d(true), 300); })`] } },
   { name: "board-tour-welcome", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenWelcome] } },
   { name: "board-tour-step", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(0)] } },
   { name: "board-tour-end", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(5)] } },

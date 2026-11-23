@@ -20,12 +20,28 @@ const settings = {
 describe("SettingsPage", () => {
   it("shows the version, and What's new opens that version's release in a new tab (#54)", () => {
     render(SettingsPage, { settings, version: "0.1.0", onChange: () => {} });
-    const line = screen.getByText(/^Involo 0\.1\.0/);
-    expect(line.textContent).toBe("Involo 0.1.0 · What’s new");
+    const line = screen.getByText("Involo 0.1.0").closest("p") as HTMLElement;
+    expect(line.textContent?.replace(/\s+/g, " ").trim()).toBe("Involo 0.1.0 · What’s new · Privacy");
     const link = within(line).getByRole("link", { name: "What’s new" }) as HTMLAnchorElement;
     expect(link.href).toBe("https://github.com/offbyonce/involo/releases/tag/v0.1.0");
     expect(link.target).toBe("_blank");
     expect(link.rel).toBe("noopener noreferrer");
+  });
+
+  it("ends the last line with Privacy, which opens the privacy note in the app (#52)", () => {
+    render(SettingsPage, { settings, version: "0.1.0", onChange: () => {} });
+    const line = screen.getByText("Involo 0.1.0").closest("p") as HTMLElement;
+    const links = within(line).getAllByRole("link");
+    expect(links.map((l) => l.textContent?.trim())).toEqual(["What’s new", "Privacy"]);
+    const privacy = links[1] as HTMLAnchorElement;
+    expect(privacy.getAttribute("href")).toBe("#/privacy");
+    expect(privacy.target).toBe("");
+    // The dots are for the eye only.
+    expect(
+      within(line)
+        .getAllByText("·")
+        .every((d) => d.getAttribute("aria-hidden") === "true"),
+    ).toBe(true);
   });
 
   it("names the views List and Step by step, keeping the saved values", async () => {
