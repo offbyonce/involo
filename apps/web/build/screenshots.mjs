@@ -69,6 +69,7 @@ import {
   loggedForReminder,
   reopenNotice,
   reopenWelcome,
+  settingsFrom3x,
   restarted,
   rowMenu,
   savedAs,
@@ -596,6 +597,10 @@ const SHOTS = [
   // The backup reminder after a logged flight (#243, RelReminder and RelReminderNever).
   { name: "board-reminder", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...loggedForReminder(32)] } },
   { name: "board-reminder-never", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...loggedForReminder(null)] } },
+  // The Settings rows from 3.0 (#245, RelSettings and RelSettingsCleared): the whole page, then
+  // after Clear all progress, with the toast.
+  { name: "board-settings-3x", full: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...settingsFrom3x, go("#/settings")] } },
+  { name: "board-settings-cleared", only: ["desktop"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...settingsFrom3x, go("#/settings"), click("button.danger-outline"), `new Promise((d) => { document.querySelector("button.danger-outline")?.scrollIntoView({ block: "center" }); setTimeout(() => d(true), 300); })`] } },
   { name: "board-tour-welcome", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenWelcome] } },
   { name: "board-tour-step", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(0)] } },
   { name: "board-tour-end", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(5)] } },
