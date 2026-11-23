@@ -18,6 +18,7 @@ only the compact plan is kept, decision 0019), the last import, and Reset flight
     onImport,
     onFile,
     onClear,
+    onForget,
   }: {
     user: string | null;
     plan: SavedPlan | null;
@@ -26,10 +27,21 @@ only the compact plan is kept, decision 0019), the last import, and Reset flight
     /** Reads a saved OFP file's text; resolves with an error to show, or null. */
     onFile: (text: string) => Promise<string | null>;
     onClear: () => void;
+    /** Forgets the saved username (#244, RelForget); the page offers Undo. */
+    onForget: () => void;
   } = $props();
 
   // svelte-ignore state_referenced_locally
   let name = $state(user ?? "");
+  // The field follows the saved username when it changes elsewhere: Forget, and its Undo.
+  // svelte-ignore state_referenced_locally
+  let shown = user;
+  $effect(() => {
+    if (user !== shown) {
+      shown = user;
+      name = user ?? "";
+    }
+  });
   let busy = $state(false);
   let problem = $state<string | null>(null);
   let over = $state(false);
@@ -73,7 +85,11 @@ only the compact plan is kept, decision 0019), the last import, and Reset flight
     <button class="primary" type="submit" disabled={busy}>Import latest flight</button>
   </form>
   {#if problem}<p class="problem" role="alert">{problem}</p>{/if}
-  <span class="d">No password. The username is saved on this device only, and the import reads your newest SimBrief plan.</span>
+  <!-- RelForget: with a username saved, Forget username ends the line under the field. -->
+  <div class="under">
+    <span class="d">No password. The username is saved on this device only, and the import reads your newest SimBrief plan.</span>
+    {#if user}<button class="forget" type="button" onclick={onForget}>Forget username</button>{/if}
+  </div>
   <span class="d net"><Icon name="globe" />SimBrief import is the only part of the checklist that uses the internet.</span>
   <div class="two">
     <div class="pair">
@@ -205,6 +221,38 @@ only the compact plan is kept, decision 0019), the last import, and Reset flight
     color: var(--color-text-secondary);
     font-size: var(--font-size-secondary);
     line-height: var(--leading-normal);
+  }
+  /* RelForgetPhone: on a phone the field and Import latest flight stack, the button full width. */
+  @media (max-width: 599px) {
+    .row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .user {
+      max-width: none;
+    }
+  }
+  /* The line under the field, with Forget username at its end when a username is saved (RelForget). */
+  .under {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 var(--space-4);
+  }
+  .under .d {
+    flex: 1 1 calc(var(--space-10) * 7);
+  }
+  .forget {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--size-touch-min);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-link);
+    font: inherit;
+    font-size: calc(var(--font-size-secondary) + var(--border-thin));
+    white-space: nowrap;
   }
   .two {
     display: grid;

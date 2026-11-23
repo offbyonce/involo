@@ -941,6 +941,15 @@ in Rust. The host saves progress and settings on the device.
     const on = !!settings?.keepAwake;
     void host.keepAwake?.(on).catch(() => false);
   });
+  /** SimBrief and OFP file's Forget username (#244, RelForget): clears it at once, with Undo. */
+  function forgetUser(): void {
+    if (!settings || !flight) return;
+    const before = settings.simbriefUser;
+    void changeSettings({ ...settings, simbriefUser: null });
+    offerUndo(rowLayout === "phone" ? "Username forgotten." : "SimBrief username forgotten.", flight, () => {
+      if (settings) void changeSettings({ ...settings, simbriefUser: before });
+    });
+  }
   async function clearFlight(): Promise<void> {
     if (!flight) return;
     const before = flight;
@@ -1954,6 +1963,7 @@ in Rust. The host saves progress and settings on the device.
       onImport={importFor}
       onFile={importFile}
       onClear={clearFlight}
+      onForget={forgetUser}
       onDescriptions={(on) => void changeSettings({ ...s, descriptions: on })}
     />
     {#if undo}

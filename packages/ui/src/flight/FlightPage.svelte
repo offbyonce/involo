@@ -39,6 +39,7 @@ it. Every field of the old Flight setup lives in one section.
     onImport,
     onFile,
     onClear,
+    onForget,
     onDescriptions,
   }: {
     section: FlightSection;
@@ -66,6 +67,8 @@ it. Every field of the old Flight setup lives in one section.
     onImport: (user: string) => Promise<string | null>;
     onFile: (text: string) => Promise<string | null>;
     onClear: () => void;
+    /** Forgets the saved SimBrief username (#244), with Undo. */
+    onForget: () => void;
     onDescriptions: (on: boolean) => void;
   } = $props();
 
@@ -177,7 +180,7 @@ it. Every field of the old Flight setup lives in one section.
       {:else if section === "start"}
         <StartView {flight} {options} {states} labels={panelStateLabels} order={startPage} {onOption} {onPanelState} />
       {:else if section === "simbrief"}
-        <SimBriefView user={settings.simbriefUser ?? null} {plan} {onImport} {onFile} {onClear} />
+        <SimBriefView user={settings.simbriefUser ?? null} {plan} {onImport} {onFile} {onClear} {onForget} />
       {:else if def}
         <SectionView section={def} {ctx} {selected} descriptions={settings.descriptions} {approach} onSelect={(id) => (picked = { ...picked, [def.id]: id })} {onSet} {onOption} {onNotes} />
       {/if}
