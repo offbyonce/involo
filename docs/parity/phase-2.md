@@ -27,7 +27,7 @@ or **not built**. Each gives the evidence that shows it, and the issue or pull r
 | `just ci` | Automated: Rust, interface and build tests, pack checks, the size budget | Node (jsdom) | — |
 | `just e2e` (56 flows) | Automated: the flows below, and every main screen's layout and accessibility (axe) in both themes | Chromium, WebKit | 390 × 844 and 1440 × 900 |
 | Tablet and wide layout | Automated, for this report only: the e2e main-screens check run at other sizes with the iFly pack, both themes. No findings. Not part of the suite. | Chromium, WebKit | 768 × 1024, 1180 × 820, 2560 × 1440 |
-| `just update-test` | Automated, not in CI: first visit installs the service worker; the installed app loads with no server, in Geist; a new version waits with the reload offer; Reload brings it in and the old cache goes. 4 of 4 pass. | Firefox (headless) | Desktop |
+| `just update-test` | Automated, and in CI on Linux since [#264](https://github.com/offbyonce/involo/pull/264): first visit installs the service worker; the installed app loads with no server, in Geist; a new version waits with the reload offer; Reload brings it in and the old cache goes. 4 of 4 pass. | Firefox (headless) | Desktop |
 | Installed (standalone) mode | By hand only. Not done for this report; it needs a desktop browser and a tablet (maintainer step 7 below). | — | — |
 
 ## Step 7: interface parity (3.0 features)
@@ -140,13 +140,13 @@ means the crate tests.
 | Gap | Issue |
 | --- | --- |
 | The e2e suite checks only phone (390) and desktop (1440) widths; tablet portrait, tablet landscape and wide were checked ad hoc for this report | [#247](https://github.com/offbyonce/involo/issues/247) |
-| Firefox runs only `just update-test`, by hand, not the e2e flows or CI | Same issue; adding the update test to CI is [#41](https://github.com/offbyonce/involo/issues/41) |
+| Firefox runs only `just update-test`, not the e2e flows. The update test itself runs in CI on Linux since [#264](https://github.com/offbyonce/involo/pull/264), as part of the required `e2e` check | Same issue |
 
 ## Maintainer steps for v0.1.0
 
 Listed in order. This report does none of them; step 4 was already done. By 2026-11-23, steps 1
-and 2 were done (the blockers above merged, and the app is the front page), and step 5's text is
-in its own pull request.
+and 2 were done (the blockers above merged, and the app is the front page), step 3's update test
+ran in CI, and step 5's text is in its own pull request.
 
 1. **Choose what blocks v0.1.0**, from the issues above. The brief's gate needs the 3.0 import,
    the first-launch notice and the privacy note.
@@ -155,8 +155,10 @@ in its own pull request.
    [#53](https://github.com/offbyonce/involo/issues/53)), or v0.1.0 ships at `app/` with only
    #53's wording.
 3. **Workflow changes** (`.github/workflows/`):
-   - Run `just update-test` in CI on Linux ([#41](https://github.com/offbyonce/involo/issues/41);
-     Pages already publishes only after a green CI run).
+   - Run `just update-test` in CI on Linux: done
+     ([#264](https://github.com/offbyonce/involo/pull/264)). CI's `update-test` job runs it in
+     Firefox, and the required `e2e` check waits for it. Pages already publishes only after a
+     green CI run.
    - Optionally, pin the actions ([#64](https://github.com/offbyonce/involo/issues/64)).
 4. **Repository settings:** done. A repository ruleset protects `main`, requiring CI's `ci` job
    on all three systems, `reuse`, `e2e` and CodeQL. Pages is set to GitHub Actions, with HTTPS
