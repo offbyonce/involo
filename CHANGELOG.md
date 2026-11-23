@@ -39,6 +39,7 @@ MAX 8 pack. It replaces the single-file 3.0 checklist and keeps every one of its
   Start (cold and dark or a turnaround) and Clear all progress, each with Undo where it removes
   something.
 - **A guided tour**, Find (Ctrl+K), open steps across pages and keyboard keys (Space, ←, S).
+- **A privacy note** in Settings › Privacy: what the app stores, where, and what it sends.
 - **Report a problem with a step**, from every step's menu, as a GitHub issue form with the step
   filled in.
 - **Packs:** add a pack from a file, and update installed packs from this site's catalog.
