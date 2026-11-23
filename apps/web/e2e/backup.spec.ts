@@ -55,3 +55,33 @@ test("a backup restored into a fresh browser brings back the flight and settings
   expect(after.lastBackup).toBeNull();
   await fresh.close();
 });
+
+test("a file exported by the 3.0 checklist restores its progress into the iFly pack (#240)", async ({
+  app,
+  page,
+}) => {
+  await app.firstRun();
+  await page.goto("./#/settings");
+  await page
+    .locator('.set.backup input[type="file"]')
+    .setInputFiles(
+      new URL("../../../crates/involo-app-core/tests/fixtures/earlier-export-3.json", import.meta.url)
+        .pathname,
+    );
+  const dialog = page.getByRole("dialog", { name: "Restore from this backup?" });
+  await expect(dialog.getByText(IFLY.name)).toBeVisible();
+  await expect(dialog.getByText(/^Brought up to version /)).toBeVisible();
+  await dialog.getByRole("button", { name: "Restore" }).click();
+  await app.ready();
+  // 3.0's ticks, through the pack's aliases. Its settings came too (Essentials, Step by step),
+  // so the saved ticks are checked rather than the rows.
+  expect(await tickedIds(page, IFLY.id)).toEqual(
+    expect.arrayContaining([
+      "ifly-737-max8.cold-dark.battery-switch",
+      "ifly-737-max8.cold-dark.standby-power-switch",
+    ]),
+  );
+  const settings = (await saved(page, "involo.settings")) as Record<string, unknown>;
+  expect(settings.theme).toBe("dark");
+  expect(settings.simbriefUser).toBe("pilot");
+});

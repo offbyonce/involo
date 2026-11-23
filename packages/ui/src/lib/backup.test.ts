@@ -52,6 +52,9 @@ describe("back up and restore words", () => {
     expect(refusalLine({ kind: "logFile" })).toBe(
       "This is a flight log file. Load it from the Flight log page.",
     );
+    expect(refusalLine({ kind: "noPackForEarlier" })).toBe(
+      "This file is from the 3.0 checklist, and none of your packs can read it. Add the pack for its aircraft, then try again.",
+    );
   });
 
   it("counts what the log merge adds, and leaves the row out when it adds nothing", () => {

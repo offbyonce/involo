@@ -8,6 +8,7 @@
 
 use std::collections::BTreeSet;
 
+use involo_pack::FlatPack;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use ts_rs::TS;
@@ -101,6 +102,9 @@ pub enum BackupRefusal {
     NotBackup,
     /// A flight log file, which the Flight log page loads.
     LogFile,
+    /// A file exported by the earlier checklist (3.0) that no loaded pack's aliases know: the
+    /// pack it belongs to isn't open on this device.
+    NoPackForEarlier,
 }
 
 /// A file read as a backup: ready to review, every part migrated to its current format, or
@@ -189,9 +193,11 @@ fn looks_like_log(object: &serde_json::Map<String, Value>) -> bool {
 
 /// Reads a file chosen to restore from. A newer backup, or one with a part from a newer version,
 /// is refused naming the version that saved it; a flight log file and anything else that isn't
-/// an intact backup are refused too. Nothing here changes the device.
-pub fn read_backup(text: &str) -> BackupRead {
-    match read(text) {
+/// an intact backup are refused too. A file exported by the earlier checklist (3.0) is read as a
+/// backup for the one of `packs` whose aliases know it (crate::earlier). Nothing here changes the
+/// device.
+pub fn read_backup(text: &str, packs: &[&FlatPack]) -> BackupRead {
+    match read(text, packs) {
         Ok(backup) => BackupRead::Ready {
             backup: Box::new(backup),
         },
@@ -199,9 +205,12 @@ pub fn read_backup(text: &str) -> BackupRead {
     }
 }
 
-fn read(text: &str) -> Result<Backup, BackupRefusal> {
+fn read(text: &str, packs: &[&FlatPack]) -> Result<Backup, BackupRefusal> {
     let value: Value = serde_json::from_str(text).map_err(|_| BackupRefusal::NotBackup)?;
     let object = value.as_object().ok_or(BackupRefusal::NotBackup)?;
+    if crate::earlier::is_earlier_export(object) {
+        return crate::earlier::earlier_backup(object, packs);
+    }
     if object.get("kind").and_then(Value::as_str) != Some(BACKUP_KIND) {
         return Err(if looks_like_log(object) {
             BackupRefusal::LogFile
@@ -345,14 +354,14 @@ mod tests {
     }
 
     fn ready(text: &str) -> Backup {
-        match read_backup(text) {
+        match read_backup(text, &[]) {
             BackupRead::Ready { backup } => *backup,
             BackupRead::Refused { refusal } => panic!("refused: {refusal:?}"),
         }
     }
 
     fn refused(text: &str) -> BackupRefusal {
-        match read_backup(text) {
+        match read_backup(text, &[]) {
             BackupRead::Refused { refusal } => refusal,
             BackupRead::Ready { .. } => panic!("read as a backup"),
         }

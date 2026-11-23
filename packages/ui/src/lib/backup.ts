@@ -52,6 +52,8 @@ export function refusalLine(refusal: BackupRefusal): string {
       return `It was saved by a newer version of Involo (${refusal.version}). Update Involo, then try again.`;
     case "logFile":
       return "This is a flight log file. Load it from the Flight log page.";
+    case "noPackForEarlier":
+      return "This file is from the 3.0 checklist, and none of your packs can read it. Add the pack for its aircraft, then try again.";
     default:
       return "This file isn’t an Involo backup, or it’s damaged.";
   }
