@@ -3,6 +3,7 @@
 
 import { addExample, go } from "../build/scenes.mjs";
 import { expect, test } from "./fixtures";
+import { resizeTo } from "./layout";
 
 // Crew roles (#133, Roles boards): in a challenge-and-response list, every row's step name and
 // value start at the same place, whatever its state and whichever tags it has, at each size.
@@ -45,8 +46,7 @@ test("crew roles: names, values and tags line up in every row of a challenge-and
   await page.locator('[data-step="example-sidestick.before-start.briefing"] .tick').click();
   await expect(page.locator("li.it.pair.current")).toBeVisible();
   for (const size of SIZES) {
-    await page.setViewportSize({ width: size.width, height: size.height });
-    await page.waitForTimeout(300);
+    await resizeTo(page, { width: size.width, height: size.height });
     const rows = await page.evaluate(starts);
     expect(
       rows.map((r) => r.state),
