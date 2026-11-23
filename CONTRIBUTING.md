@@ -115,6 +115,20 @@ temporary folder (a sandboxed Firefox may not read there); `SCREENSHOTS_WORK` na
 folder. `SCREENSHOTS_ONLY` (shot key prefixes such as `board-log-phone`, comma-separated) names
 screens by size or theme, and `SCREENSHOTS_THEME` (`dark` or `light`) shoots one theme.
 
+## 5. Changelog and versions
+
+- **Changelog.** A change a pilot or a pack writer would notice gets a line in `CHANGELOG.md`,
+  under `## [Unreleased]` at the top (add the heading if it isn't there), in the section that
+  fits: Added, Changed, Fixed or Removed. Say what changed for them, not how the code changed.
+  A release renames that heading to its version and date.
+- **Versions** are plain `0.x.y`, with no pre-release suffix such as `-beta.1`: a `0.x` version
+  already marks the app as early. The app's version is `version` in the root `Cargo.toml`, and
+  each pack has its own in its `pack.json`. A pack's `engine` range (`>=0.1.0, <1.0.0`) admits
+  every plain `0.x` version of the app; a suffixed one would fall outside it under semver rules.
+- **A release** is a `v<version>` tag on `main` (for example `v0.1.0`). Its GitHub release takes
+  the notes in `docs/releases/<version>.md`, and the Pages workflow attaches the packs and the
+  `involo-pack` command to it.
+
 ## Reporting problems
 
 Open an issue with the aircraft, the checklist and step, what you expected, and your

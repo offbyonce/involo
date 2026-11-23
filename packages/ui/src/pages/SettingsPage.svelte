@@ -51,7 +51,8 @@ on the device (decision 0012).
   /** No seat chosen yet: "Where is this?" shows the first seat's view, so that one is selected. */
   let seat = $derived(seats.some((s) => s.id === settings.seat) ? settings.seat : (seats[0]?.id ?? null));
   /** The release notes, on the project's own releases page. */
-  const RELEASES = "https://github.com/offbyonce/involo/releases";
+  /** What's new (#54): the release of the running version, tagged `v<version>`. */
+  const releaseFor = (v: string) => `https://github.com/offbyonce/involo/releases/tag/v${encodeURIComponent(v)}`;
 
   type Row = {
     key: "listView" | "essentials" | "detail" | "theme" | "textSize" | "dimming";
@@ -259,7 +260,7 @@ on the device (decision 0012).
 <div class="done"><a class="btn primary" href="#/">Done</a></div>
 <!-- The version line (Views board, Settings). -->
 {#if version}
-  <p class="ver">Involo {version} · <a href={RELEASES} target="_blank" rel="noopener noreferrer">What’s new</a></p>
+  <p class="ver">Involo {version} · <a href={releaseFor(version)} target="_blank" rel="noopener noreferrer">What’s new</a></p>
 {/if}
 
 <style>

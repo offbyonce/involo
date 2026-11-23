@@ -404,13 +404,13 @@ describe("App", () => {
     expect(actions.map((a) => a.type === "tick" && a.step)).toEqual(["standby", "battery"]);
   });
 
-  it("puts the version at the foot of Settings, with What's new linking to the release notes", async () => {
+  it("puts the version at the foot of Settings, with What's new linking to that version's release (#54)", async () => {
     window.location.hash = "#/settings";
     render(App, { context: hostContext(host()) });
     const line = await screen.findByText(/Involo 0\.1\.0/);
     const link = screen.getByRole("link", { name: "What’s new" });
     expect(line.contains(link)).toBe(true);
-    expect(link.getAttribute("href")).toBe("https://github.com/offbyonce/involo/releases");
+    expect(link.getAttribute("href")).toBe("https://github.com/offbyonce/involo/releases/tag/v0.1.0");
   });
 
   it("never acts on the list under the stage picker or the menu (Space, S, P)", async () => {

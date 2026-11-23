@@ -17,9 +17,10 @@ imports your SimBrief flight plan. It never connects to the simulator, so it wor
 alongside MSFS on a PC, a Mac, an Xbox or a PlayStation. Aircraft are data packs, so new
 aircraft can be added without changing the app.
 
-> **Status:** early development. Phases 0 (foundation) and 1 (engine and iFly pack) are complete;
-> Phase 2 (web beta) is in progress. Not ready for use yet. The current release for the iFly 737
-> MAX 8 is the single-file HTML checklist on flightsim.to.
+> **Status:** public beta, version 0.1.0. Open the app at
+> **[offbyonce.github.io/involo](https://offbyonce.github.io/involo/)**: it installs from your
+> browser and works offline. It starts with the iFly 737 MAX 8 and replaces the single-file 3.0
+> checklist. What changed in each release is in [CHANGELOG.md](CHANGELOG.md).
 
 **For simulator use only.** Never use these checklists for real-world flight.
 
@@ -30,17 +31,22 @@ aircraft can be added without changing the app.
 | `crates/involo-app-core` | App operations shared by every host |
 | `crates/involo-checklist-core` | The checklist domain: steps and sessions. No I/O. |
 | `crates/involo-pack` | Pack loading (YAML), validation and schemas |
-| `crates/involo-pack-cli` | The `pack` command for checking packs |
+| `crates/involo-pack-cli` | The `involo-pack` command for writing, checking and building packs |
+| `crates/involo-pack-overlap` | The text-overlap check against local reference files |
 | `crates/involo-simbrief` | SimBrief flight plan parsing |
-| `crates/store` | Saved data (SQLite); parked during Phase 2 |
 | `crates/involo-web-host` | WebAssembly glue for the web app |
+| `crates/store` | Saved data (SQLite); parked for the desktop build |
 | `apps/web` | The web app (GitHub Pages) |
-| `apps/desktop` | The desktop app shell (Tauri 2); parked during Phase 2 |
+| `apps/desktop` | The desktop app shell (Tauri 2); parked for a later build |
 | `packages/ui` | The shared interface (Svelte 5) |
 | `packages/bindings` | TypeScript types generated from Rust |
-| `packs/` | Aircraft and library packs (checklist content) |
+| `packs/` | Aircraft packs (checklist content), and invented example packs in `packs/examples` |
 | `schemas/` | JSON Schemas for pack authors (generated) |
-| `docs/` | Setup guide and decision records |
+| `fuzz/` | Fuzz targets for the pack loader (`just fuzz`) |
+| `tools/` | Repository checks and the retired 3.0 converter |
+| `assets/` | The brand: logo, lockups and icons |
+| `LICENSES/` | The license texts (REUSE) |
+| `docs/` | The plan, phase briefs, setup guide, pack guide, design boards and decision records |
 
 ## Getting started
 

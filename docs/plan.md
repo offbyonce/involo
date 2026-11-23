@@ -4,8 +4,8 @@ SPDX-License-Identifier: MIT
 -->
 # Involo: foundation plan
 
-Status as of 10 Nov 2026. Phase 0 (foundation) and Phase 1 (engine and iFly pack) are complete;
-Phase 2 (web beta) is next. The reasoning behind each choice is in `docs/decisions/`.
+Where the project stands is in the README's status note, and what each release brought is in
+`CHANGELOG.md`. The reasoning behind each choice is in `docs/decisions/`.
 
 ## What we are building
 
