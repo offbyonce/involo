@@ -14,7 +14,8 @@
 // Version B is the built site with a changed page title and its own service worker version. The
 // copy at app/ is the built site laid out as before the move: the app's page at app/, with its
 // worker at app/sw.js naming its caches as that worker did.
-// Needs Firefox on the PATH (or FIREFOX=/path/to/firefox). Not part of `just ci`.
+// Needs Firefox (browser.mjs says which it starts). Not part of `just ci`: CI runs it in its own job,
+// on the site it built, in the Playwright image, and a failed check fails the run.
 
 import fs from "node:fs";
 import path from "node:path";

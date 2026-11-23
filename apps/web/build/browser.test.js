@@ -5,8 +5,9 @@
 // spliced into code.
 
 import assert from "node:assert/strict";
+import path from "node:path";
 import { test } from "node:test";
-import { bidiValue } from "./browser.mjs";
+import { bidiValue, firefoxCommand } from "./browser.mjs";
 import * as scenes from "./scenes.mjs";
 
 test("a page argument is sent as WebDriver BiDi local values, nested", () => {
@@ -57,4 +58,31 @@ test("every scene is fixed scripts, functions with their data, or keys", () => {
       assert.ok(ok, `${name}: ${JSON.stringify(step)?.slice(0, 80)}`);
     }
   }
+});
+
+// Which Firefox the update test starts (#41): CI runs it in the Playwright image, whose Firefox
+// lives under PLAYWRIGHT_BROWSERS_PATH with a build number in its folder name.
+test("FIREFOX wins, then the newest Playwright Firefox build, then firefox on the PATH", () => {
+  const dir = "/ms-playwright";
+  const files = new Set([
+    path.join(dir, "firefox-1490", "firefox", "firefox"),
+    path.join(dir, "firefox-1572", "firefox", "firefox"),
+  ]);
+  const exists = (f) => f === dir || files.has(f);
+  const list = () => ["chromium-1255", "firefox-1490", "firefox-1572", "webkit-2388", "firefox-9x"];
+  assert.equal(
+    firefoxCommand({ FIREFOX: "/opt/ff/firefox", PLAYWRIGHT_BROWSERS_PATH: dir }, exists, list),
+    "/opt/ff/firefox",
+  );
+  assert.equal(
+    firefoxCommand({ PLAYWRIGHT_BROWSERS_PATH: dir }, exists, list),
+    path.join(dir, "firefox-1572", "firefox", "firefox"),
+  );
+  // No Firefox build there, or the browsers kept in node_modules: the PATH's.
+  assert.equal(
+    firefoxCommand({ PLAYWRIGHT_BROWSERS_PATH: dir }, () => false, list),
+    "firefox",
+  );
+  assert.equal(firefoxCommand({ PLAYWRIGHT_BROWSERS_PATH: "0" }, exists, list), "firefox");
+  assert.equal(firefoxCommand({}, exists, list), "firefox");
 });
