@@ -236,12 +236,24 @@ pub(crate) fn fix(v: &Value) -> Option<Fix> {
     })
 }
 
+/// SimBrief's answer instead of a plan: the two it gives most, in our words; any other in its own.
+fn fetch_error(status: String) -> OfpError {
+    let lower = status.to_ascii_lowercase();
+    if lower.contains("unknown userid") || lower.contains("unknown user id") {
+        OfpError::UnknownUser
+    } else if lower.contains("no flight plan on file") {
+        OfpError::NoPlan
+    } else {
+        OfpError::Fetch(status)
+    }
+}
+
 /// The compact plan from SimBrief's data (JSON, or XML turned into the same shape).
 pub(crate) fn plan_from_value(root: &Value) -> Result<Plan, OfpError> {
     if let Some(status) = text(root, &["fetch", "status"])
         && !status.eq_ignore_ascii_case("success")
     {
-        return Err(OfpError::Fetch(status));
+        return Err(fetch_error(status));
     }
     let units =
         text(root, &["params", "units"]).and_then(|u| match u.to_ascii_lowercase().as_str() {

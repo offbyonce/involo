@@ -39,7 +39,7 @@ test("SimBrief plans read in both forms, and errors arrive tagged", () => {
   // The pack loaded above names the fields a plan fills (decision 0029).
   assert.equal(ok(wasm.plan_values("ifly-737-max8", JSON.stringify(plan))).values.runway, "09R");
   assert.deepEqual(JSON.parse(wasm.parse_plan(fixture("ofp-error.json"))), {
-    error: { kind: "FlightPlan", message: "SimBrief says: Error: Unknown UserID" },
+    error: { kind: "FlightPlan", message: "Username not found. Check your SimBrief username or Pilot ID." },
   });
   assert.match(ok(wasm.plan_url("123456")), /userid=123456&json=1$/);
 });
