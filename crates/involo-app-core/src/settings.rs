@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// The saved format of [`Settings`]. Raise it, with a migration and tests, when the shape changes.
-pub const SETTINGS_FORMAT: u32 = 9;
+pub const SETTINGS_FORMAT: u32 = 10;
 
 /// The highest dimming step; 0 is full brightness.
 pub const MAX_DIMMING: u8 = 4;
@@ -125,6 +125,10 @@ pub struct Settings {
     /// Whether the simulator-only notice has been answered with I understand on this device
     /// (#241). It shows once, before anything else; never again once answered.
     pub notice_seen: bool,
+    /// The backup reminder's Not now (#243): no reminder before this time, in milliseconds since
+    /// 1970 (UTC); None until the pilot first answers Not now.
+    #[ts(type = "number | null")]
+    pub backup_reminder_after: Option<i64>,
 }
 
 impl Default for Settings {
@@ -148,6 +152,7 @@ impl Default for Settings {
             seat: None,
             last_backup: None,
             notice_seen: false,
+            backup_reminder_after: None,
         }
     }
 }

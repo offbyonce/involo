@@ -114,7 +114,15 @@ const SETTINGS_MIGRATIONS: &[Migration] = &[
     settings_6_to_7,
     settings_7_to_8,
     settings_8_to_9,
+    settings_9_to_10,
 ];
+
+/// Format 10 adds when the backup reminder may show again after Not now (#243): no time yet.
+fn settings_9_to_10(mut value: Value) -> Result<Value, String> {
+    let object = value.as_object_mut().ok_or("settings are not an object")?;
+    object.insert("backupReminderAfter".into(), Value::Null);
+    Ok(value)
+}
 
 /// Format 9 adds whether the simulator-only notice has been answered (#241). Not before it: the
 /// notice is new, so a pilot who used the app already sees it once too.
@@ -516,6 +524,10 @@ mod tests {
             assert_eq!(object.remove("seat"), Some(serde_json::Value::Null));
             assert_eq!(object.remove("lastBackup"), Some(serde_json::Value::Null));
             assert_eq!(object.remove("noticeSeen"), Some(json!(false)));
+            assert_eq!(
+                object.remove("backupReminderAfter"),
+                Some(serde_json::Value::Null)
+            );
             object.insert("format".into(), json!(6));
             let before: serde_json::Value = serde_json::from_str(&saved(text)).unwrap();
             assert_eq!(back, before);
@@ -545,6 +557,7 @@ mod tests {
         object.remove("seat");
         object.remove("lastBackup");
         object.remove("noticeSeen");
+        object.remove("backupReminderAfter");
         object.insert("format".into(), json!(6));
         assert_eq!(
             kept,
@@ -570,6 +583,10 @@ mod tests {
         let object = kept.as_object_mut().unwrap();
         assert_eq!(object.remove("lastBackup"), Some(serde_json::Value::Null));
         assert_eq!(object.remove("noticeSeen"), Some(json!(false)));
+        assert_eq!(
+            object.remove("backupReminderAfter"),
+            Some(serde_json::Value::Null)
+        );
         object.insert("format".into(), json!(7));
         assert_eq!(
             kept,
@@ -593,7 +610,37 @@ mod tests {
         let mut kept = serde_json::to_value(&value).unwrap();
         let object = kept.as_object_mut().unwrap();
         assert_eq!(object.remove("noticeSeen"), Some(json!(false)));
+        assert_eq!(
+            object.remove("backupReminderAfter"),
+            Some(serde_json::Value::Null)
+        );
         object.insert("format".into(), json!(8));
+        assert_eq!(
+            kept,
+            serde_json::from_str::<serde_json::Value>(text).unwrap()
+        );
+    }
+
+    #[test]
+    fn settings_saved_in_format_9_keep_every_value_and_have_no_reminder_answer_yet() {
+        // Frozen: format 9 settings as the app saved them, every value changed from its default.
+        let text = include_str!("../tests/fixtures/settings-format-9.json");
+        let Loaded::Ready {
+            value,
+            migrated_from,
+        } = load_settings(text)
+        else {
+            panic!("format 9 settings did not load");
+        };
+        assert_eq!(migrated_from, Some(9));
+        assert_eq!(value.backup_reminder_after, None);
+        let mut kept = serde_json::to_value(&value).unwrap();
+        let object = kept.as_object_mut().unwrap();
+        assert_eq!(
+            object.remove("backupReminderAfter"),
+            Some(serde_json::Value::Null)
+        );
+        object.insert("format".into(), json!(9));
         assert_eq!(
             kept,
             serde_json::from_str::<serde_json::Value>(text).unwrap()

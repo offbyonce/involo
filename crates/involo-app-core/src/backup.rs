@@ -439,6 +439,8 @@ mod tests {
         // And the settings in today's settings format, which adds whether the notice was seen (#241).
         expected["settings"]["format"] = Value::from(crate::SETTINGS_FORMAT);
         expected["settings"]["noticeSeen"] = Value::from(false);
+        // And when the backup reminder may show again, which format 10 adds (#243).
+        expected["settings"]["backupReminderAfter"] = Value::Null;
         assert_eq!(written, expected);
     }
 
