@@ -1173,6 +1173,39 @@ describe("App", () => {
       expect(plans).toEqual([imported]);
     });
 
+    it("forgets the SimBrief username at once, with Undo (#244)", async () => {
+      const saved: Settings[] = [];
+      const h = host({
+        defaultSettings: async () =>
+          ({
+            theme: "dark",
+            dimming: 0,
+            detail: "expanded",
+            listView: "checklist",
+            tourSeen: true,
+            simbriefUser: "Pilot",
+          }) as Settings,
+        save: async (_p, what, value) => {
+          if (what === "settings") saved.push(value as Settings);
+          return 0;
+        },
+      });
+      render(App, { context: hostContext(h) });
+      await screen.findByRole("heading", { level: 1, name: "Power up" });
+      window.location.hash = "#/flight/simbrief";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+      const field = (await screen.findByLabelText("SimBrief username or pilot ID")) as HTMLInputElement;
+      expect(field.value).toBe("Pilot");
+      await fireEvent.click(screen.getByRole("button", { name: "Forget username" }));
+      await waitFor(() => expect(saved.at(-1)?.simbriefUser).toBeNull());
+      expect(field.value).toBe("");
+      expect(screen.queryByRole("button", { name: "Forget username" })).toBeNull();
+      expect(screen.getByText("SimBrief username forgotten.")).toBeTruthy();
+      await fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+      await waitFor(() => expect(saved.at(-1)?.simbriefUser).toBe("Pilot"));
+      expect(field.value).toBe("Pilot");
+    });
+
     it("warns for an OFP file too, and marks a pack added from a file", async () => {
       const { actions } = setup(
         { ...OTHER_TYPE, planName: undefined } as unknown as typeof OTHER_TYPE,

@@ -388,6 +388,11 @@ export const toFlow = `[...document.querySelectorAll("header.top .seg button")].
 /** The tour's welcome opens on a first visit (each shot starts from nothing saved): it is closed
  * before every step, so the steps reach the page. */
 export const closeWelcome = `sessionStorage.getItem("notice-shot") || document.querySelector('.sim-notice button.primary')?.click(); sessionStorage.getItem("tour-shot") || document.querySelector('[role="dialog"][aria-label="Welcome to Involo"] button.secondary')?.click(); true`;
+/** A SimBrief username saved on this device, as RelForget shows it (#244): "pilot", then a reload. */
+export const savedSimbriefUser = [
+  `(() => { const k = Object.keys(localStorage).find((x) => /settings$/.test(x)); const s = JSON.parse(localStorage.getItem(k)); s.simbriefUser = "pilot"; localStorage.setItem(k, JSON.stringify(s)); setTimeout(() => location.reload(), 50); return true; })()`,
+  `new Promise((done) => setTimeout(() => done(true), 1500))`,
+];
 /** Opens the simulator-only notice again over the current state, as on a first visit (#241):
  * marks it unseen, reloads. */
 export const reopenNotice = [
