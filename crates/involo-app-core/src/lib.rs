@@ -38,7 +38,7 @@ pub use backup::{
     BACKUP_FORMAT, BACKUP_KIND, Backup, BackupFlight, BackupParts, BackupRead, BackupRefusal,
     EarlierFile, FlightPlace, PackSource, backup_text, read_backup,
 };
-pub use boundary::to_interface_json;
+pub use boundary::{ForInterface, to_interface_json};
 pub use cdu::{CduPageView, CduRowView, CduScreenView, CduSpan, CduWalk, cdu_walkthrough};
 pub use error::AppError;
 pub use flight::{AnswerSource, BriefingMark, FLIGHT_FORMAT, Flight, new_flight};

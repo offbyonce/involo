@@ -14,7 +14,7 @@ past choices; a change that would reverse one starts with a discussion in an iss
 A free training app for flight simulator pilots: checklists, flows, memory items, CDU
 walkthroughs and aircraft systems. Web first (decision 0009): a hosted web app on GitHub Pages
 that installs and works offline, with the Rust core running as WebAssembly and a Svelte 5
-interface; a desktop build (Tauri 2) is parked for later. Aircraft are data packs in `packs/`; the
+interface; a desktop app (Tauri 2) for Windows and macOS with the same interface (decision 0031). Aircraft are data packs in `packs/`; the
 engine never names an aircraft. **The app never connects to the simulator** (decision 0006).
 
 ## Non-negotiable rules
@@ -36,7 +36,7 @@ engine never names an aircraft. **The app never connects to the simulator** (dec
 
 **Code:**
 
-- Logic lives in `crates/`. The host crates (`crates/involo-web-host`; the parked Tauri shell) and the
+- Logic lives in `crates/`. The host crates (`crates/involo-web-host`; the Tauri shell in `apps/desktop`) and the
   interface stay thin. No aircraft names in engine code; differences come from pack data.
 - Rust types are the single source of truth. Regenerate derived files, never edit them by hand:
   `just schemas` (JSON Schemas) and `just bindings` (TypeScript types).
@@ -93,10 +93,9 @@ engine never names an aircraft. **The app never connects to the simulator** (dec
 | `crates/involo-pack-cli` | `involo-pack new <folder>` (a starter pack from an example, with an `AGENTS.md` for its writer), `involo-pack check <dir>` (each problem with a code, file, line and hint; `--json` for tools), `involo-pack explain <code>`, `involo-pack describe <file>` (a file's fields from its schema), `involo-pack import-panel <file.svg>` (a panel file from a drawing whose groups are named `section:<id>` and `<kind>:<LABEL>`), `involo-pack mcp <folder>` (an MCP server over stdio for coding agents: these commands as tools, the schemas, the guide and the example packs, confined to `<folder>`), `involo-pack schema <dir>`, `involo-pack build <dir>... <out>` (the pack catalog: one `<id>-<version>.involo-pack` per pack and `index.json`), `involo-pack overlap <dir>`, `involo-pack suggest-targets <dir>` (drafts step targets) |
 | `crates/involo-pack-overlap` | Text-overlap check against private references, with its allow list (`allow.txt`) |
 | `crates/involo-simbrief` | SimBrief OFP parsing |
-| `crates/store` | SQLite saved data and migrations. Parked: not in the workspace (0010) |
 | `crates/involo-web-host` | Thin WebAssembly glue for the web app; `just wasm` builds it (wasm-bindgen CLI at the crate's pinned version) |
 | `apps/web` | Web site: the app as the front page (web host in `src/`; `src/core.ts` calls the WebAssembly module; `src/sw/` and `build/` make the offline service worker), the SimBrief probe page and the drawing gallery. `just site` builds it into `apps/web/dist` (decisions 0009, 0010) |
-| `apps/desktop` | Tauri shell (`src-tauri`) and its host. Parked: not in the workspace (0010) |
+| `apps/desktop` | The desktop app (0031): its window's entry and host in `src/` (`host.ts` calls the Tauri commands), and the Tauri shell in `src-tauri` (`commands.rs`, each wrapping one `involo-app-core` function). In the workspace but not in its `default-members`: `just desktop-check` builds it |
 | `packages/ui` | The shared Svelte 5 interface and its host interface (`src/host.ts`) |
 | `packages/bindings` | TypeScript types generated from Rust (`src/generated`), and `isAppError` |
 | `tools/generated-check.mjs` | `just generated-check`'s check that generated files match what is committed and are all added to git |
@@ -117,6 +116,8 @@ just site      # build the web site into apps/web/dist (WebAssembly, app, then t
 just catalog <out>  # build the published packs' catalog into <out>
 just test-packs     # the catalog tests and the dev server read, with the example packs, in target/test-packs
 just update-test  # service worker update test in headless Firefox (needs Firefox; CI runs it too)
+just desktop   # run the desktop app in a window (needs the system webview)
+just desktop-check  # clippy and tests for the desktop app's Rust crate (CI: Windows and macOS)
 just e2e       # end-to-end flows with layout and accessibility checks (Chromium, WebKit)
 just review-shots <dir> <screen>...  # review shots of named screens beside their boards
 just fuzz <target> [seconds]  # fuzz a pack loader target (nightly and cargo-fuzz; not in just ci)

@@ -11,9 +11,22 @@ members = [
     "crates/involo-pack-overlap",
     "crates/involo-simbrief",
     "crates/involo-web-host",
+    "apps/desktop/src-tauri",
 ]
-# Parked for Phase 2 (decision 0010): kept in the repo, not built. See PARKED.md in each.
-exclude = ["apps/desktop/src-tauri", "crates/store", "fuzz"]
+# What a plain `cargo` command builds: every member but the desktop app, which needs a webview to
+# compile (WebKit on Linux, where it isn't shipped). `just desktop-check` and `just desktop-build`
+# build it on Windows and macOS (decision 0031). Never pass `--workspace` in the justfile: it builds
+# every member, the desktop app too.
+default-members = [
+    "crates/involo-app-core",
+    "crates/involo-checklist-core",
+    "crates/involo-pack",
+    "crates/involo-pack-cli",
+    "crates/involo-pack-overlap",
+    "crates/involo-simbrief",
+    "crates/involo-web-host",
+]
+exclude = ["fuzz"]
 
 [workspace.package]
 version = "0.1.0"
@@ -32,7 +45,6 @@ involo-checklist-core = { path = "crates/involo-checklist-core" }
 involo-pack = { path = "crates/involo-pack" }
 involo-pack-overlap = { path = "crates/involo-pack-overlap" }
 involo-simbrief = { path = "crates/involo-simbrief" }
-store = { path = "crates/store" }
 
 # Data and schema
 serde = { version = "1.0.229", features = ["derive"] }
@@ -56,12 +68,12 @@ anyhow = "1.0.104"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 
-# Storage
-rusqlite = { version = "0.41", features = ["bundled"] }
-
 # App shell (pinned together, upgraded together)
-tauri = { version = "=2.12.5", features = [] }
-tauri-build = { version = "=2.7.4", features = [] }
+tauri = { version = "=2.12.7", features = [] }
+tauri-build = { version = "=2.7.6", features = [] }
+# Opens a link in the default browser, and shows the save dialog for backups and exports.
+tauri-plugin-opener = "2.7.3"
+tauri-plugin-dialog = "2.8.4"
 
 # Testing
 insta = { version = "1.49", features = ["json"] }

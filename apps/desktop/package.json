@@ -1,0 +1,29 @@
+{
+  "name": "@involo/desktop",
+  "private": true,
+  "description": "The Involo desktop app's window: the shared interface with a host built on Tauri commands.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+    "test": "vitest run",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@involo/bindings": "workspace:*",
+    "@involo/ui": "workspace:*",
+    "@tauri-apps/api": "catalog:"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "catalog:",
+    "@tauri-apps/cli": "catalog:",
+    "jsdom": "catalog:",
+    "svelte": "catalog:",
+    "svelte-check": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

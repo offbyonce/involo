@@ -92,7 +92,7 @@ in Rust. The host saves progress and settings on the device.
   import LogPage from "./pages/LogPage.svelte";
   import ReferencesPage from "./pages/ReferencesPage.svelte";
   import { buildReferences } from "./lib/references";
-  import { download, fileDate, htmlCopy, logOf, logPacks } from "./lib/flight-log";
+  import { fileDate, htmlCopy, logOf, logPacks } from "./lib/flight-log";
   import Tour from "./lib/Tour.svelte";
   import { tour } from "./lib/tour-state.svelte";
   import { setSeatView } from "./lib/seat-view";
@@ -101,6 +101,7 @@ in Rust. The host saves progress and settings on the device.
   import { applyPalette, applyScale } from "./theme/tokens";
   import { chime } from "./lib/chime";
   import { finishedBetween, running, type Timers } from "./lib/timers";
+  import { serial } from "./lib/serial";
 
   let {
     pack: wanted = null,
@@ -168,6 +169,8 @@ in Rust. The host saves progress and settings on the device.
    * visit). */
   let hadFlight = false;
   let flight = $state<Flight | null>(null);
+  /** Every change to the flight runs in turn (#267): see `act`. */
+  const inTurn = serial();
   let rail = $state<Rail | null>(null);
   let open = $state<OpenStep[]>([]);
   /** Open steps from the phases before the one on screen. */
@@ -314,7 +317,7 @@ in Rust. The host saves progress and settings on the device.
       if (settings.currentPack !== id) settings = { ...settings, currentPack: id };
       await openLog();
       await refresh();
-      if (reconciled) void persist("flight");
+      if (reconciled) void inTurn(() => persist("flight"));
       void loadPacks();
     } catch (e) {
       fail(e);
@@ -385,7 +388,7 @@ in Rust. The host saves progress and settings on the device.
   /** Opens another pack: it becomes the current pack, and the app starts again on it. The open
    * pack's flight is saved first; each pack keeps its own (decision 0028). */
   async function switchPack(id: string | null): Promise<void> {
-    if (flight && packId) await persist("flight");
+    if (flight && packId) await inTurn(() => persist("flight"));
     if (settings) {
       settings = { ...settings, currentPack: id };
       if (packId) await persist("settings");
@@ -442,8 +445,11 @@ in Rust. The host saves progress and settings on the device.
     const action: Action = { type: "noteUpdate", changes };
     await booted;
     if (id === packId && flight) {
-      flight = await host.apply(packId, flight, action);
-      await persist("flight");
+      await inTurn(async () => {
+        if (!flight) return;
+        flight = await host.apply(packId, flight, action);
+        await persist("flight");
+      });
       return;
     }
     const saved = (await host.readSaved(id)).flight;
@@ -844,7 +850,7 @@ in Rust. The host saves progress and settings on the device.
 
   // Another window (the installed app beside a tab) saved: show what it saved.
   $effect(() => {
-    const onStorage = () => void reloadSaved().catch(fail);
+    const onStorage = () => void inTurn(reloadSaved).catch(fail);
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   });
@@ -855,15 +861,25 @@ in Rust. The host saves progress and settings on the device.
     else if (change === "skip") void act({ type: "skipBriefing", briefing, at: Date.now() });
     else void act({ type: "unmarkBriefing", briefing });
   }
-  async function act(action: Action): Promise<void> {
-    if (!flight) return;
-    try {
-      flight = await host.apply(packId, flight, action);
-      await refresh();
-      await persist("flight", (saved) => host.apply(packId, saved, action));
-    } catch (e) {
-      fail(e);
-    }
+  /**
+   * Applies an action to the open flight and saves it. Changes to the flight run one at a time
+   * (#267), each from the flight the one before it left. Resolves with the flight as it was just
+   * before this action, for Undo, or null when there was no flight or the action failed.
+   */
+  function act(action: Action): Promise<Flight | null> {
+    return inTurn(async () => {
+      const before = flight;
+      if (!before) return null;
+      try {
+        flight = await host.apply(packId, before, action);
+        await refresh();
+        await persist("flight", (saved) => host.apply(packId, saved, action));
+        return before;
+      } catch (e) {
+        fail(e);
+        return null;
+      }
+    });
   }
 
   /** A change the pilot can take back for a short while: the flight before it, and what it did. */
@@ -871,17 +887,21 @@ in Rust. The host saves progress and settings on the device.
   function offerUndo(text: string, before: Flight, restore?: () => void): void {
     undo = { text, before, restore };
   }
-  async function takeBack(): Promise<void> {
-    if (!undo) return;
-    flight = undo.before;
-    undo.restore?.();
+  function takeBack(): Promise<void> {
+    const taken = undo;
+    if (!taken) return Promise.resolve();
     undo = null;
-    try {
-      await refresh();
-      await persist("flight");
-    } catch (e) {
-      fail(e);
-    }
+    // After any change still being applied, so its result never lands over the Undo (#267).
+    return inTurn(async () => {
+      flight = taken.before;
+      taken.restore?.();
+      try {
+        await refresh();
+        await persist("flight");
+      } catch (e) {
+        fail(e);
+      }
+    });
   }
   /** Settings › Your Essentials (#245): how many steps the pilot added to and removed from the open
    * pack's Essentials. */
@@ -922,10 +942,10 @@ in Rust. The host saves progress and settings on the device.
         others.push({ id, flight: saved.loaded.value, plan: readyPlan(await host.readPlan(id)) });
         await host.removeSaved(id);
       }
-      await act({ type: "clear" });
+      const cleared = (await act({ type: "clear" })) ?? before;
       plan = null;
       await host.savePlan(packId, null);
-      offerUndo("All progress cleared.", before, () => {
+      offerUndo("All progress cleared.", cleared, () => {
         plan = beforePlan;
         void host.savePlan(packId, beforePlan);
         for (const o of others) {
@@ -953,9 +973,8 @@ in Rust. The host saves progress and settings on the device.
   }
   async function clearFlight(): Promise<void> {
     if (!flight) return;
-    const before = flight;
-    await act({ type: "clear" });
-    offerUndo("Flight plan reset.", before);
+    const before = await act({ type: "clear" });
+    if (before) offerUndo("Flight plan reset.", before);
   }
   /**
    * The flight log (decision 0026), on this device only. A saved log this version can't use (newer
@@ -1098,16 +1117,26 @@ in Rust. The host saves progress and settings on the device.
   let shownPack = $derived(loggedPacks.some((p) => p.id === logPack) ? logPack : null);
   /** What the exports hold: the log, or only the chosen pack's flights and practice results. */
   let exported = $derived(log ? logOf(log, shownPack) : null);
-  function saveLogCopy(): void {
+  /** Hands the pilot a file (host.saveFile): false when it wasn't saved, and a failure to write
+   * it is reported. */
+  async function saveFile(name: string, text: string, type: string): Promise<boolean> {
+    try {
+      return await host.saveFile(name, text, type);
+    } catch (e) {
+      fail(e);
+      return false;
+    }
+  }
+  async function saveLogCopy(): Promise<void> {
     const only = loggedPacks.find((p) => p.id === shownPack)?.name ?? null;
-    if (exported) download(`involo-log-${stamp()}.html`, htmlCopy(exported, Date.now(), logName, installedNames, only), "text/html");
+    if (exported) await saveFile(`involo-log-${stamp()}.html`, htmlCopy(exported, Date.now(), logName, installedNames, only), "text/html");
   }
   async function exportCsv(): Promise<void> {
-    if (exported) download(`involo-log-${stamp()}.csv`, await host.logCsv(exported), "text/csv");
+    if (exported) await saveFile(`involo-log-${stamp()}.csv`, await host.logCsv(exported), "text/csv");
   }
-  function exportJson(): void {
-    if (logBlocked && logKept !== null) download(`involo-log-kept-${stamp()}.json`, logKept, "application/json");
-    else if (exported && !logBlocked) download(`involo-log-${stamp()}.json`, `${JSON.stringify(exported, null, 2)}\n`, "application/json");
+  async function exportJson(): Promise<void> {
+    if (logBlocked && logKept !== null) await saveFile(`involo-log-kept-${stamp()}.json`, logKept, "application/json");
+    else if (exported && !logBlocked) await saveFile(`involo-log-${stamp()}.json`, `${JSON.stringify(exported, null, 2)}\n`, "application/json");
   }
   async function importLog(text: string): Promise<string> {
     try {
@@ -1131,7 +1160,8 @@ in Rust. The host saves progress and settings on the device.
    * on the device as it is. */
   const readyPlan = (item: SavedItem<SavedPlan>) => (item?.loaded.state === "ready" ? item.loaded.value : null);
 
-  /** Save a backup file: written at once, then Last backup is this moment. */
+  /** Save a backup file: written at once, then Last backup is this moment; nothing changes when
+   * the pilot cancels the save dialog (desktop). */
   async function saveBackup(): Promise<void> {
     if (!settings) return;
     try {
@@ -1160,7 +1190,7 @@ in Rust. The host saves progress and settings on the device.
       const saved = await host.readLog();
       const kept = saved?.loaded.state === "ready" ? saved.loaded.value : logBlocked ? await host.newLog() : (log ?? (await host.newLog()));
       const text = await host.backupText({ savedAt: now, flights, settings: { ...settings, lastBackup: now }, log: kept });
-      download(backupFileName(now), text, "application/json");
+      if (!(await host.saveFile(backupFileName(now), text, "application/json"))) return;
       await changeSettings({ ...settings, lastBackup: now });
     } catch (e) {
       fail(e);
@@ -1257,20 +1287,23 @@ in Rust. The host saves progress and settings on the device.
     restoring = null;
     if (!backup || !settings) return;
     try {
-      for (const entry of backup.flights) {
-        if (!chosen.flights.includes(entry.pack)) continue;
-        const id = entry.pack;
-        let f = entry.flight;
-        if (installed.some((p) => p.summary.id === id)) {
-          await host.loadPack(id);
-          f = await host.restoreFlight(id, f);
+      // After any change to the open flight still being saved, so none lands over the restored one.
+      await inTurn(async () => {
+        for (const entry of backup.flights) {
+          if (!chosen.flights.includes(entry.pack)) continue;
+          const id = entry.pack;
+          let f = entry.flight;
+          if (installed.some((p) => p.summary.id === id)) {
+            await host.loadPack(id);
+            f = await host.restoreFlight(id, f);
+          }
+          // Saved text this version can't read is set aside, never written over.
+          const saved = (await host.readSaved(id)).flight;
+          if (saved && saved.loaded.state !== "ready" && !(await host.setAside(id, "flight"))) throw new Error(NOT_RESTORED);
+          if (typeof (await host.save(id, "flight", f)) !== "number") throw new Error(NOT_RESTORED);
+          if (entry.plan) await host.savePlan(id, entry.plan);
         }
-        // Saved text this version can't read is set aside, never written over.
-        const saved = (await host.readSaved(id)).flight;
-        if (saved && saved.loaded.state !== "ready" && !(await host.setAside(id, "flight"))) throw new Error(NOT_RESTORED);
-        if (typeof (await host.save(id, "flight", f)) !== "number") throw new Error(NOT_RESTORED);
-        if (entry.plan) await host.savePlan(id, entry.plan);
-      }
+      });
       if (chosen.settings) {
         await host.readSettings();
         const next = { ...backup.settings, lastBackup: settings.lastBackup, currentPack: settings.currentPack };
@@ -1545,11 +1578,12 @@ in Rust. The host saves progress and settings on the device.
     // step whose tick was cleared.
     // Confirming the plan's suggestion (its value, while first asked) is answered from the plan.
     const fromPlan = !wasChanging && suggestions[option.id]?.value === value;
-    if (!wasChanging || changed) await act({ type: "answer", option: option.id, value, by: changed ? "changed" : fromPlan ? "plan" : "you" });
+    const answered = !wasChanging || changed ? await act({ type: "answer", option: option.id, value, by: changed ? "changed" : fromPlan ? "plan" : "you" }) : null;
     if (flight && flight.session.done[id] === undefined) await act({ type: "tick", step: id, at: Date.now() });
     if (changed) {
       const updated = [...new Set(ix.dependents(option.id).map((s) => stepTitle(ix, s)))];
-      offerUndo(changedText(option, value, updated), before);
+      // Undo takes back the answer and its tick, from the flight just before the answer.
+      offerUndo(changedText(option, value, updated), answered ?? before);
     }
   }
   /**
@@ -1562,10 +1596,11 @@ in Rust. The host saves progress and settings on the device.
     // Cancel leaves the flight and the kept plan as they were.
     const other = await host.otherAircraft(packId, next);
     if (other && !(await askOtherAircraft(other))) return null;
-    const before = flight;
+    const shown = flight;
     const keptPlan = plan;
     const filled = await host.planValues(packId, next);
-    await act({ type: "setValues", values: filled.values });
+    // Undo goes back to the flight just before the plan's values, with any change before it kept.
+    const before = (await act({ type: "setValues", values: filled.values })) ?? shown;
     plan = next;
     if (!kept.some((k) => k.what === "plan")) await host.savePlan(packId, next);
     const check = filled.checkClearance ? " Check the runway and departure against your clearance." : "";
@@ -1624,8 +1659,8 @@ in Rust. The host saves progress and settings on the device.
   /** A panel state (decision 0012): its marks, with Undo. */
   async function choosePanelState(state: string | null): Promise<void> {
     if (!flight) return;
-    const before = flight;
-    await act({ type: "setPanelState", state, at: Date.now() });
+    const before = await act({ type: "setPanelState", state, at: Date.now() });
+    if (!before || !flight) return;
     const title = state ? (index?.panelStates.find((s) => s.id === state)?.title ?? state) : null;
     const marked = (flight.stateTicks?.length ?? 0) + (flight.stateSkips?.length ?? 0);
     offerUndo(title ? `Panel state: ${title}. ${marked} steps marked.` : "Panel state cleared.", before);
@@ -1679,9 +1714,8 @@ in Rust. The host saves progress and settings on the device.
   /** Clear ticks on one list (its card header), with Undo instead of asking first. */
   async function clearTicks(list: string): Promise<void> {
     if (!flight) return;
-    const before = flight;
-    await act({ type: "clearList", list });
-    offerUndo("Ticks cleared.", before);
+    const before = await act({ type: "clearList", list });
+    if (before) offerUndo("Ticks cleared.", before);
   }
 
   /** Report a problem with a step (#242): the issue form's address with the open pack, its version,
@@ -1717,7 +1751,8 @@ in Rust. The host saves progress and settings on the device.
     kept = kept.filter((k) => k.what !== what);
     if (what === "plan") {
       if (plan) await host.savePlan(packId, plan);
-    } else await persist(what);
+    } else if (what === "flight") await inTurn(() => persist("flight"));
+    else await persist(what);
   }
 
   const tick = (id: string, done: boolean) => tickAndOffer(done ? { type: "untick", step: id } : { type: "tick", step: id, at: Date.now() });
@@ -1897,9 +1932,9 @@ in Rust. The host saves progress and settings on the device.
       onDelete={deleteLogged}
       onRestore={restoreLogged}
       onImport={importLog}
-      onSaveCopy={saveLogCopy}
+      onSaveCopy={() => void saveLogCopy()}
       onCsv={() => void exportCsv()}
-      onJson={exportJson}
+      onJson={() => void exportJson()}
       onStep={goToStep}
     />
   </div>
@@ -2083,7 +2118,7 @@ in Rust. The host saves progress and settings on the device.
           {#if kept.length || saveFailed}
             <div class="notices">
               {#each kept as k (k.what)}
-                <KeptNotice what={k.what} state={k.state} text={k.text} stuck={k.stuck ?? false} onFresh={() => startFresh(k.what)} />
+                <KeptNotice what={k.what} state={k.state} text={k.text} stuck={k.stuck ?? false} onSave={() => saveFile(`involo-${k.what}.json`, k.text, "application/json")} onFresh={() => startFresh(k.what)} />
               {/each}
               {#if saveFailed}
                 <SaveFailedNotice />

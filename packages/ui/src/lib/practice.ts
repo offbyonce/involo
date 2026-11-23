@@ -105,6 +105,8 @@ export type ChoiceSeed = Base & {
    * light…"); `why` then says the right one, as the board's feedback does. A dealt question has
    * them by the options' text, for the items it offered. */
   about: Record<string, string>;
+  /** Its pack's twin rules, for picking the wrong options when it is dealt. */
+  twins: Twins;
 };
 export type OrderSeed = Base & { kind: "order"; items: string[] };
 export type Seed = ChoiceSeed | OrderSeed;
@@ -153,11 +155,6 @@ const norm = (s: string) => {
   return n;
 };
 
-/** What tells twins apart in this pack, set by `useTwins` before its questions are built: its side
- * words (labels `side_words`) and its numbered items, as patterns. */
-let sidePattern: RegExp | null = null;
-let numberedPattern: RegExp | null = null;
-const twinKeys = new Map<string, string | null>();
 const escapeRe = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const anyOf = (words: string[]) =>
   words.length
@@ -171,55 +168,73 @@ const anyOf = (words: string[]) =>
     : null;
 
 /**
- * Sets what tells twins apart: `sideWords` (left and right, captain and first officer) and the
- * pack's numbered items: the text before a number, where two of `texts` differ by that number
- * alone (ENGINE 1 and ENGINE 2, AUDIO PANEL 1 and 2), so a setting that is a number (FLAPS 1,
- * FLAPS 5) never counts as a pair, nor a word that only ends a longer numbered name (PANEL).
+ * What tells twins apart in one pack: its side words (labels `side_words`: left and right, captain
+ * and first officer) and its numbered items, as patterns. A numbered item is the text before a
+ * number, where two of the pack's texts differ by that number alone (ENGINE 1 and ENGINE 2, AUDIO
+ * PANEL 1 and 2), so a setting that is a number (FLAPS 1, FLAPS 5) never counts as a pair, nor a
+ * word that only ends a longer numbered name (PANEL). Each pack's choice questions carry their
+ * pack's (`ChoiceSeed.twins`), so a question is always dealt by its own pack's rules.
  */
-export function useTwins(sideWords: string[], texts: string[]): void {
-  sidePattern = anyOf(sideWords.map((w) => norm(w)).filter(Boolean));
-  const numbers = new Map<string, { item: string; numbers: Set<string> }>();
-  for (const t of new Set(texts.map((x) => norm(x))))
-    for (const m of t.matchAll(/(?<=\S) (\d+)\b/g)) {
-      const at = m.index ?? 0;
-      const item = t.slice(0, at);
-      const key = `${item} #${t.slice(at + m[0].length)}`;
-      const known = numbers.get(key) ?? { item, numbers: new Set<string>() };
-      known.numbers.add(m[1] ?? "");
-      numbers.set(key, known);
-    }
-  const items = new Set([...numbers.values()].filter((n) => n.numbers.size > 1).map((n) => n.item));
-  numberedPattern = anyOf([...items]);
-  twinKeys.clear();
+export class Twins {
+  readonly #side: RegExp | null;
+  readonly #numbered: RegExp | null;
+  readonly #keys = new Map<string, string | null>();
+
+  constructor(sideWords: string[], texts: string[]) {
+    this.#side = anyOf(sideWords.map((w) => norm(w)).filter(Boolean));
+    const numbers = new Map<string, { item: string; numbers: Set<string> }>();
+    for (const t of new Set(texts.map((x) => norm(x))))
+      for (const m of t.matchAll(/(?<=\S) (\d+)\b/g)) {
+        const at = m.index ?? 0;
+        const item = t.slice(0, at);
+        const key = `${item} #${t.slice(at + m[0].length)}`;
+        const known = numbers.get(key) ?? { item, numbers: new Set<string>() };
+        known.numbers.add(m[1] ?? "");
+        numbers.set(key, known);
+      }
+    const items = new Set([...numbers.values()].filter((n) => n.numbers.size > 1).map((n) => n.item));
+    this.#numbered = anyOf([...items]);
+  }
+
+  /** A text with its item number and side words taken out ("ENGINE # FUEL VALVE"), so twins
+   * (engine 1 to 4, pack 1 and 2, left and right, captain and first officer) read the same; null
+   * when nothing but the side is left ("L", "R"). */
+  key(text: string): string | null {
+    const known = this.#keys.get(text);
+    if (known !== undefined) return known;
+    let key = norm(text);
+    if (this.#numbered) key = key.replace(new RegExp(`${this.#numbered.source} \\d+\\b`, "g"), "$1 #");
+    if (this.#side) key = key.replace(this.#side, "SIDE");
+    const out = /^(?:SIDE|#| )*$/.test(key) ? null : key;
+    this.#keys.set(text, out);
+    return out;
+  }
+
+  /** Whether two texts are the same item for another engine, side or seat. */
+  pair(a: string, b: string): boolean {
+    const k = this.key(a);
+    return k !== null && a !== b && k === this.key(b) && norm(a) !== norm(b);
+  }
+
+  /** Rules, not part of a question: a seed written out as JSON leaves them out. */
+  toJSON(): undefined {
+    return undefined;
+  }
 }
 
 /** A pack's twins: its side words, and the numbered items its panels, controls and steps name. */
-export function useTwinsOf(pack: FlatPack): void {
-  const texts = [
-    ...pack.content.panels.flatMap((p) => p.sections.flatMap((s) => s.items.map((i) => i.label))),
-    ...(pack.content.controls?.controls ?? []).map((c) => c.name),
-    ...pack.lists.flatMap((l) => l.steps.map((s) => s.text)),
-  ];
-  useTwins(pack.content.labels.sideWords, texts);
-}
-
-/** A text with its item number and side words taken out ("ENGINE # FUEL VALVE"), so twins (engine
- * 1 to 4, pack 1 and 2, left and right, captain and first officer) read the same; null when
- * nothing but the side is left ("L", "R"). The pack's own words decide both (`useTwins`). */
-export function twinKey(text: string): string | null {
-  const known = twinKeys.get(text);
-  if (known !== undefined) return known;
-  let key = norm(text);
-  if (numberedPattern) key = key.replace(new RegExp(`${numberedPattern.source} \\d+\\b`, "g"), "$1 #");
-  if (sidePattern) key = key.replace(sidePattern, "SIDE");
-  const out = /^(?:SIDE|#| )*$/.test(key) ? null : key;
-  twinKeys.set(text, out);
-  return out;
-}
-/** Whether two texts are the same item for another engine, side or seat. */
-export function twins(a: string, b: string): boolean {
-  const k = twinKey(a);
-  return k !== null && a !== b && k === twinKey(b) && norm(a) !== norm(b);
+const packTwins = new WeakMap<FlatPack, Twins>();
+export function twinsOf(pack: FlatPack): Twins {
+  let known = packTwins.get(pack);
+  if (!known) {
+    known = new Twins(pack.content.labels.sideWords, [
+      ...pack.content.panels.flatMap((p) => p.sections.flatMap((s) => s.items.map((i) => i.label))),
+      ...(pack.content.controls?.controls ?? []).map((c) => c.name),
+      ...pack.lists.flatMap((l) => l.steps.map((s) => s.text)),
+    ]);
+    packTwins.set(pack, known);
+  }
+  return known;
 }
 
 /** Whether the right option's length gives it away: it is the only shortest or the only
@@ -236,12 +251,12 @@ export function standsOut(answer: string, wrong: string[]): boolean {
  * already taken. When the right option's length would stand out, the last one taken gives way to
  * the nearest valid option of a length like the answer's. Fewer than three means the question is
  * skipped. */
-export function pickWrong(answer: string, tiers: Tier[], rng?: () => number): string[] {
-  return pickItems(answer, tiers, rng).map((p) => p.text);
+export function pickWrong(answer: string, tiers: Tier[], twins: Twins, rng?: () => number): string[] {
+  return pickItems(answer, tiers, twins, rng).map((p) => p.text);
 }
 
 /** `pickWrong`, with what each picked option is: its key, so it is explained as the item it is. */
-export function pickItems(answer: string, tiers: Tier[], rng?: () => number): Picked[] {
+export function pickItems(answer: string, tiers: Tier[], twins: Twins, rng?: () => number): Picked[] {
   // Every tier is shuffled first, so a seeded deal draws the same numbers; the valid options are
   // then found only as far as needed.
   const order = tiers.map((tier) => {
@@ -255,7 +270,7 @@ export function pickItems(answer: string, tiers: Tier[], rng?: () => number): Pi
       for (const { text: x, key } of entries) {
         // Never the answer's twin, and never two wrong options that differ only by engine or side
         //.
-        const pair = (o: string) => !tier.sides && twins(o, x);
+        const pair = (o: string) => !tier.sides && twins.pair(o, x);
         if (!x || sameMeaning(x, answer) || pair(answer)) continue;
         if (valid.some((o) => sameMeaning(o, x) || pair(o))) continue;
         valid.push(x);
@@ -350,8 +365,8 @@ export function bank(pack: FlatPack, index: PackIndex): Seed[] {
 
 /** Every question the pack can produce (`bank` keeps them). */
 export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
-  useTwinsOf(pack);
-  const out: Seed[] = [];
+  const twins = twinsOf(pack);
+  const out: (Omit<ChoiceSeed, "twins"> | OrderSeed)[] = [];
   const phases = pack.content.phases;
   const lists = new Map(pack.lists.map((l) => [l.id, l]));
   const phaseOfList = new Map<string, string>();
@@ -697,7 +712,7 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         { items: own, shuffle: true, sides: true },
         { items: near, shuffle: false },
       ];
-      const wrong = pickWrong(s.expect, tiers);
+      const wrong = pickWrong(s.expect, tiers, twins);
       if (!wrong.some((w) => own.includes(w))) return;
       out.push({
         id: `values:${list.id}:${s.id}`,
@@ -939,7 +954,10 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
   }
 
   // The rules: exactly one correct answer and three real wrong options, or the question is skipped.
-  return out.filter((q) => q.kind === "order" || pickWrong(q.answer, q.tiers).length === 3);
+  return out.flatMap((q): Seed[] => {
+    if (q.kind === "order") return [q];
+    return pickWrong(q.answer, q.tiers, twins).length === 3 ? [{ ...q, twins }] : [];
+  });
 }
 
 /** A sentence after a colon starts in lowercase, unless it starts with a name ("Hydraulic system A"
@@ -1102,14 +1120,14 @@ export function dealOne(q: Seed, rng: () => number): Question {
     if (shown.every((v, i) => v === i)) shown = [...shown.slice(1), shown[0] as number];
     return { ...q, shown };
   }
-  let wrong = pickItems(q.answer, q.tiers, rng);
-  if (wrong.length < 3) wrong = pickItems(q.answer, q.tiers);
+  let wrong = pickItems(q.answer, q.tiers, q.twins, rng);
+  if (wrong.length < 3) wrong = pickItems(q.answer, q.tiers, q.twins);
   const options = shuffled([q.answer, ...wrong.map((w) => w.text)], rng);
   // Each offered option explained as the item it is.
   const about = Object.fromEntries(
     wrong.flatMap((w) => (w.key in q.about ? [[w.text, q.about[w.key] as string]] : [])),
   );
-  const { tiers: _tiers, answer, about: _about, ...rest } = q;
+  const { tiers: _tiers, twins: _twins, answer, about: _about, ...rest } = q;
   return { ...rest, options, answer: options.indexOf(answer), about };
 }
 
