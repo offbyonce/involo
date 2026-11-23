@@ -538,6 +538,26 @@ describe("App", () => {
     });
   });
 
+  it("ends every step's menu with Report a problem, opening the issue form for that step in a new tab (#242)", async () => {
+    render(App, { context: hostContext(host()) });
+    await screen.findByRole("heading", { level: 1, name: "Power up" });
+    await fireEvent.click(screen.getByRole("button", { name: "More actions for Battery" }));
+    const menu = screen.getByRole("menu", { name: "Actions for Battery" });
+    const items = within(menu).getAllByRole("menuitem");
+    const report = items.at(-1) as HTMLAnchorElement;
+    expect(report.textContent?.trim()).toBe("Report a problem with this step");
+    expect(report.target).toBe("_blank");
+    expect(report.rel).toBe("noopener noreferrer");
+    expect(report.getAttribute("aria-describedby")).toBeTruthy();
+    expect(within(menu).getByText("Opens a GitHub issue form with this step filled in.")).toBeTruthy();
+    const url = new URL(report.href);
+    expect(url.searchParams.get("template")).toBe("step-problem.yml");
+    expect(url.searchParams.get("pack")).toBe("demo 0.1.0");
+    expect(url.searchParams.get("step")).toMatch(/battery/);
+    expect(url.searchParams.get("app")).toBe("0.1.0");
+    expect([...url.searchParams.keys()].sort()).toEqual(["app", "list", "pack", "step", "template"]);
+  });
+
   it("a pack with no quick steps offers no Essentials: not in the menu, nor in a row's menu, and shows in Full (#133)", async () => {
     const plain = structuredClone(pack);
     for (const list of plain.lists) for (const step of list.steps) step.quick = null;

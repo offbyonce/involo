@@ -38,6 +38,7 @@ control around them carries the words.
   import grip from "../icons/board/grip.svg?raw";
   import notice from "../icons/board/notice.svg?raw";
   import download from "../icons/board/download.svg?raw";
+  import external from "../icons/board/external.svg?raw";
   import fileAdd from "../icons/board/file-add.svg?raw";
   import panel from "../icons/board/panel.svg?raw";
   import pin from "../icons/board/pin.svg?raw";
@@ -58,6 +59,7 @@ control around them carries the words.
     "chevron-right": chevronRight,
     decision,
     download,
+    external,
     "field-alert": fieldAlert,
     "file-add": fileAdd,
     "file-upload": fileUpload,
