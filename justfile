@@ -15,7 +15,7 @@ setup:
     pnpm install
     cargo fetch
 
-# Run the web app's dev server (the app is at /app/).
+# Run the web app's dev server (the app is the front page).
 dev: wasm test-packs
     pnpm --filter @involo/web dev
 
@@ -68,9 +68,9 @@ examples := "packs/examples/example-twin packs/examples/example-sidestick packs/
 test-packs:
     just catalog target/test-packs {{examples}}
 
-# Build the deployable web site into apps/web/dist (published to GitHub Pages): the placeholder
-# front page, the work-in-progress app at app/ and the SimBrief probe page, with the WebAssembly
-# module, then the catalog under packs/ as separate files, after the app's files are listed for
+# Build the deployable web site into apps/web/dist (published to GitHub Pages): the app as the
+# front page, the page that sends its old address (app/) there, and the SimBrief probe page, with
+# the WebAssembly module, then the catalog under packs/ as separate files, after the app's files are listed for
 # the service worker, so no pack is in the app's code or precached. Last, the size budget
 # (apps/web/size-budget.json): the app, the WebAssembly module and the largest script.
 site: wasm

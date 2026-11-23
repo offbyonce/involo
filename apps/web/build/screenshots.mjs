@@ -993,7 +993,7 @@ async function main() {
   }
   const unknown = names.filter((n) => !SHOTS.some((s) => s.name === n));
   if (unknown.length) throw new Error(`no screen named ${unknown.join(", ")} (the names are in SHOTS in screenshots.mjs)`);
-  if (!fs.existsSync(path.join(dist, "app/index.html"))) throw new Error("build the site first: just site");
+  if (!fs.existsSync(path.join(dist, "sw.js"))) throw new Error("build the site first: just site");
   const baseline = process.env.INVOLO_BASELINE ? path.resolve(process.env.INVOLO_BASELINE) : null;
   if (baseline && !fs.existsSync(baseline)) throw new Error(`INVOLO_BASELINE: no such file ${baseline}`);
   fs.mkdirSync(out, { recursive: true });
@@ -1004,7 +1004,7 @@ async function main() {
       root: dist,
       port: 8772,
       // A fresh query each time, so each screen is a new page load and starts from a new flight.
-      url: (hash) => `http://localhost:8772/app/?shot=${Date.now()}${hash}`,
+      url: (hash) => `http://localhost:8772/?shot=${Date.now()}${hash}`,
       ready: "!!document.querySelector('[data-app-ready]')",
       dir: out,
       // The app saves progress on the device: each screen starts from nothing saved. The Flight log
