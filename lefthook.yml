@@ -11,7 +11,7 @@ pre-commit:
       run: just fmt-check
     clippy:
       glob: "*.rs"
-      run: cargo clippy --workspace --all-targets -- -D warnings
+      run: cargo clippy --all-targets -- -D warnings
     biome:
       glob: "*.{ts,js,json}"
       run: pnpm exec biome check --error-on-warnings --no-errors-on-unmatched {staged_files}
