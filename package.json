@@ -1,7 +1,7 @@
 {
   "name": "involo",
   "private": true,
-  "description": "Involo: interactive cockpit checklists for flight simulators.",
+  "description": "Involo: a procedures trainer for flight sim pilots.",
   "license": "MIT",
   "packageManager": "pnpm@12.18.0",
   "engines": {

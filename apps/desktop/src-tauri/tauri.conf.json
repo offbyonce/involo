@@ -42,7 +42,7 @@
     "active": true,
     "targets": ["nsis", "dmg", "deb", "appimage"],
     "category": "Utility",
-    "shortDescription": "Interactive cockpit checklists for flight simulators",
+    "shortDescription": "A procedures trainer for flight sim pilots",
     "copyright": "2026 offbyonce",
     "license": "MIT",
     "icon": [

@@ -18,13 +18,18 @@ working offline once loaded.
 - **Content security policy.** Every page carries a strict policy: scripts, styles, images,
   fonts and the WebAssembly module load only from this site, no JavaScript `eval` is allowed,
   and forms and `<base>` are blocked.
-- **Network requests** go only to this site (the app's own files and packs) and to SimBrief,
-  when you import a flight plan. The SimBrief request goes straight from your browser, sends no
+- **Network requests** go only to this site (the app's own files, and the pack catalog when you
+  install or update a pack) and to SimBrief, when you import a flight plan. The SimBrief request goes straight from your browser, sends no
   cookies or referrer, and carries only your SimBrief username or Pilot ID. The SimBrief probe
   page at `/simbrief-probe.html` makes a similar request, also without cookies, when you use it.
 - **Updates** come from this site through the service worker. A new version downloads in the
   background and runs only after you press Reload, or on the next launch.
-- **No telemetry.** The app sends nothing about you or your use of it anywhere.
+- **No telemetry, no cookies.** The app sends nothing about you or your use of it anywhere, and
+  sets no cookies.
+- **Keep screen awake** uses the browser's Screen Wake Lock, on this device only.
+- **Report a problem with a step** opens GitHub's issue form in a new tab, with the pack, list,
+  step and app version filled in. Nothing is sent unless you submit that form on GitHub, under
+  your own account.
 
 ## What is stored, and where
 
@@ -32,16 +37,24 @@ Everything stays in this browser on this device. Nothing is sent to a server.
 
 - **Browser storage (localStorage):**
   - your progress on the current flight (`involo.flight.<pack>`)
-  - your settings, including the SimBrief username you entered (`involo.settings`)
+  - your settings, including the SimBrief username you entered and the date of your last
+    backup (`involo.settings`)
   - the last SimBrief plan you imported, kept in a compact form: no names or other personal
     fields, and not SimBrief's full text (`involo.plan.<pack>`)
   - saved data the app couldn't use, set aside under the same name with `.kept-<time>`
   - a marker recording that data saved under the app's old name was moved (`involo.renamed`)
-- **IndexedDB:** the flight log, in the database `involo`.
+- **IndexedDB,** in the database `involo`:
+  - the flight log (store `log`)
+  - the packs you installed, from this site's catalog or from a file you chose (store `packs`)
 - **Cache storage:** the service worker's copy of the app's files, for offline use.
 
-Clearing this site's data in your browser removes all of it. Files you export (the log as
-HTML, CSV or JSON, a copy of kept data) are saved where you choose and are yours to keep.
+None of it holds your name or a pilot ID beyond the SimBrief username or Pilot ID you typed,
+which you can forget in Flight › SimBrief and OFP file. Once a pack is open, the app asks the
+browser to keep this site's data even when the device is short of space; the browser may say no.
+
+Clearing this site's data in your browser removes all of it. Files you save (a backup of your
+progress, plans, settings and flight log; the log as CSV or JSON; a copy of kept data) go where
+you choose and are yours to keep.
 
 ## What the hosting sees
 
