@@ -30,6 +30,7 @@ type, as non-normal lists need.
     onBlank,
     onSelect,
     onClear,
+    reportUrl,
     full = true,
     inline,
     inlineStep = null,
@@ -48,6 +49,8 @@ type, as non-normal lists need.
     onBlank: (id: string, index: number, value: string) => void;
     onSelect: (id: string) => void;
     onClear: (list: string) => void;
+    /** Report a problem with a step (#242): the issue form's address for a step of a list. */
+    reportUrl?: ((list: string, step: string) => string) | undefined;
     full?: boolean;
     /** Below 900 px: the opened step's details, shown in the row of `inlineStep`. */
     inline?: Snippet | undefined;
@@ -94,6 +97,7 @@ type, as non-normal lists need.
     {onBlank}
         {onSelect}
         {onClear}
+        {reportUrl}
         {inline}
         {inlineStep}
       />

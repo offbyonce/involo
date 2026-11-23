@@ -43,6 +43,7 @@ in Rust. The host saves progress and settings on the device.
   import PacksPage, { type PackRow, type PacksNotice } from "./pages/PacksPage.svelte";
   import UpdateNote from "./lib/UpdateNote.svelte";
   import RestoreDialog, { type Chosen, type Refused, type Review } from "./lib/RestoreDialog.svelte";
+  import { stepProblemUrl } from "./lib/report";
   import { backupFileName, logLine, refusalLine, rowFor, savedByLine, TOO_LARGE } from "./lib/backup";
   import { MAX_BACKUP_FILE_BYTES } from "./lib/file-limits";
   import OtherAircraftDialog from "./lib/OtherAircraft.svelte";
@@ -1582,6 +1583,15 @@ in Rust. The host saves progress and settings on the device.
     offerUndo("Ticks cleared.", before);
   }
 
+  /** Report a problem with a step (#242): the issue form's address with the open pack, its version,
+   * the list, the step and this app's version filled in; nothing else. */
+  let reportUrl = $derived.by(() => {
+    const pack = installed.find((p) => p.summary.id === packId)?.summary;
+    const appVersion = info?.version;
+    if (!pack || !appVersion) return undefined;
+    return (list: string, step: string) => stepProblemUrl({ pack: pack.id, packVersion: pack.version, list, step, appVersion });
+  });
+
   async function changeSettings(next: Settings): Promise<void> {
     const before = settings;
     settings = next;
@@ -1998,6 +2008,7 @@ in Rust. The host saves progress and settings on the device.
               onUnskip={(id) => act({ type: "unskip", step: id })}
               onBlank={(step, index, value) => act({ type: "setBlank", step, index, value })}
               onSelect={(id) => (selected = id)}
+              reportUrl={reportUrl}
               onClear={(list) => void clearTicks(list)}
               inline={narrow && pane ? inlinePane : undefined}
               inlineStep={narrow ? (pane?.step.id ?? null) : null}
@@ -2022,6 +2033,7 @@ in Rust. The host saves progress and settings on the device.
                 open={openShown}
                 onGo={goToStep}
                 onEssentials={index.hasEssentials ? toggleEssentials : undefined}
+                {reportUrl}
                 full={!essentials}
                 {fullView}
                 onOption={(option, value) => act({ type: "setOption", option, value })}
