@@ -436,6 +436,54 @@ each difference is listed in its pull request.
   steps are ticked, skipped, undone or gone back to.
 - Existing tokens only: the Checklist and Mobile boards' and the panel drawings'.
 
+**Release blockers (2026-11-22).** `Release.dc.html` draws five of the Phase 2 parity report's
+issues, dark and light, as additions to the existing boards, each with a `Light` form: the
+first-launch notice (`RelNotice`, desktop 1440 x 900, and `RelNoticePhone`), Report a problem with
+a step (`RelReport`, the Checklist board's step menu, and `RelReportPhone`), the backup reminder
+(`RelReminder`, `RelReminderNever` and `RelReminderPhone`), forgetting the SimBrief username
+(`RelForget` and `RelForgotten`, the SimBrief board's Import card, and their `Phone` forms) and the
+Settings rows from 3.0 (`RelSettings`, `RelSettingsCleared` and `RelSettingsPhone`). Nothing else
+on the Checklist, Mobile, Packs, SimBrief or Settings boards changes; the boards leave the rest out
+only to stay small. The build may improve on these boards but never be worse; each difference is
+listed in its pull request.
+
+- **First-launch notice (#241):** a dialog over the whole app on a first visit, before anything
+  else: before the Packs page's first launch and before the tour's welcome, which follows it. It
+  takes the Remove dialog's form (popover tokens, scrim); on a phone it sits at the bottom, full
+  width. The title is "Simulator training only", then the two paragraphs as drawn, I understand
+  (primary) and Read the privacy note, which opens the privacy note (#52) and is left out until
+  that note exists. I understand is the only way to close it (no Esc, scrim or close button), and
+  focus starts there. It is stored once, in the settings like the tour's welcome, and never shows
+  again on that device.
+- **Report a problem with a step (#242):** the last item of every step's ··· menu, after a divider:
+  "Report a problem with this step" with the external-link icon and, under it, "Opens a GitHub
+  issue form with this step filled in." It opens the form in a new tab with the pack and its
+  version, the list, the step id and the app version in the address, and nothing else. The same
+  item is in the phone's step menu and everywhere else that menu appears.
+- **Backup reminder (#243):** a band at the top of the main column, above the lists, after a flight
+  is logged, when the last backup is more than 30 days old or there has never been one; never on
+  every launch. "Your last backup was on <date>, <how long> ago." (`RelReminder`) or "You haven't
+  saved a backup yet." (`RelReminderNever`), each followed by "Clearing this browser's site data
+  removes everything saved here." Save a backup file saves at once, as in Settings, and the band
+  goes; Not now hides it until the next flight logged 30 days later. The band is the surface with an
+  accent edge, a suggestion rather than a warning. Asking the browser for persistent storage has no
+  screen.
+- **Forget the SimBrief username (#244):** with a username saved, a Forget username link button
+  (44 px) ends the line under the field; it clears the field and the saved username at once, with
+  the toast "SimBrief username forgotten." ("Username forgotten." on a phone) and Undo. With no
+  username saved, the link isn't there.
+- **Settings rows from 3.0 (#245):** four cards in the Settings card style. Keep screen awake (a
+  switch, off), after the display settings; where the browser has no wake lock it is disabled and
+  its description ends "This browser can't keep the screen on." Your Essentials, after the
+  Essentials settings: "You've changed <n> steps: <a> added, <r> removed." with Reset to default
+  (a toast with Undo), or "You're using the pack's own Essentials." with the button disabled.
+  Start: Cold and dark or Turnaround, the same setting as Flight › Start options, before Back up
+  and restore. Clear all progress, last on the page, a danger-outline button that clears every
+  pack's saved flight at once (settings, backups and the flight log stay) with "All progress
+  cleared." and Undo (`RelSettingsCleared`).
+- Existing tokens only: `popover-*`, `scrim`, `overlay-shadow`, `toast-*`, `danger`, and the
+  segmented control and switch tokens.
+
 ## Read in this order
 
 1. `rules.md`: what the tokens mean and the rules every screen follows.
