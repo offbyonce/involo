@@ -37,6 +37,13 @@ jobs:
           rustup show active-toolchain || rustup toolchain install
           rustup target add wasm32-unknown-unknown
 
+      # The compiled dependencies from main's last run (Cargo.lock and the toolchain in the key); the
+      # workspace's own crates always build fresh. Only main saves, so pull requests don't fill the
+      # cache with their own copies.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
       # wasm-bindgen must be the same version as the crate pinned in Cargo.toml.
       - uses: taiki-e/install-action@v2
         with:
@@ -120,13 +127,14 @@ jobs:
           persist-credentials: false
       - uses: fsfe/reuse-action@v5
 
-  # The end-to-end flows with their layout and accessibility checks (#163): the built site in
-  # Chromium and WebKit, served locally with the catalog, the network blocked. The token rules
-  # run in `just ci` above (Vitest). About five minutes, most of it building the site. On a push,
-  # it also keeps that site for the Pages workflow.
-  e2e:
+  # The site the end-to-end flows test, built once (`just site test-packs`): the WebAssembly, the
+  # app, the pack catalog, and the example packs' catalog the flows add packs from. On a push it is
+  # also the site the Pages workflow publishes, with nothing rebuilt (#201): Pages runs only when
+  # the whole CI run passed, the flows on this same site included. The release attaches its
+  # packs/ files.
+  site:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
         with:
@@ -136,6 +144,10 @@ jobs:
         run: |
           rustup show active-toolchain || rustup toolchain install
           rustup target add wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - uses: taiki-e/install-action@v2
         with:
@@ -150,16 +162,17 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # The browsers at the version @playwright/test pins, with their system libraries.
-      - run: pnpm --filter @involo/web exec playwright install --with-deps chromium webkit
+      - run: just site test-packs
 
-      - run: just e2e
-        env:
-          CI: "1"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: e2e-site
+          path: |
+            apps/web/dist
+            target/test-packs
+          if-no-files-found: error
+          retention-days: 1
 
-      # A push to main or a release tag: the site these tests just passed, pack catalog included,
-      # for the Pages workflow to publish as it is, with nothing rebuilt (#201). The release
-      # attaches its packs/ files.
       - if: github.event_name == 'push'
         uses: actions/upload-artifact@v7
         with:
@@ -167,10 +180,68 @@ jobs:
           path: apps/web/dist
           if-no-files-found: error
 
+  # The end-to-end flows with their layout and accessibility checks (#163) on that site, Chromium
+  # and WebKit side by side, served locally with the catalog, the network blocked. The token rules
+  # run in `just ci` above (Vitest). The Playwright image has the browsers and their system
+  # libraries, so nothing comes from the Ubuntu mirrors; its tag follows @playwright/test in
+  # pnpm-workspace.yaml. A pull request checks the main screens with two packs, the iFly pack and
+  # the example furthest from it; main checks every pack.
+  e2e-browser:
+    name: e2e (${{ matrix.browser }})
+    needs: site
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
+      options: --ipc=host
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: e2e-site
+
+      # Already in the image at its version; this fetches the browser only if @playwright/test has
+      # moved past the image's tag.
+      - env:
+          BROWSER: ${{ matrix.browser }}
+        run: pnpm --filter @involo/web exec playwright install "$BROWSER"
+
+      - env:
+          CI: "1"
+          BROWSER: ${{ matrix.browser }}
+          E2E_SCREENS_PACKS: ${{ github.event_name == 'pull_request' && 'ifly-737-max8,example-sidestick' || '' }}
+        run: pnpm --filter @involo/web e2e --project="$BROWSER"
+
       # On a failure: the HTML report, with each failed test's trace and the page as it was.
       - if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: e2e-report
+          name: e2e-report-${{ matrix.browser }}
           path: target/e2e
           retention-days: 14
+
+  # The check the ruleset requires, by its old name: passes only when both browsers passed.
+  e2e:
+    if: always()
+    needs: e2e-browser
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          RESULT: ${{ needs.e2e-browser.result }}
+        run: test "$RESULT" = success

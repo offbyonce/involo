@@ -13,12 +13,32 @@ import { screenProblems } from "./layout";
 // known-findings.ts lists it with the issue that fixes it, and a listed one that no longer happens
 // fails too.
 
-const PACKS = [
+const ALL_PACKS = [
   { id: "ifly-737-max8", name: "iFly 737 MAX 8" },
   { id: "example-twin", name: "Example Twin" },
   { id: "example-sidestick", name: "Example Sidestick Twin" },
   { id: "example-twin-lr", name: "Example Twin LR" },
 ];
+
+/**
+ * The packs to check: all of them, or the ones `E2E_SCREENS_PACKS` names, comma separated (CI
+ * checks fewer on a pull request and every pack on main). A name that isn't a pack here fails, so
+ * a renamed pack can't drop out unseen.
+ */
+function chosenPacks(list: string | undefined): typeof ALL_PACKS {
+  const ids = (list ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+  if (ids.length === 0) return ALL_PACKS;
+  const unknown = ids.filter((id) => !ALL_PACKS.some((p) => p.id === id));
+  if (unknown.length)
+    throw new Error(
+      `E2E_SCREENS_PACKS names ${unknown.join(", ")}, not one of ${ALL_PACKS.map((p) => p.id).join(", ")}`,
+    );
+  return ALL_PACKS.filter((p) => ids.includes(p.id));
+}
+const PACKS = chosenPacks(process.env.E2E_SCREENS_PACKS);
 
 /** The first launch with this pack: the iFly pack from the catalog, an example added from its
  * file (the examples are never in the catalog); the welcome answered. */
@@ -28,6 +48,7 @@ async function firstRunWith(app: App, page: Page, id: string): Promise<void> {
     return;
   }
   await app.open();
+  await app.answerNotice();
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await app.scene([
     go("#/packs"),

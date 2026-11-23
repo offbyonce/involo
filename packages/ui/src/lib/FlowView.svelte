@@ -68,7 +68,7 @@ value on the right. The pilot confirms each step; the app never knows a switch p
     const t = e.target;
     if (t instanceof Element && t.closest("input, textarea, select, button, a, summary, [contenteditable]")) return;
     // Never under Find, the menu or the stage picker.
-    if (document.querySelector('.find[role="dialog"], #drawer.open, .picker')) return;
+    if (document.querySelector('.find[role="dialog"], #drawer.open, .picker, .sim-notice')) return;
     if (e.key === " ") {
       e.preventDefault();
       onConfirm(step.id);

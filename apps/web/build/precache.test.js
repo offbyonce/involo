@@ -6,19 +6,21 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
-import { WORKER, writeServiceWorker } from "./precache.js";
+import { RETIRED_WORKER, WORKER, writeServiceWorker } from "./precache.js";
 
 const template = fs.readFileSync(path.join(import.meta.dirname, "../src/sw/sw.js"), "utf8");
+const retire = fs.readFileSync(path.join(import.meta.dirname, "../src/sw/retire.js"), "utf8");
 
 /** A small built site in a temporary folder, with the real worker template. */
 function site() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "chock-sw-"));
   const files = {
     "src/sw/sw.js": template,
-    "dist/index.html": "placeholder",
+    "src/sw/retire.js": retire,
+    "dist/index.html": "app",
     "dist/simbrief-probe.html": "probe",
-    "dist/app/index.html": "app",
-    "dist/app/manifest.webmanifest": "{}",
+    "dist/app/index.html": "moved",
+    "dist/manifest.webmanifest": "{}",
     "dist/assets/app-1.js": "code",
     "dist/design/index.html": "design page",
     "dist/assets/design-1.js": "design code",
@@ -35,13 +37,15 @@ function site() {
 test("the worker precaches the app's files, relative to its own folder", () => {
   const root = site();
   const { files, version } = writeServiceWorker(root, "dist");
-  // Sorted by path within the site, then made relative to the worker's folder (app/).
-  // The pack catalog is never precached: packs are installed on the device (decision 0028).
-  assert.deepEqual(files, ["index.html", "manifest.webmanifest", "../assets/app-1.js"]);
+  // Sorted by path within the site, the worker's folder. The pack catalog is never precached:
+  // packs are installed on the device (decision 0028). Nor is the old address's page (#246).
+  assert.deepEqual(files, ["assets/app-1.js", "index.html", "manifest.webmanifest"]);
   const worker = fs.readFileSync(path.join(root, "dist", WORKER), "utf8");
   assert.ok(worker.includes(`const VERSION = "${version}";`));
   assert.ok(worker.includes(`const FILES = ${JSON.stringify(files)};`));
   assert.ok(!worker.includes("__INVOLO_"));
+  // The worker that retires the old address, where a copy installed from there looks (#246).
+  assert.equal(fs.readFileSync(path.join(root, "dist", RETIRED_WORKER), "utf8"), retire);
   fs.rmSync(root, { recursive: true });
 });
 

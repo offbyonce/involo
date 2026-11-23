@@ -470,6 +470,9 @@ mod tests {
         // as a saved flight is once read (format 6 saves paused timers, #213).
         let mut expected = frozen();
         expected["flights"][0]["flight"]["format"] = Value::from(crate::flight::FLIGHT_FORMAT);
+        // And the settings in today's settings format, which adds whether the notice was seen (#241).
+        expected["settings"]["format"] = Value::from(crate::SETTINGS_FORMAT);
+        expected["settings"]["noticeSeen"] = Value::from(false);
         assert_eq!(written, expected);
     }
 

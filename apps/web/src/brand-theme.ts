@@ -4,7 +4,7 @@
 // The favicon and theme-color follow the in-app theme (docs/brand/BRAND.md, DESIGN-SYSTEM.md §9),
 // adapted from the brand kit's favicon-theme snippet. Safari, installed apps and Chrome on Android
 // tint the toolbar with theme-color, so the icon must match the app's theme, not only the OS.
-// "system" puts back the page's own media-scoped tags (app/index.html), which follow the OS.
+// "system" puts back the page's own media-scoped tags (index.html), which follow the OS.
 
 import type { Theme } from "@involo/bindings";
 import { COLOR } from "@involo/ui";

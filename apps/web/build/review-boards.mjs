@@ -94,6 +94,8 @@ export const REVIEW_BOARDS = {
   "board-state-note": { desktop: "StateNote", phone: "StateNotePhone" },
   // Report a problem with a step (#242, Release.dc.html): the row menu.
   "board-report": { desktop: "RelReport", phone: "RelReportPhone" },
+  // The simulator-only notice (#241, Release.dc.html).
+  "board-notice": { desktop: "RelNotice", phone: "RelNoticePhone" },
   // Back up and restore (#47, Backup.dc.html).
   "board-backup-setting": { desktop: "BackupSetting", phone: "BackupSettingPhone" },
   "board-restore-review": { desktop: "RestoreReview", phone: "RestorePhone" },

@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// The saved format of [`Settings`]. Raise it, with a migration and tests, when the shape changes.
-pub const SETTINGS_FORMAT: u32 = 8;
+pub const SETTINGS_FORMAT: u32 = 9;
 
 /// The highest dimming step; 0 is full brightness.
 pub const MAX_DIMMING: u8 = 4;
@@ -122,6 +122,9 @@ pub struct Settings {
     /// before the first. Restoring settings from a backup keeps this device's.
     #[ts(type = "number | null")]
     pub last_backup: Option<i64>,
+    /// Whether the simulator-only notice has been answered with I understand on this device
+    /// (#241). It shows once, before anything else; never again once answered.
+    pub notice_seen: bool,
 }
 
 impl Default for Settings {
@@ -144,6 +147,7 @@ impl Default for Settings {
             current_pack: None,
             seat: None,
             last_backup: None,
+            notice_seen: false,
         }
     }
 }

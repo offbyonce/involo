@@ -58,7 +58,7 @@ function serviceWorker(): Plugin {
 }
 
 // The third-party licenses file the References page opens (References README): made from what the
-// app ships, so it is never out of date. Written into app/, so the service worker precaches it.
+// app ships, so it is never out of date. Written beside the app, so the service worker precaches it.
 function thirdPartyLicenses(): Plugin {
   let root = "";
   return {
@@ -73,7 +73,7 @@ function thirdPartyLicenses(): Plugin {
       );
       this.emitFile({
         type: "asset",
-        fileName: "app/third-party-licenses.txt",
+        fileName: "third-party-licenses.txt",
         source: thirdPartyText(root, ids),
       });
     },
@@ -95,7 +95,9 @@ function testCatalog(): Plugin {
 // `base: "./"` keeps paths relative, so the built site works under the Pages project path
 // (decision 0010). `just site` builds the WebAssembly module first, and writes the pack catalog
 // into packs/ after this build, so no pack is in the app's code or its precache list. Pages: the
-// placeholder front page, the app at app/ and the SimBrief probe page.
+// app as the front page, the page at app/ that sends the app's old address there (#246), the
+// SimBrief probe page and the drawing gallery. The manifest's `id` is the old address, so a copy
+// installed from there is the same app to the browser and moves with the manifest.
 export default defineConfig({
   plugins: [svelte(), contentSecurityPolicy(), thirdPartyLicenses(), serviceWorker(), testCatalog()],
   base: "./",
@@ -103,8 +105,7 @@ export default defineConfig({
   build: {
     target: "es2022",
     rollupOptions: {
-      // Relative to this folder, where the build runs. The front page stays the placeholder until
-      // the app is ready for users; the app is at app/ meanwhile (decision 0009).
+      // Relative to this folder, where the build runs.
       input: {
         index: "index.html",
         app: "app/index.html",

@@ -48,4 +48,9 @@ seat: string | null,
  * When this device last saved a backup file (#47), in milliseconds since 1970 (UTC); None
  * before the first. Restoring settings from a backup keeps this device's.
  */
-lastBackup: number | null, };
+lastBackup: number | null, 
+/**
+ * Whether the simulator-only notice has been answered with I understand on this device
+ * (#241). It shows once, before anything else; never again once answered.
+ */
+noticeSeen: boolean, };
