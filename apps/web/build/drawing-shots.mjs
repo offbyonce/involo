@@ -52,7 +52,7 @@ async function openAt(profile, prefs, firstUrl) {
  * 0028): a fresh profile has none, so the app downloads it from the site's catalog first, as a
  * pilot does. (Not with scenes.mjs, which needs the example pack built, as this recipe isn't.) */
 async function installIfly(browser) {
-  await browser.send("browsingContext.navigate", { context: browser.context, url: `http://localhost:${PORT}/app/`, wait: "complete" });
+  await browser.send("browsingContext.navigate", { context: browser.context, url: `http://localhost:${PORT}/`, wait: "complete" });
   await browser.until(`!!document.querySelector('button[aria-label="Download iFly 737 MAX 8"]')`, "the catalog");
   await browser.call((selector) => {
     document.querySelector(selector).click();
@@ -80,7 +80,7 @@ async function main() {
   try {
     for (const [theme, override] of Object.entries(THEMES)) {
       const profile = path.join(work, `profile-${theme}`);
-      const { firefox, browser } = await openAt(profile, { "layout.css.prefers-color-scheme.content-override": override }, `http://localhost:${PORT}/app/`);
+      const { firefox, browser } = await openAt(profile, { "layout.css.prefers-color-scheme.content-override": override }, `http://localhost:${PORT}/`);
       try {
         await installIfly(browser);
         const logged = await browser.logs();

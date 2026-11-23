@@ -67,6 +67,7 @@ import {
   press,
   pressText,
   refuseSaves,
+  reopenNotice,
   reopenWelcome,
   savedSimbriefUser,
   restarted,
@@ -595,6 +596,8 @@ const SHOTS = [
   // saved, and after Forget username, with the toast.
   { name: "board-forget", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, ...savedSimbriefUser, go("#/flight/simbrief")] } },
   { name: "board-forgotten", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, ...savedSimbriefUser, go("#/flight/simbrief"), click("button.forget")] } },
+  // The simulator-only notice (#241, RelNotice): over the app, as on a first visit.
+  { name: "board-notice", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenNotice] } },
   { name: "board-tour-welcome", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenWelcome] } },
   { name: "board-tour-step", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(0)] } },
   { name: "board-tour-end", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(5)] } },
@@ -805,6 +808,9 @@ async function installIfly(browser, target) {
   await visit(browser, target.url(""), target.ready);
   const first = await browser.js(`!!document.querySelector(".packs.first")`);
   if (!first) return;
+  // The simulator-only notice comes first on a first visit (#241).
+  await browser.until(`!!document.querySelector(".sim-notice")`, "the notice").catch(() => {});
+  await browser.js(`document.querySelector(".sim-notice button.primary")?.click(); true`);
   await browser.until(`!!document.querySelector('button[aria-label="Download iFly 737 MAX 8"]')`, "the catalog");
   await browser.run(click('button[aria-label="Download iFly 737 MAX 8"]'));
   await browser.until(`!!document.querySelector("#drawer")`, "the iFly pack to open");
@@ -1003,7 +1009,7 @@ async function main() {
   }
   const unknown = names.filter((n) => !SHOTS.some((s) => s.name === n));
   if (unknown.length) throw new Error(`no screen named ${unknown.join(", ")} (the names are in SHOTS in screenshots.mjs)`);
-  if (!fs.existsSync(path.join(dist, "app/index.html"))) throw new Error("build the site first: just site");
+  if (!fs.existsSync(path.join(dist, "sw.js"))) throw new Error("build the site first: just site");
   const baseline = process.env.INVOLO_BASELINE ? path.resolve(process.env.INVOLO_BASELINE) : null;
   if (baseline && !fs.existsSync(baseline)) throw new Error(`INVOLO_BASELINE: no such file ${baseline}`);
   fs.mkdirSync(out, { recursive: true });
@@ -1014,7 +1020,7 @@ async function main() {
       root: dist,
       port: 8772,
       // A fresh query each time, so each screen is a new page load and starts from a new flight.
-      url: (hash) => `http://localhost:8772/app/?shot=${Date.now()}${hash}`,
+      url: (hash) => `http://localhost:8772/?shot=${Date.now()}${hash}`,
       ready: "!!document.querySelector('[data-app-ready]')",
       dir: out,
       // The app saves progress on the device: each screen starts from nothing saved. The Flight log
@@ -1052,14 +1058,17 @@ async function main() {
           if (!shots.length) continue;
           const profile = path.join(work, `profile-${target.side}-${theme}-${size}`);
           const { firefox, browser } = await openAt(profile, prefs, { width: viewport.width, height: viewport.height }, target.url(""));
-          // The settings a pilot has after answering the tour's welcome ("Not now"), saved once per
-          // browser: each shot starts from them, so no shot shows the welcome or a fresh save time.
+          // The settings a pilot has after answering the simulator-only notice and the tour's welcome
+          // ("Not now"), saved once per browser: each shot starts from them, so no shot shows either
+          // or a fresh save time.
           let seen = "";
           if (target.side === "app") {
             await installIfly(browser, target);
             await visit(browser, target.url(""), target.ready);
             await browser.js(`localStorage.clear(); sessionStorage.clear(); true`);
             await visit(browser, target.url(""), target.ready);
+            await browser.until(`!!document.querySelector(".sim-notice")`, "the notice").catch(() => {});
+            await browser.js(`document.querySelector(".sim-notice button.primary")?.click(); true`);
             await browser.until(`!!document.querySelector('[aria-label="Welcome to Involo"]')`, "the welcome").catch(() => {});
             await browser.js(closeWelcome);
             await sleep(500);

@@ -9,11 +9,17 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-/** Where the worker is written, relative to the built site. Its folder is its scope. */
-export const WORKER = "app/sw.js";
+/** Where the worker is written, relative to the built site. Its folder, the whole site, is its
+ * scope. */
+export const WORKER = "sw.js";
 
-/** Built pages outside the app that the worker does not precache. */
-const OUTSIDE_APP = new Set(["index.html", "simbrief-probe.html"]);
+/** Where the worker that retires the app's old address is written (src/sw/retire.js, #246): a copy
+ * installed from app/ finds it there when it checks for an update. */
+export const RETIRED_WORKER = "app/sw.js";
+
+/** Built pages outside the app that the worker does not precache: the old address's page, which
+ * only sends a visitor to the front page, and the SimBrief probe. */
+const OUTSIDE_APP = new Set(["app/index.html", "simbrief-probe.html"]);
 /** The drawing gallery (design/) and its script: for review only, never part of the app a pilot installs. */
 const DESIGN = (file) => file.startsWith("design/") || /^assets\/design-[^/]*$/.test(file);
 /** The pack catalog (packs/): the pilot installs the packs they want, kept on the device, so none
@@ -30,7 +36,14 @@ function filesIn(dir, base = dir) {
 /** The files to precache (relative to the site) and the version they give. */
 export function precacheList(dist) {
   const files = filesIn(dist)
-    .filter((file) => file !== WORKER && !OUTSIDE_APP.has(file) && !DESIGN(file) && !CATALOG(file))
+    .filter(
+      (file) =>
+        file !== WORKER &&
+        file !== RETIRED_WORKER &&
+        !OUTSIDE_APP.has(file) &&
+        !DESIGN(file) &&
+        !CATALOG(file),
+    )
     .sort();
   const hash = createHash("sha256");
   for (const file of files) {
@@ -52,5 +65,7 @@ export function writeServiceWorker(root, outDir) {
     .replace('["__INVOLO_FILES__"]', JSON.stringify(urls));
   if (worker.includes("__INVOLO_")) throw new Error("service worker template placeholders not found");
   fs.writeFileSync(path.join(dist, WORKER), worker);
+  fs.mkdirSync(path.join(dist, path.posix.dirname(RETIRED_WORKER)), { recursive: true });
+  fs.copyFileSync(path.resolve(root, "src/sw/retire.js"), path.join(dist, RETIRED_WORKER));
   return { version, files: urls };
 }

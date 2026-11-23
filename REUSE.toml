@@ -80,7 +80,7 @@ SPDX-License-Identifier = "MIT"
 path = [
     "assets/brand/*.svg",
     "assets/brand/icons/**",
-    "apps/web/public/app/icons/**",
+    "apps/web/public/icons/**",
     "apps/web/public/og-image-1200x630.png",
     "apps/desktop/src-tauri/icons/**",
     "packages/ui/src/icons/brand/*.svg",

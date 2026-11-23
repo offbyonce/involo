@@ -95,6 +95,8 @@ export const REVIEW_BOARDS = {
   // Forget the SimBrief username (#244, Release.dc.html): the SimBrief board's Import card.
   "board-forget": { desktop: "RelForget", phone: "RelForgetPhone" },
   "board-forgotten": { desktop: "RelForgotten", phone: "RelForgottenPhone" },
+  // The simulator-only notice (#241, Release.dc.html).
+  "board-notice": { desktop: "RelNotice", phone: "RelNoticePhone" },
   // Back up and restore (#47, Backup.dc.html).
   "board-backup-setting": { desktop: "BackupSetting", phone: "BackupSettingPhone" },
   "board-restore-review": { desktop: "RestoreReview", phone: "RestorePhone" },

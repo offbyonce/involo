@@ -52,9 +52,18 @@ export class App {
    * its checklist with the welcome answered "Not now". */
   async firstRun(): Promise<void> {
     await this.open();
+    await this.answerNotice();
     await this.page.getByRole("button", { name: `Download ${IFLY.name}` }).click();
     await this.ready();
     await this.answerWelcome();
+  }
+
+  /** Answers the simulator-only notice, which opens over everything on a first visit (#241). */
+  async answerNotice(): Promise<void> {
+    const notice = this.page.getByRole("dialog", { name: "Simulator training only" });
+    await notice.waitFor({ state: "visible", timeout: 15_000 });
+    await notice.getByRole("button", { name: "I understand" }).click();
+    await expect(notice).toBeHidden();
   }
 
   /** Answers the welcome "Not now". It opens a moment after a first launch (no saved flight, the

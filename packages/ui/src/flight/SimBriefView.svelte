@@ -10,6 +10,7 @@ only the compact plan is kept, decision 0019), the last import, and Reset flight
   import type { SavedPlan } from "@involo/bindings";
   import Icon from "../lib/Icon.svelte";
   import { MAX_PLAN_FILE_BYTES, tooLarge } from "../lib/file-limits";
+  import { planLine } from "../lib/problems";
 
   let {
     user,
@@ -65,8 +66,6 @@ only the compact plan is kept, decision 0019), the last import, and Reset flight
     const text = await file.text();
     await run(() => onFile(text));
   }
-  const time = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
-  let route = $derived(plan ? `${plan.plan.origin?.icao ?? "—"} → ${plan.plan.destination?.icao ?? "—"}` : "");
 </script>
 
 <section class="card col">
@@ -145,7 +144,7 @@ only the compact plan is kept, decision 0019), the last import, and Reset flight
   <section class="card last">
     <span class="dt">
       <span class="t">Last import</span>
-      <span class="d">{route}, imported {time(plan.loadedAt)}. Values you typed since then are kept unless you import again.</span>
+      <span class="d">{planLine(plan)}. Values you typed since then are kept unless you import again.</span>
     </span>
     <button class="reset" type="button" onclick={onClear}>Reset flight plan</button>
   </section>

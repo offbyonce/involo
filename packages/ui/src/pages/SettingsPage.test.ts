@@ -14,6 +14,7 @@ const settings = {
   detail: "expanded",
   listView: "flow",
   tourSeen: true,
+  noticeSeen: true,
 } as Settings;
 
 describe("SettingsPage", () => {

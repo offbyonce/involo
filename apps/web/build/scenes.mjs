@@ -387,11 +387,17 @@ export const toFlow = `[...document.querySelectorAll("header.top .seg button")].
 
 /** The tour's welcome opens on a first visit (each shot starts from nothing saved): it is closed
  * before every step, so the steps reach the page. */
-export const closeWelcome = `sessionStorage.getItem("tour-shot") || document.querySelector('[role="dialog"][aria-label="Welcome to Involo"] button.secondary')?.click(); true`;
+export const closeWelcome = `sessionStorage.getItem("notice-shot") || document.querySelector('.sim-notice button.primary')?.click(); sessionStorage.getItem("tour-shot") || document.querySelector('[role="dialog"][aria-label="Welcome to Involo"] button.secondary')?.click(); true`;
 /** A SimBrief username saved on this device, as RelForget shows it (#244): "pilot", then a reload. */
 export const savedSimbriefUser = [
   `(() => { const k = Object.keys(localStorage).find((x) => /settings$/.test(x)); const s = JSON.parse(localStorage.getItem(k)); s.simbriefUser = "pilot"; localStorage.setItem(k, JSON.stringify(s)); setTimeout(() => location.reload(), 50); return true; })()`,
   `new Promise((done) => setTimeout(() => done(true), 1500))`,
+];
+/** Opens the simulator-only notice again over the current state, as on a first visit (#241):
+ * marks it unseen, reloads. */
+export const reopenNotice = [
+  `(() => { sessionStorage.setItem("notice-shot", "1"); const k = Object.keys(localStorage).find((x) => /settings$/.test(x)); const s = JSON.parse(localStorage.getItem(k)); s.noticeSeen = false; localStorage.setItem(k, JSON.stringify(s)); setTimeout(() => location.reload(), 50); return true; })()`,
+  `new Promise((done) => { let n = 0; const t = setInterval(() => { if (document.querySelector(".sim-notice") || ++n > 80) { clearInterval(t); setTimeout(() => done(true), 300); } }, 100); })`,
 ];
 /** Opens the welcome again over the current state, as on a first visit: marks it unseen, reloads. */
 export const reopenWelcome = [
@@ -772,7 +778,7 @@ export const updateFromWhatsNew = [
 /** Adds the catalog's iFly pack as a pack file (the newer version, from a file): the app opens
  * again on it, with its note. */
 export const addCatalogIflyAsFile = [
-  `(async () => { const index = await (await fetch("../packs/index.json")).json(); const e = index.find((x) => x.id === "ifly-737-max8"); const text = await (await fetch(\`../packs/\${e.id}-\${e.version}.involo-pack\`)).text(); const input = document.querySelector('input[type="file"]'); const dt = new DataTransfer(); dt.items.add(new File([text], \`\${e.id}-\${e.version}.involo-pack\`, { type: "application/json" })); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true })); return true; })()`,
+  `(async () => { const index = await (await fetch("packs/index.json")).json(); const e = index.find((x) => x.id === "ifly-737-max8"); const text = await (await fetch(\`packs/\${e.id}-\${e.version}.involo-pack\`)).text(); const input = document.querySelector('input[type="file"]'); const dt = new DataTransfer(); dt.items.add(new File([text], \`\${e.id}-\${e.version}.involo-pack\`, { type: "application/json" })); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true })); return true; })()`,
   restarted,
   `new Promise((d) => { let n = 0; const t = setInterval(() => { if (document.querySelector('[aria-label="Pack updated"]') || ++n > 100) { clearInterval(t); setTimeout(d, 300, true); } }, 100); })`,
 ];
