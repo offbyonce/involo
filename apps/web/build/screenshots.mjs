@@ -596,6 +596,22 @@ const SHOTS = [
   // saved, and after Forget username, with the toast.
   { name: "board-forget", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, ...savedSimbriefUser, go("#/flight/simbrief")] } },
   { name: "board-forgotten", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...BOARD_STATE, ...savedSimbriefUser, go("#/flight/simbrief"), click("button.forget")] } },
+  // Report a problem with a step (#242, RelReport): the row menu open on the board's step.
+  {
+    name: "board-report",
+    only: ["desktop", "phone"],
+    app: {
+      hash: "#/phase/before-start",
+      before: [
+        ...BOARD_STATE,
+        go("#/phase/before-start"),
+        // On a phone the steps after the current one are folded ("3 more steps"): unfold them.
+        `([...document.querySelectorAll("button")].find((b) => /^\\d+ more steps?/.test(b.textContent.trim()))?.click(), true)`,
+        `new Promise((d) => setTimeout(() => { document.querySelector('[data-menu="ifly-737-max8.before-start.anti-collision-light"]')?.scrollIntoView({ block: "center" }); setTimeout(() => d(true), 400); }, 300))`,
+        click('[data-menu="ifly-737-max8.before-start.anti-collision-light"] .more'),
+      ],
+    },
+  },
   // The simulator-only notice (#241, RelNotice): over the app, as on a first visit.
   { name: "board-notice", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenNotice] } },
   { name: "board-tour-welcome", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenWelcome] } },
