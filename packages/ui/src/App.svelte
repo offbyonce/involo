@@ -15,6 +15,7 @@ in Rust. The host saves progress and settings on the device.
     type AppInfo,
     type Backup,
     type BackupFlight,
+    type EarlierFile,
     type CatalogEntry,
     type Checklist,
     type PackChanges,
@@ -43,7 +44,7 @@ in Rust. The host saves progress and settings on the device.
   import PacksPage, { type PackRow, type PacksNotice } from "./pages/PacksPage.svelte";
   import UpdateNote from "./lib/UpdateNote.svelte";
   import RestoreDialog, { type Chosen, type Refused, type Review } from "./lib/RestoreDialog.svelte";
-  import { backupFileName, logLine, refusalLine, rowFor, savedByLine, TOO_LARGE } from "./lib/backup";
+  import { backupFileName, EARLIER_LEFT_OUT, earlierSavedLine, logLine, refusalLine, rowFor, savedByLine, TOO_LARGE } from "./lib/backup";
   import { MAX_BACKUP_FILE_BYTES } from "./lib/file-limits";
   import OtherAircraftDialog from "./lib/OtherAircraft.svelte";
   import { downloadFailed, installNotice, morePacks, type PackNotice, savedLine, updateFor } from "./lib/packs";
@@ -1077,21 +1078,21 @@ in Rust. The host saves progress and settings on the device.
   }
 
   /** The restore's dialog: the review of a backup, or why a file can't be restored. */
-  let restoring = $state<{ backup: Backup | null; shown: Review | Refused } | null>(null);
+  let restoring = $state<{ backup: Backup | null; earlier: EarlierFile | null; shown: Review | Refused } | null>(null);
   /** The pack the review is downloading, by id. */
   let restoreDownload = $state<string | null>(null);
   /** A failed Download in the review, on its row, by pack id, as the Packs page says it. */
   let restoreProblems = $state<Record<string, PackNotice>>({});
 
   /** What restoring each part of the backup would do on this device, for the review. */
-  async function review(backup: Backup): Promise<Review> {
+  async function review(backup: Backup, earlier: EarlierFile | null = null): Promise<Review> {
     const flights = [];
     for (const entry of backup.flights) {
       const pack = installed.find((p) => p.summary.id === entry.pack);
       const saved = pack ? (await host.readSaved(entry.pack)).flight : null;
       const line = entry.pack === packId ? openLine : (savedLines[entry.pack] ?? null);
       const here = !saved ? null : line ? { place: line.where, done: line.done, total: line.total } : true;
-      flights.push(rowFor(entry, pack, here, catalog));
+      flights.push(rowFor(entry, pack, here, catalog, earlier));
     }
     let logText: string | null = null;
     if (log && !logBlocked) {
@@ -1104,20 +1105,27 @@ in Rust. The host saves progress and settings on the device.
         logText = null;
       }
     }
-    return { kind: "review", saved: savedByLine(backup.savedAt, backup.appVersion), flights, log: logText };
+    return {
+      kind: "review",
+      // A file the 3.0 checklist exported is described from the file (#240).
+      saved: earlier ? earlierSavedLine(backup.savedAt) : savedByLine(backup.savedAt, backup.appVersion),
+      flights,
+      log: logText,
+      leftOut: earlier ? EARLIER_LEFT_OUT : null,
+    };
   }
 
   /** Restore from a file: the review, or the refusal. Nothing changes here. */
   async function startRestore(file: File): Promise<void> {
     try {
       const refuse = (line: string) => {
-        restoring = { backup: null, shown: { kind: "refused", line } };
+        restoring = { backup: null, earlier: null, shown: { kind: "refused", line } };
       };
       if (file.size > MAX_BACKUP_FILE_BYTES) return refuse(TOO_LARGE);
       const read = await host.readBackup(await file.text());
       if (read.state === "refused") return refuse(refusalLine(read.refusal));
       restoreProblems = {};
-      restoring = { backup: read.backup, shown: await review(read.backup) };
+      restoring = { backup: read.backup, earlier: read.earlier, shown: await review(read.backup, read.earlier) };
     } catch (e) {
       fail(e);
     }
@@ -1140,7 +1148,8 @@ in Rust. The host saves progress and settings on the device.
       }
       await loadPacks();
       const backup = restoring?.backup;
-      if (backup) restoring = { backup, shown: await review(backup) };
+      const earlier = restoring?.earlier ?? null;
+      if (backup) restoring = { backup, earlier, shown: await review(backup, earlier) };
     } catch (e) {
       restoreProblems = { ...restoreProblems, [entry.id]: downloadFailed(entry.name, e) };
     } finally {

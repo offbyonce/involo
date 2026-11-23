@@ -9,6 +9,7 @@ mod app;
 mod backup;
 mod boundary;
 mod cdu;
+mod earlier;
 mod error;
 mod flight;
 mod log;
@@ -35,7 +36,7 @@ pub use actions::{Action, apply};
 pub use app::{AppInfo, app_info, example_checklist};
 pub use backup::{
     BACKUP_FORMAT, BACKUP_KIND, Backup, BackupFlight, BackupParts, BackupRead, BackupRefusal,
-    FlightPlace, PackSource, backup_text, read_backup,
+    EarlierFile, FlightPlace, PackSource, backup_text, read_backup,
 };
 pub use boundary::to_interface_json;
 pub use cdu::{CduPageView, CduRowView, CduScreenView, CduSpan, CduWalk, cdu_walkthrough};

@@ -1,0 +1,78 @@
+{
+  "app": "ifly-737-max-8-checklist",
+  "version": 3,
+  "exported": "2026-11-20T09:30:00.000Z",
+  "state": {
+    "done": {
+      "cold-dark-0-0": "2026-11-20T09:01:05.250Z",
+      "cold-dark-0-1": true,
+      "cold-dark-0-99": "2026-11-20T09:02:00.000Z"
+    },
+    "vals": {
+      "before-start-1-1-v0": "12500",
+      "before-start-1-4-v1": " ",
+      "cold-dark-0-99-v0": "never shown"
+    },
+    "flight": {
+      "no": "PL123",
+      "date": "2026-11-20",
+      "from": "KSEA",
+      "to": "KSFO",
+      "ac": "N123XX",
+      "pilot": "Pilot",
+      "notes": "Expect runway 16L"
+    },
+    "log": [
+      {
+        "at": "2026-11-19T18:00:00.000Z",
+        "flight": { "no": "PL122" },
+        "done": {},
+        "vals": {},
+        "set": {},
+        "power": "gpu",
+        "d": 4,
+        "t": 10
+      }
+    ],
+    "savedAt": "2026-11-20T09:29:00.000Z",
+    "copyId": null,
+    "power": "apu",
+    "theme": "dark",
+    "mode": "quick",
+    "set": {
+      "rwy": "16L",
+      "sid": "SUMMA2",
+      "zfw": 126.5,
+      "olat": "47.449",
+      "olon": "-122.309",
+      "ab": "SPOILER",
+      "ci": ""
+    },
+    "ess": {
+      "cold-dark-0-0": false,
+      "cold-dark-0-3": true,
+      "cold-dark-0-99": true
+    },
+    "skip": {
+      "cold-dark-0-2": "2026-11-20T09:03:00.000Z",
+      "cold-dark-0-1": "2026-11-20T09:00:00.000Z"
+    },
+    "prs": { "flows": { "g": 3, "m": 4, "lab": "Flows", "md": "flows" } },
+    "ui": "flow",
+    "appr": "rnav",
+    "start": "turn",
+    "qu": "hPa",
+    "fu": "KG",
+    "mt": "BARO",
+    "fd": true,
+    "wake": true,
+    "tour": "done",
+    "tourOff": false,
+    "pst": { "k": "cd", "ts": "2026-11-20T09:00:00.000Z", "n": 0, "s": 0 },
+    "tm": { "cold-dark-0-1": 1795000000000 },
+    "chime": false,
+    "sbu": " pilot ",
+    "map": false,
+    "view": "simple"
+  }
+}

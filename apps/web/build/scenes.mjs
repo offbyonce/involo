@@ -686,6 +686,23 @@ export const chooseBackup = (newer = false) =>
     },
     { at: BACKUP_AT, log: logFixture, newer },
   );
+/** The invented 3.0 export the Rust tests use (#240). */
+const earlierExport = fs.readFileSync(
+  path.resolve(web, "../../crates/involo-app-core/tests/fixtures/earlier-export-3.json"),
+  "utf8",
+);
+/** Chooses the 3.0 checklist's exported file in Settings › Restore from a file… (#240). */
+export const chooseEarlierExport = call(
+  (text) => {
+    const input = document.querySelector('.set.backup input[type="file"]');
+    const dt = new DataTransfer();
+    dt.items.add(new File([text], "ifly-checklist-log.json", { type: "application/json" }));
+    input.files = dt.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    return new Promise((done) => setTimeout(() => done(true), 600));
+  },
+  earlierExport,
+);
 /** Settings scrolled to Back up and restore, in the middle of the screen. */
 export const scrollToBackup = `new Promise((done) => setTimeout(() => { document.querySelector(".set.backup")?.scrollIntoView({ block: "center" }); setTimeout(() => done(true), 300); }, 300))`;
 /** Download in the restore review, with the pack's download failing as if the connection

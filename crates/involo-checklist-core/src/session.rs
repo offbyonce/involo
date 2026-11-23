@@ -88,6 +88,16 @@ impl Session {
         Self::default()
     }
 
+    /// A session with these marks, by step id, as another app saved them: ids no checklist has
+    /// stay until [`Session::remap`] renames or drops them. A step in both is done.
+    pub fn from_marks(
+        done: BTreeMap<StepId, Millis>,
+        mut skipped: BTreeMap<StepId, Millis>,
+    ) -> Self {
+        skipped.retain(|id, _| !done.contains_key(id));
+        Self { done, skipped }
+    }
+
     pub fn is_done(&self, id: &StepId) -> bool {
         self.done.contains_key(id)
     }
