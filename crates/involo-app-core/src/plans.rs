@@ -749,7 +749,7 @@ mod tests {
         assert_eq!(
             parse_plan(&fixture("ofp-error.json")),
             Err(AppError::FlightPlan(
-                "SimBrief says: Error: Unknown UserID".into()
+                "Username not found. Check your SimBrief username or Pilot ID.".into()
             ))
         );
         assert!(

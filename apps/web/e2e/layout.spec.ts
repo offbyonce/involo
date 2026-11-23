@@ -7,11 +7,11 @@
 // checklist opens).
 
 import { expect, test } from "./fixtures";
-import { layoutProblems } from "./layout";
+import { layoutProblems, resizeTo, screenProblems } from "./layout";
 
 test("the tap check measures Show panel by the card it covers", async ({ app, page }) => {
   await app.firstRun();
-  await page.setViewportSize({ width: 390, height: 844 });
+  await resizeTo(page, { width: 390, height: 844 });
   const show = page.getByRole("button", { name: /^Show panel/ }).first();
   await expect(show).toBeVisible();
   const drawn = await show.boundingBox();
@@ -28,4 +28,34 @@ test("the tap check measures Show panel by the card it covers", async ({ app, pa
   expect(await findings(), "the check measures the button, it doesn't skip it").toEqual([
     expect.stringMatching(/^the "Show panel: .*" button is \d+ px tall$/),
   ]);
+});
+
+// The check looks at a screen only once the page has finished reacting to the new size. Here the
+// page answers the phone width in steps, as an app does when a media-query listener redraws and
+// what it draws settles in turn: a fixed wait after resizing looked too soon and called the
+// screen's key element missing.
+test("the layout check waits for the page to finish reacting to a resize", async ({ app, page }) => {
+  await app.firstRun();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.evaluate(() => {
+    const query = matchMedia("(max-width: 599px)");
+    const mark = document.createElement("p");
+    mark.id = "settle-mark";
+    mark.textContent = "Wide";
+    document.body.prepend(mark);
+    query.addEventListener("change", () => {
+      // Five steps 60 ms apart, each changing the page: 300 ms in all.
+      let step = 0;
+      const next = () => {
+        step++;
+        mark.textContent = query.matches ? `Narrowing ${step}` : "Wide";
+        mark.hidden = query.matches && step < 5;
+        if (query.matches && step < 5) setTimeout(next, 60);
+      };
+      next();
+    });
+  });
+  const mark = page.locator("#settle-mark");
+  const problems = await screenProblems(page, "A page that settles in steps", [mark]);
+  expect(problems.filter((p) => p.includes("settle-mark"))).toEqual([]);
 });

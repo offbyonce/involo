@@ -22,7 +22,7 @@ const refused = (reason) => ({ state: "refused", reasons: [reason] });
  * pilot: no cookies, no referrer and no query.
  */
 export async function readCatalog({ fetch, parse }) {
-  const response = await fetch("../packs/index.json", {
+  const response = await fetch("packs/index.json", {
     credentials: "omit",
     referrerPolicy: "no-referrer",
     cache: "no-cache",
@@ -67,7 +67,7 @@ export async function downloadPack(entry, deps) {
   const file = catalogFile(entry);
   // Called on its own: the browser's fetch refuses to run as another object's method.
   const { fetch } = deps;
-  const response = await fetch(`../packs/${encodeURIComponent(file)}`, {
+  const response = await fetch(`packs/${encodeURIComponent(file)}`, {
     credentials: "omit",
     referrerPolicy: "no-referrer",
   });

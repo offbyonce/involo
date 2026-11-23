@@ -1536,7 +1536,7 @@ in Rust. The host saves progress and settings on the device.
       if (settings && settings.simbriefUser !== user) await changeSettings({ ...settings, simbriefUser: user });
       return await usePlan(await host.fetchPlan(user));
     } catch (e) {
-      return fetchProblem(e);
+      return fetchProblem(e, plan);
     }
   }
   async function importFile(text: string): Promise<string | null> {

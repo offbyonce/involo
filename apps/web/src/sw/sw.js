@@ -3,7 +3,8 @@
 
 // The service worker (decision 0010). This is a template: the build (apps/web/build/precache.js)
 // fills in VERSION, derived from the built files, and FILES, the list to precache, and writes it
-// to app/sw.js. Each version gets its own cache, so a deploy never mixes old and new files.
+// to sw.js, so its scope is the whole site. Each version gets its own cache, so a deploy never
+// mixes old and new files.
 //
 // Never swap mid-session: a new version installs in the background and then waits. It takes over
 // only when the pilot presses Reload (the page sends "reload-to-update"), or on the next launch
@@ -11,7 +12,9 @@
 
 const VERSION = "__INVOLO_VERSION__";
 const FILES = ["__INVOLO_FILES__"];
-const PREFIX = "involo-";
+// "involo-site-" since the app moved to the front page (#246): the worker that was at app/ named
+// its caches "involo-<version>", and app/sw.js, which retires it, deletes those.
+const PREFIX = "involo-site-";
 const OLD_PREFIX = "chocktochock-";
 const CACHE = PREFIX + VERSION;
 
@@ -45,9 +48,17 @@ self.addEventListener("fetch", (event) => {
     (async () => {
       const cache = await caches.open(CACHE);
       const navigate = request.mode === "navigate";
+      const scope = self.registration.scope;
+      const page = navigate ? new URL(request.url).pathname : "";
+      const root = new URL(scope).pathname;
+      // The app's old address (#246) goes to the app here, offline too.
+      if (page === `${root}app/` || page === `${root}app/index.html`) return Response.redirect(scope, 302);
+      // Only the app's own address falls back to the app: the design pages, the probe page and
+      // the catalog are other pages of this site.
+      const app = page === root || page === `${root}index.html`;
       const hit =
         (await cache.match(request, { ignoreSearch: navigate })) ??
-        (navigate ? await cache.match(new URL("index.html", self.location)) : undefined);
+        (app ? await cache.match(new URL("index.html", self.location)) : undefined);
       return hit ?? fetch(request);
     })(),
   );
