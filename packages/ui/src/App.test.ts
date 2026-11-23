@@ -678,10 +678,14 @@ describe("App", () => {
     window.location.hash = "#/flight/start";
     window.dispatchEvent(new HashChangeEvent("hashchange"));
     await fireEvent.click(await screen.findByRole("switch", { name: "Turnaround" }));
-    expect(actions.at(-1)).toEqual({ type: "setOption", option: "start", value: "turn" });
+    await waitFor(() =>
+      expect(actions.at(-1)).toEqual({ type: "setOption", option: "start", value: "turn" }),
+    );
     // An option the flight has no value for yet reads as on (the pack's default in Rust).
     await fireEvent.click(screen.getByRole("switch", { name: "Exterior inspection" }));
-    expect(actions.at(-1)).toEqual({ type: "setOption", option: "exterior", value: "off" });
+    await waitFor(() =>
+      expect(actions.at(-1)).toEqual({ type: "setOption", option: "exterior", value: "off" }),
+    );
   });
 
   it("shows the clearance in the flight strip, edits it in the strip panel, and resets with Undo", async () => {
@@ -1026,6 +1030,112 @@ describe("App", () => {
     // Saving a copy comes first now: it is the primary button.
     expect(screen.getByRole("link", { name: "Save a copy" }).classList.contains("primary")).toBe(true);
     expect(screen.getByRole("button", { name: "Start fresh" }).classList.contains("primary")).toBe(false);
+  });
+
+  describe("changes that overlap, with a host whose calls take real time (#267)", () => {
+    // The web host answers at once; the desktop host's calls cross to another process. Each test
+    // starts a change while the one before it is still waiting for the host.
+    const applied = (f: Flight | undefined) =>
+      (f?.values as Record<string, string> | undefined)?.applied ?? "";
+    /** The flight with this action's type added to `values.applied`, so a lost change shows. */
+    const withAction = (f: Flight, a: Action) =>
+      ({ ...f, values: { ...f.values, applied: [applied(f), a.type].filter(Boolean).join(",") } }) as Flight;
+    /** A host whose `apply` waits until `finish` lets it go, oldest call first. */
+    function slowHost(overrides: Partial<Host> = {}) {
+      const waiting: (() => void)[] = [];
+      const saved: Flight[] = [];
+      const h = host({
+        apply: (_p, f, a) => new Promise((done) => waiting.push(() => done(withAction(f, a)))),
+        save: async (_p, what, value) => {
+          if (what === "flight") saved.push(value as Flight);
+          return 1;
+        },
+        readSettings: async () => null,
+        ...overrides,
+      });
+      const finish = async () => {
+        for (let i = 0; i < 40; i++) {
+          await new Promise((done) => setTimeout(done, 0));
+          waiting.shift()?.();
+        }
+      };
+      return { h, saved, finish };
+    }
+    const CONFIRM = "Confirm Standby power: AUTO";
+
+    it("two quick ticks both apply, in order, and the saved flight has both", async () => {
+      const { h, saved, finish } = slowHost();
+      render(App, { context: hostContext(h) });
+      const confirm = await screen.findByRole("button", { name: CONFIRM });
+      await fireEvent.click(confirm);
+      await fireEvent.click(confirm);
+      await finish();
+      expect(applied(saved.at(-1))).toBe("tick,tick");
+    });
+
+    it("Undo takes back only its own change, never a tick that was still being applied before it", async () => {
+      const { h, saved, finish } = slowHost();
+      render(App, { context: hostContext(h) });
+      await fireEvent.click(await screen.findByRole("button", { name: CONFIRM }));
+      await fireEvent.click(screen.getByRole("button", { name: "Clear ticks" }));
+      await finish();
+      expect(applied(saved.at(-1))).toBe("tick,clearList");
+      await fireEvent.click(await screen.findByRole("button", { name: "Undo" }));
+      await finish();
+      expect(applied(saved.at(-1))).toBe("tick");
+    });
+
+    it("Undo pressed while a tick is still being applied isn't put back by that tick's result", async () => {
+      const { h, saved, finish } = slowHost();
+      render(App, { context: hostContext(h) });
+      await fireEvent.click(await screen.findByRole("button", { name: "Clear ticks" }));
+      await finish();
+      const undo = await screen.findByRole("button", { name: "Undo" });
+      await fireEvent.click(screen.getByRole("button", { name: CONFIRM }));
+      await fireEvent.click(undo);
+      await finish();
+      // Undo comes after the tick, so it takes the flight back to before Clear ticks.
+      expect(applied(saved.at(-1))).toBe("");
+    });
+
+    it("a tick made while the one before it meets another window's save keeps both, and that window's", async () => {
+      const other = {
+        pack: "demo",
+        options: { power: "gpu" },
+        session: { done: {}, skipped: {} },
+        values: { applied: "other" },
+      } as unknown as Flight;
+      let loads = 0;
+      let changedOnce = false;
+      const { h, saved, finish } = slowHost({
+        readSaved: async () =>
+          loads++ === 0
+            ? { flight: null, settings: null }
+            : {
+                flight: {
+                  loaded: { state: "ready", value: other, migratedFrom: null } as Loaded<Flight>,
+                  text: JSON.stringify(other),
+                },
+                settings: null,
+              },
+        save: async (_p, what, value) => {
+          if (what !== "flight") return 0;
+          // The first save finds the other window's text: nothing is written.
+          if (!changedOnce) {
+            changedOnce = true;
+            return "changed";
+          }
+          saved.push(value as Flight);
+          return 1;
+        },
+      });
+      render(App, { context: hostContext(h) });
+      const confirm = await screen.findByRole("button", { name: CONFIRM });
+      await fireEvent.click(confirm);
+      await fireEvent.click(confirm);
+      await finish();
+      expect(applied(saved.at(-1))).toBe("other,tick,tick");
+    });
   });
 
   describe("two windows (the installed app beside a tab)", () => {
@@ -1840,7 +1950,7 @@ describe("App", () => {
     await fireEvent.click(screen.getByRole("button", { name: "Briefed" }));
     expect(actions[0]).toMatchObject({ type: "brief", briefing: "power" });
     await fireEvent.click(screen.getByRole("button", { name: "Skip briefing" }));
-    expect(actions[1]).toMatchObject({ type: "skipBriefing", briefing: "power" });
+    await waitFor(() => expect(actions[1]).toMatchObject({ type: "skipBriefing", briefing: "power" }));
   });
 
   // #215: the current step that opens a CDU walkthrough, and the walkthrough in the slide-out.
@@ -1894,7 +2004,9 @@ describe("App", () => {
     expect(within(dialog).getByText("Power up flow · 2 pages, IDENT to RTE")).toBeTruthy();
     expect(actions[0]).toEqual({ type: "walkthroughPage", walkthrough: "setup", page: 0 });
     await fireEvent.click(within(dialog).getByRole("button", { name: "Next" }));
-    expect(actions[1]).toEqual({ type: "walkthroughPage", walkthrough: "setup", page: 1 });
+    await waitFor(() =>
+      expect(actions[1]).toEqual({ type: "walkthroughPage", walkthrough: "setup", page: 1 }),
+    );
     // Closed part way, the step says where it stopped.
     await fireEvent.click(within(dialog).getByRole("button", { name: "Close the CDU walkthrough" }));
     expect(await screen.findByRole("button", { name: "Continue CDU walkthrough" })).toBeTruthy();
@@ -1936,10 +2048,12 @@ describe("App", () => {
     expect(screen.getByText("GB")).toBeTruthy();
     await fireEvent.click(screen.getByRole("button", { name: "Unskip" }));
     await fireEvent.click(screen.getByRole("button", { name: "Briefed" }));
-    expect(actions).toEqual([
-      { type: "unmarkBriefing", briefing: "power" },
-      expect.objectContaining({ type: "brief", briefing: "power" }),
-    ]);
+    await waitFor(() =>
+      expect(actions).toEqual([
+        { type: "unmarkBriefing", briefing: "power" },
+        expect.objectContaining({ type: "brief", briefing: "power" }),
+      ]),
+    );
   });
 
   it('lists a skipped briefing under its phase in "N open steps", with Go to briefing', async () => {
