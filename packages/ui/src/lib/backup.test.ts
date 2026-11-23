@@ -4,7 +4,16 @@
 import type { BackupFlight, CatalogEntry, Flight } from "@involo/bindings";
 import { describe, expect, it } from "vitest";
 import type { InstalledPack } from "../host";
-import { backupFileName, lastBackupLine, logLine, refusalLine, rowFor, savedByLine } from "./backup";
+import {
+  backupFileName,
+  lastBackupLine,
+  logLine,
+  refusalLine,
+  reminderDue,
+  reminderLine,
+  rowFor,
+  savedByLine,
+} from "./backup";
 
 // Back up and restore (#47, Backup board): the words the card and the dialogs show.
 
@@ -52,6 +61,25 @@ describe("back up and restore words", () => {
     expect(refusalLine({ kind: "logFile" })).toBe(
       "This is a flight log file. Load it from the Flight log page.",
     );
+  });
+
+  it("is due for a reminder after 30 days or with no backup, unless Not now holds it (#243)", () => {
+    const day = 24 * 3600 * 1000;
+    const now = at + 100 * day;
+    expect(reminderDue(null, null, now)).toBe(true);
+    expect(reminderDue(now - 31 * day, null, now)).toBe(true);
+    expect(reminderDue(now - 29 * day, null, now)).toBe(false);
+    expect(reminderDue(null, now + day, now)).toBe(false);
+    expect(reminderDue(null, now - day, now)).toBe(true);
+  });
+
+  it("words the reminder from the last backup (#243)", () => {
+    const day = 24 * 3600 * 1000;
+    const why = " Clearing this browser’s site data removes everything saved here.";
+    expect(reminderLine(null, at)).toBe(`You haven’t saved a backup yet.${why}`);
+    expect(reminderLine(at, at + 31 * day)).toBe(`Your last backup was on Nov 18, a month ago.${why}`);
+    expect(reminderLine(at, at + 75 * day)).toBe(`Your last backup was on Nov 18, 3 months ago.${why}`);
+    expect(reminderLine(at, at + 400 * day)).toBe(`Your last backup was on Nov 18, a year ago.${why}`);
   });
 
   it("counts what the log merge adds, and leaves the row out when it adds nothing", () => {

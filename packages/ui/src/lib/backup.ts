@@ -25,6 +25,42 @@ export function lastBackupLine(ms: number | null): string {
   return `Last backup: ${ms === null ? "never" : when(ms)}`;
 }
 
+/** How long the backup reminder waits (#243): a backup older than this, or none, is due, and Not
+ * now hides the reminder for as long. */
+export const REMINDER_DAYS = 30;
+const DAY = 24 * 60 * 60 * 1000;
+
+/** Whether logging a flight now should show the backup reminder (#243, RelReminder): the last
+ * backup is more than 30 days old or there has never been one, and Not now isn't still holding it. */
+export function reminderDue(lastBackup: number | null, after: number | null, now: number): boolean {
+  if (after !== null && now < after) return false;
+  return lastBackup === null || now - lastBackup > REMINDER_DAYS * DAY;
+}
+
+/** The reminder's line: "Your last backup was on Oct 21, a month ago." or "You haven't saved a
+ * backup yet.", then why it matters. */
+export function reminderLine(lastBackup: number | null, now: number): string {
+  const why = "Clearing this browser’s site data removes everything saved here.";
+  if (lastBackup === null) return `You haven’t saved a backup yet. ${why}`;
+  const day = new Date(lastBackup).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const days = Math.max(0, Math.floor((now - lastBackup) / DAY));
+  const months = Math.round(days / 30);
+  const years = Math.floor(days / 365);
+  const ago =
+    years >= 1
+      ? years === 1
+        ? "a year"
+        : `${years} years`
+      : months >= 1
+        ? months === 1
+          ? "a month"
+          : `${months} months`
+        : days === 1
+          ? "a day"
+          : `${days} days`;
+  return `Your last backup was on ${day}, ${ago} ago. ${why}`;
+}
+
 /** The backup file's name, by the day it was saved. */
 export function backupFileName(ms: number): string {
   const d = new Date(ms);
