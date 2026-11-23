@@ -88,15 +88,22 @@ type Base = {
   /** The steps it is built from: it is skipped when one of them does not show on this flight. */
   steps: string[];
 };
+/** Wrong options of one closeness. `sides`: a control's own positions, where the side is what is
+ * asked (IGN L or IGN R), so the pair rule doesn't apply. `keys`: what each item is, beside its
+ * text, where two items can read the same (two lights labeled LOW PRESSURE on different panels);
+ * an item without one is known by its text. */
+export type Tier = { items: string[]; keys?: string[]; shuffle: boolean; sides?: boolean };
+/** A wrong option as picked: its text, and what it is (its tier's key, else its text). */
+export type Picked = { text: string; key: string };
+
 /** A choice question before it is dealt: the answer and its wrong options' tiers, nearest first. */
 export type ChoiceSeed = Base & {
   kind: "choice";
   answer: string;
-  /** `sides`: a control's own positions, where the side is what is asked (IGN L or IGN R), so the
-   * pair rule doesn't apply. */
-  tiers: { items: string[]; shuffle: boolean; sides?: boolean }[];
-  /** What each wrong option really is, for the feedback ("That’s the VALVE OPEN light…"); `why`
-   * then says the right one, as the board's feedback does. */
+  tiers: Tier[];
+  /** What each wrong option really is, by its key, for the feedback ("That’s the VALVE OPEN
+   * light…"); `why` then says the right one, as the board's feedback does. A dealt question has
+   * them by the options' text, for the items it offered. */
   about: Record<string, string>;
 };
 export type OrderSeed = Base & { kind: "order"; items: string[] };
@@ -229,27 +236,30 @@ export function standsOut(answer: string, wrong: string[]): boolean {
  * already taken. When the right option's length would stand out, the last one taken gives way to
  * the nearest valid option of a length like the answer's. Fewer than three means the question is
  * skipped. */
-export function pickWrong(
-  answer: string,
-  tiers: { items: string[]; shuffle: boolean; sides?: boolean }[],
-  rng?: () => number,
-): string[] {
+export function pickWrong(answer: string, tiers: Tier[], rng?: () => number): string[] {
+  return pickItems(answer, tiers, rng).map((p) => p.text);
+}
+
+/** `pickWrong`, with what each picked option is: its key, so it is explained as the item it is. */
+export function pickItems(answer: string, tiers: Tier[], rng?: () => number): Picked[] {
   // Every tier is shuffled first, so a seeded deal draws the same numbers; the valid options are
   // then found only as far as needed.
-  const order = tiers.map((tier) => ({
-    tier,
-    items: rng && tier.shuffle ? shuffled(tier.items, rng) : tier.items,
-  }));
+  const order = tiers.map((tier) => {
+    const entries = tier.items.map((text, i) => ({ text, key: tier.keys?.[i] ?? text }));
+    return { tier, entries: rng && tier.shuffle ? shuffled(entries, rng) : entries };
+  });
   const valid: string[] = [];
+  const picked: Picked[] = [];
   function* candidates() {
-    for (const { tier, items } of order)
-      for (const x of items) {
+    for (const { tier, entries } of order)
+      for (const { text: x, key } of entries) {
         // Never the answer's twin, and never two wrong options that differ only by engine or side
         //.
         const pair = (o: string) => !tier.sides && twins(o, x);
         if (!x || sameMeaning(x, answer) || pair(answer)) continue;
         if (valid.some((o) => sameMeaning(o, x) || pair(o))) continue;
         valid.push(x);
+        picked.push({ text: x, key });
         yield x;
       }
   }
@@ -258,17 +268,20 @@ export function pickWrong(
     while (valid.length < n && !more.next().done);
     return valid.length >= n;
   };
+  // Options by their place in `valid` (and `picked`, which runs beside it).
+  const texts = (at: number[]) => at.map((i) => valid[i] as string);
+  const items = (at: number[]) => at.map((i) => picked[i] as Picked);
   upTo(3);
-  const out = valid.slice(0, 3);
-  if (out.length < 3 || !standsOut(answer, out)) return out;
+  const first = [0, 1, 2].filter((i) => i < valid.length);
+  if (first.length < 3 || !standsOut(answer, texts(first))) return items(first);
   for (const keep of [2, 1, 0]) {
-    const others = out.filter((_, i) => i !== keep);
+    const others = first.filter((_, i) => i !== keep);
     for (let i = 3; upTo(i + 1); i++) {
-      const tried = [...others.slice(0, keep), valid[i] as string, ...others.slice(keep)];
-      if (!standsOut(answer, tried)) return tried;
+      const tried = [...others.slice(0, keep), i, ...others.slice(keep)];
+      if (!standsOut(answer, texts(tried))) return items(tried);
     }
   }
-  return out.slice(0, 2);
+  return items(first.slice(0, 2));
 }
 
 /** A seeded random number generator (mulberry32), so a test can be dealt again the same way. */
@@ -496,9 +509,13 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       stem: { kind: "light", label: l.label, color: l.color, caption: where },
       short: `What does this light mean when it’s lit? ${label}`,
       why: `${named(l)} means: ${afterColon(l.meaning)}`,
-      about: tell(o.map((x) => [x.meaning, `That’s the ${x.label} light${on(x)}: ${afterColon(x.meaning)}`])),
+      about: tell(o.map((x) => [x.locator, `That’s the ${x.label} light${on(x)}: ${afterColon(x.meaning)}`])),
       answer: l.meaning,
-      tiers: groups.map((g) => ({ items: g.map((x) => x.meaning), shuffle: true })),
+      tiers: groups.map((g) => ({
+        items: g.map((x) => x.meaning),
+        keys: g.map((x) => x.locator),
+        shuffle: true,
+      })),
     });
     if (notes.filter((x) => sameMeaning(x.meaning, l.meaning)).length === 1)
       out.push({
@@ -510,12 +527,12 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
         stem: { kind: "card", title: where, body: l.meaning },
         short: `Which light means this? ${l.meaning}`,
         why: `${named(l)} means: ${afterColon(l.meaning)}`,
-        about: tell(o.map((x) => [x.label, `${x.label}${on(x)} means: ${afterColon(x.meaning)}`])),
+        about: tell(o.map((x) => [x.locator, `${x.label}${on(x)} means: ${afterColon(x.meaning)}`])),
         answer: l.label,
-        tiers: groups.map((g) => ({
-          items: g.filter((x) => !sameMeaning(x.meaning, l.meaning)).map((x) => x.label),
-          shuffle: true,
-        })),
+        tiers: groups.map((g) => {
+          const offered = g.filter((x) => !sameMeaning(x.meaning, l.meaning));
+          return { items: offered.map((x) => x.label), keys: offered.map((x) => x.locator), shuffle: true };
+        }),
       });
   }
 
@@ -1085,11 +1102,15 @@ export function dealOne(q: Seed, rng: () => number): Question {
     if (shown.every((v, i) => v === i)) shown = [...shown.slice(1), shown[0] as number];
     return { ...q, shown };
   }
-  let wrong = pickWrong(q.answer, q.tiers, rng);
-  if (wrong.length < 3) wrong = pickWrong(q.answer, q.tiers);
-  const options = shuffled([q.answer, ...wrong], rng);
-  const { tiers: _tiers, answer, ...rest } = q;
-  return { ...rest, options, answer: options.indexOf(answer) };
+  let wrong = pickItems(q.answer, q.tiers, rng);
+  if (wrong.length < 3) wrong = pickItems(q.answer, q.tiers);
+  const options = shuffled([q.answer, ...wrong.map((w) => w.text)], rng);
+  // Each offered option explained as the item it is.
+  const about = Object.fromEntries(
+    wrong.flatMap((w) => (w.key in q.about ? [[w.text, q.about[w.key] as string]] : [])),
+  );
+  const { tiers: _tiers, answer, about: _about, ...rest } = q;
+  return { ...rest, options, answer: options.indexOf(answer), about };
 }
 
 /** The number of distinct sources a pool covers: how many questions a test can hold. */
