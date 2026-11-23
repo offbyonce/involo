@@ -387,7 +387,13 @@ export const toFlow = `[...document.querySelectorAll("header.top .seg button")].
 
 /** The tour's welcome opens on a first visit (each shot starts from nothing saved): it is closed
  * before every step, so the steps reach the page. */
-export const closeWelcome = `sessionStorage.getItem("tour-shot") || document.querySelector('[role="dialog"][aria-label="Welcome to Involo"] button.secondary')?.click(); true`;
+export const closeWelcome = `sessionStorage.getItem("notice-shot") || document.querySelector('.sim-notice button.primary')?.click(); sessionStorage.getItem("tour-shot") || document.querySelector('[role="dialog"][aria-label="Welcome to Involo"] button.secondary')?.click(); true`;
+/** Opens the simulator-only notice again over the current state, as on a first visit (#241):
+ * marks it unseen, reloads. */
+export const reopenNotice = [
+  `(() => { sessionStorage.setItem("notice-shot", "1"); const k = Object.keys(localStorage).find((x) => /settings$/.test(x)); const s = JSON.parse(localStorage.getItem(k)); s.noticeSeen = false; localStorage.setItem(k, JSON.stringify(s)); setTimeout(() => location.reload(), 50); return true; })()`,
+  `new Promise((done) => { let n = 0; const t = setInterval(() => { if (document.querySelector(".sim-notice") || ++n > 80) { clearInterval(t); setTimeout(() => done(true), 300); } }, 100); })`,
+];
 /** Opens the welcome again over the current state, as on a first visit: marks it unseen, reloads. */
 export const reopenWelcome = [
   `(() => { sessionStorage.setItem("tour-shot", "1"); const k = Object.keys(localStorage).find((x) => /settings$/.test(x)); const s = JSON.parse(localStorage.getItem(k)); s.tourSeen = false; localStorage.setItem(k, JSON.stringify(s)); setTimeout(() => location.reload(), 50); return true; })()`,

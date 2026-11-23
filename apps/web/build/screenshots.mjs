@@ -66,6 +66,7 @@ import {
   press,
   pressText,
   refuseSaves,
+  reopenNotice,
   reopenWelcome,
   restarted,
   rowMenu,
@@ -589,6 +590,8 @@ const SHOTS = [
   // Before engine start: Preflight and Departure up to and including Engine start.
   // The tour (Tour boards): the welcome over the Checklist board's state, step 2, the end; and steps
   // 3 to 6 at desktop.
+  // The simulator-only notice (#241, RelNotice): over the app, as on a first visit.
+  { name: "board-notice", only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenNotice] } },
   { name: "board-tour-welcome", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...reopenWelcome] } },
   { name: "board-tour-step", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(0)] } },
   { name: "board-tour-end", tour: true, only: ["desktop", "phone"], app: { hash: "#/phase/before-start", before: [...TOUR_STATE, ...takeTour(5)] } },
@@ -795,6 +798,9 @@ async function installIfly(browser, target) {
   await visit(browser, target.url(""), target.ready);
   const first = await browser.js(`!!document.querySelector(".packs.first")`);
   if (!first) return;
+  // The simulator-only notice comes first on a first visit (#241).
+  await browser.until(`!!document.querySelector(".sim-notice")`, "the notice").catch(() => {});
+  await browser.js(`document.querySelector(".sim-notice button.primary")?.click(); true`);
   await browser.until(`!!document.querySelector('button[aria-label="Download iFly 737 MAX 8"]')`, "the catalog");
   await browser.run(click('button[aria-label="Download iFly 737 MAX 8"]'));
   await browser.until(`!!document.querySelector("#drawer")`, "the iFly pack to open");
@@ -1042,14 +1048,17 @@ async function main() {
           if (!shots.length) continue;
           const profile = path.join(work, `profile-${target.side}-${theme}-${size}`);
           const { firefox, browser } = await openAt(profile, prefs, { width: viewport.width, height: viewport.height }, target.url(""));
-          // The settings a pilot has after answering the tour's welcome ("Not now"), saved once per
-          // browser: each shot starts from them, so no shot shows the welcome or a fresh save time.
+          // The settings a pilot has after answering the simulator-only notice and the tour's welcome
+          // ("Not now"), saved once per browser: each shot starts from them, so no shot shows either
+          // or a fresh save time.
           let seen = "";
           if (target.side === "app") {
             await installIfly(browser, target);
             await visit(browser, target.url(""), target.ready);
             await browser.js(`localStorage.clear(); sessionStorage.clear(); true`);
             await visit(browser, target.url(""), target.ready);
+            await browser.until(`!!document.querySelector(".sim-notice")`, "the notice").catch(() => {});
+            await browser.js(`document.querySelector(".sim-notice button.primary")?.click(); true`);
             await browser.until(`!!document.querySelector('[aria-label="Welcome to Involo"]')`, "the welcome").catch(() => {});
             await browser.js(closeWelcome);
             await sleep(500);
