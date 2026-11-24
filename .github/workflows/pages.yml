@@ -115,7 +115,8 @@ jobs:
 
   release:
     # A release tag: attach the pack files and index.json, from the same site, and the
-    # `involo-pack` binaries CI built for the tag, to its GitHub release, with their SHA-256 sums.
+    # `involo-pack` binaries and the desktop app's installers CI built for the tag, to its GitHub
+    # release, with their SHA-256 sums.
     needs: [site, deploy]
     if: github.event_name == 'workflow_run' && startsWith(github.event.workflow_run.head_branch, 'v')
     runs-on: ubuntu-latest
@@ -136,14 +137,27 @@ jobs:
           path: ${{ runner.temp }}/cli
           run-id: ${{ needs.site.outputs.run_id }}
           github-token: ${{ github.token }}
-      - name: Attach the catalog and the command to the release
+      # The desktop app's installers (decision 0031), unsigned: Involo_<version>_x64-setup.exe for
+      # Windows, and Involo_<version>_aarch64.dmg and Involo_<version>_x64.dmg for macOS.
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: involo-desktop-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/desktop
+          run-id: ${{ needs.site.outputs.run_id }}
+          github-token: ${{ github.token }}
+      - name: Attach the catalog, the command and the desktop app to the release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.workflow_run.head_branch }}
           CATALOG: ${{ runner.temp }}/site/packs
           CLI: ${{ runner.temp }}/cli
+          DESKTOP: ${{ runner.temp }}/desktop
         run: |
           (cd "$CLI" && sha256sum involo-pack-* > involo-pack-SHA256SUMS.txt)
+          # All three installers, or no release: a missing one fails the job.
+          (cd "$DESKTOP" && ls Involo_*_x64-setup.exe Involo_*_aarch64.dmg Involo_*_x64.dmg >/dev/null \
+            && sha256sum Involo_* > involo-desktop-SHA256SUMS.txt)
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
             || gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --notes ""
-          gh release upload "$TAG" "$CATALOG"/* "$CLI"/* --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload "$TAG" "$CATALOG"/* "$CLI"/* "$DESKTOP"/* --repo "$GITHUB_REPOSITORY" --clobber
