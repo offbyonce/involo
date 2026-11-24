@@ -32,6 +32,7 @@ it. The shell is parked, not deleted (`apps/desktop/PARKED.md`).
   Amended 2026-11-23: authoring mode comes in 0.2.0; the beta's desktop app ships without it.
 - **Updates** stay notify-only (0005): the app checks the latest release and links to it. The
   updater key is generated and backed up before the first desktop release.
+  Amended 2026-11-24: 0.1.0's desktop releases only notify, so the key comes with signed in-app updates.
 - **Signing.** Windows builds are signed through the SignPath Foundation once approved; until
   then they ship unsigned with a note about the SmartScreen warning. macOS beta builds ship
   unsigned, with instructions for opening them; signing and notarizing with an Apple Developer ID
