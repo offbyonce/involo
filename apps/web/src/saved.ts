@@ -36,8 +36,6 @@ function readSeen(k: string): string | null {
   return text;
 }
 
-let persistAsked = false;
-
 export async function readSaved(pack: string): Promise<Saved> {
   const flightText = readSeen(key(pack, "flight"));
   const settingsText = readSeen(key(pack, "settings"));
@@ -87,11 +85,9 @@ export async function save(
   const result = saveOver(s, k, text, seen.get(k) ?? null);
   if (result !== "saved") return result === "changed" ? "changed" : null;
   seen.set(k, text);
-  // Ask once for storage the browser will not clear on its own.
-  if (!persistAsked) {
-    persistAsked = true;
-    void navigator.storage?.persist?.().catch(() => false);
-  }
+  // No request for persistent storage here (#69): a first save is no moment to ask, and Firefox
+  // asks the pilot with no context. The app asks once a pack is installed and open (#243), and
+  // when a flight is logged (decision 0026).
   return Date.now();
 }
 

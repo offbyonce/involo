@@ -12,7 +12,7 @@ be moved aside (`stuck`: storage full), nothing is moved, and the notice says so
 
   let {
     what,
-    state,
+    state: found,
     text,
     stuck = false,
     onSave,
@@ -30,16 +30,18 @@ be moved aside (`stuck`: storage full), nothing is moved, and the notice says so
 
   const desktop = onDesktop();
   let name = $derived(what === "flight" ? "progress" : what === "plan" ? "SimBrief plan" : "settings");
-  let href = $derived(URL.createObjectURL(new Blob([text], { type: "application/json" })));
+  // The copy's address, made and freed in one effect (#69): never as a side effect of $derived.
+  let href = $state<string | undefined>();
   $effect(() => {
-    const url = href;
+    const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+    href = url;
     return () => URL.revokeObjectURL(url);
   });
 </script>
 
 <div class="kept" role="alert">
   <p>
-    <b>Your saved {name} {state === "newer" ? "is from a newer version of the app" : "could not be read"}.</b>
+    <b>Your saved {name} {found === "newer" ? "is from a newer version of the app" : "could not be read"}.</b>
     It is kept on this device as it was. Save a copy, or start fresh; starting fresh sets it aside
     rather than deleting it.
     {#if stuck}
