@@ -2,8 +2,18 @@
 // SPDX-License-Identifier: MIT
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { readText, saveOver, setAsideText, writeText } from "./saved-store.js";
+import {
+  browserStorage,
+  names,
+  readText,
+  savedStore,
+  saveOver,
+  setAsideText,
+  writeText,
+} from "./saved-store.js";
+import { storageKey } from "./storage-keys.js";
 
 /** A fake localStorage; `failOn(op, key)` makes that call throw (or, for "readback", read back wrong). */
 function fakeStorage(entries = {}, failOn = () => false) {
@@ -21,6 +31,13 @@ function fakeStorage(entries = {}, failOn = () => false) {
     removeItem(k) {
       if (failOn("remove", k)) throw new Error("remove failed");
       map.delete(k);
+    },
+    get length() {
+      if (failOn("list")) throw new Error("blocked");
+      return map.size;
+    },
+    key(i) {
+      return [...map.keys()][i] ?? null;
     },
   };
 }
@@ -154,4 +171,119 @@ test("a save to storage that refuses it, or is blocked, fails", () => {
     ),
     "failed",
   );
+});
+
+// The store saved.ts uses (#58): the same rules, by item name, over the storage it is given.
+
+/** A store over `s`, with the set-aside time fixed. */
+const storeOver = (s) => savedStore(() => s, NOW);
+
+test("each item is kept under its own key: the settings once for every pack, a flight and a plan per pack", () => {
+  assert.equal(storageKey(names.settings), "involo.settings");
+  assert.equal(storageKey(names.flight("demo")), "involo.flight.demo");
+  assert.equal(storageKey(names.plan("demo")), "involo.plan.demo");
+  const s = fakeStorage();
+  const store = storeOver(s);
+  assert.equal(store.save(names.settings, "{}"), "saved");
+  assert.equal(store.save(names.flight("demo"), "f"), "saved");
+  assert.equal(store.write(names.plan("demo"), "p"), true);
+  assert.deepEqual([...s.map.keys()], ["involo.settings", "involo.flight.demo", "involo.plan.demo"]);
+  assert.equal(store.read(names.flight("demo")), "f");
+  // Set aside under the item's own key.
+  assert.equal(store.setAside(names.flight("demo")), true);
+  assert.equal(s.map.get("involo.flight.demo.kept-2026-11-17T10:00:00.000Z"), "f");
+});
+
+test("a save the storage refuses (full) fails, and the next save still goes over what is there", () => {
+  let full = true;
+  const s = fakeStorage({ "involo.flight.demo": "old" }, (op) => full && op === "set");
+  const store = storeOver(s);
+  assert.equal(store.read(names.flight("demo")), "old");
+  assert.equal(store.save(names.flight("demo"), "new"), "failed");
+  assert.equal(s.map.get("involo.flight.demo"), "old");
+  // Not "changed": the store still knows the stored text is the one it read.
+  full = false;
+  assert.equal(store.save(names.flight("demo"), "new"), "saved");
+  assert.equal(s.map.get("involo.flight.demo"), "new");
+});
+
+test("a save that reads back wrong fails", () => {
+  const s = fakeStorage({}, (op) => op === "readback");
+  assert.equal(storeOver(s).save(names.settings, "{}"), "failed");
+});
+
+test("a save over text another window saved is refused, and nothing is written", () => {
+  const s = fakeStorage({ "involo.flight.demo": "mine" });
+  const store = storeOver(s);
+  store.read(names.flight("demo"));
+  s.setItem("involo.flight.demo", "theirs");
+  assert.equal(store.save(names.flight("demo"), "mine + a tick"), "changed");
+  assert.equal(s.map.get("involo.flight.demo"), "theirs");
+  // Read again (the app loads what is there), and the save goes over that.
+  assert.equal(store.read(names.flight("demo")), "theirs");
+  assert.equal(store.save(names.flight("demo"), "theirs + a tick"), "saved");
+});
+
+test("blocked storage (none, or every accessor throws): nothing is read, and every change fails", () => {
+  const blocked = [
+    savedStore(() => null, NOW),
+    storeOver(fakeStorage({ "involo.flight.demo": "f" }, () => true)),
+  ];
+  for (const store of blocked) {
+    assert.equal(store.read(names.flight("demo")), null);
+    assert.equal(store.save(names.flight("demo"), "x"), "failed");
+    assert.equal(store.write(names.plan("demo"), "p"), false);
+    assert.equal(store.remove(names.plan("demo")), false);
+    assert.equal(store.setAside(names.flight("demo")), false);
+    assert.deepEqual(store.savedPacks(), []);
+  }
+});
+
+test("a set-aside that can't store its copy keeps the original, and saves still go over it", () => {
+  const s = fakeStorage(
+    { "involo.flight.demo": "unreadable" },
+    (op, k) => op === "set" && k.includes(".kept-"),
+  );
+  const store = storeOver(s);
+  store.read(names.flight("demo"));
+  assert.equal(store.setAside(names.flight("demo")), false);
+  assert.equal(s.map.get("involo.flight.demo"), "unreadable");
+  assert.equal(store.save(names.flight("demo"), "fresh"), "saved");
+});
+
+test("after a set-aside or a removal, a save starts the item afresh", () => {
+  const s = fakeStorage({ "involo.flight.demo": "f", "involo.plan.demo": "p" });
+  const store = storeOver(s);
+  store.read(names.flight("demo"));
+  assert.equal(store.setAside(names.flight("demo")), true);
+  assert.equal(store.save(names.flight("demo"), "new"), "saved");
+  assert.equal(store.remove(names.flight("demo")), true);
+  assert.equal(store.remove(names.plan("demo")), true);
+  assert.equal(store.save(names.flight("demo"), "again"), "saved");
+  assert.equal(store.read(names.plan("demo")), null);
+});
+
+test("the packs with a saved flight, sorted; set-aside copies, plans and settings don't count", () => {
+  const s = fakeStorage({
+    "involo.flight.zulu": "z",
+    "involo.flight.alpha": "a",
+    "involo.flight.alpha.kept-2026-11-01T00:00:00.000Z": "old",
+    "involo.plan.bravo": "p",
+    "involo.settings": "{}",
+    "other.flight.charlie": "x",
+  });
+  assert.deepEqual(storeOver(s).savedPacks(), ["alpha", "zulu"]);
+  assert.deepEqual(
+    storeOver(fakeStorage({ "involo.flight.alpha": "a" }, (op) => op === "list")).savedPacks(),
+    [],
+  );
+});
+
+test("outside a browser there is no storage", () => {
+  assert.equal(browserStorage(), null);
+});
+
+test("saved.ts reaches browser storage only through the store", () => {
+  const text = readFileSync(new URL("./saved.ts", import.meta.url), "utf8");
+  assert.ok(!/localStorage|sessionStorage/.test(text));
 });

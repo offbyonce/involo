@@ -4,43 +4,25 @@
 // Progress, settings and the kept SimBrief plan, saved on this device in browser storage
 // (decisions 0012 and 0019). Rust reads what is saved: ready (migrated forward if older), newer or
 // unreadable. Saved text the app cannot use is never overwritten or deleted: it stays until the
-// pilot starts fresh, and then it is moved aside under its own key. The storage rules (checked
-// writes, set-aside, no saving over another window's text) are in saved-store.js.
+// pilot starts fresh, and then it is moved aside under its own key. The storage itself (checked
+// writes, set-aside, no saving over another window's text, the names) is saved-store.js.
 
 import type { Flight, SavedPlan, Settings } from "@involo/bindings";
 import type { Saved, SavedItem } from "@involo/ui";
 import { parseFlight, parseSavedPlan, parseSettings } from "./core";
-import { readText, saveOver, setAsideText, writeText } from "./saved-store.js";
-import { storageKey } from "./storage-keys.js";
+import { browserStorage, names, savedStore } from "./saved-store.js";
 
-type What = "flight" | "settings" | "plan";
+const store = savedStore(browserStorage);
 
-const key = (pack: string, what: What) => storageKey(what === "settings" ? "settings" : `${what}.${pack}`);
-
-/** Browser storage, or null when the browser blocks it (private windows). */
-function storage(): Storage | null {
-  try {
-    return window.localStorage;
-  } catch {
-    return null;
-  }
-}
-
-/** The text this window last read or wrote under each key: a save goes only over that. */
-const seen = new Map<string, string | null>();
-
-function readSeen(k: string): string | null {
-  const s = storage();
-  const text = s ? readText(s, k) : null;
-  seen.set(k, text);
-  return text;
-}
+/** The name a pack's saved item is kept under; the settings are the same for every pack. */
+const itemName = (pack: string, what: "flight" | "settings" | "plan") =>
+  what === "settings" ? names.settings : names[what](pack);
 
 let persistAsked = false;
 
 export async function readSaved(pack: string): Promise<Saved> {
-  const flightText = readSeen(key(pack, "flight"));
-  const settingsText = readSeen(key(pack, "settings"));
+  const flightText = store.read(names.flight(pack));
+  const settingsText = store.read(names.settings);
   return {
     flight: flightText === null ? null : { loaded: await parseFlight(flightText), text: flightText },
     settings:
@@ -50,24 +32,14 @@ export async function readSaved(pack: string): Promise<Saved> {
 
 /** The saved settings, read as readSaved reads them. */
 export async function readSettings(): Promise<SavedItem<Settings>> {
-  const text = readSeen(key("", "settings"));
+  const text = store.read(names.settings);
   return text === null ? null : { loaded: await parseSettings(text), text };
 }
 
 /** Forgets a pack's saved flight and plan (Remove, with "Also remove its saved flight"). False
  * when storage refused. */
 export async function removeSaved(pack: string): Promise<boolean> {
-  const s = storage();
-  if (!s) return false;
-  try {
-    for (const what of ["flight", "plan"] as const) {
-      s.removeItem(key(pack, what));
-      seen.set(key(pack, what), null);
-    }
-    return true;
-  } catch {
-    return false;
-  }
+  return store.remove(names.flight(pack)) && store.remove(names.plan(pack));
 }
 
 /**
@@ -80,13 +52,8 @@ export async function save(
   what: "flight" | "settings",
   value: Flight | Settings,
 ): Promise<number | null | "changed"> {
-  const k = key(pack, what);
-  const s = storage();
-  if (!s) return null;
-  const text = JSON.stringify(value);
-  const result = saveOver(s, k, text, seen.get(k) ?? null);
+  const result = store.save(itemName(pack, what), JSON.stringify(value));
   if (result !== "saved") return result === "changed" ? "changed" : null;
-  seen.set(k, text);
   // Ask once for storage the browser will not clear on its own.
   if (!persistAsked) {
     persistAsked = true;
@@ -96,48 +63,23 @@ export async function save(
 }
 
 /** Moves saved text aside; false when its copy couldn't be stored, and then nothing is moved. */
-export async function setAside(pack: string, what: What): Promise<boolean> {
-  const k = key(pack, what);
-  const s = storage();
-  if (!s || !setAsideText(s, k)) return false;
-  seen.set(k, null);
-  return true;
+export async function setAside(pack: string, what: "flight" | "settings" | "plan"): Promise<boolean> {
+  return store.setAside(itemName(pack, what));
 }
 
 /** The kept plan: ready, or newer or unreadable with its text, so it is reported and kept. */
 export async function readPlan(pack: string): Promise<SavedItem<SavedPlan>> {
-  const s = storage();
-  const text = s ? readText(s, key(pack, "plan")) : null;
+  const text = store.read(names.plan(pack));
   return text === null ? null : { loaded: await parseSavedPlan(text), text };
 }
 
 export async function savePlan(pack: string, plan: SavedPlan | null): Promise<void> {
-  const s = storage();
-  if (!s) return;
   // Refused (private window, full): the plan lasts for this visit only.
-  if (plan) writeText(s, key(pack, "plan"), JSON.stringify(plan));
-  else {
-    try {
-      s.removeItem(key(pack, "plan"));
-    } catch {
-      // Blocked: nothing was saved there either.
-    }
-  }
+  if (plan) store.write(names.plan(pack), JSON.stringify(plan));
+  else store.remove(names.plan(pack));
 }
 
 /** The packs with a flight saved on this device, by id; set-aside copies don't count. */
 export async function savedPacks(): Promise<string[]> {
-  const s = storage();
-  if (!s) return [];
-  const prefix = storageKey("flight.");
-  const ids: string[] = [];
-  try {
-    for (let i = 0; i < s.length; i++) {
-      const k = s.key(i);
-      if (k?.startsWith(prefix) && !k.includes(".kept-")) ids.push(k.slice(prefix.length));
-    }
-  } catch {
-    return [];
-  }
-  return ids.sort();
+  return store.savedPacks();
 }
