@@ -77,6 +77,26 @@ const STATE = `(async () => JSON.stringify({
   app: !!document.querySelector("[data-app-ready]"),
 }))()`;
 
+/** Opens `url` in a new tab from the page in `opener`, and resolves with the new tab's context. */
+async function openTab(send, opener, url) {
+  const tabs = async () => (await send("browsingContext.getTree", { maxDepth: 0 })).contexts.map((c) => c.context);
+  const before = new Set(await tabs());
+  // A page may open a tab only after a click or a key press; userActivation stands in for one.
+  await send("script.callFunction", {
+    functionDeclaration: "(url) => { window.open(url, '_blank'); }",
+    arguments: [{ type: "string", value: url }],
+    target: { context: opener },
+    awaitPromise: false,
+    userActivation: true,
+  });
+  for (let i = 0; i < 100; i++) {
+    const added = (await tabs()).find((c) => !before.has(c));
+    if (added) return added;
+    await sleep(100);
+  }
+  throw new Error("the second tab didn't open");
+}
+
 async function main() {
   const { a, b, before } = prepare();
   const firefox = await startFirefox(path.join(work, "profile"), BIDI);
@@ -114,9 +134,10 @@ async function main() {
       JSON.stringify({ ...s, font, unsaved }),
     );
 
-    // A second tab on version A, from the cache: it shares the worker with the first.
-    const second = (await send("browsingContext.create", { type: "tab" })).context;
-    await send("browsingContext.navigate", { context: second, url: `http://localhost:${PORT}/`, wait: "complete" });
+    // A second tab on version A, from the cache: it shares the worker with the first. The first
+    // page opens it, as a pilot's link would: in the Playwright image, Firefox never answers
+    // browsingContext.create there.
+    const second = await openTab(send, context, `http://localhost:${PORT}/`);
     const inSecond = async (expression) => {
       const r = await send("script.evaluate", { expression, target: { context: second }, awaitPromise: true, resultOwnership: "none" });
       if (r.type === "exception") throw new Error(r.exceptionDetails.text);
@@ -125,7 +146,6 @@ async function main() {
     for (let i = 0; i < 100 && !(await inSecond(appShown)); i++) await sleep(100);
     // Each load of the page leaves a mark only that load has, so a reload by itself shows.
     await inSecond(`window.loadedBefore = true; true`);
-    await send("browsingContext.activate", { context });
 
     server = await serve(b);
     await js("(async () => { await (await navigator.serviceWorker.getRegistration()).update(); return true; })()");
