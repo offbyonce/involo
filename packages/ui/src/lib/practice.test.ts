@@ -157,11 +157,84 @@ describe("the question generator", () => {
     }
   });
 
+  it("names a light whose label holds a slash by its whole label (F/O PITOT, found by #146's sample)", () => {
+    const q = all.find((x) => x.id === "lights:meaning:oh/heat/F/O PITOT/1");
+    expect(q?.short).toMatch(/^What does this light mean when it’s lit\? F\/O PITOT, on the /);
+    expect(q?.stem?.kind === "light" ? q.stem.label : "").toBe("F/O PITOT");
+    for (const seed of all)
+      if (seed.kind === "choice")
+        expect(
+          seed.tiers.flatMap((t) => t.items),
+          seed.id,
+        ).not.toContain("F");
+  });
+
+  it("reads as the sample says: one question of each topic and kind, by fixed id (#146)", async () => {
+    // A readable table of what Practice asks, for a change to review: one question per topic and
+    // kind, dealt with a fixed seed. Not every question (that's what the rules over every pack are
+    // for); `just practice-diff` compares them all with main at review time.
+    const SAMPLE = [
+      "memory:next:ifly-737-max8.memory.manual-trim",
+      "memory:order:memory-runaway-stabilizer:1",
+      "lights:meaning:oh/heat/L ALPHA VANE/1",
+      "lights:light:oh/heat/F/O PITOT/1",
+      "faults:action:ifly-737-max8.before-start.door-lights",
+      "faults:cause:ifly-737-max8.before-start.electric-hydraulic-pump-switches:0",
+      "mnemonics:which:takeoff-briefing-items-gate-stand.threats-and-abnormals",
+      "mnemonics:next:approach-chart-briefing.chart-date-and-number",
+      "mnemonics:order:takeoff-briefing-items-gate-stand",
+      "values:apu-power-establishing-apu-power:ifly-737-max8.apu-power.apu-switch",
+      "values:engine-start-engine-start:ifly-737-max8.engine-start.ignition-selector",
+      "values:quick-reference-engine-fire-severe-damage-or-separation:ifly-737-max8.quick-reference.engine-fire-switch-affected-engine",
+      "order:next:preflight-preliminary-preflight-procedure:ifly-737-max8.preflight.adf-selector-panel",
+      "order:engine-start-engine-start:1",
+      "order:quick-reference-emergency-descent:0",
+      "challenge:ifly-737-max8.before-start.passenger-signs",
+      "challenge:ifly-737-max8.landing.flaps",
+      "where:panel:poslt",
+      "where:area:tempsw",
+      "terms:meaning:PWB",
+      "terms:term:RNAV",
+    ];
+    // The questions are the iFly pack's text, so the file carries the pack's license. (The tag is
+    // split here so it isn't read as this file's own.)
+    const spdx = "SPDX-";
+    const lines: string[] = [
+      `${spdx}FileCopyrightText: 2026 offbyonce`,
+      `${spdx}License-Identifier: CC-BY-NC-SA-4.0`,
+      "",
+      "One Practice question of each topic and kind from the iFly pack, as practice.test.ts deals them.",
+      "",
+    ];
+    for (const id of SAMPLE) {
+      const seed = all.find((q) => q.id === id);
+      if (!seed) throw new Error(`${id} is no longer asked: choose another of its topic and kind`);
+      const q = dealOne(seed, random(1));
+      lines.push(`## ${id}`, `${seed.topic} · ${seed.kind}`, q.prompt);
+      if (q.stem?.kind === "light")
+        lines.push(`[light] ${q.stem.label} (${q.stem.color}) · ${q.stem.caption}`);
+      else if (q.stem?.kind === "card")
+        lines.push(`[card] ${q.stem.title}${q.stem.body ? ` · ${q.stem.body}` : ""}`);
+      if (q.kind === "choice")
+        for (const [i, o] of q.options.entries())
+          lines.push(
+            `${"ABCD"[i]}) ${o}${i === q.answer ? "  (right)" : ""}${q.about[o] ? `\n   ${q.about[o]}` : ""}`,
+          );
+      else
+        lines.push(...q.shown.map((n, i) => `${i + 1}. ${q.items[n]}`), `In order: ${q.items.join(" › ")}`);
+      if (q.why) lines.push(`Why: ${q.why}`);
+      lines.push(`Links: ${q.links.map((l) => `${l.label} (${l.href})`).join("; ")}`, "");
+    }
+    await expect(`${lines.join("\n")}`).toMatchFileSnapshot("__snapshots__/practice-sample.txt");
+  });
+
   it("produces the counts from today's pack (2026-11-16, refined as the generator applies the rules)", () => {
     expect(count("memory", "next")).toBe(20);
     expect(count("memory", "order")).toBe(5);
     expect(count("lights", "meaning")).toBe(159);
-    expect(count("lights", "light")).toBe(145);
+    // 142 since a label with a slash is read whole (F/O PITOT, #146): the window heat ON lights'
+    // questions only passed the length rule with a one-letter "F" among the options.
+    expect(count("lights", "light")).toBe(142);
     expect(count("faults", "action")).toBe(11);
     expect(count("faults", "cause")).toBe(27);
     // Left out: steps whose other drawn positions all mean the value, steps whose list has a second

@@ -462,7 +462,11 @@ export function seeds(pack: FlatPack, index: PackIndex): Seed[] {
       if (!zoneOfSection.has(section.id)) zoneOfSection.set(section.id, z);
   const notes = pack.content.lights?.lights ?? [];
   const lights = notes.flatMap((l) => {
-    const [panel = "", section = "", label = "", nth = "1"] = l.locator.split("/");
+    // "panel/section/LABEL/n": the label may hold a slash of its own (F/O PITOT).
+    const parts = l.locator.split("/");
+    const [panel = "", section = ""] = parts;
+    const nth = parts.length > 3 ? (parts.at(-1) ?? "1") : "1";
+    const label = parts.slice(2, parts.length > 3 ? -1 : undefined).join("/");
     const zone = zones.get(section) ?? zoneOfSection.get(section);
     const items = index.section(section)?.items ?? [];
     const drawn = items.filter((x) => x.kind === "light" && x.label === label)[Number(nth) - 1];
