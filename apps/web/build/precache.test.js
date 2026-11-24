@@ -19,6 +19,9 @@ function site() {
     "src/sw/retire.js": retire,
     "dist/index.html": "app",
     "dist/simbrief-probe.html": "probe",
+    "dist/assets/simbrief-probe-1.js": "probe code",
+    "dist/assets/simbrief-probe-1.css": "probe styles",
+    "dist/og-image-1200x630.png": "preview picture",
     "dist/app/index.html": "moved",
     "dist/manifest.webmanifest": "{}",
     "dist/assets/app-1.js": "code",
@@ -38,7 +41,8 @@ test("the worker precaches the app's files, relative to its own folder", () => {
   const root = site();
   const { files, version } = writeServiceWorker(root, "dist");
   // Sorted by path within the site, the worker's folder. The pack catalog is never precached:
-  // packs are installed on the device (decision 0028). Nor is the old address's page (#246).
+  // packs are installed on the device (decision 0028). Nor is the old address's page (#246), the
+  // SimBrief probe's page, script and styles, or the link preview's picture (#68).
   assert.deepEqual(files, ["assets/app-1.js", "index.html", "manifest.webmanifest"]);
   const worker = fs.readFileSync(path.join(root, "dist", WORKER), "utf8");
   assert.ok(worker.includes(`const VERSION = "${version}";`));

@@ -3,7 +3,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { watchForUpdates } from "./update-watch.js";
+import { reloadOnTakeover, watchForUpdates } from "./update-watch.js";
 
 function worker() {
   const w = new EventTarget();
@@ -77,4 +77,33 @@ test("a version already waiting at load is offered", () => {
   const waiting = {};
   const f = fakes({ controller: {}, waiting });
   assert.deepEqual(f.offered, [waiting]);
+});
+
+/** A fake container: `take(w)` makes `w` the controller and fires controllerchange. */
+function container(controller = null) {
+  const workers = new EventTarget();
+  workers.controller = controller;
+  workers.take = (w) => {
+    workers.controller = w;
+    workers.dispatchEvent(new Event("controllerchange"));
+  };
+  return workers;
+}
+
+test("a tab on the old version reloads when the new one takes over, whichever tab pressed Reload (#68)", () => {
+  const workers = container(worker());
+  let reloads = 0;
+  reloadOnTakeover(workers, () => reloads++);
+  workers.take(worker());
+  assert.equal(reloads, 1);
+});
+
+test("the first install takes over the page without reloading it; a later update then does", () => {
+  const workers = container(null);
+  let reloads = 0;
+  reloadOnTakeover(workers, () => reloads++);
+  workers.take(worker());
+  assert.equal(reloads, 0, "the first install runs the version already loaded");
+  workers.take(worker());
+  assert.equal(reloads, 1, "a version installed after that takes over from a running one");
 });
