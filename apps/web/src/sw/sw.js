@@ -59,7 +59,22 @@ self.addEventListener("fetch", (event) => {
       const hit =
         (await cache.match(request, { ignoreSearch: navigate })) ??
         (app ? await cache.match(new URL("index.html", self.location)) : undefined);
-      return hit ?? fetch(request);
+      if (hit) return hit;
+      try {
+        return await fetch(request);
+      } catch {
+        // Neither saved here nor reachable (offline): an answer, not a network error (#68).
+        return offline();
+      }
     })(),
   );
 });
+
+/** What a request gets offline when the file isn't saved here. */
+function offline() {
+  return new Response("Involo is offline, and this file isn't saved on this device.", {
+    status: 503,
+    statusText: "Offline",
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
+}
