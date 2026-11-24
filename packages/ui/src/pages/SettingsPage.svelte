@@ -252,7 +252,9 @@ on the device (decision 0012).
           <b id="set-awake">Keep screen awake</b>
           <p>
             Stops the screen dimming or locking while Involo is open. It uses more battery.{canKeepAwake
-              ? " Where the browser can’t keep the screen on, this row says so."
+              ? desktop
+                ? " Where the screen can’t be kept on, this row says so."
+                : " Where the browser can’t keep the screen on, this row says so."
               : desktop
                 ? " This computer can’t keep the screen on."
                 : " This browser can’t keep the screen on."}

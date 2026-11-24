@@ -60,6 +60,16 @@ describe("the desktop wording", () => {
     expect(words()).toContain("This browser can’t keep the screen on.");
   });
 
+  it("Settings › Keep screen awake, when available", () => {
+    const props = { settings, version: null, canKeepAwake: true, onChange: () => {} };
+    render(SettingsPage, { props, ...desktop });
+    expect(words()).toContain("Where the screen can’t be kept on, this row says so.");
+    expect(words()).not.toContain("Where the browser");
+    cleanup();
+    render(SettingsPage, { props, ...web });
+    expect(words()).toContain("Where the browser can’t keep the screen on, this row says so.");
+  });
+
   it("backup reminder, second sentence", () => {
     expect(reminderLine(null, 0, true)).toBe(
       "You haven’t saved a backup yet. A backup is how you move your progress to another computer, or keep it if this one fails.",
