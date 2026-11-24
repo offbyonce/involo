@@ -2,14 +2,17 @@
 // SPDX-License-Identifier: MIT
 
 // The version-to-version update test (decision 0010), run with `just update-test` after
-// `just site`. It drives a real headless Firefox over WebDriver BiDi through six checks:
+// `just site`. It drives a real headless Firefox over WebDriver BiDi through seven checks:
 //   1. version A: the first visit installs the service worker and caches A;
-//   2. offline: with the server stopped, the installed app still loads, in Geist;
-//   3. version B deployed while A is open: A keeps running, B waits, the reload offer shows;
-//   4. Reload: B runs and A's cache is gone;
-//   5. the app's old address (#246): a copy installed from app/ offers the reload when the site
+//   2. offline: with the server stopped, the installed app still loads, in Geist, and a file that
+//      isn't saved gets an offline answer, not a network error (#68);
+//   3. version B deployed while A is open in two tabs: A keeps running, B waits, the reload offer
+//      shows;
+//   4. Reload in the first tab: B runs and A's cache is gone;
+//   5. the second tab, still on A, moves to B by itself and renders (#68);
+//   6. the app's old address (#246): a copy installed from app/ offers the reload when the site
 //      moves the app to the front page;
-//   6. Reload: it ends on the front page, under the front page's worker, with its saved progress
+//   7. Reload: it ends on the front page, under the front page's worker, with its saved progress
 //      and without the old cache.
 // Version B is the built site with a changed page title and its own service worker version. The
 // copy at app/ is the built site laid out as before the move: the app's page at app/, with its
@@ -74,6 +77,26 @@ const STATE = `(async () => JSON.stringify({
   app: !!document.querySelector("[data-app-ready]"),
 }))()`;
 
+/** Opens `url` in a new tab from the page in `opener`, and resolves with the new tab's context. */
+async function openTab(send, opener, url) {
+  const tabs = async () => (await send("browsingContext.getTree", { maxDepth: 0 })).contexts.map((c) => c.context);
+  const before = new Set(await tabs());
+  // A page may open a tab only after a click or a key press; userActivation stands in for one.
+  await send("script.callFunction", {
+    functionDeclaration: "(url) => { window.open(url, '_blank'); }",
+    arguments: [{ type: "string", value: url }],
+    target: { context: opener },
+    awaitPromise: false,
+    userActivation: true,
+  });
+  for (let i = 0; i < 100; i++) {
+    const added = (await tabs()).find((c) => !before.has(c));
+    if (added) return added;
+    await sleep(100);
+  }
+  throw new Error("the second tab didn't open");
+}
+
 async function main() {
   const { a, b, before } = prepare();
   const firefox = await startFirefox(path.join(work, "profile"), BIDI);
@@ -102,7 +125,27 @@ async function main() {
     await until(appShown, "the app to render offline");
     s = await state();
     const font = await js(`(async () => { await document.fonts.ready; return document.fonts.check("16px Geist"); })()`);
-    check("offline: the installed app loads with no server, in Geist", s.app && s.caches[0] === cacheA && font, JSON.stringify({ ...s, font }));
+    const unsaved = await js(
+      `fetch("./not-saved-here.txt").then((r) => r.status + " " + r.headers.get("content-type"), (e) => "error " + e.message)`,
+    );
+    check(
+      "offline: the installed app loads with no server, in Geist, and a file not saved gets an offline answer",
+      s.app && s.caches[0] === cacheA && font && unsaved.startsWith("503 text/plain"),
+      JSON.stringify({ ...s, font, unsaved }),
+    );
+
+    // A second tab on version A, from the cache: it shares the worker with the first. The first
+    // page opens it, as a pilot's link would: in the Playwright image, Firefox never answers
+    // browsingContext.create there.
+    const second = await openTab(send, context, `http://localhost:${PORT}/`);
+    const inSecond = async (expression) => {
+      const r = await send("script.evaluate", { expression, target: { context: second }, awaitPromise: true, resultOwnership: "none" });
+      if (r.type === "exception") throw new Error(r.exceptionDetails.text);
+      return r.result.value;
+    };
+    for (let i = 0; i < 100 && !(await inSecond(appShown)); i++) await sleep(100);
+    // Each load of the page leaves a mark only that load has, so a reload by itself shows.
+    await inSecond(`window.loadedBefore = true; true`);
 
     server = await serve(b);
     await js("(async () => { await (await navigator.serviceWorker.getRegistration()).update(); return true; })()");
@@ -121,6 +164,19 @@ async function main() {
     await until("(async () => (await caches.keys()).length === 1)()", "A's cache to be deleted");
     s = await state();
     check("Reload: B runs and A's cache is gone", s.controlled && !s.offer && s.caches[0] !== cacheA, JSON.stringify(s));
+
+    let moved = false;
+    for (let i = 0; i < 100 && !moved; i++) {
+      moved = await inSecond(`!window.loadedBefore && document.title.endsWith(" B") && !!document.querySelector("[data-app-ready]")`);
+      if (!moved) await sleep(100);
+    }
+    const secondState = JSON.parse(await inSecond(STATE));
+    check(
+      "the second tab, still on A, reloads into B by itself and renders",
+      moved && secondState.controlled && secondState.app,
+      JSON.stringify(secondState),
+    );
+    await send("browsingContext.close", { context: second });
 
     // A copy installed from the app's old address, on a fresh start: no worker, no caches.
     await js(`(async () => {

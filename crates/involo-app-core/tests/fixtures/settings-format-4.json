@@ -1,0 +1,19 @@
+{
+  "format": 4,
+  "theme": "dark",
+  "dimming": 2,
+  "textSize": "115",
+  "detail": "quick",
+  "listView": "flow",
+  "essentials": true,
+  "essentialsChanges": {
+    "ifly-737-max8": {
+      "added": ["ifly-737-max8.after-landing.probe-heat"],
+      "removed": ["ifly-737-max8.after-landing.window-heat"]
+    }
+  },
+  "panelPreview": false,
+  "chime": false,
+  "simbriefUser": "Pilot",
+  "loadPlanOnOpen": true
+}

@@ -5,11 +5,11 @@
 // offers a reload when a new version is ready. Never swap mid-session (decision 0010): the new
 // version runs only after the pilot presses Reload, or on the next launch.
 
-import { watchForUpdates } from "./update-watch.js";
+import { reloadOnTakeover, watchForUpdates } from "./update-watch.js";
 
 const CHECK_EVERY_MS = 60 * 60 * 1000;
 
-function offerReload(worker: ServiceWorker, onReload: () => void): void {
+function offerReload(worker: ServiceWorker): void {
   if (document.getElementById("update-ready")) return;
   const box = document.createElement("div");
   box.id = "update-ready";
@@ -20,10 +20,7 @@ function offerReload(worker: ServiceWorker, onReload: () => void): void {
   const button = document.createElement("button");
   button.type = "button";
   button.textContent = "Reload";
-  button.addEventListener("click", () => {
-    onReload();
-    worker.postMessage({ type: "reload-to-update" });
-  });
+  button.addEventListener("click", () => worker.postMessage({ type: "reload-to-update" }));
   box.append(text, button);
   document.body.append(box);
 }
@@ -31,18 +28,12 @@ function offerReload(worker: ServiceWorker, onReload: () => void): void {
 export function registerServiceWorker(): void {
   if (!import.meta.env.PROD || !("serviceWorker" in navigator)) return;
   const workers = navigator.serviceWorker;
-  let reloadRequested = false;
-  // The new version took over because the pilot asked; load it. The first install also takes
-  // control of the page, but then nothing was asked, so nothing reloads.
-  workers.addEventListener("controllerchange", () => {
-    if (reloadRequested) location.reload();
-  });
-  const onReload = () => {
-    reloadRequested = true;
-  };
+  // The new version took over because the pilot pressed Reload, in this tab or another: load it.
+  // The first install also takes control of the page, but it runs that version already.
+  reloadOnTakeover(workers, () => location.reload());
   window.addEventListener("load", async () => {
     const registration = await workers.register("./sw.js");
-    watchForUpdates(workers, registration, (worker) => offerReload(worker, onReload));
+    watchForUpdates(workers, registration, offerReload);
     // Long sessions: check for a new version now and then, and when the app comes back into view.
     setInterval(() => void registration.update(), CHECK_EVERY_MS);
     document.addEventListener("visibilitychange", () => {

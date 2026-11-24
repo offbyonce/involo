@@ -1,0 +1,118 @@
+{
+  "format": 8,
+  "pack": "ifly-737-max8",
+  "packVersion": "0.1.0",
+  "options": {
+    "approach": "ils",
+    "exterior": "on",
+    "power": "gpu",
+    "start": "cold"
+  },
+  "panelState": "gpu",
+  "stateTicks": [
+    "ifly-737-max8.cold-dark.alternate-flaps-switches",
+    "ifly-737-max8.cold-dark.hydraulic-pump-switches",
+    "ifly-737-max8.cold-dark.landing-gear-lever",
+    "ifly-737-max8.cold-dark.standby-power-switch",
+    "ifly-737-max8.cold-dark.wiper-selectors",
+    "ifly-737-max8.gpu-power.ground-power-cart-efb",
+    "ifly-737-max8.gpu-power.parking-brake"
+  ],
+  "stateSkips": ["ifly-737-max8.gpu-power.wheel-chocks"],
+  "session": {
+    "done": {
+      "ifly-737-max8.cold-dark.alternate-flaps-switches": 1763110000000,
+      "ifly-737-max8.cold-dark.battery-switch": 1763110005000,
+      "ifly-737-max8.cold-dark.hydraulic-pump-switches": 1763110000000,
+      "ifly-737-max8.cold-dark.landing-gear-lever": 1763110000000,
+      "ifly-737-max8.cold-dark.standby-power-switch": 1763110000000,
+      "ifly-737-max8.cold-dark.wiper-selectors": 1763110000000,
+      "ifly-737-max8.gpu-power.ground-power-cart-efb": 1763110000000,
+      "ifly-737-max8.gpu-power.parking-brake": 1763110000000
+    },
+    "skipped": {}
+  },
+  "values": {
+    "assumed_temperature": "42",
+    "cost_index": "35",
+    "cruise_level": "360",
+    "destination": "KSFO",
+    "fuel": "18400",
+    "fuel_thousands": "18.4",
+    "minimums": "200",
+    "minimums_type": "BARO",
+    "origin": "KSEA",
+    "qnh": "30.12",
+    "qnh_unit": "inHg",
+    "reserves": "6.2",
+    "runway": "16L",
+    "sid": "SUMMA2",
+    "squawk": "4521",
+    "takeoff_flaps": "5",
+    "transition": "SEA",
+    "v1": "145",
+    "v2": "155",
+    "vr": "150",
+    "weight_unit": "LB",
+    "zfw": "128.4"
+  },
+  "blanks": {},
+  "notes": "Taxi via A, hold short 16L",
+  "timers": {
+    "ifly-737-max8.preflight.irs": 1763400600000
+  },
+  "timerPauses": {
+    "ifly-737-max8.preflight.irs": 271000
+  },
+  "briefings": {
+    "takeoff-briefing-items-gate-stand": {
+      "state": "briefed",
+      "at": 1763400060000
+    }
+  },
+  "walkthroughs": {
+    "perf-init": 2
+  },
+  "answers": {
+    "approach": "plan",
+    "start": "you"
+  },
+  "update": {
+    "changes": {
+      "packName": "iFly 737 MAX 8",
+      "fromVersion": "0.1.0",
+      "toVersion": "0.1.1",
+      "added": [
+        {
+          "step": "ifly-737-max8.preflight.oxygen-test",
+          "title": "Oxygen",
+          "place": "Departure › Preflight"
+        }
+      ],
+      "reworded": [
+        {
+          "step": "ifly-737-max8.preflight.irs",
+          "title": "IRS mode selectors",
+          "place": "Departure › Preflight",
+          "fields": [
+            {
+              "field": "Value",
+              "before": "NAV",
+              "after": "OFF, then NAV"
+            }
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "step": "ifly-737-max8.preflight.old-step",
+          "title": "Old step",
+          "place": "Departure › Preflight",
+          "wasTicked": true
+        }
+      ],
+      "lostTicks": 1
+    },
+    "seen": true
+  }
+}

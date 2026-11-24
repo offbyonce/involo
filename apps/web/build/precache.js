@@ -17,9 +17,11 @@ export const WORKER = "sw.js";
  * installed from app/ finds it there when it checks for an update. */
 export const RETIRED_WORKER = "app/sw.js";
 
-/** Built pages outside the app that the worker does not precache: the old address's page, which
- * only sends a visitor to the front page, and the SimBrief probe. */
-const OUTSIDE_APP = new Set(["app/index.html", "simbrief-probe.html"]);
+/** Built files outside the app that the worker does not precache: the old address's page, which
+ * only sends a visitor to the front page, the SimBrief probe page and its script and styles, and
+ * the picture link previews show (only the sites that make the preview fetch it). */
+const OUTSIDE_APP = new Set(["app/index.html", "simbrief-probe.html", "og-image-1200x630.png"]);
+const PROBE = (file) => /^assets\/simbrief-probe-[^/]*$/.test(file);
 /** The drawing gallery (design/) and its script: for review only, never part of the app a pilot installs. */
 const DESIGN = (file) => file.startsWith("design/") || /^assets\/design-[^/]*$/.test(file);
 /** The pack catalog (packs/): the pilot installs the packs they want, kept on the device, so none
@@ -41,6 +43,7 @@ export function precacheList(dist) {
         file !== WORKER &&
         file !== RETIRED_WORKER &&
         !OUTSIDE_APP.has(file) &&
+        !PROBE(file) &&
         !DESIGN(file) &&
         !CATALOG(file),
     )

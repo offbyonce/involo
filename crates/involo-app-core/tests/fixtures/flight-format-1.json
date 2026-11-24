@@ -1,0 +1,33 @@
+{
+  "format": 1,
+  "pack": "ifly-737-max8",
+  "packVersion": "0.1.0",
+  "options": {
+    "approach": "ils",
+    "power": "gpu",
+    "start": "cold"
+  },
+  "startState": "cd",
+  "session": {
+    "done": {
+      "ifly-737-max8.after-landing.probe-heat": 1763000000000
+    },
+    "skipped": {
+      "ifly-737-max8.after-landing.window-heat": 1763000060000
+    }
+  },
+  "values": {
+    "origin": "KDEN",
+    "destination": "KSLC",
+    "flight_number": "INV123",
+    "squawk": "4512",
+    "qnh": "29.92"
+  },
+  "blanks": {
+    "ifly-737-max8.after-landing.probe-heat#0": "set"
+  },
+  "notes": "Cleared to KSLC as filed, climb 9000.",
+  "timers": {
+    "ifly-737-max8.after-landing.window-heat": 1763000120000
+  }
+}

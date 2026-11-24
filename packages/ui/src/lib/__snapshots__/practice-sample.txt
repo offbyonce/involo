@@ -1,0 +1,284 @@
+SPDX-FileCopyrightText: 2026 offbyonce
+SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+One Practice question of each topic and kind from the iFly pack, as practice.test.ts deals them.
+
+## memory:next:ifly-737-max8.memory.manual-trim
+memory · choice
+What comes next?
+[card] Runaway stabilizer · MANUAL TRIM … TWO-PILOT EFFORT MAY BE USED. LOWER AIRSPEED EASES THE LOAD
+A) FINAL APPROACH … ESTABLISH LANDING CONFIGURATION AND IN-TRIM CONDITION EARLY  (right)
+B) STABILIZER … TRIM MANUALLY
+   That’s item 9 of Runaway stabilizer.
+C) MAIN ELECTRIC STABILIZER TRIM … USE TO REDUCE COLUMN FORCES
+   That’s item 5 of Runaway stabilizer.
+D) AUTOPILOT (IF ENGAGED) … DISENGAGE
+   That’s item 2 of Runaway stabilizer.
+Why: After MANUAL TRIM comes FINAL APPROACH.
+Links: Final approach · Memory items (#/phase/memory)
+
+## memory:order:memory-runaway-stabilizer:1
+memory · order
+Put these Runaway stabilizer items in order
+1. FINAL APPROACH … ESTABLISH LANDING CONFIGURATION AND IN-TRIM CONDITION EARLY
+2. STABILIZER … TRIM MANUALLY
+3. IF RUNAWAY STILL CONTINUES … GRASP AND HOLD THE STABILIZER TRIM WHEEL
+4. MANUAL TRIM … TWO-PILOT EFFORT MAY BE USED. LOWER AIRSPEED EASES THE LOAD
+In order: IF RUNAWAY STILL CONTINUES … GRASP AND HOLD THE STABILIZER TRIM WHEEL › STABILIZER … TRIM MANUALLY › MANUAL TRIM … TWO-PILOT EFFORT MAY BE USED. LOWER AIRSPEED EASES THE LOAD › FINAL APPROACH … ESTABLISH LANDING CONFIGURATION AND IN-TRIM CONDITION EARLY
+Why: An uncontrolled trim runaway makes the airplane harder to control. Controlling the airplane comes first, then trim cutout stops the input.
+Links: If runaway still continues · Memory items (#/phase/memory)
+
+## lights:meaning:oh/heat/L ALPHA VANE/1
+lights · choice
+What does this light mean when it’s lit?
+[light] L ALPHA VANE (amber) · Window and probe heat · Forward overhead (P5)
+A) The right side window heater has overheated and cut out, or its power was interrupted.
+   That’s the OVERHEAT light, right side, on the Window and probe heat: the right side window heater has overheated and cut out, or its power was interrupted.
+B) Heat is going to the left side window.
+   That’s the ON light, left side, on the Window and probe heat: heat is going to the left side window.
+C) The left forward window heater has overheated and cut out, or its power was interrupted.
+   That’s the OVERHEAT light, left forward, on the Window and probe heat: the left forward window heater has overheated and cut out, or its power was interrupted.
+D) The left angle of attack vane is not heated, so ice could make its readings wrong.  (right)
+Why: L ALPHA VANE means: the left angle of attack vane is not heated, so ice could make its readings wrong.
+Links: Window and probe heat on the Flight deck (#/deck/forward-overhead/heat); Probe heat · Before taxi (#/phase/before-taxi)
+
+## lights:light:oh/heat/F/O PITOT/1
+lights · choice
+Which light means this when it’s lit?
+[card] Window and probe heat · Forward overhead (P5) · The first officer's pitot probe is not heated, so its airspeed could go wrong in icing.
+A) OVERHEAT
+   OVERHEAT, right side, on the Window and probe heat means: the right side window heater has overheated and cut out, or its power was interrupted.
+B) ON
+   ON, left side, on the Window and probe heat means: heat is going to the left side window.
+C) R ALPHA VANE
+   R ALPHA VANE, on the Window and probe heat means: the right angle of attack vane is not heated, so ice could make its readings wrong.
+D) F/O PITOT  (right)
+Why: F/O PITOT means: the first officer's pitot probe is not heated, so its airspeed could go wrong in icing.
+Links: Window and probe heat on the Flight deck (#/deck/forward-overhead/heat); Probe heat · Before taxi (#/phase/before-taxi)
+
+## faults:action:ifly-737-max8.before-start.door-lights
+faults · choice
+What should you do?
+[card] Door lights · Before start · Light on
+A) Switch both center pumps OFF and use the wing tanks
+   That’s what to do for Fuel pump switches, Both center lights on.
+B) Have the door closed, and check the light is out before pushback  (right)
+C) Switch the generator on again. If the light stays on, keep the APU powering that bus and check the DRIVE light
+   That’s what to do for Engine generator switches, A GEN OFF BUS light stays on with its engine running.
+D) Switch that window heat OFF, wait a few minutes, then ON again
+   That’s what to do for Window heat switches, OVERHEAT light on.
+Why: Door lights, Light on. What to do: have the door closed, and check the light is out before pushback.
+Links: Door lights · Before start (#/phase/before-start)
+
+## faults:cause:ifly-737-max8.before-start.electric-hydraulic-pump-switches:0
+faults · choice
+What is a likely cause?
+[card] Electric hydraulic pump switches · Before start · LOW PRESSURE light stays on
+A) That door is not fully closed and latched
+   That’s a likely cause for Door lights, Light on.
+B) The start valve did not open
+   That’s a likely cause for Engine 1 start switch, N2 does not rise.
+C) Ground power is connected but its voltage or frequency is out of limits
+   That’s a likely cause for Ground power switch, GRD POWER AVAILABLE out.
+D) That electric pump has failed or overheated  (right)
+Why: Electric hydraulic pump switches, LOW PRESSURE light stays on. Likely cause: that electric pump has failed or overheated.
+Links: Electric hydraulic pump switches · Before start (#/phase/before-start)
+
+## mnemonics:which:takeoff-briefing-items-gate-stand.threats-and-abnormals
+mnemonics · choice
+Which mnemonic does this item belong to?
+[card] Briefing item · THREATS AND ABNORMALS
+A) CWFDG
+   CWFDG is the Approach chart briefing briefing.
+B) ATCT  (right)
+C) RDIF
+   RDIF is the Takeoff briefing (taxi-out) briefing.
+D) CRAWM
+   CRAWM is the Departure preparation briefing.
+Why: THREATS AND ABNORMALS is part of ATCT, the Takeoff briefing items (gate/stand) briefing.
+Links: Takeoff briefing items (gate/stand) · Before start (#/phase/before-start)
+
+## mnemonics:next:approach-chart-briefing.chart-date-and-number
+mnemonics · choice
+What comes next?
+[card] CWFDG · Approach chart briefing · CHART DATE, AND NUMBER
+A) WEATHER MINIMUMS  (right)
+B) GO AROUND ALTITUDE
+   That’s item 5 of CWFDG.
+C) DECISION ALTITUDE
+   That’s item 4 of CWFDG.
+D) FINAL APPROACH FIX ALTITUDE
+   That’s item 3 of CWFDG.
+Why: In CWFDG, after CHART DATE, AND NUMBER comes WEATHER MINIMUMS.
+Links: Approach chart briefing · Descent (#/phase/descent)
+
+## mnemonics:order:takeoff-briefing-items-gate-stand
+mnemonics · order
+Put the Takeoff briefing items (gate/stand) briefing items in order
+1. THREATS AND ABNORMALS
+2. TAXI ROUTE
+3. ATIS/WEATHER
+4. CLEARANCE
+In order: ATIS/WEATHER › TAXI ROUTE › CLEARANCE › THREATS AND ABNORMALS
+Links: Takeoff briefing items (gate/stand) · Before start (#/phase/before-start)
+
+## values:apu-power-establishing-apu-power:ifly-737-max8.apu-power.apu-switch
+values · choice
+What does this step call for?
+[card] APU switch · Establishing APU power
+A) START, THEN RELEASE TO ON  (right)
+B) OFF
+   OFF is another position of the APU switch.
+C) HOLD AT FAULT/INOP
+   That’s the value for the FIRE TEST switch.
+D) ON (OPTIONAL)
+   That’s the value for the One left fuel pump.
+Why: In the Establishing APU power, the APU switch: START, THEN RELEASE TO ON.
+Links: APU switch · APU start (#/phase/apu-power)
+
+## values:engine-start-engine-start:ifly-737-max8.engine-start.ignition-selector
+values · choice
+What does this step call for?
+[card] IGNITION selector · Engine start
+A) OFF
+   OFF is another position of the IGNITION selector.
+B) BOTH  (right)
+C) FLT
+   FLT is another position of the IGNITION selector.
+D) CONT
+   CONT is another position of the IGNITION selector.
+Why: In the Engine start, the IGNITION selector: BOTH.
+Links: IGNITION selector · Engine start (#/phase/engine-start)
+
+## values:quick-reference-engine-fire-severe-damage-or-separation:ifly-737-max8.quick-reference.engine-fire-switch-affected-engine
+values · choice
+What does this step call for?
+[card] Fire switch, affected engine · Engine fire, severe damage or separation
+A) CONFIRM, THEN PULL  (right)
+B) R
+   R is another position of the Fire switch, affected engine.
+C) CONFIRM, CUTOFF
+   That’s the value for the Start lever (affected engine).
+D) ROTATE L
+   ROTATE L is another position of the Fire switch, affected engine.
+Why: In the Engine fire, severe damage or separation, the Fire switch, affected engine: CONFIRM, THEN PULL.
+Links: Fire switch, affected engine · Quick reference (#/phase/quick-reference)
+
+## order:next:preflight-preliminary-preflight-procedure:ifly-737-max8.preflight.adf-selector-panel
+order · choice
+Which step comes next?
+[card] Preliminary preflight procedure · After: ADF selector panel
+A) Integrated standby flight display
+   That’s step 67 of the Preliminary preflight procedure.
+B) Window heat switches
+   That’s step 36 of the Preliminary preflight procedure.
+C) Weather radar panel  (right)
+D) Cargo fire panel
+   That’s step 81 of the Preliminary preflight procedure.
+Why: After ADF selector panel comes Weather radar panel.
+Links: Weather radar panel · Preflight (#/phase/preflight)
+
+## order:engine-start-engine-start:1
+order · order
+Put these Engine start steps in order
+1. Engine 1
+2. Engine 1 start lever
+3. Engine 2 start switch
+4. Fuel flow and EGT
+5. MOTORING indication
+6. Engine 1 start switch
+In order: MOTORING indication › Engine 1 start lever › Fuel flow and EGT › Engine 1 start switch › Engine 1 › Engine 2 start switch
+Links: MOTORING indication · Engine start (#/phase/engine-start)
+
+## order:quick-reference-emergency-descent:0
+order · order
+Put these Emergency descent steps in order
+1. Thrust levers
+2. Descent
+3. FASTEN BELTS
+4. Emergency descent
+5. Start switches
+In order: Emergency descent › FASTEN BELTS › Descent › Start switches › Thrust levers
+Why: Get down to breathable air as quickly as is safe.
+Links: Emergency descent · Quick reference (#/phase/quick-reference)
+
+## challenge:ifly-737-max8.before-start.passenger-signs
+challenge · choice
+What is the response?
+[card] Before start checklist · PASSENGER SIGNS
+A) REQUIRED ___ KG/LBS, ON BOARD ___ KG/LBS, MAIN PUMPS ON · CENTER PUMPS ON OR OFF FROM YOUR CENTER TANK ANSWER (ON WHEN MORE THAN 1,000 LB, ABOUT 450 KG)
+   That’s the response to FUEL.
+B) NO SMOKING AND FASTEN BELTS AUTO OR ON  (right)
+C) CLOSED AND LOCKED
+   That’s the response to FLIGHT DECK DOOR.
+D) COMPLETE
+   That’s the response to CDU PREFLIGHT.
+Why: PASSENGER SIGNS: NO SMOKING AND FASTEN BELTS AUTO OR ON.
+Links: Passenger signs · Before start (#/phase/before-start)
+
+## challenge:ifly-737-max8.landing.flaps
+challenge · choice
+What is the response?
+[card] Landing checklist · FLAPS
+A) OBTAINED
+   That’s the response to LANDING CLEARANCE.
+B) ___, GREEN LIGHT  (right)
+C) ARMED
+   That’s the response to SPEEDBRAKE LEVER.
+D) DOWN, 3 GREEN
+   That’s the response to GEAR.
+Why: FLAPS: ___, GREEN LIGHT.
+Links: Flaps · Landing (#/phase/landing)
+
+## where:panel:poslt
+where · choice
+Where is the position light switch?
+A) Cockpit voice recorder panel
+   The Cockpit voice recorder panel is on the Forward overhead (P5), center, row nearest the windshield.
+B) Cabin pressure panel
+   The Cabin pressure panel is on the Forward overhead (P5), F/O side, middle row.
+C) Exterior light switches  (right)
+D) Engine start panel
+   The Engine start panel is on the Forward overhead (P5), center, row nearest the windshield.
+Why: The position light switch is on the Exterior light switches: exterior light row.
+Links: Exterior light switches on the Flight deck (#/deck/forward-overhead/lte)
+
+## where:area:tempsw
+where · choice
+Where are the temperature selectors?
+A) Main panel (P1–P3)
+   That’s the Main panel (P1–P3): straight ahead below the glareshield, behind the control column.
+B) Aft overhead (P5)
+   That’s the Aft overhead (P5): above your head, on the back part of the overhead panel. Look up and slightly back from the seat.
+C) Forward overhead (P5)  (right)
+D) Glareshield (P7)
+   That’s the Glareshield (P7): straight ahead at eye level, along the bottom of the windshield, above the main panel.
+Why: The temperature selectors are in the Forward overhead (P5), on the Air conditioning panel.
+Links: Air conditioning panel on the Flight deck (#/deck/forward-overhead/air)
+
+## terms:meaning:PWB
+terms · choice
+What does PWB mean?
+A) Panels on top of the wing that cut lift and add drag.
+   That’s what Spoilers means.
+B) Performance and weight and balance data. The takeoff data sheet: weights, trim, flaps and speeds.  (right)
+C) Lever that raises the spoilers. ARMED raises them on landing.
+   That’s what SPEEDBRAKE means.
+D) Instrument meteorological conditions. Flying by instruments, in cloud or poor visibility.
+   That’s what IMC means.
+Why: PWB means: performance and weight and balance data. The takeoff data sheet: weights, trim, flaps and speeds.
+Links: PWB in the Glossary (#/glossary/PWB)
+
+## terms:term:RNAV
+terms · choice
+Which term means this?
+[card] Definition · Flying a path of waypoints, not tied to ground stations.
+A) TAKEOFF REF
+   TAKEOFF REF means: CDU page for takeoff flaps, trim and V speeds.
+B) RNAV  (right)
+C) RTO
+   RTO means: rejected takeoff.
+D) P9
+   P9 means: forward electronic panel: below the center panel at the front of the control stand, with the lower display.
+Why: RNAV means: area navigation. Flying a path of waypoints, not tied to ground stations.
+Links: RNAV in the Glossary (#/glossary/RNAV)

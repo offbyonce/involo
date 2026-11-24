@@ -53,6 +53,7 @@ checks dependencies. The git hooks (installed by `pnpm install`) run the quick p
 | The desktop app (`just desktop-check`, `just desktop-build`; the `desktop` job) | Clippy warnings and failing tests in the desktop app's Rust crate, and an installer that doesn't build, on Windows and macOS. `just ci` leaves the crate out (it needs the system webview to compile); the desktop host's TypeScript tests are in `just test`. | in CI on pull requests that touch the app, on main and on release tags; not a required check |
 | Code scanning (CodeQL) | Security problems in the JavaScript, TypeScript and Rust, such as unsafe use of input or a weak pattern. Findings appear on the pull request. | in CI on every pull request and on main |
 | Review shots (`just review-shots <out> <screen>...`) | Nothing by itself: they are for design review. Each named screen is shot at its sizes in both themes and put beside its approved board (`apps/web/build/review-boards.mjs`). | by hand, for the screens a pull request adds or changes |
+| Rules over every pack (`packages/ui/src/rules.test.ts`, the rules in `src/test-rules.ts`) | Generated text that breaks for some pack: a Practice question without four distinct options and exactly one right, a wrong option the pack doesn't have, a twin of the answer, an option or question left unexplained, a link that doesn't resolve, a light the pack doesn't draw; and in Practice, Find, the panel and place names and the labels, a pack id, "undefined", "null", "[object", empty "()", a doubled space or an aircraft word the pack doesn't have. It runs for the iFly pack, every example pack and an invented fixture with pairs. | `just test` |
 
 The end-to-end tests need their browsers once:
 `pnpm --filter @involo/web exec playwright install --with-deps chromium webkit`. On Linux without
@@ -74,6 +75,27 @@ side effects. Add a row to `review-boards.mjs` when a new screen comes with its 
 - **The size budget:** find what grew (the step prints each size and the file). If the growth is meant, raise the limit in `apps/web/size-budget.json` a little above the new size, and say in the pull request what grew and why.
 
 Dependabot proposes updates every Monday: all minor and patch updates of each kind (Cargo, npm, GitHub Actions) in one pull request, and each major update on its own.
+
+### Testing what the app makes from a pack
+
+Practice's questions, Find's results and the names on screen are made from pack data, so a change
+can be right for one pack and wrong for another. Three kinds of test cover them, each for its own
+job:
+
+1. **A small readable table, committed, for what a change touches.** For example, the names of
+   Practice's lights (`practice-light-names.test.ts`), or a sample of about twenty questions, one
+   of each topic and kind (`__snapshots__/practice-sample.txt`). A failure shows the line that
+   changed, in words a reviewer can judge.
+2. **A diff of the full output against `main`, at review time, not committed.** It's for changes
+   that must not change what the app says, like a refactor: `just practice-diff` writes every
+   question from both and their differences.
+3. **Rules over every pack, as the standing protection** (`rules.test.ts`). They say what must
+   always hold, rather than what the text is, so they run for every pack: the iFly pack, the
+   example packs and an invented fixture.
+
+Avoid hashes of the output (a failure says nothing about what changed), committed dumps of
+everything (large, and a real change hides in them), and freezing an internal function that a
+change is about to remove.
 
 ## 3. Pack content rules
 

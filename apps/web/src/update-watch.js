@@ -31,3 +31,21 @@ export function watchForUpdates(workers, registration, offer) {
     });
   });
 }
+
+/**
+ * Reloads the page when a new version takes it over (#68). The worker is shared by every tab, so
+ * when the pilot presses Reload in one tab, the new version takes over all of them, and the old
+ * version's files are gone from the cache. A tab still on the old version then reloads too, rather
+ * than asking for files that no longer exist. Only the first install, which takes over a page no
+ * worker controlled, reloads nothing: the page already runs that version.
+ * @param {ServiceWorkerContainer} workers
+ * @param {() => void} reload
+ */
+export function reloadOnTakeover(workers, reload) {
+  let current = workers.controller;
+  workers.addEventListener("controllerchange", () => {
+    const before = current;
+    current = workers.controller;
+    if (before) reload();
+  });
+}
