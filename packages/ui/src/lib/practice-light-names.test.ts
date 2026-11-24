@@ -3,7 +3,8 @@
 
 // Every iFly light as Practice's light questions word it: its locator, its name (the label, and
 // which one of a pair it is) and the caption on the light. Written from the questions before the
-// names came from the pack (decision 0029), and kept as it was.
+// names came from the pack (decision 0029), and kept as it was, except the four labels holding a
+// slash (F/O PITOT, REVERSER AIR/GRD, BELOW G/S, OVHT/DET), which were cut at it until issue 146.
 
 import { describe, expect, it } from "vitest";
 import { indexPack } from "../pack-index";
@@ -144,7 +145,7 @@ const LIGHTS: [string, string, string][] = [
   ["oh/heat/L ELEV PITOT/1", "L ELEV PITOT", "Window and probe heat · Forward overhead (P5)"],
   ["oh/heat/L ALPHA VANE/1", "L ALPHA VANE", "Window and probe heat · Forward overhead (P5)"],
   ["oh/heat/TEMP PROBE/1", "TEMP PROBE", "Window and probe heat · Forward overhead (P5)"],
-  ["oh/heat/F/O PITOT/1", "F", "Window and probe heat · Forward overhead (P5)"],
+  ["oh/heat/F/O PITOT/1", "F/O PITOT", "Window and probe heat · Forward overhead (P5)"],
   ["oh/heat/R ELEV PITOT/1", "R ELEV PITOT", "Window and probe heat · Forward overhead (P5)"],
   ["oh/heat/R ALPHA VANE/1", "R ALPHA VANE", "Window and probe heat · Forward overhead (P5)"],
   ["oh/heat/AUX PITOT/1", "AUX PITOT", "Window and probe heat · Forward overhead (P5)"],
@@ -241,7 +242,7 @@ const LIGHTS: [string, string, string][] = [
     "Right IRS · IRS display and mode selectors · Aft overhead (P5)",
   ],
   ["aft/eng/REVERSER COMMAND/1", "REVERSER COMMAND", "Engine panel · Aft overhead (P5)"],
-  ["aft/eng/REVERSER AIR/GRD/1", "REVERSER AIR", "Engine panel · Aft overhead (P5)"],
+  ["aft/eng/REVERSER AIR/GRD/1", "REVERSER AIR/GRD", "Engine panel · Aft overhead (P5)"],
   ["aft/eng/REVERSER LIMITED/1", "REVERSER LIMITED, engine 1", "Engine 1 · Engine panel · Aft overhead (P5)"],
   ["aft/eng/REVERSER LIMITED/2", "REVERSER LIMITED, engine 2", "Engine 2 · Engine panel · Aft overhead (P5)"],
   ["aft/oxy/PASS OXY ON/1", "PASS OXY ON", "Oxygen panel · Aft overhead (P5)"],
@@ -249,8 +250,8 @@ const LIGHTS: [string, string, string][] = [
   ["aft/gear/LEFT GEAR/1", "LEFT GEAR", "Landing gear panel · Center panel (P2)"],
   ["aft/gear/RIGHT GEAR/1", "RIGHT GEAR", "Landing gear panel · Center panel (P2)"],
   ["aft/gear/NOSE GEAR/1", "NOSE GEAR", "Landing gear panel · Center panel (P2)"],
-  ["mn/cl/BELOW G/S/1", "BELOW G", "Lights test and warning lights · Captain panel (P1)"],
-  ["mn/fl/BELOW G/S/1", "BELOW G", "Lights test and warning lights · Captain panel (P1)"],
+  ["mn/cl/BELOW G/S/1", "BELOW G/S", "Lights test and warning lights · Captain panel (P1)"],
+  ["mn/fl/BELOW G/S/1", "BELOW G/S", "Lights test and warning lights · Captain panel (P1)"],
   ["mn/cl/TAKEOFF CONFIG/1", "TAKEOFF CONFIG", "Lights test and warning lights · Captain panel (P1)"],
   ["mn/fl/TAKEOFF CONFIG/1", "TAKEOFF CONFIG", "Lights test and warning lights · Captain panel (P1)"],
   ["mn/cl/CABIN ALTITUDE/1", "CABIN ALTITUDE", "Lights test and warning lights · Captain panel (P1)"],
@@ -321,7 +322,7 @@ const LIGHTS: [string, string, string][] = [
   ["gl/annl/FUEL/1", "FUEL", "Fire, caution and system annunciators · Glareshield (P7)"],
   ["gl/annl/ELEC/1", "ELEC", "Fire, caution and system annunciators · Glareshield (P7)"],
   ["gl/annl/APU/1", "APU", "Fire, caution and system annunciators · Glareshield (P7)"],
-  ["gl/annl/OVHT/DET/1", "OVHT", "Fire, caution and system annunciators · Glareshield (P7)"],
+  ["gl/annl/OVHT/DET/1", "OVHT/DET", "Fire, caution and system annunciators · Glareshield (P7)"],
   ["gl/annr/ANTI-ICE/1", "ANTI-ICE", "Fire, caution and system annunciators · Glareshield (P7)"],
   ["gl/annr/HYD/1", "HYD", "Fire, caution and system annunciators · Glareshield (P7)"],
   ["gl/annr/DOORS/1", "DOORS", "Fire, caution and system annunciators · Glareshield (P7)"],
