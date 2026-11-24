@@ -56,7 +56,7 @@ jobs:
           package-manager-cache: false
 
       # What earlier runs found, per target, so each run starts where the last one stopped.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: target/fuzz-corpus/${{ matrix.target }}
           key: fuzz-corpus-${{ matrix.target }}-${{ github.run_id }}
