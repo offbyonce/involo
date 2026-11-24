@@ -38,9 +38,12 @@ export function reminderDue(lastBackup: number | null, after: number | null, now
 }
 
 /** The reminder's line: "Your last backup was on Oct 21, a month ago." or "You haven't saved a
- * backup yet.", then why it matters. */
-export function reminderLine(lastBackup: number | null, now: number): string {
-  const why = "Clearing this browser’s site data removes everything saved here.";
+ * backup yet.", then why it matters: in a browser, that clearing site data removes it all; on
+ * desktop, that a backup moves progress to another computer or keeps it if this one fails. */
+export function reminderLine(lastBackup: number | null, now: number, desktop = false): string {
+  const why = desktop
+    ? "A backup is how you move your progress to another computer, or keep it if this one fails."
+    : "Clearing this browser’s site data removes everything saved here.";
   if (lastBackup === null) return `You haven’t saved a backup yet. ${why}`;
   const day = new Date(lastBackup).toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const days = Math.max(0, Math.floor((now - lastBackup) / DAY));

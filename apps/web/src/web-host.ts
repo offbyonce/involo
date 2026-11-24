@@ -46,6 +46,7 @@ import {
   timers,
 } from "./core";
 import { readLog as readLogText, writeLog } from "./log-store.js";
+import { keepingLastDownload } from "./pack-fetch";
 import {
   downloadPack,
   type InstallDeps,
@@ -80,19 +81,8 @@ function askToKeep(): void {
 /** The browser's fetch, called on its own (it refuses to run as another object's method). */
 const fetchOwn: typeof fetch = (input, init) => fetch(input, init);
 
-/** The last pack file downloaded, by address: What's new downloads an update to compare it, and
- * Update then installs the same bytes without downloading them again. Each pack version has its
- * own address, so the bytes never go stale. */
-let lastDownload: { url: string; bytes: ArrayBuffer } | null = null;
-const fetchPack: typeof fetch = async (input, init) => {
-  const url = String(input);
-  if (lastDownload?.url === url) return new Response(lastDownload.bytes.slice(0));
-  const response = await fetch(input, init);
-  if (!response.ok) return response;
-  const bytes = await response.arrayBuffer();
-  lastDownload = { url, bytes };
-  return new Response(bytes.slice(0), { status: response.status, headers: response.headers });
-};
+/** Pack downloads, keeping the last one for Update (./pack-fetch.ts). */
+const fetchPack = keepingLastDownload(fetchOwn);
 
 /** The texts of the installed packs a log text needs to be read (`logPacks`: only a format 1 log
  * needs any). A pack that isn't installed, or can't be read, is left out: its entries are named

@@ -8,6 +8,8 @@ it aside on this device instead of deleting it. Nothing is saved over it until t
 be moved aside (`stuck`: storage full), nothing is moved, and the notice says so.
 -->
 <script lang="ts">
+  import { onDesktop } from "../host";
+
   let {
     what,
     state,
@@ -26,6 +28,7 @@ be moved aside (`stuck`: storage full), nothing is moved, and the notice says so
     onFresh: () => void;
   } = $props();
 
+  const desktop = onDesktop();
   let name = $derived(what === "flight" ? "progress" : what === "plan" ? "SimBrief plan" : "settings");
   let href = $derived(URL.createObjectURL(new Blob([text], { type: "application/json" })));
   $effect(() => {
@@ -40,8 +43,10 @@ be moved aside (`stuck`: storage full), nothing is moved, and the notice says so
     It is kept on this device as it was. Save a copy, or start fresh; starting fresh sets it aside
     rather than deleting it.
     {#if stuck}
-      <b>It couldn’t be set aside, so nothing was moved.</b> This browser may be out of space for
-      site data. Save a copy, then try again.
+      <b>It couldn’t be set aside, so nothing was moved.</b>
+      {desktop
+        ? "This computer may be out of disk space. Save a copy, then try again."
+        : "This browser may be out of space for site data. Save a copy, then try again."}
     {/if}
   </p>
   <div class="acts">

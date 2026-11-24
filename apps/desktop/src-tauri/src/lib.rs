@@ -9,6 +9,9 @@
 #[cfg(test)]
 mod command_names;
 mod commands;
+mod files;
+
+use tauri::Manager;
 
 pub use involo_app_core::AppError;
 
@@ -19,12 +22,19 @@ fn with_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Builde
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(commands::Packs::default())
+        // The data folder: %APPDATA%\\com.offbyonce.involo on Windows, Application Support on macOS.
+        .setup(|app| {
+            let dir = app.path().app_data_dir()?;
+            app.manage(files::Files::new(dir));
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             commands::app_info,
             commands::parse_pack,
             commands::check_pack,
             commands::pack_file_limit,
             commands::compare_packs,
+            commands::parse_catalog,
             commands::reconcile_flight,
             commands::restore_flight,
             commands::new_flight,
@@ -57,6 +67,11 @@ fn with_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Builde
             commands::read_backup,
             commands::decode_metar,
             commands::decode_taf,
+            commands::files_read,
+            commands::files_write,
+            commands::files_remove,
+            commands::files_set_aside,
+            commands::files_list,
             commands::open_link,
             commands::save_file,
         ])
@@ -70,7 +85,16 @@ pub fn run() {
         )
         .init();
 
-    if let Err(e) = with_commands(tauri::Builder::default()).run(tauri::generate_context!()) {
+    // One window only, so two never write the same files (#40): starting the app again focuses
+    // the open one. The plugin goes first, before anything else starts.
+    let builder =
+        tauri::Builder::default().plugin(tauri_plugin_single_instance::init(|app, _, _| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.unminimize();
+                let _ = window.set_focus();
+            }
+        }));
+    if let Err(e) = with_commands(builder).run(tauri::generate_context!()) {
         tracing::error!("Involo stopped with an error: {e}");
         std::process::exit(1);
     }
@@ -254,5 +278,35 @@ mod tests {
                 None
             ))
         );
+    }
+
+    /// A backup made in the web app restores on desktop, and one made on desktop restores in the
+    /// web app: the same file format, read and written by the same `involo-app-core` code.
+    #[test]
+    fn a_backup_moves_between_the_web_app_and_the_desktop_app() {
+        let fixture =
+            include_str!("../../../../crates/involo-app-core/tests/fixtures/backup-format-1.json");
+        let webview = window();
+        // The web app's file, read on desktop as the web module reads it.
+        let read = call_with(&webview, "read_backup", json!({ "text": fixture })).unwrap();
+        assert_eq!(read["state"], "ready", "{read}");
+        assert_eq!(read, web(&involo_app_core::read_backup(fixture, &[])));
+        // Saved again on desktop, from the parts the review shows.
+        let backup = &read["backup"];
+        let parts = json!({
+            "savedAt": backup["savedAt"],
+            "flights": backup["flights"],
+            "settings": backup["settings"],
+            "log": backup["log"],
+        });
+        let text = call_with(&webview, "backup_text", json!({ "parts": parts })).unwrap();
+        let text = text.as_str().unwrap();
+        // The web app reads it, with every part as it was.
+        let again = involo_app_core::read_backup(text, &[]);
+        let again = web(&again);
+        assert_eq!(again["state"], "ready");
+        for part in ["savedAt", "flights", "settings", "log"] {
+            assert_eq!(again["backup"][part], backup[part], "{part}");
+        }
     }
 }

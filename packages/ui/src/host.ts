@@ -42,6 +42,12 @@ import type {
 import { getContext } from "svelte";
 
 export interface Host {
+  /**
+   * The desktop app, whose saved data is files on the computer: the places that talk about the
+   * browser say "this computer" or "the disk" instead (the desktop wording board). A host in a
+   * browser leaves it out.
+   */
+  readonly desktop?: boolean;
   /** Basic facts for the About box and the window title. */
   appInfo(): Promise<AppInfo>;
   /** Loads a pack installed on this device; it stays loaded for the calls below. */
@@ -232,6 +238,12 @@ const HOST = Symbol("host");
 /** The context to pass to `mount` (or a test's `render`) so components can find the host. */
 export function hostContext(host: Host): Map<symbol, Host> {
   return new Map([[HOST, host]]);
+}
+
+/** Whether the app runs as the desktop app (`Host.desktop`); false with no host, as in a
+ * component's own tests. Call it while a component starts, like getContext. */
+export function onDesktop(): boolean {
+  return getContext<Host | undefined>(HOST)?.desktop === true;
 }
 
 /** The host the app was mounted with. */

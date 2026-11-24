@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main",
-  "description": "The main window may call only our own commands. No file, network or shell access is granted to the interface: links open and files save through our commands, which check what they are given.",
+  "description": "The main window may call only our own commands. No file, network or shell access is granted to the interface: links open, files save and the data folder is read and written through our commands, which check what they are given.",
   "windows": ["main"],
   "permissions": [
     "allow-app-info",
@@ -9,6 +9,7 @@
     "allow-check-pack",
     "allow-pack-file-limit",
     "allow-compare-packs",
+    "allow-parse-catalog",
     "allow-reconcile-flight",
     "allow-restore-flight",
     "allow-new-flight",
@@ -41,6 +42,11 @@
     "allow-read-backup",
     "allow-decode-metar",
     "allow-decode-taf",
+    "allow-files-read",
+    "allow-files-write",
+    "allow-files-remove",
+    "allow-files-set-aside",
+    "allow-files-list",
     "allow-open-link",
     "allow-save-file"
   ]

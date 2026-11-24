@@ -28,7 +28,7 @@
         "style-src": "'self'",
         "img-src": "'self' data:",
         "font-src": "'self'",
-        "connect-src": "ipc: http://ipc.localhost https://www.simbrief.com",
+        "connect-src": "ipc: http://ipc.localhost https://www.simbrief.com https://offbyonce.github.io",
         "object-src": "'none'",
         "base-uri": "'none'",
         "form-action": "'none'",

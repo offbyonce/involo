@@ -24,6 +24,8 @@ use involo_simbrief::Plan;
 use serde::Deserialize;
 use tauri::ipc::{InvokeBody, Request};
 use tauri::{AppHandle, Runtime, State};
+
+use crate::files::Files;
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_opener::OpenerExt;
 
@@ -118,6 +120,12 @@ pub async fn restore_flight(
     flight: Flight,
 ) -> Answer<Flight> {
     packs.with(&pack, |p| Ok(involo_app_core::restore_flight(p, &flight)))
+}
+
+/// Reads the pack catalog, the site's `packs/index.json` (decision 0028).
+#[tauri::command]
+pub async fn parse_catalog(json: String) -> Answer<Vec<involo_pack::CatalogEntry>> {
+    involo_app_core::parse_catalog(&json).map(ForInterface)
 }
 
 /// A new flight for a loaded pack.
@@ -406,6 +414,43 @@ pub async fn decode_metar(text: String) -> Answer<Decoded> {
 #[tauri::command]
 pub async fn decode_taf(text: String) -> Answer<Decoded> {
     ok(involo_app_core::decode_taf(&text))
+}
+
+/// The text saved under a name in the data folder (`files.rs` says which names), or null.
+#[tauri::command]
+pub async fn files_read(files: State<'_, Files>, name: String) -> Result<Option<String>, String> {
+    files.read(&name).map_err(|e| e.to_string())
+}
+
+/// Saves text under a name: a whole new file, or the old one left as it was.
+#[tauri::command]
+pub async fn files_write(
+    files: State<'_, Files>,
+    name: String,
+    text: String,
+) -> Result<(), String> {
+    files.write(&name, &text).map_err(|e| e.to_string())
+}
+
+/// Removes what is saved under a name.
+#[tauri::command]
+pub async fn files_remove(files: State<'_, Files>, name: String) -> Result<(), String> {
+    files.remove(&name).map_err(|e| e.to_string())
+}
+
+/// Moves what is saved under a name aside, to `<name>.kept-<now in milliseconds>`.
+#[tauri::command]
+pub async fn files_set_aside(files: State<'_, Files>, name: String) -> Result<(), String> {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| u64::try_from(d.as_millis()).unwrap_or(u64::MAX));
+    files.set_aside(&name, now).map_err(|e| e.to_string())
+}
+
+/// The names saved in the data folder (`""`) or in `packs`.
+#[tauri::command]
+pub async fn files_list(files: State<'_, Files>, folder: String) -> Result<Vec<String>, String> {
+    files.names(&folder).map_err(|e| e.to_string())
 }
 
 /// The address a link may open in the default browser: https only, so a page can never start a

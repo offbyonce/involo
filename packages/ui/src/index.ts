@@ -10,6 +10,7 @@ export {
   type Host,
   hostContext,
   type InstalledPack,
+  onDesktop,
   type PackInstall,
   type PackSource,
   type Saved,
