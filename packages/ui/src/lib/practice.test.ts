@@ -17,6 +17,7 @@ import {
   holds,
   orderMiss,
   phasesOf,
+  pickItems,
   pickWrong,
   random,
   type Seed,
@@ -392,8 +393,17 @@ describe("the question generator", () => {
       if (seed.kind !== "choice") continue;
       expect(seed.why, seed.id).toBeTruthy();
       expect(actions.has(seed.why ?? ""), seed.id).toBe(false);
-      for (const w of pickWrong(seed.answer, seed.tiers, seed.twins))
-        expect(seed.about[w], `${seed.id}: ${w}`).toBeTruthy();
+      // Every option it can offer is explained, in the order the tiers give and shuffled, as the
+      // item it is.
+      for (const rng of [undefined, random(1), random(2)]) {
+        const q = dealOne(seed, rng ?? random(0));
+        if (q.kind !== "choice") continue;
+        for (const [i, w] of q.options.entries())
+          if (i !== q.answer) expect(q.about[w], `${seed.id}: ${w}`).toBeTruthy();
+        if (!rng)
+          for (const w of pickItems(seed.answer, seed.tiers, seed.twins))
+            expect(seed.about[w.key], `${seed.id}: ${w.text}`).toBeTruthy();
+      }
     }
     // Each fuel pump's light is named by its switch, so no two read the same ("left" was both CTR L
     // and AFT 1).
@@ -487,6 +497,28 @@ describe("the question generator", () => {
       pickWrong("IGN L", [{ items: ["IGN R", "BOTH", "OFF"], shuffle: false, sides: true }], twinsOf(pack)),
     ).toContain("IGN R");
   }, 30_000); // Walks every question (the exhaustive tests may take longer).
+
+  it("explains a light that shares its label with lights on other panels by its own panel (#145)", () => {
+    // Fuel, flight control and hydraulic panels each have LOW PRESSURE lights. The FILTER BYPASS
+    // question offers the Fuel panel's; the first LOW PRESSURE in the pack is the Flight control
+    // panel's.
+    const seed = all.find((q) => q.id === "lights:light:oh/fuel/FILTER BYPASS/1");
+    if (seed?.kind !== "choice") throw new Error("no FILTER BYPASS question");
+    let offered = 0;
+    for (let n = 1; n <= 20; n++) {
+      const q = dealOne(seed, random(n));
+      if (q.kind !== "choice" || !q.options.includes("LOW PRESSURE")) continue;
+      offered++;
+      expect(q.about["LOW PRESSURE"], `deal ${n}`).toMatch(/^LOW PRESSURE, [^,]+, on the Fuel panel means: /);
+      // Word for word the explanation of the light picked.
+      const picked = pickItems(seed.answer, seed.tiers, seed.twins, random(n)).find(
+        (p) => p.text === "LOW PRESSURE",
+      );
+      expect(picked?.key).toMatch(/^oh\/fuel\/LOW PRESSURE\//);
+      expect(q.about["LOW PRESSURE"]).toBe(seed.about[picked?.key ?? ""]);
+    }
+    expect(offered).toBeGreaterThan(3);
+  });
 
   it("starts each line after its colon in lowercase, unless it starts with a name", () => {
     const light = all.find((q) => q.id === "lights:meaning:oh/fuel/FILTER BYPASS/1");
