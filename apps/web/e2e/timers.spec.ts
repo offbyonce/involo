@@ -4,8 +4,9 @@
 // Step timers (#213, Timers boards): ticking the start levers starts the engine warm-up by itself;
 // its chip and the running-timers bar count down; Pause holds it and Resume runs on; Restart
 // starts it again; it keeps running through a reload; and at zero it chimes once, and its row
-// shows it finished until it is restarted. The page's clock is Playwright's, so three minutes pass
-// in a moment, and the chime is counted instead of heard.
+// shows it finished until it is restarted. The page's clock is Playwright's, paused once the app is
+// up, so time moves only when the test moves it: three minutes pass in a moment, every reading is
+// exact however slow the machine, and the chime is counted instead of heard.
 
 import { expect, test } from "./fixtures";
 import { checkScreen } from "./layout";
@@ -39,6 +40,10 @@ test("a step timer starts from its trigger, pauses, resumes, restarts, runs thro
     };
   });
   await app.firstRun();
+  // From here, time stands still between the test's own runFor calls (#281's run read 1:45 where
+  // 1:46 was due, the clock having run on in real time while the check waited).
+  const PAUSED_AT = new Date("2026-11-21T10:05:00Z");
+  await page.clock.pauseAt(PAUSED_AT);
   const chimes = () => page.evaluate(() => (window as unknown as { chimes: number }).chimes);
 
   // Engine start: the warm-up starts from the later of the two start lever ticks.
@@ -61,30 +66,29 @@ test("a step timer starts from its trigger, pauses, resumes, restarts, runs thro
 
   await page.clock.runFor(65_000);
   await expect(chip, "it counts down").toHaveText("1:55");
-  // Layout and accessibility at every size, with the chip and the bar on screen at each.
+  // Layout and accessibility at every size, with the chip and the bar on screen at each. The check
+  // waits on the page's own timers, so they run during it while the date stands still at 1:55
+  // left (setFixedTime, then resume); then the clock is paused there again and the date unfixed,
+  // so runFor moves it once more.
+  const at = new Date(PAUSED_AT.getTime() + 65_000);
+  await page.clock.setFixedTime(at);
+  await page.clock.resume();
   await checkScreen(page, "A running step timer", [chip, bar]);
+  await page.clock.pauseAt(at);
+  await page.clock.setSystemTime(at);
+  await expect(chip, "the layout check took no time off").toHaveText("1:55");
 
-  // Pause holds it, and the bar says so; Resume runs on from there. (The layout check takes real
-  // time, so the time paused is read from the chip.)
+  // Pause holds it, and the bar says so; Resume runs on from there.
   await row.getByRole("button", { name: "Pause" }).click();
-  await expect(chip).toHaveAttribute(
-    "aria-label",
-    /^Engine warm-up timer, paused, 1 minute \d+ seconds? left$/,
-  );
-  const held = (await chip.locator(".time").textContent())?.trim() ?? "";
-  expect(held).toMatch(/^1:\d\d$/);
-  await expect(chip).toContainText(`Paused ${held}`);
-  await expect(row.getByText(`Timer paused with ${held} left.`)).toBeVisible();
-  await expect(bar).toContainText(`Engine warm-up ${held} · Paused`);
+  await expect(chip).toHaveAttribute("aria-label", "Engine warm-up timer, paused, 1 minute 55 seconds left");
+  await expect(chip).toContainText("Paused 1:55");
+  await expect(row.getByText("Timer paused with 1:55 left.")).toBeVisible();
+  await expect(bar).toContainText("Engine warm-up 1:55 · Paused");
   await page.clock.runFor(30_000);
-  await expect(chip.locator(".time"), "held while paused").toHaveText(held);
+  await expect(chip.locator(".time"), "held while paused").toHaveText("1:55");
   await row.getByRole("button", { name: "Resume" }).click();
   await page.clock.runFor(5_000);
-  const [m, sec] = held.split(":").map(Number) as [number, number];
-  const on = m * 60 + sec - 5;
-  await expect(chip, "runs on from where it was").toHaveText(
-    `${Math.floor(on / 60)}:${String(on % 60).padStart(2, "0")}`,
-  );
+  await expect(chip, "runs on from where it was").toHaveText("1:50");
 
   // Restart: the whole time again.
   await row.getByRole("button", { name: "Restart" }).click();
