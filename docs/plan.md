@@ -146,7 +146,8 @@ checking of cockpit switches. The reasons are in decision 0011, which updates th
   with updating the required check name "ci (ubuntu-22.04)" in the `main` ruleset (maintainer).
 - Low-severity Dependabot alert on the default branch (check and fix or document).
 - `pnpm/action-setup@v4` warns about running on an old Node version; move to a newer release.
-- Updater signing key: generate and back up before the first release (0005).
+- Updater signing key: generate and back up before signed in-app updates are turned on (0005). 0.1.0
+  only tells you a newer release is out, so it needs none.
 - Add `reuse lint` to `just ci`, with a clear message when the tool is missing.
 - Download EASA AD 2021-0039R2 when EASA's site is back.
 - Pilot review of the procedure open list.

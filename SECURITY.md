@@ -88,12 +88,12 @@ Its privacy note (Settings › Privacy) says the same in plain words, and change
   removes all of it.
 - **Network requests** go to SimBrief when you import a plan, as in the web app; to this site
   (`offbyonce.github.io/involo`) for the pack catalog and pack downloads when you add or update a
-  pack; and, at launch, to GitHub's API (`api.github.com`) to ask whether a newer release is out,
+  pack; and, when Involo starts, to GitHub's API (`api.github.com`) to ask whether a newer release is out,
   unless Settings › Check for updates is off. None sends cookies or a referrer, or anything about
   you. The window's content security policy allows no other address.
-- **Updates are notify only.** When a newer release is out, the app says so and links to its
-  page. It never downloads or installs anything by itself; you download the new version and
-  install it over the old one.
+- **Updates are notify only.** Once, when Involo starts, it asks whether a newer release is out.
+  If one is, the app says so and links to its page. It never downloads or installs anything by
+  itself; you download the new version and install it over the old one.
 - **The window's permissions:** the interface may call only the app's own commands
   (`apps/desktop/src-tauri/capabilities/main.json`). No file, network or shell access is granted
   to it. Links open in your default browser, and only `https` links. Saved files go where you
@@ -111,7 +111,8 @@ Its privacy note (Settings › Privacy) says the same in plain words, and change
 
 - Signing and update keys never live in this repository. They are passed to release
   builds only, never to builds of pull requests.
-- The desktop app's updater key pair exists and is backed up outside the repository. Neither key
-  is in the repository, and the public key is committed only once in-app installs are turned on.
+- The 0.1.0 desktop releases are unsigned, and the app only tells you a newer release is out. It
+  has no updater and no update key. Signed in-app updates will come later, with their own key; its
+  public key is committed only then.
 - GitHub secret scanning and push protection are enabled.
 - `just deny` checks dependency licenses and known advisories.

@@ -161,9 +161,9 @@ in its own pull request.
    - Optionally, pin the actions ([#64](https://github.com/offbyonce/involo/issues/64)).
    - Attach the desktop app to the release ([#116](https://github.com/offbyonce/involo/issues/116)):
      the `desktop` job's installers, with `involo-desktop-SHA256SUMS.txt`, from the tag's green CI
-     run. Before the first desktop release, generate the updater key pair and back it up outside
-     the repository, and check on a fork with a test tag that the release gets all three installers
-     and their sums.
+     run (`pages.yml`). The `desktop` job collects each installer at its artifact's root first
+     (`ci.yml`). Check on a fork with a test tag that the release gets all three installers and their
+     sums. No updater key is needed: 0.1.0 only tells you a newer release is out.
 4. **Repository settings:** done. A repository ruleset protects `main`, requiring CI's `ci` job
    on all three systems, `reuse`, `e2e` and CodeQL. Pages is set to GitHub Actions, with HTTPS
    enforced.
