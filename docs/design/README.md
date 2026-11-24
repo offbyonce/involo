@@ -501,6 +501,29 @@ every row.
   not a new tab. Each link keeps its 44 px target.
 - Existing tokens only.
 
+**Desktop app (2026-11-23).** `Desktop.dc.html` draws what the desktop app shows that the web app
+doesn't (#114, #116), as additions to the existing boards, dark and light, each with a `Light` form
+and a narrow form (a desktop window at phone width, which uses the phone layout). Everything else
+on screen is the shared interface, exactly as on the web.
+
+- **The wording** (`DeskWording`, #114): each place that talks about the browser, with the web text
+  (unchanged) and the desktop text. Only the words change. The host says which app it is
+  (`Host.desktop`); shared code names no system beyond "this computer" or "the disk".
+- **Update available** (`DeskUpdate`, `DeskUpdateNarrow`, #116): at launch, with the setting on and
+  a connection, the app reads GitHub's latest release. If it's newer than the running version, a
+  band at the top of the main column, in the backup reminder's form: "Involo <new> is available",
+  then "You have <running>. Download the new version from GitHub and install it over this one. Your
+  progress, settings and packs are kept." Download and What's new open the release's page in the
+  browser; Not now hides that version for good. Offline, or if the request fails, nothing shows.
+- **Settings › Check for updates** (`DeskUpdateSetting`, `DeskUpdateSettingNarrow`, #116): a switch
+  row, on by default, desktop only, after Keep screen awake. Off, the app never contacts GitHub at
+  launch.
+- **The Privacy page's desktop text** (`DeskPrivacy`, `DeskPrivacyNarrow`, #116): the same page,
+  title and headings, with the desktop text in each section. The web page is unchanged. It must
+  stay true: when what the desktop app stores or sends changes, this page and SECURITY.md change in
+  the same pull request.
+- Existing tokens only.
+
 ## Read in this order
 
 1. `rules.md`: what the tokens mean and the rules every screen follows.

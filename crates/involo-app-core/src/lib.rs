@@ -19,6 +19,7 @@ mod packs;
 mod phase_model;
 mod plans;
 mod rail;
+mod releases;
 mod saved;
 mod seat;
 mod settings;
@@ -56,6 +57,7 @@ pub use plans::{
     plan_values,
 };
 pub use rail::{Rail, RailPhase, RailStage, rail};
+pub use releases::{NewerRelease, newer_release};
 pub use saved::{Loaded, load_flight, load_plan, load_settings};
 pub use seat::seat_frame;
 pub use settings::{

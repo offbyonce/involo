@@ -116,7 +116,17 @@ const SETTINGS_MIGRATIONS: &[Migration] = &[
     settings_8_to_9,
     settings_9_to_10,
     settings_10_to_11,
+    settings_11_to_12,
 ];
+
+/// Format 12 adds the desktop app's update check (#116): on, as the default is, and no version
+/// dismissed yet.
+fn settings_11_to_12(mut value: Value) -> Result<Value, String> {
+    let object = value.as_object_mut().ok_or("settings are not an object")?;
+    object.insert("checkUpdates".into(), Value::from(true));
+    object.insert("updateDismissed".into(), Value::Null);
+    Ok(value)
+}
 
 /// Format 11 adds Keep screen awake (#245), off as before.
 fn settings_10_to_11(mut value: Value) -> Result<Value, String> {
@@ -537,6 +547,8 @@ mod tests {
                 Some(serde_json::Value::Null)
             );
             assert_eq!(object.remove("keepAwake"), Some(json!(false)));
+            assert_eq!(object.remove("checkUpdates"), Some(json!(true)));
+            assert_eq!(object.remove("updateDismissed"), Some(json!(null)));
             object.insert("format".into(), json!(6));
             let before: serde_json::Value = serde_json::from_str(&saved(text)).unwrap();
             assert_eq!(back, before);
@@ -568,6 +580,8 @@ mod tests {
         object.remove("noticeSeen");
         object.remove("backupReminderAfter");
         object.remove("keepAwake");
+        assert_eq!(object.remove("checkUpdates"), Some(json!(true)));
+        assert_eq!(object.remove("updateDismissed"), Some(json!(null)));
         object.insert("format".into(), json!(6));
         assert_eq!(
             kept,
@@ -598,6 +612,8 @@ mod tests {
             Some(serde_json::Value::Null)
         );
         assert_eq!(object.remove("keepAwake"), Some(json!(false)));
+        assert_eq!(object.remove("checkUpdates"), Some(json!(true)));
+        assert_eq!(object.remove("updateDismissed"), Some(json!(null)));
         object.insert("format".into(), json!(7));
         assert_eq!(
             kept,
@@ -626,6 +642,8 @@ mod tests {
             Some(serde_json::Value::Null)
         );
         assert_eq!(object.remove("keepAwake"), Some(json!(false)));
+        assert_eq!(object.remove("checkUpdates"), Some(json!(true)));
+        assert_eq!(object.remove("updateDismissed"), Some(json!(null)));
         object.insert("format".into(), json!(8));
         assert_eq!(
             kept,
@@ -653,6 +671,8 @@ mod tests {
             Some(serde_json::Value::Null)
         );
         assert_eq!(object.remove("keepAwake"), Some(json!(false)));
+        assert_eq!(object.remove("checkUpdates"), Some(json!(true)));
+        assert_eq!(object.remove("updateDismissed"), Some(json!(null)));
         object.insert("format".into(), json!(9));
         assert_eq!(
             kept,
@@ -676,7 +696,35 @@ mod tests {
         let mut kept = serde_json::to_value(&value).unwrap();
         let object = kept.as_object_mut().unwrap();
         assert_eq!(object.remove("keepAwake"), Some(json!(false)));
+        assert_eq!(object.remove("checkUpdates"), Some(json!(true)));
+        assert_eq!(object.remove("updateDismissed"), Some(json!(null)));
         object.insert("format".into(), json!(10));
+        assert_eq!(
+            kept,
+            serde_json::from_str::<serde_json::Value>(text).unwrap()
+        );
+    }
+
+    #[test]
+    fn settings_saved_in_format_11_keep_every_value_and_check_for_updates() {
+        // Frozen: format 11 settings as the app saved them, every value changed from its default.
+        let text = include_str!("../tests/fixtures/settings-format-11.json");
+        let Loaded::Ready {
+            value,
+            migrated_from,
+        } = load_settings(text)
+        else {
+            panic!("format 11 settings did not load");
+        };
+        assert_eq!(migrated_from, Some(11));
+        // The update check is on, as for a new pilot, and no version is dismissed.
+        assert!(value.check_updates);
+        assert_eq!(value.update_dismissed, None);
+        let mut kept = serde_json::to_value(&value).unwrap();
+        let object = kept.as_object_mut().unwrap();
+        assert_eq!(object.remove("checkUpdates"), Some(json!(true)));
+        assert_eq!(object.remove("updateDismissed"), Some(json!(null)));
+        object.insert("format".into(), json!(11));
         assert_eq!(
             kept,
             serde_json::from_str::<serde_json::Value>(text).unwrap()

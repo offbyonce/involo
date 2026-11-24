@@ -10,13 +10,18 @@ Every release of the Involo app and its packs, newest first. The format follows
 
 ## [0.1.0] - Unreleased
 
-The first public beta: Involo as a web app that installs and works offline, with the iFly 737
-MAX 8 pack. It replaces the single-file 3.0 checklist and keeps every one of its 510 steps.
+The first public beta: Involo as a web app that installs and works offline, and a desktop app
+for Windows and macOS, with the iFly 737 MAX 8 pack. It replaces the single-file 3.0 checklist and keeps every one of its 510 steps.
 
 ### Added
 
 - **The web app** at <https://offbyonce.github.io/involo/>. It installs from the browser and
   keeps working offline. Updates download in the background and wait for Reload.
+- **The desktop app** for Windows and macOS, attached to the release as unsigned installers with
+  a SHA-256 sum for each. The same app, keeping your progress, settings, log and packs as files on
+  your computer; a backup file moves them between the two apps. At launch it checks GitHub for a
+  newer release and says so (Settings › Check for updates turns it off); it never installs
+  anything by itself.
 - **The iFly 737 MAX 8 pack** (0.1.0): 65 checklists and 527 steps across five stages, from cold
   and dark or a turnaround, with the exterior inspection's 18 stops and a top view of the
   airplane.

@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// The saved format of [`Settings`]. Raise it, with a migration and tests, when the shape changes.
-pub const SETTINGS_FORMAT: u32 = 11;
+pub const SETTINGS_FORMAT: u32 = 12;
 
 /// The highest dimming step; 0 is full brightness.
 pub const MAX_DIMMING: u8 = 4;
@@ -132,6 +132,12 @@ pub struct Settings {
     /// Settings › Keep screen awake (#245): asks the browser to keep the screen on while Involo is
     /// open, where it can.
     pub keep_awake: bool,
+    /// Settings › Check for updates (desktop app, #116): at launch, ask GitHub whether a newer
+    /// release is out, and say so. On by default; off, the app never contacts GitHub at launch.
+    pub check_updates: bool,
+    /// The newer version whose notice the pilot answered with Not now (#116): it never shows
+    /// again, and a version after it does. None until then.
+    pub update_dismissed: Option<String>,
 }
 
 impl Default for Settings {
@@ -157,6 +163,8 @@ impl Default for Settings {
             notice_seen: false,
             backup_reminder_after: None,
             keep_awake: false,
+            check_updates: true,
+            update_dismissed: None,
         }
     }
 }

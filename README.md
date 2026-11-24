@@ -20,9 +20,37 @@ aircraft can be added without changing the app.
 > **Status:** public beta, version 0.1.0. Open the app at
 > **[offbyonce.github.io/involo](https://offbyonce.github.io/involo/)**: it installs from your
 > browser and works offline. It starts with the iFly 737 MAX 8 and replaces the single-file 3.0
-> checklist. What changed in each release is in [CHANGELOG.md](CHANGELOG.md).
+> checklist. A desktop app for Windows and macOS comes with each release. What changed in each
+> release is in [CHANGELOG.md](CHANGELOG.md).
 
 **For simulator use only.** Never use these checklists for real-world flight.
+
+## The desktop app
+
+The same app for Windows and macOS, keeping your progress as files on your computer. Download it
+from the [latest release](https://github.com/offbyonce/involo/releases/latest):
+
+| System | File |
+| --- | --- |
+| Windows (64-bit) | `Involo_<version>_x64-setup.exe` |
+| macOS, Apple silicon (M1 and later) | `Involo_<version>_aarch64.dmg` |
+| macOS, Intel | `Involo_<version>_x64.dmg` |
+
+Each file has a SHA-256 sum beside it on the release; check your download against it. A backup
+file (Settings › Back up and restore) moves your progress between the web app and the desktop app.
+
+**The builds are not signed yet,** so your system warns before opening them the first time:
+
+- **Windows:** SmartScreen says "Windows protected your PC". Choose **More info**, then **Run
+  anyway**. If Smart App Control is on, it blocks unsigned apps and has no such choice; the web
+  app works without installing anything.
+- **macOS:** Gatekeeper says the app can't be checked. Open the disk image, drag Involo to
+  Applications, then Control-click Involo there and choose **Open**, and **Open** again. If macOS
+  offers only **Done**, open **System Settings › Privacy & Security**, find the message about
+  Involo near the bottom, and choose **Open Anyway**.
+
+The app checks GitHub for a newer release when it starts and says so; it never installs anything
+by itself (Settings › Check for updates turns this off).
 
 ## Repository layout
 

@@ -73,6 +73,7 @@ export type { LoggedTick } from "./generated/LoggedTick";
 export type { Message } from "./generated/Message";
 export type { MessageLevel } from "./generated/MessageLevel";
 export type { MessagesFile } from "./generated/MessagesFile";
+export type { NewerRelease } from "./generated/NewerRelease";
 export type { NotesRow } from "./generated/NotesRow";
 export type { OpenStep } from "./generated/OpenStep";
 export type { OptionChoice } from "./generated/OptionChoice";

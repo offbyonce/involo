@@ -72,6 +72,7 @@ fn with_commands<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Builde
             commands::files_remove,
             commands::files_set_aside,
             commands::files_list,
+            commands::newer_release,
             commands::open_link,
             commands::save_file,
         ])

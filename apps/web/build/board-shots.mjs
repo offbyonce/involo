@@ -305,6 +305,17 @@ const SHOTS = [
     ["PrivacySetting", "settingsLine", 760, 200],
     ["PrivacySettingPhone", "settingsLinePhone", 390, 220],
   ].map(([file, layout, width, height]) => [file, { layout }, width, height, "Privacy"]),
+  // The desktop app (docs/design/boards/Desktop.dc.html, #114 and #116): the wording, the update
+  // notice and its Settings row, and the Privacy page's desktop text, each with its narrow form.
+  ...[
+    ["DeskWording", "wording", 1100, 840],
+    ["DeskUpdate", "update", 920, 420],
+    ["DeskUpdateNarrow", "updateNarrow", 390, 520],
+    ["DeskUpdateSetting", "updateSetting", 760, 200],
+    ["DeskUpdateSettingNarrow", "updateSettingNarrow", 390, 300],
+    ["DeskPrivacy", "privacy", 920, 1080],
+    ["DeskPrivacyNarrow", "privacyNarrow", 390, 1380],
+  ].map(([file, layout, width, height]) => [file, { layout }, width, height, "Desktop"]),
 ];
 
 async function main() {

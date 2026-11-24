@@ -22,6 +22,7 @@ import type {
   LogChange,
   LogEdit,
   LoggedFlight,
+  NewerRelease,
   OpenStep,
   OtherAircraft,
   PackChanges,
@@ -209,6 +210,13 @@ export interface Host {
    * cancelled, so nothing was saved.
    */
   saveFile(name: string, text: string, type: string): Promise<boolean>;
+  /**
+   * The desktop app's update check (notify only, decision 0005): GitHub's latest release when it is newer
+   * than the running app, else null; null too offline or when the request fails, and nothing is
+   * reported. The request carries nothing about the pilot. Optional: the web app updates itself
+   * and leaves it out.
+   */
+  updateAvailable?(): Promise<NewerRelease | null>;
   /** The pilot's theme changed (or the app started): a host with a browser tab sets the favicon
    * and theme-color to match (BRAND.md). Optional: a host without one leaves it out. */
   themeChanged?(theme: Theme): void;

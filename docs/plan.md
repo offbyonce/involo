@@ -29,13 +29,13 @@ airplane like a trained crew, not just to run checklists (decision 0008).
 | Name and identifier | Involo, `com.offbyonce.involo` |
 | Licenses | Code MIT; pack content CC BY-NC-SA 4.0; REUSE per file (0003) |
 | Contributions | Public repo `offbyonce/involo`; DCO sign-off, no CLA |
-| Stack | Rust 1.99 (pinned), Svelte 5 + Vite + TypeScript 6 (0001); Rust runs in the browser as WebAssembly (0009); Tauri 2.12 for a later desktop build |
+| Stack | Rust 1.99 (pinned), Svelte 5 + Vite + TypeScript 6 (0001); Rust runs in the browser as WebAssembly (0009); Tauri 2.12 for the desktop app for Windows and macOS (0031) |
 | Delivery | Hosted web app on GitHub Pages, installable, offline after the first visit (0009) |
 | Privacy | No backend, accounts, analytics, cookies or third-party resources; SimBrief called from the user's browser (0009) |
 | Pack format | Authored in YAML, read strictly with `serde-saphyr`, shipped as JSON (0002) |
-| Saved data | Browser storage, with export and import in a versioned file format defined in Rust (0009); SQLite (`crates/store`) kept for a desktop build |
-| Updates | Web: each deploy is the update (0009). Desktop build: notify-only via GitHub Releases (0005) |
-| Signing | Not needed for the web app; revisit with a desktop build (0005) |
+| Saved data | Browser storage in the web app, files in its data folder in the desktop app (0031), with export and import in a versioned file format defined in Rust (0009) |
+| Updates | Web: each deploy is the update (0009). Desktop app: notify-only via GitHub Releases (0005, 0031) |
+| Signing | Not needed for the web app; the desktop app ships unsigned for now (0005, 0031) |
 | Sim link | None (0006 supersedes 0004) |
 | Scope | Learn to operate the airplane like a trained crew; what we do not build is listed below (0008) |
 | References | List-level `basis` tags, no per-step citations or third-party links (0007); rules in `CONTRIBUTING.md`, enforced in part by `involo-pack check` |
@@ -45,11 +45,11 @@ airplane like a trained crew, not just to run checklists (decision 0008).
 ```
 Shared Svelte interface  ──typed calls──▶  host adapter (thin)
                                               │
-              Phase 2: web host (WebAssembly) │ later: Tauri shell
+           web host (WebAssembly) │ desktop: Tauri shell
                      ┌──────────────┬─────────┴────┐
                      ▼              ▼              ▼
                 involo-checklist-core   simbrief    browser storage (web)
-                (pure: no I/O)   (parsing)   or store (desktop)
+                (pure: no I/O)   (parsing)   or files (desktop)
 
 pack + involo-pack-cli run at build time: YAML in, checked, flattened JSON out.
 ```

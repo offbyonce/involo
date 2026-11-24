@@ -262,6 +262,19 @@ on the device (decision 0012).
         </div>
         <Toggle on={canKeepAwake && !!settings.keepAwake} labelledby="set-awake" disabled={!canKeepAwake} onToggle={() => onChange({ ...settings, keepAwake: !settings.keepAwake })} />
       </div>
+      {#if desktop}
+        <!-- Settings › Check for updates (#116, DeskUpdateSetting): desktop only, after Keep screen awake. -->
+        <div class="set">
+          <div>
+            <b id="set-updates">Check for updates</b>
+            <p>
+              When Involo starts, it asks GitHub whether a newer version is out, and tells you if there is. Nothing
+              about you is sent. It never installs anything by itself.
+            </p>
+          </div>
+          <Toggle on={settings.checkUpdates !== false} labelledby="set-updates" onToggle={() => onChange({ ...settings, checkUpdates: settings.checkUpdates === false })} />
+        </div>
+      {/if}
     {/if}
   {/each}
   <!-- Settings › Clear all progress (#245, RelSettings): last on the page; it clears at once, with Undo. -->

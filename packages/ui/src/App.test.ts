@@ -169,6 +169,9 @@ function view(states: [StepState, StepState]): PhaseModel {
   };
 }
 
+/** The demo pack's first step's button, there once the app has opened. */
+const CONFIRM_STANDBY = "Confirm Standby power: AUTO";
+
 /** The pack the tests' device has installed. */
 const DEMO: InstalledPack = {
   summary: { id: "demo", name: "Demo", version: "0.1.0", kind: "aircraft" },
@@ -2580,6 +2583,114 @@ describe("the Flight log (decision 0026)", () => {
     expect(await screen.findByText("Flight complete. Log it and start new?")).toBeTruthy();
     await fireEvent.click(screen.getByRole("button", { name: "Not now" }));
     expect(screen.queryByText("Flight complete. Log it and start new?")).toBeNull();
+  });
+
+  describe("the desktop app's update check (#116)", () => {
+    const newer = { version: "0.1.10", url: "https://github.com/offbyonce/involo/releases/tag/v0.1.10" };
+    const titled = "Involo 0.1.10 is available";
+    const plain = () =>
+      ({
+        theme: "dark",
+        dimming: 0,
+        detail: "expanded",
+        listView: "checklist",
+        tourSeen: true,
+        noticeSeen: true,
+        checkUpdates: true,
+        updateDismissed: null,
+      }) as unknown as Settings;
+
+    it("tells the pilot about a newer release once, opens its page, and Not now hides that version for good", async () => {
+      const opened: string[] = [];
+      const saves: Settings[] = [];
+      const asked = vi.fn(async () => newer);
+      const h = host({
+        desktop: true,
+        defaultSettings: async () => plain(),
+        updateAvailable: asked,
+        openLink: async (url) => {
+          opened.push(url);
+        },
+        save: async (_p, what, value) => {
+          if (what === "settings") saves.push(value as Settings);
+          return 1;
+        },
+      });
+      render(App, { context: hostContext(h) });
+      const band = await screen.findByRole("region", { name: "Update available" });
+      expect(within(band).getByText(titled)).toBeTruthy();
+      expect(
+        within(band).getByText(
+          "You have 0.1.0. Download the new version from GitHub and install it over this one. Your progress, settings and packs are kept.",
+        ),
+      ).toBeTruthy();
+      await fireEvent.click(within(band).getByRole("button", { name: "Download" }));
+      await fireEvent.click(within(band).getByRole("button", { name: "What’s new" }));
+      expect(opened).toEqual([newer.url, newer.url]);
+      await fireEvent.click(within(band).getByRole("button", { name: "Not now" }));
+      await waitFor(() => expect(screen.queryByRole("region", { name: "Update available" })).toBeNull());
+      await waitFor(() => expect(saves.at(-1)?.updateDismissed).toBe("0.1.10"));
+      expect(asked).toHaveBeenCalledTimes(1);
+    });
+
+    it("never shows a version the pilot dismissed, but shows the next one", async () => {
+      for (const [found, shows] of [
+        [newer, false],
+        [{ ...newer, version: "0.1.11" }, true],
+      ] as const) {
+        render(App, {
+          context: hostContext(
+            host({
+              desktop: true,
+              defaultSettings: async () => ({ ...plain(), updateDismissed: "0.1.10" }) as Settings,
+              updateAvailable: async () => found,
+            }),
+          ),
+        });
+        await screen.findByRole("button", { name: CONFIRM_STANDBY });
+        await new Promise((r) => setTimeout(r, 20));
+        expect(!!screen.queryByRole("region", { name: "Update available" }), found.version).toBe(shows);
+        cleanup();
+      }
+    });
+
+    it("never asks with Check for updates off, and the web app has no check", async () => {
+      const asked = vi.fn(async () => newer);
+      render(App, {
+        context: hostContext(
+          host({
+            desktop: true,
+            defaultSettings: async () => ({ ...plain(), checkUpdates: false }) as Settings,
+            updateAvailable: asked,
+          }),
+        ),
+      });
+      await screen.findByRole("button", { name: CONFIRM_STANDBY });
+      await new Promise((r) => setTimeout(r, 20));
+      expect(asked).not.toHaveBeenCalled();
+      cleanup();
+      render(App, { context: hostContext(host({ defaultSettings: async () => plain() })) });
+      await screen.findByRole("button", { name: CONFIRM_STANDBY });
+      expect(screen.queryByRole("region", { name: "Update available" })).toBeNull();
+    });
+
+    it("shows nothing and reports nothing with no newer release, offline, or when the check fails", async () => {
+      for (const updateAvailable of [
+        async () => null,
+        async () => Promise.reject(new TypeError("Failed to fetch")),
+      ]) {
+        render(App, {
+          context: hostContext(
+            host({ desktop: true, defaultSettings: async () => plain(), updateAvailable }),
+          ),
+        });
+        await screen.findByRole("button", { name: CONFIRM_STANDBY });
+        await new Promise((r) => setTimeout(r, 20));
+        expect(screen.queryByRole("region", { name: "Update available" })).toBeNull();
+        expect(screen.queryByRole("alert")).toBeNull();
+        cleanup();
+      }
+    });
   });
 
   for (const [desktop, check] of [
