@@ -731,6 +731,190 @@ mod tests {
         );
     }
 
+    /// The frozen file for a saved format: written by the version of the app that saved that
+    /// format (from its own code, never regenerated), in `tests/fixtures`.
+    fn frozen(kind: &str, format: u32) -> String {
+        let path = format!(
+            "{}/tests/fixtures/{kind}-format-{format}.json",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        std::fs::read_to_string(&path).unwrap_or_else(|_| {
+            panic!(
+                "no frozen file for {kind} format {format}: add {path}, written by the app at that \
+                 format with every value changed from its default"
+            )
+        })
+    }
+
+    /// Reads a frozen file: Ready, migrated from its own format unless it is the current one.
+    fn reads<T>(kind: &str, format: u32, current: u32, loaded: Loaded<T>) -> T {
+        match loaded {
+            Loaded::Ready {
+                value,
+                migrated_from,
+            } => {
+                assert_eq!(
+                    migrated_from,
+                    (format < current).then_some(format),
+                    "{kind} format {format}"
+                );
+                value
+            }
+            Loaded::Newer { format: newer } => {
+                panic!("the frozen {kind} format {format} reads as newer ({newer})")
+            }
+            Loaded::Unreadable { reason } => {
+                panic!("the frozen {kind} format {format} did not load: {reason}")
+            }
+        }
+    }
+
+    #[test]
+    fn every_saved_format_has_a_frozen_file_and_it_still_loads() {
+        for format in 1..=SETTINGS_FORMAT {
+            let text = frozen("settings", format);
+            reads("settings", format, SETTINGS_FORMAT, load_settings(&text));
+        }
+        for format in 1..=FLIGHT_FORMAT {
+            let text = frozen("flight", format);
+            reads("flight", format, FLIGHT_FORMAT, load_flight(&text));
+        }
+        for format in 1..=crate::PLAN_FORMAT {
+            let text = frozen("plan", format);
+            reads("plan", format, crate::PLAN_FORMAT, load_plan(&text));
+        }
+        for format in 1..=crate::LOG_FORMAT {
+            let text = frozen("log", format);
+            let loaded = crate::load_log(&text, &crate::names::Glossaries::new());
+            reads("log", format, crate::LOG_FORMAT, loaded);
+        }
+    }
+
+    /// The current format's frozen file reads as it is, and the app writes it back the same: the
+    /// same fields with the same values. (The files are formatted by Biome, so the JSON is
+    /// compared, not the bytes.)
+    fn writes_back<T: Serialize>(kind: &str, format: u32, loaded: Loaded<T>) {
+        let text = frozen(kind, format);
+        let value = reads(kind, format, format, loaded);
+        assert_eq!(
+            serde_json::to_value(&value).unwrap(),
+            serde_json::from_str::<Value>(&text).unwrap(),
+            "the {kind} the app saves no longer matches its frozen file (format {format}). A field \
+             was added, renamed or removed: raise the format, add a migration and a frozen file \
+             for the new format (decision 0012)"
+        );
+    }
+
+    #[test]
+    fn the_current_formats_read_and_write_back_unchanged() {
+        let text = |kind, format| frozen(kind, format);
+        writes_back(
+            "settings",
+            SETTINGS_FORMAT,
+            load_settings(&text("settings", SETTINGS_FORMAT)),
+        );
+        writes_back(
+            "flight",
+            FLIGHT_FORMAT,
+            load_flight(&text("flight", FLIGHT_FORMAT)),
+        );
+        writes_back(
+            "plan",
+            crate::PLAN_FORMAT,
+            load_plan(&text("plan", crate::PLAN_FORMAT)),
+        );
+        writes_back(
+            "log",
+            crate::LOG_FORMAT,
+            crate::load_log(
+                &text("log", crate::LOG_FORMAT),
+                &crate::names::Glossaries::new(),
+            ),
+        );
+    }
+
+    #[test]
+    fn a_field_renamed_without_a_migration_fails_the_frozen_files() {
+        // What the check above catches: the saved settings with one field under another name, as
+        // a rename in the struct without a new format would read them.
+        let mut renamed: Value =
+            serde_json::from_str(&frozen("settings", SETTINGS_FORMAT)).unwrap();
+        let object = renamed.as_object_mut().unwrap();
+        let chime = object.remove("chime").unwrap();
+        object.insert("sound".into(), chime);
+        assert!(matches!(
+            load_settings(&renamed.to_string()),
+            Loaded::Unreadable { .. }
+        ));
+    }
+
+    #[test]
+    fn settings_saved_in_formats_1_to_5_keep_every_value() {
+        // Frozen: each written by the app at that format, every value changed from its default.
+        for format in 1..=5 {
+            let value = reads(
+                "settings",
+                format,
+                SETTINGS_FORMAT,
+                load_settings(&frozen("settings", format)),
+            );
+            assert_eq!(value.theme, crate::Theme::Dark, "{format}");
+            assert_eq!(value.dimming, 2);
+            assert_eq!(value.detail, crate::Detail::Quick);
+            assert_eq!(value.list_view, crate::StepLayout::Flow);
+            assert!(value.essentials);
+            let changes = &value.essentials_changes["ifly-737-max8"];
+            assert_eq!(changes.added.len(), 1);
+            assert_eq!(changes.removed.len(), 1);
+            assert!(!value.chime);
+            assert_eq!(value.simbrief_user.as_deref(), Some("Pilot"));
+            assert!(value.load_plan_on_open);
+            // Format 2 added the text size: before it, the standard size.
+            let size = if format == 1 {
+                TextSize::Standard
+            } else {
+                TextSize::Larger
+            };
+            assert_eq!(value.text_size, size, "{format}");
+            // The map switch (1, 2) was off; format 3's map choice was "always"; 4 and 5 saved the
+            // panel preview off.
+            assert_eq!(value.panel_preview, format == 3, "{format}");
+            // Format 5 added Descriptions, saved off; before it, on.
+            assert_eq!(value.descriptions, format < 5, "{format}");
+            // A pilot with saved settings has seen the welcome (format 6).
+            assert!(value.tour_seen);
+        }
+    }
+
+    #[test]
+    fn a_frozen_format_1_flight_keeps_its_ticks_values_and_panel_state() {
+        let value = reads(
+            "flight",
+            1,
+            FLIGHT_FORMAT,
+            load_flight(&frozen("flight", 1)),
+        );
+        let step = involo_checklist_core::StepId::new;
+        assert_eq!(value.panel_state.as_deref(), Some("cd"));
+        assert_eq!(
+            value
+                .session
+                .done_at(&step("ifly-737-max8.after-landing.probe-heat")),
+            Some(1_763_000_000_000)
+        );
+        assert_eq!(value.values.len(), 5);
+        assert_eq!(value.values.get("origin").map(String::as_str), Some("KDEN"));
+        assert_eq!(value.notes, "Cleared to KSLC as filed, climb 9000.");
+        assert_eq!(
+            value
+                .timers
+                .get(&step("ifly-737-max8.after-landing.window-heat")),
+            Some(&1_763_000_120_000)
+        );
+        assert!(value.answers.is_empty());
+        assert!(value.state_ticks.is_empty());
+    }
+
     #[test]
     fn current_settings_read_back() {
         let settings = Settings::default();
@@ -862,7 +1046,8 @@ mod tests {
             load_flight(r#"{"format": 0}"#),
             Loaded::Unreadable { .. }
         ));
-        // The current format with a missing field cannot be read, so it is kept, not reset.
+        // A format 1 flight with none of its fields still lacks them once migrated forward, so it
+        // cannot be read: it is kept, not reset.
         assert!(matches!(
             load_flight(r#"{"format": 1}"#),
             Loaded::Unreadable { .. }
