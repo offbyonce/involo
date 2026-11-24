@@ -40,4 +40,15 @@ describe("the web host", () => {
     // The link is gone once clicked.
     expect(document.querySelector("a[download]")).toBeNull();
   });
+
+  it("never asks for persistent storage when progress is first saved (#69)", async () => {
+    const persist = vi.fn(async () => true);
+    vi.stubGlobal("navigator", { ...navigator, storage: { persist, persisted: async () => false } });
+    localStorage.clear();
+    expect(typeof (await webHost.save("demo-pack", "settings", { format: 1 } as never))).toBe("number");
+    expect(typeof (await webHost.save("demo-pack", "settings", { format: 2 } as never))).toBe("number");
+    expect(persist).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+    localStorage.clear();
+  });
 });
