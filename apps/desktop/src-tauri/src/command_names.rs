@@ -50,6 +50,7 @@ pub const COMMANDS: &[&str] = &[
     "files_remove",
     "files_set_aside",
     "files_list",
+    "newer_release",
     "open_link",
     "save_file",
 ];

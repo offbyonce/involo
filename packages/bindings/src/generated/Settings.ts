@@ -63,4 +63,14 @@ backupReminderAfter: number | null,
  * Settings › Keep screen awake (#245): asks the browser to keep the screen on while Involo is
  * open, where it can.
  */
-keepAwake: boolean, };
+keepAwake: boolean, 
+/**
+ * Settings › Check for updates (desktop app, #116): at launch, ask GitHub whether a newer
+ * release is out, and say so. On by default; off, the app never contacts GitHub at launch.
+ */
+checkUpdates: boolean, 
+/**
+ * The newer version whose notice the pilot answered with Not now (#116): it never shows
+ * again, and a version after it does. None until then.
+ */
+updateDismissed: string | null, };

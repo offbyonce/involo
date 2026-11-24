@@ -118,6 +118,7 @@ just test-packs     # the catalog tests and the dev server read, with the exampl
 just update-test  # service worker update test in headless Firefox (needs Firefox; CI runs it too)
 just desktop   # run the desktop app in a window (needs the system webview)
 just desktop-check  # clippy and tests for the desktop app's Rust crate (CI: Windows and macOS)
+just desktop-build  # the desktop app's installer for this system (CI's `desktop` job builds all three)
 just e2e       # end-to-end flows with layout and accessibility checks (Chromium, WebKit)
 just review-shots <dir> <screen>...  # review shots of named screens beside their boards
 just fuzz <target> [seconds]  # fuzz a pack loader target (nightly and cargo-fuzz; not in just ci)

@@ -47,6 +47,7 @@
     "allow-files-remove",
     "allow-files-set-aside",
     "allow-files-list",
+    "allow-newer-release",
     "allow-open-link",
     "allow-save-file"
   ]

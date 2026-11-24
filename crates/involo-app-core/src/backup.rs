@@ -477,6 +477,9 @@ mod tests {
         expected["settings"]["backupReminderAfter"] = Value::Null;
         // And Keep screen awake, which format 11 adds (#245).
         expected["settings"]["keepAwake"] = Value::from(false);
+        // And the desktop app's update check, which format 12 adds (#116).
+        expected["settings"]["checkUpdates"] = Value::from(true);
+        expected["settings"]["updateDismissed"] = Value::Null;
         assert_eq!(written, expected);
     }
 

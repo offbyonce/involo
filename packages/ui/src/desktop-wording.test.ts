@@ -5,7 +5,7 @@
 // or "the disk" when the host is the desktop app, and keeps the web app's words otherwise.
 
 import type { Log, Settings } from "@involo/bindings";
-import { cleanup, render } from "@testing-library/svelte";
+import { cleanup, fireEvent, render, screen } from "@testing-library/svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { type Host, hostContext } from "./host";
 import { reminderLine } from "./lib/backup";
@@ -13,6 +13,7 @@ import KeptNotice from "./lib/KeptNotice.svelte";
 import SaveFailedNotice from "./lib/SaveFailedNotice.svelte";
 import SimNotice from "./lib/SimNotice.svelte";
 import LogPage from "./pages/LogPage.svelte";
+import PrivacyPage from "./pages/PrivacyPage.svelte";
 import SettingsPage from "./pages/SettingsPage.svelte";
 
 afterEach(cleanup);
@@ -133,6 +134,66 @@ describe("the desktop wording", () => {
     cleanup();
     render(KeptNotice, { props, ...web });
     expect(words()).toContain("This browser may be out of space for site data. Save a copy, then try again.");
+  });
+
+  it("Settings › Check for updates: desktop only, after Keep screen awake, on by default (#116)", async () => {
+    const changed: Settings[] = [];
+    render(SettingsPage, {
+      props: { settings, version: null, onChange: (s: Settings) => changed.push(s) },
+      ...desktop,
+    });
+    const row = screen.getByRole("switch", { name: "Check for updates" });
+    expect(row.getAttribute("aria-checked")).toBe("true");
+    expect(words()).toContain(
+      "Check for updates When Involo starts, it asks GitHub whether a newer version is out, and tells you if there is. Nothing about you is sent. It never installs anything by itself.",
+    );
+    const titles = [...document.querySelectorAll(".set b")].map((b) => b.textContent);
+    expect(titles.indexOf("Check for updates")).toBe(titles.indexOf("Keep screen awake") + 1);
+    await fireEvent.click(row);
+    expect(changed.at(-1)?.checkUpdates).toBe(false);
+    cleanup();
+    render(SettingsPage, {
+      props: { settings: { ...settings, checkUpdates: false }, version: null, onChange: () => {} },
+      ...desktop,
+    });
+    expect(screen.getByRole("switch", { name: "Check for updates" }).getAttribute("aria-checked")).toBe(
+      "false",
+    );
+    cleanup();
+    render(SettingsPage, { props: { settings, version: null, onChange: () => {} }, ...web });
+    expect(screen.queryByRole("switch", { name: "Check for updates" })).toBeNull();
+  });
+
+  it("the Privacy page's desktop text, the web page unchanged (#116)", () => {
+    render(PrivacyPage, { props: { version: "0.1.0" }, ...desktop });
+    for (const line of [
+      "Involo keeps everything on this computer. Here’s what that means.",
+      "In Involo’s data folder on this computer. There’s no account and nothing is copied anywhere else. Deleting that folder removes all of it.",
+      "Nothing is sent to us: no analytics, no tracking and no cookies.",
+      "When you import a plan, Involo asks SimBrief for it directly, with the username you typed.",
+      "When it starts, Involo asks GitHub whether a newer version is out, unless you turn off Settings › Check for updates. It also reads the pack catalog from the Involo site when you add or update a pack. Neither request carries anything about you.",
+      "Report a problem with a step opens GitHub’s issue form in your browser. Nothing is sent unless you submit it there.",
+      "You downloaded Involo from its GitHub releases. Like any website host, GitHub records visitors’ IP addresses, for downloads and the update check too, under GitHub’s privacy statement.",
+      "Your data is files on this computer. Save a backup file to keep a copy, or to move your progress to another computer or the web app: Settings › Back up and restore.",
+    ])
+      expect(words(), line).toContain(line);
+    // The same title, sections and links as the web page.
+    expect([...document.querySelectorAll("h2")].map((h) => h.textContent)).toEqual([
+      "What’s stored",
+      "Where it’s kept",
+      "What’s sent",
+      "Where the app comes from",
+      "Keep a copy",
+    ]);
+    expect(screen.getByRole("link", { name: "Settings › Back up and restore" }).getAttribute("href")).toBe(
+      "#/settings/backup",
+    );
+    expect(words()).not.toMatch(/browser’s|this browser|GitHub Pages/);
+    cleanup();
+    render(PrivacyPage, { props: { version: "0.1.0" }, ...web });
+    expect(words()).toContain("Involo keeps everything on this device. Here’s what that means.");
+    expect(words()).toContain("Involo is served by GitHub Pages.");
+    expect(words()).not.toContain("update check");
   });
 
   it("keeps the web words with no host at all, as in a component's own tests", () => {

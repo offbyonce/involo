@@ -28,6 +28,7 @@ in Rust. The host saves progress and settings on the device.
     type CduWalk,
     type Step,
     type Log,
+    type NewerRelease,
     type LoggedFlight,
     type PhaseModel,
     type PlanSource,
@@ -57,6 +58,7 @@ in Rust. The host saves progress and settings on the device.
   import CduWalkthrough from "./lib/CduWalkthrough.svelte";
   import type { Walkthroughs } from "./lib/walkthroughs";
   import BackupReminder from "./lib/BackupReminder.svelte";
+  import UpdateAvailable from "./lib/UpdateAvailable.svelte";
   import SimNotice from "./lib/SimNotice.svelte";
   import Toast from "./lib/Toast.svelte";
   import { answered } from "./lib/answers.svelte";
@@ -1049,6 +1051,29 @@ in Rust. The host saves progress and settings on the device.
    * flight stays as it is. */
   /** The backup reminder band (#243), shown after a flight is logged when a backup is due. */
   let reminder = $state(false);
+  /** The desktop app's update check (#116, notify only): asked once, at launch, when the host has
+   * one and Settings › Check for updates is on. Offline or on a failed request, nothing shows. */
+  let newer = $state<NewerRelease | null>(null);
+  let updateAsked = false;
+  $effect(() => {
+    if (updateAsked || !settings) return;
+    updateAsked = true;
+    if (!host.updateAvailable || settings.checkUpdates === false) return;
+    safely(
+      host.updateAvailable(),
+      (found) => (newer = found),
+      () => {},
+    );
+  });
+  /** The newer release to tell the pilot about: not once the check is turned off, and never the
+   * version Not now dismissed. */
+  let update = $derived(
+    newer && settings && settings.checkUpdates !== false && settings.updateDismissed !== newer.version ? newer : null,
+  );
+  const openRelease = (url: string) => void host.openLink(url).catch(() => {});
+  async function dismissUpdate(version: string): Promise<void> {
+    if (settings) await changeSettings({ ...settings, updateDismissed: version });
+  }
   async function remindLater(): Promise<void> {
     reminder = false;
     if (settings) await changeSettings({ ...settings, backupReminderAfter: Date.now() + REMINDER_DAYS * 24 * 60 * 60 * 1000 });
@@ -2017,7 +2042,14 @@ in Rust. The host saves progress and settings on the device.
     <BackupReminder line={reminderLine(settings.lastBackup ?? null, Date.now(), host.desktop === true)} onSave={() => void remindSave()} onLater={() => void remindLater()} />
   {/if}
 {/snippet}
+{#snippet updateBand()}
+  {#if update && info}
+    {@const found = update}
+    <UpdateAvailable version={found.version} running={info.version} onDownload={() => openRelease(found.url)} onNews={() => openRelease(found.url)} onLater={() => void dismissUpdate(found.version)} />
+  {/if}
+{/snippet}
 {#snippet pageNotices()}
+  {@render updateBand()}
   {@render reminderBand()}
   {@render updateNote()}
 {/snippet}
@@ -2206,7 +2238,7 @@ in Rust. The host saves progress and settings on the device.
                 {walkthroughs}
                 inline={narrow && pane ? inlinePane : undefined}
                 inlineStep={narrow ? (pane?.step.id ?? null) : null}
-                notice={flight.update || reminder ? pageNotices : undefined}
+                notice={flight.update || reminder || update ? pageNotices : undefined}
                 onBriefing={briefingChange}
               />
             {/if}

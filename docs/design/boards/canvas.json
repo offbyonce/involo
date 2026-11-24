@@ -3105,6 +3105,126 @@
       "h": 1000,
       "title": "Shared source: privacy note (tweaks: layout, theme)",
       "page": "b22"
+    },
+    "DeskWording.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1100,
+      "h": 840,
+      "title": "Desktop wording, place by place (dark)",
+      "page": "b23"
+    },
+    "DeskWordingLight.dc.html": {
+      "x": 0,
+      "y": 920,
+      "w": 1100,
+      "h": 840,
+      "title": "Desktop wording, place by place (light)",
+      "page": "b23"
+    },
+    "DeskUpdate.dc.html": {
+      "x": 1180,
+      "y": 0,
+      "w": 920,
+      "h": 420,
+      "title": "Update available (desktop) (dark)",
+      "page": "b23"
+    },
+    "DeskUpdateLight.dc.html": {
+      "x": 1180,
+      "y": 500,
+      "w": 920,
+      "h": 420,
+      "title": "Update available (desktop) (light)",
+      "page": "b23"
+    },
+    "DeskUpdateNarrow.dc.html": {
+      "x": 2180,
+      "y": 0,
+      "w": 390,
+      "h": 520,
+      "title": "Update available, narrow window (dark)",
+      "page": "b23"
+    },
+    "DeskUpdateNarrowLight.dc.html": {
+      "x": 2180,
+      "y": 600,
+      "w": 390,
+      "h": 520,
+      "title": "Update available, narrow window (light)",
+      "page": "b23"
+    },
+    "DeskUpdateSetting.dc.html": {
+      "x": 2650,
+      "y": 0,
+      "w": 760,
+      "h": 200,
+      "title": "Settings: Check for updates (dark)",
+      "page": "b23"
+    },
+    "DeskUpdateSettingLight.dc.html": {
+      "x": 2650,
+      "y": 280,
+      "w": 760,
+      "h": 200,
+      "title": "Settings: Check for updates (light)",
+      "page": "b23"
+    },
+    "DeskUpdateSettingNarrow.dc.html": {
+      "x": 3490,
+      "y": 0,
+      "w": 390,
+      "h": 300,
+      "title": "Settings: Check for updates, narrow window (dark)",
+      "page": "b23"
+    },
+    "DeskUpdateSettingNarrowLight.dc.html": {
+      "x": 3490,
+      "y": 380,
+      "w": 390,
+      "h": 300,
+      "title": "Settings: Check for updates, narrow window (light)",
+      "page": "b23"
+    },
+    "DeskPrivacy.dc.html": {
+      "x": 3960,
+      "y": 0,
+      "w": 920,
+      "h": 1080,
+      "title": "Privacy page, desktop text (dark)",
+      "page": "b23"
+    },
+    "DeskPrivacyLight.dc.html": {
+      "x": 3960,
+      "y": 1160,
+      "w": 920,
+      "h": 1080,
+      "title": "Privacy page, desktop text (light)",
+      "page": "b23"
+    },
+    "DeskPrivacyNarrow.dc.html": {
+      "x": 4960,
+      "y": 0,
+      "w": 390,
+      "h": 1380,
+      "title": "Privacy page, desktop text, narrow window (dark)",
+      "page": "b23"
+    },
+    "DeskPrivacyNarrowLight.dc.html": {
+      "x": 4960,
+      "y": 1460,
+      "w": 390,
+      "h": 1380,
+      "title": "Privacy page, desktop text, narrow window (light)",
+      "page": "b23"
+    },
+    "Desktop.dc.html": {
+      "x": 0,
+      "y": 3000,
+      "w": 1100,
+      "h": 840,
+      "title": "Shared source: desktop app (tweaks: layout, theme)",
+      "page": "b23"
     }
   },
   "createdOnFiles": {
@@ -3113,7 +3233,7 @@
   },
   "designSystems": [],
   "launch": {
-    "page": "b22",
+    "page": "b23",
     "view": "canvas"
   },
   "notes": {},
@@ -3505,7 +3625,22 @@
     "PrivacySettingLight.dc.html",
     "PrivacySettingPhone.dc.html",
     "PrivacySettingPhoneLight.dc.html",
-    "Privacy.dc.html"
+    "Privacy.dc.html",
+    "DeskWording.dc.html",
+    "DeskWordingLight.dc.html",
+    "DeskUpdate.dc.html",
+    "DeskUpdateLight.dc.html",
+    "DeskUpdateNarrow.dc.html",
+    "DeskUpdateNarrowLight.dc.html",
+    "DeskUpdateSetting.dc.html",
+    "DeskUpdateSettingLight.dc.html",
+    "DeskUpdateSettingNarrow.dc.html",
+    "DeskUpdateSettingNarrowLight.dc.html",
+    "DeskPrivacy.dc.html",
+    "DeskPrivacyLight.dc.html",
+    "DeskPrivacyNarrow.dc.html",
+    "DeskPrivacyNarrowLight.dc.html",
+    "Desktop.dc.html"
   ],
   "pages": [
     {
@@ -3627,6 +3762,10 @@
     {
       "id": "b22",
       "name": "Beta 1: privacy note"
+    },
+    {
+      "id": "b23",
+      "name": "Beta 1: desktop app"
     }
   ],
   "title": "Involo layout review (formerly Chock to Chock)"

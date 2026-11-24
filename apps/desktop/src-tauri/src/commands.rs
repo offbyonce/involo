@@ -453,6 +453,15 @@ pub async fn files_list(files: State<'_, Files>, folder: String) -> Result<Vec<S
     files.names(&folder).map_err(|e| e.to_string())
 }
 
+/// The release in GitHub's latest-release reply, when it is newer than this app (#116), or null.
+#[tauri::command]
+pub async fn newer_release(reply: String) -> Answer<Option<involo_app_core::NewerRelease>> {
+    ok(involo_app_core::newer_release(
+        &reply,
+        &involo_app_core::app_info().version,
+    ))
+}
+
 /// The address a link may open in the default browser: https only, so a page can never start a
 /// program or open a file through it.
 fn web_address(url: &str) -> Result<tauri::Url, String> {

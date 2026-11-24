@@ -308,6 +308,50 @@ describe("packs, as files in the data folder (#114)", () => {
   });
 });
 
+describe("the update check (#116)", () => {
+  afterEach(() => {
+    clearMocks();
+    vi.unstubAllGlobals();
+  });
+  const release = { version: "0.1.10", url: "https://github.com/offbyonce/involo/releases/tag/v0.1.10" };
+
+  it("asks GitHub's API for the latest release, carrying nothing about the pilot, and lets Rust compare", async () => {
+    const replies: string[] = [];
+    mockIPC((cmd, args) => {
+      if (cmd === "newer_release") replies.push((args as { reply: string }).reply);
+      return release;
+    });
+    const asked: { url: string; init: RequestInit | undefined }[] = [];
+    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      asked.push({ url: String(url), init });
+      return new Response('{"tag_name":"v0.1.10"}');
+    });
+    expect(await desktopHost.updateAvailable?.()).toEqual(release);
+    expect(asked).toHaveLength(1);
+    expect(asked[0]?.url).toBe("https://api.github.com/repos/offbyonce/involo/releases/latest");
+    expect(asked[0]?.init).toMatchObject({ credentials: "omit", referrerPolicy: "no-referrer" });
+    expect(replies).toEqual(['{"tag_name":"v0.1.10"}']);
+  });
+
+  it("shows nothing offline or when GitHub's reply isn't a release", async () => {
+    mockIPC(() => release);
+    vi.stubGlobal("fetch", async () => {
+      throw new TypeError("Failed to fetch");
+    });
+    expect(await desktopHost.updateAvailable?.()).toBeNull();
+    vi.stubGlobal(
+      "fetch",
+      async () => new Response('{"message":"API rate limit exceeded"}', { status: 403 }),
+    );
+    expect(await desktopHost.updateAvailable?.()).toBeNull();
+    mockIPC(() => {
+      throw "the command failed";
+    });
+    vi.stubGlobal("fetch", async () => new Response("{}"));
+    expect(await desktopHost.updateAvailable?.()).toBeNull();
+  });
+});
+
 describe("links that open a new tab", () => {
   const page = () => {
     document.body.innerHTML = `

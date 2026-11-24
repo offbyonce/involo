@@ -202,13 +202,24 @@ jobs:
         run: pnpm --filter @involo/desktop tauri build --target "$TARGET"
         shell: bash
 
+      # The installer on its own in one folder, so it sits at the artifact's root. With two
+      # paths, upload-artifact roots the artifact at their common folder, which would put it under
+      # nsis/ or dmg/. The release (pages.yml) attaches it from there.
+      - name: Collect the installer
+        if: steps.changed.outputs.build != 'false'
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          mkdir -p target/desktop-installer
+          find "target/$TARGET/release/bundle" -type f \( -path '*/nsis/*.exe' -o -path '*/dmg/*.dmg' \) \
+            -exec cp {} target/desktop-installer/ \;
+        shell: bash
+
       - uses: actions/upload-artifact@v7
         if: steps.changed.outputs.build != 'false'
         with:
           name: involo-desktop-${{ matrix.target }}
-          path: |
-            target/${{ matrix.target }}/release/bundle/nsis/*.exe
-            target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+          path: target/desktop-installer/
           if-no-files-found: error
 
   reuse:

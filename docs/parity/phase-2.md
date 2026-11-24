@@ -159,6 +159,11 @@ in its own pull request.
    - Run `just update-test` in CI on Linux ([#41](https://github.com/offbyonce/involo/issues/41);
      Pages already publishes only after a green CI run).
    - Optionally, pin the actions ([#64](https://github.com/offbyonce/involo/issues/64)).
+   - Attach the desktop app to the release ([#116](https://github.com/offbyonce/involo/issues/116)):
+     the `desktop` job's installers, with `involo-desktop-SHA256SUMS.txt`, from the tag's green CI
+     run (`pages.yml`). The `desktop` job collects each installer at its artifact's root first
+     (`ci.yml`). Check on a fork with a test tag that the release gets all three installers and their
+     sums. No updater key is needed: 0.1.0 only tells you a newer release is out.
 4. **Repository settings:** done. A repository ruleset protects `main`, requiring CI's `ci` job
    on all three systems, `reuse`, `e2e` and CodeQL. Pages is set to GitHub Actions, with HTTPS
    enforced.
@@ -172,8 +177,10 @@ in its own pull request.
    `v*` tag's CI run while `SITE_FROM` is `tags`. A run by hand never attaches them. If the variable
    is switched after the tag, the tag's run skips both, and the tag has to be pushed again. From
    then on, merges to `main` no longer publish the site; only tags do.
-7. **Tag `v0.1.0`** on a green `main` (the workspace and the iFly pack are already 0.1.0). Then
-   check that the release has the catalog files and the three binaries with their SHA-256 sums, and
-   that the site serves the tag's build. Paste the changelog entry into the release notes.
+7. **Tag `v0.1.0`** on a green `main` (the workspace and the iFly pack are already 0.1.0), only
+   once step 3's desktop changes are in and the fork's test tag got the installers. Then check that
+   the release has the catalog files, the three `involo-pack` binaries and the three desktop
+   installers, each with its SHA-256 sums, and that the site serves the tag's build. Paste the
+   changelog entry into the release notes.
 8. **Check by hand on the live site** (step 6, once per release): install the app on a desktop
    browser and a tablet, deploy a new version, and check the reload offer and the new version.

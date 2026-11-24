@@ -13,7 +13,8 @@ This is a hobby project; reports are answered on a best-effort basis.
 ## What the app does and does not do
 
 Involo is a web app: static files served by GitHub Pages, which run in your browser and keep
-working offline once loaded.
+working offline once loaded. It is also a desktop app for Windows and macOS, with the same
+interface and code; [The desktop app](#the-desktop-app) below says where it differs.
 
 - **Content security policy.** Every page carries a strict policy: scripts, styles, images,
   fonts and the WebAssembly module load only from this site, no JavaScript `eval` is allowed,
@@ -33,7 +34,7 @@ working offline once loaded.
 
 ## What is stored, and where
 
-Everything stays in this browser on this device. Nothing is sent to a server. The app's own
+In the web app, everything stays in this browser on this device. Nothing is sent to a server. The app's own
 privacy note (Settings › Privacy) says the same in plain words; when what the app stores or sends
 changes, both change together.
 
@@ -70,11 +71,48 @@ statement. This project receives none of it.
   framed by another site (clickjacking). The app holds no account and takes no payment, which
   limits what framing could do.
 
-A desktop build may follow later; this file will describe it when it exists.
+## The desktop app
+
+The desktop app is the same interface in the system's webview (WebView2 on Windows, WebKit on
+macOS), with a small Rust shell (Tauri) that saves its data as files. Everything above about
+telemetry, cookies, SimBrief and Report a problem holds for it too; these are the differences.
+Its privacy note (Settings › Privacy) says the same in plain words, and changes with this section.
+
+- **Its data is files** in its data folder: `%APPDATA%\com.offbyonce.involo` on Windows and
+  `~/Library/Application Support/com.offbyonce.involo` on macOS. One file per item, in the web
+  app's formats: `settings.json`, `flight.<pack>.json`, `plan.<pack>.json` and `log.json`, and
+  the packs you installed in `packs/` (`<id>.involo-pack`, with `installed.json` saying where each
+  came from). Each file is written whole to a temporary file first and then renamed into place.
+  Data the app couldn't use is set aside as `<name>.kept-<time>`, never deleted. The system webview
+  may keep its own cache files for the window; the app saves nothing there. Deleting the folder
+  removes all of it.
+- **Network requests** go to SimBrief when you import a plan, as in the web app; to this site
+  (`offbyonce.github.io/involo`) for the pack catalog and pack downloads when you add or update a
+  pack; and, when Involo starts, to GitHub's API (`api.github.com`) to ask whether a newer release is out,
+  unless Settings › Check for updates is off. None sends cookies or a referrer, or anything about
+  you. The window's content security policy allows no other address.
+- **Updates are notify only.** Once, when Involo starts, it asks whether a newer release is out.
+  If one is, the app says so and links to its page. It never downloads or installs anything by
+  itself; you download the new version and install it over the old one.
+- **The window's permissions:** the interface may call only the app's own commands
+  (`apps/desktop/src-tauri/capabilities/main.json`). No file, network or shell access is granted
+  to it. Links open in your default browser, and only `https` links. Saved files go where you
+  choose in the save dialog. The app's own files can only be read and written by name inside its
+  data folder.
+- **One window:** starting the app again brings the open window forward, so two windows never
+  write the same files.
+- **Unsigned builds.** The Windows and macOS builds are not signed yet. Each installer on the
+  release has a SHA-256 sum beside it; check your download against it. Windows SmartScreen and
+  macOS Gatekeeper warn before opening an unsigned app; the README says how to open it.
+- **What the hosting sees:** GitHub logs the IP addresses of downloads and of the update check,
+  under GitHub's privacy statement. This project receives none of it.
 
 ## For maintainers
 
 - Signing and update keys never live in this repository. They are passed to release
   builds only, never to builds of pull requests.
+- The 0.1.0 desktop releases are unsigned, and the app only tells you a newer release is out. It
+  has no updater and no update key. Signed in-app updates will come later, with their own key; its
+  public key is committed only then.
 - GitHub secret scanning and push protection are enabled.
 - `just deny` checks dependency licenses and known advisories.

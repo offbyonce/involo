@@ -23,6 +23,7 @@ import {
   type Log,
   type LogChange,
   type LoggedFlight,
+  type NewerRelease,
   type OpenStep,
   type OtherAircraft,
   type PackChanges,
@@ -84,6 +85,27 @@ export const SITE = "https://offbyonce.github.io/involo/";
 const siteFetch: typeof fetch = (input, init) => fetch(new URL(String(input), SITE), init);
 /** Pack downloads, keeping the last one for Update. */
 const fetchPack = keepingLastDownload(siteFetch);
+
+/** GitHub's latest release of the app (#116): asked at launch for the update check. */
+export const LATEST_RELEASE = "https://api.github.com/repos/offbyonce/involo/releases/latest";
+
+/** The update check: GitHub's latest release, when Rust finds it newer than this app. Null
+ * offline, on a reply that isn't 2xx, or one Rust can't read: then nothing shows. The request
+ * carries nothing about the pilot: no cookies, no referrer and nothing in the address. */
+async function updateAvailable(): Promise<NewerRelease | null> {
+  try {
+    const response = await fetch(LATEST_RELEASE, {
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+      cache: "no-store",
+      headers: { Accept: "application/vnd.github+json" },
+    });
+    if (!response.ok) return null;
+    return await call<NewerRelease | null>("newer_release", { reply: await response.text() });
+  } catch {
+    return null;
+  }
+}
 
 /** The texts of the installed packs a log text needs to be read (only a format 1 log needs any). */
 async function logPackTexts(text: string): Promise<string[]> {
@@ -250,6 +272,7 @@ export const desktopHost: Host = {
       packs: edit.type === "merge" ? await logPackTexts(edit.text) : [],
     }),
   logCsv: (log) => call<string>("log_csv", { log }),
+  updateAvailable,
   openLink: (url) => call<void>("open_link", { url }),
   saveFile: (name, text) => call<boolean>("save_file", { name, text }),
 };

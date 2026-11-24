@@ -29,7 +29,7 @@ checks dependencies. The git hooks (installed by `pnpm install`) run the quick p
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/):
   `feat: …`, `fix: …`, `docs: …`, `pack(ifly-737-max8): …`.
 - Every bug fix comes with a test that would have caught it.
-- Keep logic in `crates/`. The host crates (`crates/involo-web-host`) and the interface stay thin.
+- Keep logic in `crates/`. The host crates (`crates/involo-web-host`, the desktop shell in `apps/desktop/src-tauri`) and the interface stay thin.
 - Never put an aircraft name in engine code. Aircraft differences belong in pack data.
 - American English everywhere: code identifiers, pack field names, error messages, docs and pack content (color, behavior, license as a noun, optimize, pressurization).
   Exceptions keep their exact spelling: SPDX license IDs, file names such as `LICENSE` and `LICENSES/`, and anything quoted from outside sources.
@@ -50,6 +50,7 @@ checks dependencies. The git hooks (installed by `pnpm install`) run the quick p
 | Fuzzing (`fuzz/fuzz_targets`) | A pack file, data file or pack folder that makes the loader panic, hang or run out of memory. Four targets: `pack_file` (a built pack file, checked and opened), `pack_edits` (a valid pack with fuzzer-chosen edits), `data_file` (`pack.json` and each YAML file) and `pack_folder` (a whole folder, with `extends` and patches). An input that fails is saved in `target/fuzz-artifacts/<target>/`; fix it and keep it as a test. | `just fuzz <target> [seconds]` (needs a nightly compiler and cargo-fuzz); weekly in CI |
 | Dependencies (`deny.toml`, and `audit` in `pnpm-workspace.yaml`) | A Rust crate with a security advisory, yanked, or under a license outside the list in `deny.toml`, or from a source other than crates.io; two versions of one crate (reported, not failed). A JavaScript package the app ships with a high or critical advisory. | `just deny`, part of `just ci` |
 | Size budget (`apps/web/size-budget.json`) | The built app (every file but the pack catalog), the WebAssembly module or the largest script growing past its limit. Each run prints the three sizes against their limits. | the last step of `just site`, part of `just ci` |
+| The desktop app (`just desktop-check`, `just desktop-build`; the `desktop` job) | Clippy warnings and failing tests in the desktop app's Rust crate, and an installer that doesn't build, on Windows and macOS. `just ci` leaves the crate out (it needs the system webview to compile); the desktop host's TypeScript tests are in `just test`. | in CI on pull requests that touch the app, on main and on release tags; not a required check |
 | Code scanning (CodeQL) | Security problems in the JavaScript, TypeScript and Rust, such as unsafe use of input or a weak pattern. Findings appear on the pull request. | in CI on every pull request and on main |
 | Review shots (`just review-shots <out> <screen>...`) | Nothing by itself: they are for design review. Each named screen is shot at its sizes in both themes and put beside its approved board (`apps/web/build/review-boards.mjs`). | by hand, for the screens a pull request adds or changes |
 
