@@ -18,6 +18,7 @@ flight shows under every pack and its own, and each entry names its pack and ver
 version under a pack's chip, or when the log holds one pack).
 -->
 <script lang="ts">
+  import { onDesktop } from "../host";
   import { safely } from "../lib/safely";
   import type { Log, LoggedFlight } from "@involo/bindings";
   import {
@@ -181,6 +182,7 @@ version under a pack's chip, or when the log holds one pack).
     sheet = false;
     sheetOpener?.focus();
   }
+  const desktop = onDesktop();
 </script>
 
 <svelte:window
@@ -305,7 +307,9 @@ version under a pack's chip, or when the log holds one pack).
   <button class="bt act" type="button" onclick={onJson}>Export JSON</button>
   {#if !blocked}<button class="bt act" type="button" onclick={() => file?.click()}>Load log file</button>
     <button class="bt act" type="button" onclick={print}>Print or save as PDF</button>{/if}
-  <span class="note">{#if chosen && !blocked}{`Exports hold ${chosen.name} only. `}{/if}Logs stay on this device unless you export them. Clearing your browser’s site data removes them, so export now and then to keep a copy.</span>
+  <span class="note">{#if chosen && !blocked}{`Exports hold ${chosen.name} only. `}{/if}{desktop
+      ? "Logs stay on this computer unless you export them. Export now and then to keep a copy."
+      : "Logs stay on this device unless you export them. Clearing your browser’s site data removes them, so export now and then to keep a copy."}</span>
 {/snippet}
 
 {#snippet chips()}

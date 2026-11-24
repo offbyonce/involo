@@ -7,14 +7,22 @@ the flight lasts only while the page is open. It goes once a save works again. S
 notice beside it.
 -->
 <script lang="ts">
+  import { onDesktop } from "../host";
+
   // No props: App shows it while saves fail.
+  const desktop = onDesktop();
 </script>
 
 <div class="unsaved" role="alert">
   <p>
     <b>Progress isn’t being saved on this device.</b>
-    This browser is blocking site data or is out of space for it, so your ticks last only while
-    this page is open. Check that this browser allows saving site data.
+    {#if desktop}
+      Involo can’t write to its data folder, so your ticks last only while the app is open. Check
+      that the disk has free space, then restart Involo.
+    {:else}
+      This browser is blocking site data or is out of space for it, so your ticks last only while
+      this page is open. Check that this browser allows saving site data.
+    {/if}
   </p>
 </div>
 

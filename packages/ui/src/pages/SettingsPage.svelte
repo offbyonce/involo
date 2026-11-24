@@ -7,6 +7,7 @@ on the device (decision 0012).
 -->
 <script lang="ts">
   import type { Settings } from "@involo/bindings";
+  import { onDesktop } from "../host";
   import { lastBackupLine } from "../lib/backup";
   import Icon from "../lib/Icon.svelte";
   import Toggle from "../lib/Toggle.svelte";
@@ -127,6 +128,7 @@ on the device (decision 0012).
       ],
     },
   ];
+  const desktop = onDesktop();
 </script>
 
 <h1>Settings</h1>
@@ -171,7 +173,11 @@ on the device (decision 0012).
        preview when there is no seat setting. On a phone the buttons stack, full width. -->
   <div class="set backup">
     <b id="set-backup">Back up and restore</b>
-    <p>One file holds every pack’s flight and plan, your settings and the flight log. Keep a copy somewhere safe: clearing this browser’s site data removes everything saved here.</p>
+    <p>
+      {desktop
+        ? "One file holds every pack’s flight and plan, your settings and the flight log. Keep a copy somewhere safe, and use it to move your progress to another computer or to the web app."
+        : "One file holds every pack’s flight and plan, your settings and the flight log. Keep a copy somewhere safe: clearing this browser’s site data removes everything saved here."}
+    </p>
     <div class="acts" role="group" aria-labelledby="set-backup">
       <button class="btn" type="button" onclick={onBackup}><Icon name="download" />Save a backup file</button>
       <button class="btn" type="button" onclick={() => picker?.click()}><Icon name="file-add" />Restore from a file…</button>
@@ -246,8 +252,12 @@ on the device (decision 0012).
           <b id="set-awake">Keep screen awake</b>
           <p>
             Stops the screen dimming or locking while Involo is open. It uses more battery.{canKeepAwake
-              ? " Where the browser can’t keep the screen on, this row says so."
-              : " This browser can’t keep the screen on."}
+              ? desktop
+                ? " Where the screen can’t be kept on, this row says so."
+                : " Where the browser can’t keep the screen on, this row says so."
+              : desktop
+                ? " This computer can’t keep the screen on."
+                : " This browser can’t keep the screen on."}
           </p>
         </div>
         <Toggle on={canKeepAwake && !!settings.keepAwake} labelledby="set-awake" disabled={!canKeepAwake} onToggle={() => onChange({ ...settings, keepAwake: !settings.keepAwake })} />

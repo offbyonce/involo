@@ -74,6 +74,8 @@ tauri-build = { version = "=2.7.6", features = [] }
 # Opens a link in the default browser, and shows the save dialog for backups and exports.
 tauri-plugin-opener = "2.7.3"
 tauri-plugin-dialog = "2.8.4"
+# Starting the app again focuses the open window, so two never write the same files.
+tauri-plugin-single-instance = "2.5.5"
 
 # Testing
 insta = { version = "1.49", features = ["json"] }

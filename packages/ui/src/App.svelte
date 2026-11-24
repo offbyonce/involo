@@ -996,7 +996,7 @@ in Rust. The host saves progress and settings on the device.
   let logKept = $state<string | null>(null);
   /** Why the last change to the log wasn't saved, for the page. */
   let logProblem = $state<string | null>(null);
-  const NOT_SAVED = "The log couldn’t be saved on this device, so nothing changed. Check that this browser allows saving site data, then try again.";
+  const NOT_SAVED = `The log couldn’t be saved on this device, so nothing changed. ${host.desktop ? "Check that the disk has free space" : "Check that this browser allows saving site data"}, then try again.`;
   /**
    * Changes the log and saves it; with `keep`, a flight was just logged. The change starts from the
    * log as saved now, so another tab's entries are kept (each change is saved at once, so the saved
@@ -1315,7 +1315,7 @@ in Rust. The host saves progress and settings on the device.
       fail(e);
     }
   }
-  const NOT_RESTORED = "The backup couldn’t be fully restored on this device. Check that this browser allows saving site data, then try again.";
+  const NOT_RESTORED = `The backup couldn’t be fully restored on this device. ${host.desktop ? "Check that the disk has free space" : "Check that this browser allows saving site data"}, then try again.`;
 
   /** Deletes a flight, or brings a deleted one back (Undo). */
   async function deleteLogged(id: string): Promise<boolean> {
@@ -1734,9 +1734,13 @@ in Rust. The host saves progress and settings on the device.
     const delta = Object.fromEntries(
       Object.entries(next).filter(([k, v]) => !before || JSON.stringify(v) !== JSON.stringify(before[k as keyof Settings])),
     ) as Partial<Settings>;
+    // In turn with flight changes (#267): the screen it refreshes is the flight's after any change
+    // still being applied, and two quick changes never save over each other.
     try {
-      await refresh();
-      await persist("settings", async (saved) => ({ ...saved, ...delta }));
+      await inTurn(async () => {
+        await refresh();
+        await persist("settings", async (saved) => ({ ...saved, ...delta }));
+      });
     } catch (e) {
       fail(e);
     }
@@ -1751,8 +1755,7 @@ in Rust. The host saves progress and settings on the device.
     kept = kept.filter((k) => k.what !== what);
     if (what === "plan") {
       if (plan) await host.savePlan(packId, plan);
-    } else if (what === "flight") await inTurn(() => persist("flight"));
-    else await persist(what);
+    } else await inTurn(() => persist(what));
   }
 
   const tick = (id: string, done: boolean) => tickAndOffer(done ? { type: "untick", step: id } : { type: "tick", step: id, at: Date.now() });
@@ -2011,7 +2014,7 @@ in Rust. The host saves progress and settings on the device.
 {:else}
 {#snippet reminderBand()}
   {#if reminder && settings}
-    <BackupReminder line={reminderLine(settings.lastBackup ?? null, Date.now())} onSave={() => void remindSave()} onLater={() => void remindLater()} />
+    <BackupReminder line={reminderLine(settings.lastBackup ?? null, Date.now(), host.desktop === true)} onSave={() => void remindSave()} onLater={() => void remindLater()} />
   {/if}
 {/snippet}
 {#snippet pageNotices()}

@@ -1101,6 +1101,33 @@ describe("App", () => {
       expect(applied(saved.at(-1))).toBe("");
     });
 
+    it("a settings change made while a tick is still being applied refreshes the rail from the ticked flight (#114)", async () => {
+      const shown: string[] = [];
+      const settingsSaved: Settings[] = [];
+      const { h, saved, finish } = slowHost({
+        rail: async (_p, f) => {
+          shown.push(applied(f));
+          return rail;
+        },
+        save: async (_p, what, value) => {
+          if (what === "flight") saved.push(value as Flight);
+          else settingsSaved.push(value as Settings);
+          return 1;
+        },
+      });
+      render(App, { context: hostContext(h) });
+      await fireEvent.click(await screen.findByRole("button", { name: CONFIRM }));
+      const before = shown.length;
+      await fireEvent.click(screen.getAllByRole("button", { name: "Step by step" })[0] as HTMLElement);
+      await finish();
+      // The rail the change refreshes is the ticked flight's: never the flight from before the
+      // tick, which could land after the tick's own refresh and leave the rail behind.
+      expect(shown.slice(before).length).toBeGreaterThan(0);
+      expect(shown.slice(before)).not.toContain("");
+      expect(applied(saved.at(-1))).toBe("tick");
+      expect(settingsSaved.at(-1)?.listView).toBe("flow");
+    });
+
     it("a tick made while the one before it meets another window's save keeps both, and that window's", async () => {
       const other = {
         pack: "demo",
@@ -2555,6 +2582,31 @@ describe("the Flight log (decision 0026)", () => {
     expect(screen.queryByText("Flight complete. Log it and start new?")).toBeNull();
   });
 
+  for (const [desktop, check] of [
+    [false, "Check that this browser allows saving site data"],
+    [true, "Check that the disk has free space"],
+  ] as const)
+    it(`says why the log couldn't be saved, ${desktop ? "on desktop" : "in a browser"}`, async () => {
+      window.location.hash = "#/log";
+      const h = host({
+        desktop,
+        readSaved: async () => ({
+          flight: { loaded: { state: "ready", value: ticked(), migratedFrom: null }, text: "{}" },
+          settings: null,
+        }),
+        saveLog: async () => false,
+      });
+      render(App, { context: hostContext(h) });
+      const go = await screen.findByRole("button", { name: "Log flight and start new" });
+      await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false));
+      await fireEvent.click(go);
+      expect(
+        await screen.findByText(
+          `The log couldn’t be saved on this device, so nothing changed. ${check}, then try again.`,
+        ),
+      ).toBeTruthy();
+    });
+
   it("keeps the flight when the log can't be saved, and says so", async () => {
     const actions: Action[] = [];
     window.location.hash = "#/log";
@@ -3844,6 +3896,44 @@ describe("back up and restore (#47)", () => {
     await waitFor(() => expect(restart).toHaveBeenCalled());
     expect(saved.at(-1)).toMatchObject({ theme: "light", lastBackup: 7, currentPack: "demo" });
   });
+
+  for (const [desktop, check] of [
+    [false, "Check that this browser allows saving site data"],
+    [true, "Check that the disk has free space"],
+  ] as const)
+    it(`says why a backup couldn't be fully restored, ${desktop ? "on desktop" : "in a browser"}`, async () => {
+      const backup = {
+        kind: "involo-backup",
+        format: 1,
+        appVersion: "0.1.0",
+        savedAt: 1,
+        flights: [],
+        settings: { ...stored, theme: "light" },
+        log: { format: 3, flights: [], practice: [] },
+      };
+      window.location.hash = "#/settings";
+      const h = host({
+        desktop,
+        readSaved: async () => ({ flight: null, settings: ready(stored) }),
+        readBackup: async () => ({ state: "ready", backup: backup as never, earlier: null }),
+        save: async (_p, what) => (what === "settings" ? null : 1),
+      });
+      render(App, { props: { onRestart: vi.fn() }, context: hostContext(h) });
+      await screen.findByRole("button", { name: "Restore from a file…" });
+      const input = document.querySelector('.set.backup input[type="file"]') as HTMLInputElement;
+      Object.defineProperty(input, "files", { value: [new File(["{}"], "b.json")], configurable: true });
+      await fireEvent.change(input);
+      const dialog = await screen.findByRole("dialog", { name: "Restore from this backup?" });
+      await fireEvent.click(within(dialog).getByRole("button", { name: "Restore" }));
+      expect(
+        await screen.findByText(
+          `The backup couldn’t be fully restored on this device. ${check}, then try again.`,
+          {
+            exact: false,
+          },
+        ),
+      ).toBeTruthy();
+    });
 
   it("says on its row why a Download in the review failed, as the Packs page does, and still keeps the flight", async () => {
     const restart = vi.fn();

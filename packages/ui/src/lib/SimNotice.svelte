@@ -8,6 +8,7 @@ only way to close it: no Esc, no scrim click, no close button. It has no privacy
 note (#52) is reached from Settings' last line.
 -->
 <script lang="ts">
+  import { onDesktop } from "../host";
   import Icon from "./Icon.svelte";
   import { trapFocus } from "./trap";
 
@@ -54,7 +55,11 @@ note (#52) is reached from Settings' last line.
         Involo is a training aid for flight simulators. Don’t use it for real-world flying: it isn’t a substitute for an
         aircraft’s approved documentation, procedures or training.
       </p>
-      <p class="sub">Everything you do here is saved in this browser, on this device only. Nothing is sent to us.</p>
+      <p class="sub">
+        {onDesktop()
+          ? "Everything you do here is saved on this computer only. Nothing is sent to us."
+          : "Everything you do here is saved in this browser, on this device only. Nothing is sent to us."}
+      </p>
     </div>
     <div class="row">
       <button class="btn primary" type="button" bind:this={button} onclick={onUnderstood}>I understand</button>
