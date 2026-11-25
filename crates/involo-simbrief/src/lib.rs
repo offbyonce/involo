@@ -142,23 +142,34 @@ pub fn parse_ofp_json(body: &str) -> Result<Plan, OfpError> {
 /// Parse a saved SimBrief XML plan. It is turned into the JSON shape, then read the same way.
 pub fn parse_ofp_xml(body: &str) -> Result<Plan, OfpError> {
     let doc = roxmltree::Document::parse(body).map_err(|e| OfpError::NotXml(e.to_string()))?;
-    plan::plan_from_value(&xml_to_value(doc.root_element()))
+    plan::plan_from_value(&xml_to_value(doc.root_element(), 1)?)
 }
 
+/// How deep a plan file's elements may nest. SimBrief's plans go 4 deep; past this, a file is
+/// refused rather than read, so a deeply nested one can't exhaust the stack (#73). `roxmltree`
+/// parses any depth, but reading it into a value goes one call deeper per element.
+const MAX_XML_DEPTH: usize = 64;
+
 /// An element as SimBrief's JSON would hold it: text when it has no child elements,
-/// otherwise an object whose repeated child names become arrays.
-fn xml_to_value(node: roxmltree::Node<'_, '_>) -> Value {
+/// otherwise an object whose repeated child names become arrays. `depth` is the element's own,
+/// from 1 for the root; one nested past [`MAX_XML_DEPTH`] is an error.
+fn xml_to_value(node: roxmltree::Node<'_, '_>, depth: usize) -> Result<Value, OfpError> {
+    if depth > MAX_XML_DEPTH {
+        return Err(OfpError::NotXml(format!(
+            "its elements nest more than {MAX_XML_DEPTH} deep"
+        )));
+    }
     let mut children = node
         .children()
         .filter(roxmltree::Node::is_element)
         .peekable();
     if children.peek().is_none() {
         let text: String = node.children().filter_map(|c| c.text()).collect();
-        return Value::String(text.trim().to_owned());
+        return Ok(Value::String(text.trim().to_owned()));
     }
     let mut fields = serde_json::Map::new();
     for child in children {
-        let value = xml_to_value(child);
+        let value = xml_to_value(child, depth + 1)?;
         match fields.get_mut(child.tag_name().name()) {
             Some(Value::Array(items)) => items.push(value),
             Some(existing) => *existing = Value::Array(vec![existing.take(), value]),
@@ -167,7 +178,7 @@ fn xml_to_value(node: roxmltree::Node<'_, '_>) -> Value {
             }
         }
     }
-    Value::Object(fields)
+    Ok(Value::Object(fields))
 }
 
 #[cfg(test)]
@@ -359,5 +370,37 @@ mod tests {
             let _ = parse_ofp(&input);
             let _ = parse_ofp(&format!("<{input}"));
         }
+    }
+
+    /// `depth` elements nested inside each other, the innermost holding some text.
+    fn nested(depth: usize) -> String {
+        format!("{}x{}", "<a>".repeat(depth), "</a>".repeat(depth))
+    }
+
+    #[test]
+    fn a_file_nested_far_too_deep_is_refused_not_a_crash() {
+        // Deep enough to exhaust the stack if each level were read with a call of its own.
+        let err = parse_ofp_xml(&nested(200_000)).unwrap_err();
+        assert_eq!(
+            err,
+            OfpError::NotXml(format!("its elements nest more than {MAX_XML_DEPTH} deep"))
+        );
+        assert!(matches!(
+            parse_ofp(&nested(200_000)),
+            Err(OfpError::NotXml(_))
+        ));
+    }
+
+    #[test]
+    fn nesting_up_to_the_limit_is_read() {
+        let nest = |depth| {
+            let text = nested(depth);
+            let doc = roxmltree::Document::parse(&text).unwrap();
+            xml_to_value(doc.root_element(), 1).is_ok()
+        };
+        assert!(nest(MAX_XML_DEPTH));
+        assert!(!nest(MAX_XML_DEPTH + 1));
+        // SimBrief's own plans nest 4 deep, well inside it.
+        assert!(parse_ofp_xml(&fixture("ofp-sample.xml")).is_ok());
     }
 }
